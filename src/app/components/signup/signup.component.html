@@ -1,0 +1,155 @@
+<!-- signup.component.html -->
+
+<div class="container min-vh-100 d-flex justify-content-center align-items-center px-4">
+  <div class="card shadow-lg p-4 w-100" style="max-width: 450px;">
+    <h2 class="text-center text-primary mb-4">Create an Account</h2>
+
+    <form (ngSubmit)="onSubmit()" #signupForm="ngForm">
+      <!-- Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          [(ngModel)]="name"
+          required
+          placeholder="Enter your full name"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          placeholder="you@example.com"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          placeholder="Create a strong password"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Role Selection -->
+      <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select
+          id="role"
+          name="role"
+          [(ngModel)]="role"
+          required
+          class="form-select"
+        >
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        [disabled]="!signupForm.form.valid"
+        class="btn btn-primary w-100 py-2"
+      >
+        Sign Up
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <p class="text-center text-muted mt-3">
+      Already have an account? <a routerLink="/auth/login" class="text-primary">Log In</a>
+    </p>
+  </div>
+</div>
+
+
+
+<!--<div class="signup-container">
+  <h2>Sign Up</h2>
+  <form>
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="Enter your full name" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Create a password" required />
+
+      <label for="role">Role</label>
+      <select id="role" required>
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+      </select>
+
+      <button type="submit">Sign Up</button>
+
+      <div class="form-footer">
+          <a href="/login">Already have an account? Login here.</a>
+      </div>
+  </form>
+</div>-->
+
+<!-- Scroll Buttons 
+<div class="fixed bottom-4 right-4 flex flex-col space-y-2 z-50">
+  <button (click)="scrollToTop()" class="bg-[#405980] text-white p-2 rounded-full shadow-md hover:bg-[#314466]">
+    ↑
+  </button>
+  <button (click)="scrollToBottom()" class="bg-[#405980] text-white p-2 rounded-full shadow-md hover:bg-[#314466]">
+    ↓
+  </button>
+</div>-->
+
+
+
+
+<!-- 
+ <div class="signup-container">
+  <h2>Signup</h2>
+  <form (ngSubmit)="onSubmit()">
+    <div>
+      <label for="name">Name:</label>
+      <input type="text" id="name" [(ngModel)]="name" name="name" required>
+    </div>
+
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" [(ngModel)]="email" name="email" required>
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" [(ngModel)]="password" name="password" required>
+    </div>
+
+    <div>
+      <label for="role">Role:</label>
+      <select [(ngModel)]="role" name="role">
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+    <button type="submit">Sign Up</button>
+  </form>
+</div>
+-->

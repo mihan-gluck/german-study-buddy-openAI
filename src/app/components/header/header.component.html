@@ -1,0 +1,65 @@
+<!-- header.component.html -->
+
+<header>
+  <nav>
+    <ul class="nav-links">
+      <li><a (click)="navigateTo('/home')">Home</a></li>
+      <li><a (click)="navigateTo('/signup')" *ngIf="!isLoggedIn()">Sign Up</a></li>
+      <li><a (click)="navigateTo('/login')" *ngIf="!isLoggedIn()">Login</a></li>
+      <li><a (click)="navigateTo('/profile')" *ngIf="isLoggedIn()">Profile</a></li>
+      <li><a (click)="navigateTo('/chat')" *ngIf="isLoggedIn()">Chat</a></li>
+      <li><a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'admin'">Admin Dashboard</a></li>
+      <li><a (click)="navigateTo('/teacher-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'teacher'">Teacher Dashboard</a></li>
+      <li><a (click)="navigateTo('/student-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'student'">Student Dashboard</a></li>
+      <li><a (click)="navigateTo('/contact')">Contact</a></li>
+      <li><a href="#" (click)="logOut()" *ngIf="isLoggedIn()">Logout</a></li>
+    </ul>
+  </nav>
+</header>
+
+
+<!-- <header>
+  <nav>
+    <ul class="nav-links">
+      <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
+      <li *ngIf="!isLoggedIn()"><a routerLink="/signup" routerLinkActive="active">Sign Up</a></li>
+      <li *ngIf="!isLoggedIn()"><a routerLink="/login" routerLinkActive="active">Login</a></li>
+      <li *ngIf="isLoggedIn()"><a routerLink="/profile" routerLinkActive="active">Profile</a></li>
+      <li *ngIf="isLoggedIn()"><a routerLink="/chat" routerLinkActive="active">Chat</a></li>
+
+       Role-Based Dashboard Links 
+      <li *ngIf="isLoggedIn() && getUserRole() === 'admin'">
+        <a routerLink="/admin-dashboard" routerLinkActive="active">Admin Dashboard</a>
+      </li>
+      <li *ngIf="isLoggedIn() && getUserRole() === 'teacher'">
+        <a routerLink="/teacher-dashboard" routerLinkActive="active">Teacher Dashboard</a>
+      </li>
+      <li *ngIf="isLoggedIn() && getUserRole() === 'student'">
+        <a routerLink="/student-dashboard" routerLinkActive="active">Student Dashboard</a>
+      </li>
+
+       Logout Button --
+      <li *ngIf="isLoggedIn()">
+        <a href="#" (click)="logOut()">Logout</a>
+      </li>
+    </ul>
+  </nav>
+</header> 
+
+
+ <header>
+    <nav>
+      <ul class="nav-links">
+        <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
+        <li><a routerLink="/signup" routerLinkActive="active" *ngIf="!isLoggedIn()">Sign Up</a></li>
+        <li><a routerLink="/login" routerLinkActive="active" *ngIf="!isLoggedIn()">Login</a></li>
+        <li><a routerLink="/profile" routerLinkActive="active" *ngIf="isLoggedIn()">Profile</a></li>
+        <li><a routerLink="/chat" routerLinkActive="active" *ngIf="isLoggedIn()">Chat</a></li>
+        <li><a routerLink="/admin-dashboard" routerLinkActive="active" *ngIf="isLoggedIn() && authService.getUserRole() === 'admin'">Admin Dashboard</a></li>
+        <li><a routerLink="/teacher-dashboard" routerLinkActive="active" *ngIf="isLoggedIn() && authService.getUserRole() === 'teacher'">Teacher Dashboard</a></li>
+        <li><a routerLink="/student-dashboard" routerLinkActive="active" *ngIf="isLoggedIn() && authService.getUserRole() === 'student'">Student Dashboard</a></li>
+        <li><a href="#" (click)="logOut()" *ngIf="isLoggedIn()">Logout</a></li>
+      </ul>
+    </nav>
+  </header> 
+   -->

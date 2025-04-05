@@ -1,0 +1,12 @@
+/* ai-chat.component.css */
+
+.ai-chat-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#ai-chat-widget {
+  height: 1500px; /* Adjust height as necessary */
+  width: 100%;
+  margin-top: 20px;
+}

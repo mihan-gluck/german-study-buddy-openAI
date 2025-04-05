@@ -1,0 +1,35 @@
+<!-- subscriptions.component.html -->
+<div class="container">
+    <h2>Manage Subscription</h2>
+    <form (ngSubmit)="onSubmit()" #subscriptionForm="ngForm">
+      <div class="form-group">
+        <label for="subscriptionType">Subscription Type</label>
+        <select id="subscriptionType" class="form-control" name="type" [(ngModel)]="subscription.type" required>
+          <option value="free">Free</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+  
+      <div class="form-group">
+        <label for="subscriptionExpiry">Expiry Date</label>
+        <input 
+          type="date" 
+          id="subscriptionExpiry" 
+          class="form-control" 
+          name="expiryDate" 
+          [(ngModel)]="subscription.expiryDate" 
+          required />
+      </div>
+  
+      <button type="submit" class="btn btn-primary" [disabled]="!subscriptionForm.form.valid">
+        Update Subscription
+      </button>
+    </form>
+  
+    <div class="subscription-details" *ngIf="currentSubscription">
+      <h3>Your Current Subscription</h3>
+      <p>Type: {{ currentSubscription.type }}</p>
+      <p>Expiry Date: {{ currentSubscription.expiryDate | date }}</p>
+    </div>
+  </div>
+  

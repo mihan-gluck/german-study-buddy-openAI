@@ -1,0 +1,75 @@
+/* home.component.css */
+/* Container for content */
+.container {
+  width: 90%;
+  margin: auto;
+}
+
+/* Header Section */
+header {
+  text-align: center;
+  padding: 20px;
+}
+
+header h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+header p {
+  font-size: 1.1rem;
+}
+
+.cta {
+  text-align: center;
+  padding: 30px;
+}
+
+.cta a {
+  padding: 15px;
+  margin: 10px;
+  background-color: #405980;
+  color: white;
+  border-radius: 5px;
+}
+
+.cta a:hover {
+  background-color: #73a9be;
+}
+
+/* Features Section */
+.features {
+  text-align: center;
+  margin: 40px 0;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.feature {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feature h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.feature p {
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  .cta {
+    padding: 15px;
+  }
+}

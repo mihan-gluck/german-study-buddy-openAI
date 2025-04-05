@@ -1,0 +1,11 @@
+<div class="ai-conversations-container">
+    <h2>AI Conversations</h2>
+    <div *ngFor="let conversation of conversations">
+      <div class="conversation-card">
+        <p><strong>User:</strong> {{ conversation.messages[0].text }}</p>
+        <p><strong>AI:</strong> {{ conversation.messages[1].text }}</p>
+        <p><strong>Timestamp:</strong> {{ conversation.timestamp | date }}</p>
+      </div>
+    </div>
+  </div>
+  

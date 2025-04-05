@@ -1,0 +1,31 @@
+<!-- courses.component.html -->
+<div class="container">
+    <h2>Available Courses</h2>
+    
+    <!-- Course Creation Form -->
+    <form (ngSubmit)="onSubmit()" #courseForm="ngForm">
+      <div class="form-group">
+        <label for="courseTitle">Course Title</label>
+        <input type="text" id="courseTitle" class="form-control" name="title" [(ngModel)]="course.title" required>
+      </div>
+  
+      <div class="form-group">
+        <label for="courseDescription">Course Description</label>
+        <textarea id="courseDescription" class="form-control" name="description" [(ngModel)]="course.description" required></textarea>
+      </div>
+  
+      <button type="submit" class="btn btn-primary" [disabled]="!courseForm.form.valid">Create Course</button>
+    </form>
+  
+    <div class="course-list">
+      <h3>Courses</h3>
+      <ul>
+        <li *ngFor="let course of courses">
+          <p>{{ course.title }}</p>
+          <p>{{ course.description }}</p>
+          <button (click)="enroll(course._id)">Enroll</button>
+        </li>
+      </ul>
+    </div>
+  </div>
+  

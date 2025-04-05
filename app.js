@@ -1,0 +1,70 @@
+//app.js
+
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const auth = require("./middleware/auth");
+//const bodyParser = require("body-parser");
+
+// Import Routes
+const authRoutes = require("./routes/auth");
+const User = require("./models/User");
+
+// Initialize Express App
+const app = express();
+
+
+// Middleware
+app.use(express.json()); // Parse incoming JSON requests
+app.use(cors()); // Enable CORS
+//app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect("mongodb://localhost:27017/germanbuddy-1-2", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+  });
+
+// Use Routes
+const courseRoutes = require("./routes/courses");
+const subscriptionRoutes = require("./routes/subscriptions");
+const aiConversationRoutes = require("./routes/aiConversations");
+
+// backend app.js
+app.use('/api/auth', authRoutes)
+// app.use("/auth", authRoutes);
+
+// courses, subscriptions, aiConversations
+app.use('/api/courses', courseRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/aiConversations', aiConversationRoutes);
+
+// Protected Route for fetching user profile
+app.get("/api/user/profile", auth, async (req, res) => {
+  try {
+    // Assuming the user's ID is stored in the JWT payload (req.user)
+    const user = await User.findById(req.user.userId).select("-password"); // Exclude password
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    res.json(user); // Send user data as response
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Default Route
+app.get("/", (req, res) => {
+  res.send("Welcome to the API!");
+});
+
+// Start Server
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
