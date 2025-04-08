@@ -37,6 +37,25 @@ export class AuthService {
     return this.http.get('http://localhost:4000/api/user/profile', { headers }); // Fetch user profile from backend
   }
 
+  //
+  getUserRole(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1])); // Decode JWT
+    return payload.role; // Assuming role is stored in JWT payload
+  }
+  
+  // Check if the JWT token is expired
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiry = payload.exp * 1000; // Convert to milliseconds
+    return Date.now() > expiry;
+  }
+
+  
+
   logOut() {
     localStorage.removeItem('authToken');
   }

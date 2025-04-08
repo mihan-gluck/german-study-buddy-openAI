@@ -35,11 +35,11 @@ export class SignupComponent {
     );
   }
   scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  
-  scrollToBottom() {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-  }
-  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+scrollToBottom() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
 }

@@ -19,10 +19,6 @@ dist/
 # Logs
 *.log
 
-# OS files
-.DS_Store
-Thumbs.db
-
 # IDEs and editors
 .idea/
 .project
