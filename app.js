@@ -2,6 +2,68 @@
 
 require("dotenv").config();
 const express = require("express");
+const path = require('path');
+const mongoose = require("mongoose");
+const cors = require("cors");
+const auth = require("./middleware/auth");
+
+const authRoutes = require("./routes/auth");
+const courseRoutes = require("./routes/courses");
+const subscriptionRoutes = require("./routes/subscriptions");
+const aiConversationRoutes = require("./routes/aiConversations");
+const User = require("./models/User");
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(cors());
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/germanbuddy-1-2", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log("✅ Connected to MongoDB");
+})
+.catch((err) => {
+  console.error("❌ Error connecting to MongoDB:", err);
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/aiConversations', aiConversationRoutes);
+
+// Protected user profile route
+app.get("/api/user/profile", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("-password");
+    if (!user) return res.status(404).json({ msg: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Serve Angular frontend in production
+const frontendPath = path.join(__dirname, "dist", "german-study-buddy");
+app.use(express.static(frontendPath));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
+// Start server
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+
+/*require("dotenv").config();
+const express = require("express");
+const path = require('path');
 const mongoose = require("mongoose");
 const cors = require("cors");
 const auth = require("./middleware/auth");
@@ -21,7 +83,7 @@ app.use(cors()); // Enable CORS
 //app.use(bodyParser.json());
 
 // Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/germanbuddy-1-2", {
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/germanbuddy-1-2", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -68,3 +130,4 @@ app.get("/", (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+*/
