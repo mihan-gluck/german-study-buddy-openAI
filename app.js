@@ -1,6 +1,6 @@
 //app.js
 
-require("dotenv").config();
+/* require("dotenv").config();
 const express = require("express");
 const path = require('path');
 const mongoose = require("mongoose");
@@ -20,15 +20,15 @@ app.use(express.json());
 app.use(cors());
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/germanbuddy-1-2", {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
 .then(() => {
-  console.log("✅ Connected to MongoDB");
+  console.log("✅ Connected to MongoDB Atlas");
 })
 .catch((err) => {
-  console.error("❌ Error connecting to MongoDB:", err);
+  console.error("❌ Error connecting to MongoDB Atlas:", err);
 });
 
 // API Routes
@@ -58,10 +58,10 @@ app.get("*", (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); */
 
 
-/*require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const path = require('path');
 const mongoose = require("mongoose");
@@ -130,4 +130,3 @@ app.get("/", (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-*/
