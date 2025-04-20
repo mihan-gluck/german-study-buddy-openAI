@@ -1,6 +1,6 @@
 //app.js
 
-/* require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const path = require('path');
 const mongoose = require("mongoose");
@@ -58,10 +58,10 @@ app.get("*", (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); */
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); 
 
 
-require("dotenv").config();
+/*require("dotenv").config();
 const express = require("express");
 const path = require('path');
 const mongoose = require("mongoose");
@@ -130,3 +130,4 @@ app.get("/", (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+ */
