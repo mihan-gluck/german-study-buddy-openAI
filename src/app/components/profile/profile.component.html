@@ -1,6 +1,26 @@
 <!-- profile.component.html -->
 
-<div *ngIf="userProfile; else loading">
+<div class="container mt-5">
+  <div *ngIf="userProfile; else loading" class="card profile-container mx-auto p-4 shadow" style="max-width: 400px;">
+    <img src="https://via.placeholder.com/100" alt="Profile Picture" class="profile-pic mb-3">
+
+    <h2 class="text-center text-primary">User Profile</h2>
+
+    <p><strong>Name:</strong> {{ userProfile.name }}</p>
+    <p><strong>Email:</strong> {{ userProfile.email }}</p>
+    <p><strong>Role:</strong> {{ userProfile.role }}</p>
+  </div>
+
+  <ng-template #loading>
+    <div class="text-center mt-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading user profile...</p>
+    </div>
+  </ng-template>
+</div>
+
+
+<!--<div *ngIf="userProfile; else loading">
   <h2>User Profile</h2>
   <p>Name: {{ userProfile.name }}</p>
   <p>Email: {{ userProfile.email }}</p>
@@ -9,4 +29,4 @@
 
 <ng-template #loading>
   <p>Loading user profile...</p>
-</ng-template>
+</ng-template>-->
