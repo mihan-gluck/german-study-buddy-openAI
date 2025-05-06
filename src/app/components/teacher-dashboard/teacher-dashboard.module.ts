@@ -1,4 +1,25 @@
+//src/app/components/teacher-dashboard/teacher-dashboard.module.ts
+
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TeacherDashboardComponent } from './teacher-dashboard.component';
+import { RouterModule, Routes } from '@angular/router';
+
+const routes: Routes = [
+  { path: '', component: TeacherDashboardComponent }
+];
+
+@NgModule({
+  declarations: [TeacherDashboardComponent],
+  imports: [
+    CommonModule,
+    RouterModule.forChild(routes)
+  ]
+})
+export class TeacherDashboardModule {}
+
+
+/* import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TeacherDashboardComponent } from './teacher-dashboard.component';
 import { TeacherRoutingModule } from './teacher-routing.module';
@@ -11,6 +32,6 @@ import { TeacherRoutingModule } from './teacher-routing.module';
   ],
   exports: [TeacherDashboardComponent] // Export if needed
 })
-export class TeacherDashboardModule {}
+export class TeacherDashboardModule {} */
 
 

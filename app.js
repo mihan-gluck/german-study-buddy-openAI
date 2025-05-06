@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(cors());
 
 // Connect to MongoDB
-mongoose.connect(MONGO_URI, {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -57,12 +57,18 @@ app.get("/api/user/profile", auth, async (req, res) => {
   }
 });
 
-// Serve Angular frontend in production
+// Serve Angular frontend only for non-API routes in production
 const frontendPath = path.join(__dirname, "dist", "angular-germanbuddy", "browser");
 app.use(express.static(frontendPath));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+  //if it's not an API call, return Angular app
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  } else {
+    res.status(404).json({ error: 'API route not found' });
+  }
+  //res.sendFile(path.join(frontendPath, "dist/angular-germanbuddy/index.html"));
 });
 
 // Start server

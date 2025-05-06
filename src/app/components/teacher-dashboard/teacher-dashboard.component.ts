@@ -1,3 +1,5 @@
+//src/app/components/teacher-dashboard/teacher-dashboard.component.ts
+
 import { Component } from '@angular/core';
 
 @Component({
