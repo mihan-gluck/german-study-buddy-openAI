@@ -1,9 +1,32 @@
 <!--student-dashboard.component.html-->
 
-<h2>Student Dashboard</h2>
-<p>Welcome, Student! Access AI chat and your lessons here.</p>
-
 <div class="student-dashboard-container">
+  <div class="container">
+    <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
+    <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>
+
+    <!-- 👇 Vapi Agent Button Positioned Just Below the Paragraph -->
+    <div id="vapi-widget-container" class="vapi-center-container"></div>
+    
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-4 mb-4" *ngFor="let agent of aiAgents">
+        <div class="card shadow-lg">
+          <div class="card-body text-center">
+            <h5 class="card-title">{{ agent.name }}</h5>
+            <p class="card-text">Start interacting with the AI at your level.</p>
+            <a [href]="agent.url" class="btn btn-primary" target="_blank">Start Conversation</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Vapi Widget -->
+    <div id="vapi-widget-container" class="vapi-center-container"></div>
+  </div>
+</div>
+
+
+<!--<div class="student-dashboard-container">
   <div class="container">
     <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
     <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>
@@ -23,8 +46,8 @@
 </div>
 
 
-<!--<div class="student-dashboard">
-    <h2>Welcome to Your Dashboard</h2>
+<div class="student-dashboard">
+    <h2>Student Dashboard</h2>
     <p>Select an AI Agent to start your conversation:</p>
     <div class="ai-agent-links">
       <button *ngFor="let agent of aiAgents" (click)="openAgent(agent.url)">

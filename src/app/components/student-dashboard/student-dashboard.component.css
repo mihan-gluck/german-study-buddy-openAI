@@ -1,4 +1,4 @@
-/*student-dashboard.component.css*/
+/* student-dashboard.component.css */
 
 .student-dashboard-container {
   background-color: #f8f9fa;
@@ -37,14 +37,20 @@ h2 {
   font-size: 28px;
   color: #333;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 p {
   font-size: 18px;
   color: #555;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
-  
+.vapi-center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 200px;
+  min-height: 100px;
+}
