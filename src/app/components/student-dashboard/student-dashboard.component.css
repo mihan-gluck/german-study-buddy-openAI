@@ -1,5 +1,28 @@
 /* student-dashboard.component.css */
 
+/* vapi agent bottom right code */
+.student-dashboard {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.ai-buttons button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.vapi-center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  margin-top: 30px;
+}
+
+
+/* vapi agent page center code 
 .student-dashboard-container {
   background-color: #f8f9fa;
   padding: 40px 0;
@@ -51,6 +74,6 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 200px;
+  margin-top: 150px;
   min-height: 100px;
-}
+}*/

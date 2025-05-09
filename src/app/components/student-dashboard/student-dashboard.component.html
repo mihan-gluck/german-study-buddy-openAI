@@ -1,11 +1,12 @@
 <!--student-dashboard.component.html-->
 
+<!-- vapi agent page  center code 
 <div class="student-dashboard-container">
   <div class="container">
     <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
     <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>
 
-    <!-- 👇 Vapi Agent Button Positioned Just Below the Paragraph -->
+    👇 Vapi Agent Button Positioned Just Below the Paragraph 
     <div id="vapi-widget-container" class="vapi-center-container"></div>
     
     <div class="row justify-content-center">
@@ -20,13 +21,28 @@
       </div>
     </div>
 
-    <!-- Centered Vapi Widget -->
+     Centered Vapi Widget 
     <div id="vapi-widget-container" class="vapi-center-container"></div>
   </div>
+</div> -->
+
+<!-- vapi agent bottom right code -->
+<div class="student-dashboard">
+  <h2>Welcome to the Student Dashboard</h2>
+
+  <div class="ai-buttons">
+    <button *ngFor="let agent of aiAgents" (click)="openAgent(agent.url)">
+      {{ agent.name }}
+    </button>
+  </div>
+
+  <!-- Custom VAPI container -->
+  <div id="vapi-widget-container" class="vapi-center-container"></div>
 </div>
 
 
-<!--<div class="student-dashboard-container">
+
+<!-- <div class="student-dashboard-container">
   <div class="container">
     <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
     <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>

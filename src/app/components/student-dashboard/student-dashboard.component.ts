@@ -1,6 +1,6 @@
 //student-dashboard.component.ts
 
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+/* import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -77,9 +77,29 @@ export class StudentDashboardComponent implements OnInit, AfterViewInit {
   openAgent(url: string) {
     window.open(url, '_blank');
   }
-}
+} */
 
-/*   ngOnInit() {
+
+// vapi agent on the bottom right
+  import { Component, OnInit, AfterViewInit } from '@angular/core';
+
+@Component({
+  selector: 'app-student-dashboard',
+  standalone: false,
+  templateUrl: './student-dashboard.component.html',
+  styleUrls: ['./student-dashboard.component.css'],
+})
+export class StudentDashboardComponent implements OnInit, AfterViewInit {
+  aiAgents = [
+    { name: 'Beginner Level AI', url: 'https://elevenlabs.io/agent-beginner' },
+    { name: 'Elementary Level AI', url: 'https://elevenlabs.io/agent-elementary' },
+    { name: 'Intermediate Level AI', url: 'https://elevenlabs.io/agent-intermediate' },
+    { name: 'Upper Intermediate AI', url: 'https://elevenlabs.io/agent-upper-intermediate' },
+    { name: 'Advanced AI', url: 'https://elevenlabs.io/agent-advanced' },
+    { name: 'Expert Level AI', url: 'https://elevenlabs.io/agent-expert' }
+  ];
+
+  ngOnInit() {
     console.log('AI Agents:', this.aiAgents);
   }
 
@@ -140,10 +160,12 @@ export class StudentDashboardComponent implements OnInit, AfterViewInit {
 
     document.body.appendChild(script);
   }
-} */
+} 
 
 
-/*import { Component, OnInit, Renderer2 } from '@angular/core';
+/* =================================================================================
+
+import { Component, OnInit, Renderer2 } from '@angular/core';
 
 declare global {
   interface Window {
