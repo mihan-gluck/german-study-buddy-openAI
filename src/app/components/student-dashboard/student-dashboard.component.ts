@@ -1,16 +1,40 @@
 //student-dashboard.component.ts
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   standalone: false,
   selector: 'app-student-dashboard',
   templateUrl: './student-dashboard.component.html',
   styleUrls: ['./student-dashboard.component.css']
-  
 })
 export class StudentDashboardComponent implements OnInit, OnDestroy {
+  aiAgents = [
+    {
+      name: 'A1 Beginner Agent',
+      url: 'https://vapi-widget.vercel.app?bot_id=BOT_ID_FOR_A1'
+    },
+    {
+      name: 'A2 Elementary Agent',
+      url: 'https://vapi-widget.vercel.app?bot_id=BOT_ID_FOR_A2'
+    },
+    {
+      name: 'B1 Intermediate Agent',
+      url: 'https://vapi-widget.vercel.app?bot_id=BOT_ID_FOR_B1'
+    },
+    {
+      name: 'B2 Upper Intermediate Agent',
+      url: 'https://vapi-widget.vercel.app?bot_id=BOT_ID_FOR_B2'
+    },
+    {
+      name: 'C1 Advanced Agent',
+      url: 'https://vapi-widget.vercel.app?bot_id=BOT_ID_FOR_C1'
+    },
+    {
+      name: 'C2 Proficient Agent',
+      url: 'https://vapi-widget.vercel.app?bot_id=BOT_ID_FOR_C2'
+    }
+  ];
 
   private readonly scriptId = 'vapi-widget';
 
@@ -51,13 +75,14 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       script.remove();
     }
 
-    // Remove widget container (it's a floating div injected by Vapi)
+    // Remove widget container (floating UI)
     const vapiWidget = document.querySelector('[data-testid="vapi-widget"]');
     if (vapiWidget && vapiWidget.parentElement) {
       vapiWidget.parentElement.removeChild(vapiWidget);
     }
   }
 }
+
 
 
 
