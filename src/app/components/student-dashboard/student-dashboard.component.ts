@@ -1,5 +1,102 @@
 //student-dashboard.component.ts
 
+// vapi agent first ever trial ..
+import { Component, OnInit, Renderer2 } from '@angular/core';
+
+declare global {
+  interface Window {
+    vapiSDK: any;
+  }
+}
+
+@Component({
+  selector: 'app-student-dashboard',
+  standalone: false,
+  templateUrl: './student-dashboard.component.html',
+  styleUrl: './student-dashboard.component.css'
+})
+export class StudentDashboardComponent implements OnInit {
+  aiAgents = [
+    { name: 'Beginner Level AI', url: 'https://elevenlabs.io/agent-beginner' },
+    { name: 'Elementary Level AI', url: 'https://elevenlabs.io/agent-elementary' },
+    { name: 'Intermediate Level AI', url: 'https://elevenlabs.io/agent-intermediate' },
+    { name: 'Upper Intermediate AI', url: 'https://elevenlabs.io/agent-upper-intermediate' },
+    { name: 'Advanced AI', url: 'https://elevenlabs.io/agent-advanced' },
+    { name: 'Expert Level AI', url: 'https://elevenlabs.io/agent-expert' }
+  ];
+
+  constructor(private renderer: Renderer2) {}
+
+  ngOnInit(): void {
+    console.log('AI Agents:', this.aiAgents);
+    this.loadVapiScript();
+  }
+
+  openAgent(url: string) {
+    window.open(url, '_blank');
+  }
+
+  loadVapiScript(): void {
+    const mainScript = this.renderer.createElement('script');
+
+    mainScript.text = `
+      var vapiInstance = null;
+      const assistant = "d6c86545-f5b8-4bf3-9b8d-085ea08038c8";
+      const apiKey = "90d61da6-0eb0-444e-a78e-d59d8ff2dbde";
+      const buttonConfig = {
+        position: "top-center",
+        offset: "220px",
+        width: "50px",
+        height: "50px",
+        idle: {
+          color: "#0447dd",
+          type: "pill",
+          title: "Have a quick question?",
+          subtitle: "Talk with our AI assistant",
+          icon: "https://unpkg.com/lucide-static@0.321.0/icons/phone.svg",
+        },
+        loading: {
+          color: "#0447dd",
+          type: "pill",
+          title: "Connecting...",
+          subtitle: "Please wait",
+          icon: "https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg",
+        },
+        active: {
+          color: "rgb(255, 0, 0)",
+          type: "pill",
+          title: "Call is in progress...",
+          subtitle: "End the call.",
+          icon: "https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg",
+        },
+      };
+
+      var g = document.createElement("script"),
+          s = document.getElementsByTagName("script")[0];
+      g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+      g.defer = true;
+      g.async = true;
+      s.parentNode.insertBefore(g, s);
+
+      g.onload = function () {
+        try {
+          vapiInstance = window.vapiSDK.run({
+            apiKey: apiKey,
+            assistant: assistant,
+            config: buttonConfig,
+          });
+        } catch (error) {
+          console.error("VAPI Widget Initialization Error:", error);
+        }
+      };
+    `;
+
+    this.renderer.appendChild(document.body, mainScript);
+  }
+}
+
+
+
 /* import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
@@ -80,8 +177,8 @@ export class StudentDashboardComponent implements OnInit, AfterViewInit {
 } */
 
 
-// vapi agent on the bottom right
-  import { Component, OnInit, AfterViewInit } from '@angular/core';
+// vapi agent on the bottom right ..
+/* import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -160,7 +257,7 @@ export class StudentDashboardComponent implements OnInit, AfterViewInit {
 
     document.body.appendChild(script);
   }
-} 
+}  */
 
 
 /* =================================================================================
