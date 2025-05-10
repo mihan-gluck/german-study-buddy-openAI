@@ -1,31 +1,33 @@
 //student-dashboard.component.ts
 
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   standalone: false,
   selector: 'app-student-dashboard',
   templateUrl: './student-dashboard.component.html',
-  styleUrls: ['./student-dashboard.component.css'],
+  styleUrls: ['./student-dashboard.component.css']
   
 })
-export class StudentDashboardComponent implements OnInit {
+export class StudentDashboardComponent implements OnInit, OnDestroy {
+
+  private readonly scriptId = 'vapi-widget';
 
   ngOnInit(): void {
     this.loadVapiWidget();
   }
 
-  loadVapiWidget(): void {
-    const scriptId = 'vapi-widget';
+  ngOnDestroy(): void {
+    this.removeVapiWidget();
+  }
 
-    // Prevent adding the script multiple times
-    if (document.getElementById(scriptId)) {
-      return;
-    }
+  private loadVapiWidget(): void {
+    // Prevent loading if already loaded
+    if (document.getElementById(this.scriptId)) return;
 
     const script = document.createElement('script');
-    script.id = scriptId;
+    script.id = this.scriptId;
     script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web';
     script.async = true;
 
@@ -42,7 +44,21 @@ export class StudentDashboardComponent implements OnInit {
 
     document.body.appendChild(script);
   }
+
+  private removeVapiWidget(): void {
+    const script = document.getElementById(this.scriptId);
+    if (script) {
+      script.remove();
+    }
+
+    // Remove widget container (it's a floating div injected by Vapi)
+    const vapiWidget = document.querySelector('[data-testid="vapi-widget"]');
+    if (vapiWidget && vapiWidget.parentElement) {
+      vapiWidget.parentElement.removeChild(vapiWidget);
+    }
+  }
 }
+
 
 
 /* import { Component, OnInit, AfterViewInit } from '@angular/core';
