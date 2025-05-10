@@ -44,8 +44,8 @@ export class StudentDashboardComponent implements OnInit {
       const assistant = "d6c86545-f5b8-4bf3-9b8d-085ea08038c8";
       const apiKey = "90d61da6-0eb0-444e-a78e-d59d8ff2dbde";
       const buttonConfig = {
-        position: "top-center",
-        offset: "220px",
+        position: "bottom-right",
+        offset: "40px",
         width: "50px",
         height: "50px",
         idle: {
