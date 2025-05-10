@@ -1,21 +1,15 @@
 //student-dashboard.component.ts
 
 // vapi agent first ever trial ..
-import { Component, OnInit, Renderer2 } from '@angular/core';
-
-declare global {
-  interface Window {
-    vapiSDK: any;
-  }
-}
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: false,
   templateUrl: './student-dashboard.component.html',
-  styleUrl: './student-dashboard.component.css'
+  styleUrls: ['./student-dashboard.component.css']
 })
-export class StudentDashboardComponent implements OnInit {
+export class StudentDashboardComponent implements OnInit, AfterViewInit {
   aiAgents = [
     { name: 'Beginner Level AI', url: 'https://elevenlabs.io/agent-beginner' },
     { name: 'Elementary Level AI', url: 'https://elevenlabs.io/agent-elementary' },
@@ -25,73 +19,66 @@ export class StudentDashboardComponent implements OnInit {
     { name: 'Expert Level AI', url: 'https://elevenlabs.io/agent-expert' }
   ];
 
-  constructor(private renderer: Renderer2) {}
-
-  ngOnInit(): void {
+  ngOnInit() {
     console.log('AI Agents:', this.aiAgents);
-    this.loadVapiScript();
   }
 
   openAgent(url: string) {
     window.open(url, '_blank');
   }
 
-  loadVapiScript(): void {
-    const mainScript = this.renderer.createElement('script');
+  ngAfterViewInit() {
+    this.loadVapiAgent();
+  }
 
-    mainScript.text = `
-      var vapiInstance = null;
-      const assistant = "d6c86545-f5b8-4bf3-9b8d-085ea08038c8";
-      const apiKey = "90d61da6-0eb0-444e-a78e-d59d8ff2dbde";
-      const buttonConfig = {
-        position: "bottom-right",
-        offset: "40px",
-        width: "50px",
-        height: "50px",
-        idle: {
-          color: "#0447dd",
-          type: "pill",
-          title: "Have a quick question?",
-          subtitle: "Talk with our AI assistant",
-          icon: "https://unpkg.com/lucide-static@0.321.0/icons/phone.svg",
-        },
-        loading: {
-          color: "#0447dd",
-          type: "pill",
-          title: "Connecting...",
-          subtitle: "Please wait",
-          icon: "https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg",
-        },
-        active: {
-          color: "rgb(255, 0, 0)",
-          type: "pill",
-          title: "Call is in progress...",
-          subtitle: "End the call.",
-          icon: "https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg",
-        },
-      };
+  loadVapiAgent() {
+    const assistant = 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8';
+    const apiKey = '90d61da6-0eb0-444e-a78e-d59d8ff2dbde';
 
-      var g = document.createElement("script"),
-          s = document.getElementsByTagName("script")[0];
-      g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
-      g.defer = true;
-      g.async = true;
-      s.parentNode.insertBefore(g, s);
+    const buttonConfig = {
+      position: 'custom',
+      idle: {
+        color: '#0447dd',
+        type: 'pill',
+        title: 'Need Help?',
+        subtitle: 'Ask our AI Assistant',
+        icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone.svg',
+      },
+      loading: {
+        color: '#0447dd',
+        type: 'pill',
+        title: 'Connecting...',
+        subtitle: 'Please wait',
+        icon: 'https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg',
+      },
+      active: {
+        color: 'rgb(255, 0, 0)',
+        type: 'pill',
+        title: 'Call is in progress...',
+        subtitle: 'End the call.',
+        icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg',
+      },
+    };
 
-      g.onload = function () {
-        try {
-          vapiInstance = window.vapiSDK.run({
-            apiKey: apiKey,
-            assistant: assistant,
-            config: buttonConfig,
-          });
-        } catch (error) {
-          console.error("VAPI Widget Initialization Error:", error);
-        }
-      };
-    `;
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+    script.defer = true;
+    script.async = true;
 
-    this.renderer.appendChild(document.body, mainScript);
+    script.onload = () => {
+      try {
+        const vapiInstance = (window as any).vapiSDK.run({
+          apiKey,
+          assistant,
+          config: buttonConfig,
+          targetElement: document.getElementById('vapi-widget-container'),
+        });
+      } catch (err) {
+        console.error('Failed to load Vapi Agent:', err);
+      }
+    };
+
+    document.body.appendChild(script);
   }
 }
 

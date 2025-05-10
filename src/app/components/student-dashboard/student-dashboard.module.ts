@@ -3,6 +3,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StudentDashboardComponent } from './student-dashboard.component';
+import { FormsModule } from '@angular/forms';
 //import { StudentRoutingModule } from './student-routing.module';
 import { RouterModule, Routes } from '@angular/router';
 
