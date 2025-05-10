@@ -1,7 +1,51 @@
 //student-dashboard.component.ts
 
-// vapi agent first ever trial ..
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  standalone: false,
+  selector: 'app-student-dashboard',
+  templateUrl: './student-dashboard.component.html',
+  styleUrls: ['./student-dashboard.component.css'],
+  
+})
+export class StudentDashboardComponent implements OnInit {
+
+  ngOnInit(): void {
+    this.loadVapiWidget();
+  }
+
+  loadVapiWidget(): void {
+    const scriptId = 'vapi-widget';
+
+    // Prevent adding the script multiple times
+    if (document.getElementById(scriptId)) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web';
+    script.async = true;
+
+    script.onload = () => {
+      // @ts-ignore
+      if (window.Vapi) {
+        // @ts-ignore
+        const vapi = new window.Vapi({
+          apiKey: '',
+          agentId: 'ag_b1dJIEgFTlDCEIXGcCymD',
+        });
+      }
+    };
+
+    document.body.appendChild(script);
+  }
+}
+
+
+/* import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -81,7 +125,7 @@ export class StudentDashboardComponent implements OnInit, AfterViewInit {
     document.body.appendChild(script);
   }
 }
-
+ */
 
 
 /* import { Component, OnInit, AfterViewInit } from '@angular/core';

@@ -1,7 +1,5 @@
 <!--student-dashboard.component.html-->
 
-<!-- student-dashboard.component.html -->
-
 <div class="student-dashboard-container">
   <div class="container">
     <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
@@ -23,22 +21,6 @@
     <div id="vapi-widget-container" class="vapi-center-container"></div>
   </div>
 </div>
-
-
-<!-- vapi agent bottom right code -->
-<div class="student-dashboard">
-  <h2>Welcome to the Student Dashboard</h2>
-
-  <div class="ai-buttons">
-    <button *ngFor="let agent of aiAgents" (click)="openAgent(agent.url)">
-      {{ agent.name }}
-    </button>
-  </div>
-
-  <!-- Custom VAPI container -->
-  <div id="vapi-widget-container" class="vapi-center-container"></div>
-</div>
-
 
 
 <!-- <div class="student-dashboard-container">
