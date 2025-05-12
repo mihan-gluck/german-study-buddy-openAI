@@ -1,6 +1,22 @@
 <!--student-dashboard.component.html-->
 
-<div class="student-dashboard-container">
+<h2>Welcome to Student Dashboard</h2>
+
+<div class="row">
+  <div class="col-md-6 col-lg-4 mb-4" *ngFor="let agent of aiAgents">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ agent.name }}</h5>
+        <a [href]="agent.url" class="btn btn-primary" target="_blank">Talk to AI</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vapi widget will be automatically loaded here via script -->
+
+
+<!-- <div class="student-dashboard-container">
   <div class="container">
     <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
     <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>
@@ -17,10 +33,10 @@
       </div>
     </div>
 
-    <!-- Centered Vapi Widget -->
+     Centered Vapi Widget 
     <div id="vapi-widget-container" class="vapi-center-container"></div>
   </div>
-</div>
+</div> -->
 
 
 <!-- <div class="student-dashboard-container">

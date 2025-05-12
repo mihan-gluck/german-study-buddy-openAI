@@ -9,6 +9,103 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
   styleUrls: ['./student-dashboard.component.css']
 })
 export class StudentDashboardComponent implements OnInit, OnDestroy {
+
+  aiAgents: { name: string; url: string }[] = [
+    {
+      name: 'A1 Beginner AI Agent',
+      url: 'https://your-agent-url.com/a1',
+    },
+    {
+      name: 'A2 Elementary AI Agent',
+      url: 'https://your-agent-url.com/a2',
+    },
+    // Add more course agents as needed
+  ];
+  private supportScriptId = 'vapi-chat-support';
+
+  ngOnInit(): void {
+    this.loadChatSupportWidget();
+  }
+
+  ngOnDestroy(): void {
+    this.removeChatSupportWidget();
+  }
+
+  private loadChatSupportWidget(): void {
+    if (document.getElementById(this.supportScriptId)) return;
+
+    const script = document.createElement('script');
+    script.id = this.supportScriptId;
+    script.defer = true;
+    script.async = true;
+    script.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+
+    script.onload = () => {
+      try {
+        // @ts-ignore
+        window.vapiSDK.run({
+          apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde',
+          assistant: 'd6c86545-f5b8-4bf3-9b8e-d085ea08038c8',
+          config: {
+            position: 'bottom-right',
+            offset: '40px',
+            width: '50px',
+            height: '50px',
+            idle: {
+              color: '#0447dd',
+              type: 'pill',
+              title: 'Have a quick question?',
+              subtitle: 'Talk with our AI assistant',
+              icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone.svg',
+            },
+            loading: {
+              color: '#0447dd',
+              type: 'pill',
+              title: 'Connecting...',
+              subtitle: 'Please wait',
+              icon: 'https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg',
+            },
+            active: {
+              color: 'rgb(255, 0, 0)',
+              type: 'pill',
+              title: 'Call is in progress...',
+              subtitle: 'End the call.',
+              icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg',
+            }
+          }
+        });
+      } catch (error) {
+        console.error('VAPI Widget Initialization Error:', error);
+      }
+    };
+
+    document.body.appendChild(script);
+  }
+
+  private removeChatSupportWidget(): void {
+    const script = document.getElementById(this.supportScriptId);
+    if (script) {
+      script.remove();
+    }
+
+    // Optional: Remove Vapi widget UI if still present
+    const vapiWidget = document.querySelector('[data-testid="vapi-widget"]');
+    if (vapiWidget && vapiWidget.parentElement) {
+      vapiWidget.parentElement.removeChild(vapiWidget);
+    }
+  }
+}
+
+
+/* import { Component, OnInit, OnDestroy } from '@angular/core';
+
+@Component({
+  standalone: false,
+  selector: 'app-student-dashboard',
+  templateUrl: './student-dashboard.component.html',
+  styleUrls: ['./student-dashboard.component.css']
+})
+export class StudentDashboardComponent implements OnInit, OnDestroy {
   aiAgents = [
     {
       name: 'A1 Beginner Agent',
@@ -81,7 +178,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       vapiWidget.parentElement.removeChild(vapiWidget);
     }
   }
-}
+} */
 
 
 
