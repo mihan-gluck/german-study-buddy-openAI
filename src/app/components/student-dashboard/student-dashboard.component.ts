@@ -37,7 +37,8 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     }
     
   ];
-  private supportScriptId = 'vapi-chat-support';
+  private supportScriptId = 'chat-support-widget';
+  loadChatSupportWidget: any;
 
   ngOnInit(): void {
     this.loadChatSupportWidget();
@@ -47,21 +48,21 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.removeChatSupportWidget();
   }
 
-  private loadChatSupportWidget(): void {
+   private injectChatSupportWidget(): void {
     if (document.getElementById(this.supportScriptId)) return;
 
     const script = document.createElement('script');
     script.id = this.supportScriptId;
+    script.src =
+      'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
     script.defer = true;
     script.async = true;
-    script.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
 
     script.onload = () => {
       try {
-        // @ts-ignore
-        window.vapiSDK.run({
+        const vapiInstance = (window as any).vapiSDK.run({
           apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde',
-          assistant: 'd6c86545-f5b8-4bf3-9b8e-d085ea08038c8',
+          assistant: 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8',
           config: {
             position: 'bottom-right',
             offset: '40px',
@@ -87,11 +88,11 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
               title: 'Call is in progress...',
               subtitle: 'End the call.',
               icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg',
-            }
-          }
+            },
+          },
         });
-      } catch (error) {
-        console.error('VAPI Widget Initialization Error:', error);
+      } catch (err) {
+        console.error('VAPI Chat Support Initialization Error:', err);
       }
     };
 
@@ -104,10 +105,10 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       script.remove();
     }
 
-    // Optional: Remove Vapi widget UI if still present
-    const vapiWidget = document.querySelector('[data-testid="vapi-widget"]');
-    if (vapiWidget && vapiWidget.parentElement) {
-      vapiWidget.parentElement.removeChild(vapiWidget);
+    // Clean up floating chat support widget
+    const widget = document.querySelector('[data-testid="vapi-widget"]');
+    if (widget && widget.parentElement) {
+      widget.parentElement.removeChild(widget);
     }
   }
 }
