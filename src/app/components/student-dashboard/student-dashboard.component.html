@@ -3,8 +3,28 @@
 <h2>Welcome to Student Dashboard</h2>
 
 <div class="container mt-4">
-  <h2>Welcome to Your Dashboard</h2>
+  
   <p>Select a course-level AI tutor below:</p>
+
+  <div *ngFor="let course of vapiCourses" class="card">
+  <h4>{{ course.name }}</h4>
+  <button (click)="openVapiTab(course.name)">Open AI Voice Agent</button>
+</div>
+
+<h2>Available AI Courses</h2>
+<div *ngIf="vapiCourses.length > 0; else noCourses">
+  <div *ngFor="let course of vapiCourses" class="course-button">
+    <button (click)="openAgent(course)">
+      🎧 {{ course.name }} - Talk with AI
+    </button>
+  </div>
+</div>
+
+<ng-template #noCourses>
+  <p>No subscribed courses found.</p>
+</ng-template>
+
+
 
   <div class="row">
     <div

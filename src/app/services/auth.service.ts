@@ -30,6 +30,17 @@ export class AuthService {
     return localStorage.getItem('authToken'); // Retrieve token from local storage
   }
 
+  // Method to fetch Vapi data
+  getStudentVapiData() {
+  return this.http.get<any>('/api/student/vapi-access'); // Adjust route as needed
+}
+
+  // Method to get Vapi Courses
+  getVapiCourses() {
+  return this.http.get<any[]>('/api/student/vapi-courses');
+}
+
+
   // Method to fetch the user's profile data
   getUserProfile(): Observable<any> {
     const token = this.getToken();

@@ -1,8 +1,16 @@
 //student-dashboard.component.ts
 
-import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
+import { AuthService } from '../../services/auth.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
+interface VapiCourse {
+
+  name: string;
+  openVapiTab: string;
+  assistantID: string;
+  apiKey: string;
+}
 
 @Component({
   standalone: false,
@@ -11,108 +19,33 @@ import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
   styleUrls: ['./student-dashboard.component.css'],
   
 })
-export class StudentDashboardComponent implements OnInit, OnDestroy {
+export class StudentDashboardComponent implements OnInit {
+openVapiTab(arg0: string) {
+throw new Error('Method not implemented.');
+}
+  vapiCourses: VapiCourse[] = [];
+  aiAgents: any;
 
-  aiAgents: { name: string; url: string }[] = [
-    {
-      name: 'A1 Beginner AI Agent',
-      url: 'https://your-agent-url.com/a1',
-    },
-    {
-      name: 'A2 Elementary AI Agent',
-      url: 'https://your-agent-url.com/a2',
-    },
-        {
-      name: 'B1 Intermediate Agent',
-      url: 'https://your-agent-url.com/b1',
-    },
-    {
-      name: 'B2 Upper Intermediate Agent',
-      url: 'https://your-agent-url.com/b2',
-    },
-    {
-      name: 'C1 Advanced Agent',
-      url: 'https://your-agent-url.com/c1',
-    },
-    {
-      name: 'C2 Proficient Agent',
-      url: 'https://your-agent-url.com/c2',
-    }
-    
-  ];
-  private supportScriptId = 'support-widget';
-  loadChatSupportWidget: any;
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.loadChatSupportWidget();
+    this.fetchVapiCourses();
   }
 
-  ngOnDestroy(): void {
-    this.removeChatSupportWidget();
+  fetchVapiCourses(): void {
+    this.authService.getVapiCourses().subscribe({
+      next: (courses) => {
+        this.vapiCourses = courses;
+      },
+      error: (err) => {
+        console.error('Failed to fetch VAPI courses:', err);
+      },
+    });
   }
 
-   private injectChatSupportWidget(): void {
-    if (document.getElementById(this.supportScriptId)) return;
-
-    const script = document.createElement('script');
-    script.id = this.supportScriptId;
-    script.src =
-      'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
-    script.defer = true;
-    script.async = true;
-
-    script.onload = () => {
-      try {
-        const vapiInstance = (window as any).vapiSDK.run({
-          apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde',
-          assistant: 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8',
-          config: {
-            position: 'bottom-right',
-            offset: '40px',
-            width: '50px',
-            height: '50px',
-            idle: {
-              color: '#0447dd',
-              type: 'pill',
-              title: 'Have a quick question?',
-              subtitle: 'Talk with our AI assistant',
-              icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone.svg',
-            },
-            loading: {
-              color: '#0447dd',
-              type: 'pill',
-              title: 'Connecting...',
-              subtitle: 'Please wait',
-              icon: 'https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg',
-            },
-            active: {
-              color: 'rgb(255, 0, 0)',
-              type: 'pill',
-              title: 'Call is in progress...',
-              subtitle: 'End the call.',
-              icon: 'https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg',
-            },
-          },
-        });
-      } catch (err) {
-        console.error('VAPI Chat Support Initialization Error:', err);
-      }
-    };
-
-    document.body.appendChild(script);
-  }
-
-  private removeChatSupportWidget(): void {
-    const script = document.getElementById(this.supportScriptId);
-    if (script) {
-      script.remove();
-    }
-
-    // Clean up floating chat support widget
-    const widget = document.querySelector('[data-testid="vapi-widget"]');
-    if (widget && widget.parentElement) {
-      widget.parentElement.removeChild(widget);
-    }
+  openAgent(course: VapiCourse): void {
+    const url = `/assets/vapi-launcher.html?assistant=${course.assistantID}&key=${course.apiKey}`;
+    window.open(url, '_blank');
   }
 }
 

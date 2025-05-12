@@ -45,6 +45,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/aiConversations', aiConversationRoutes);
+app.use('/api/student', require('./routes/student'));
+
 
 // Protected user profile route
 app.get("/api/user/profile", auth, async (req, res) => {
