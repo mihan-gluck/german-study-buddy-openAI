@@ -19,7 +19,23 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       name: 'A2 Elementary AI Agent',
       url: 'https://your-agent-url.com/a2',
     },
-    // Add more course agents as needed
+        {
+      name: 'B1 Intermediate Agent',
+      url: 'https://your-agent-url.com/b1',
+    },
+    {
+      name: 'B2 Upper Intermediate Agent',
+      url: 'https://your-agent-url.com/b2',
+    },
+    {
+      name: 'C1 Advanced Agent',
+      url: 'https://your-agent-url.com/c1',
+    },
+    {
+      name: 'C2 Proficient Agent',
+      url: 'https://your-agent-url.com/c2',
+    }
+    
   ];
   private supportScriptId = 'vapi-chat-support';
 
