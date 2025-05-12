@@ -2,12 +2,25 @@
 
 <h2>Welcome to Student Dashboard</h2>
 
-<div class="row">
-  <div class="col-md-6 col-lg-4 mb-4" *ngFor="let agent of aiAgents">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">{{ agent.name }}</h5>
-        <a [href]="agent.url" class="btn btn-primary" target="_blank">Talk to AI</a>
+<div class="container mt-4">
+  <h2>Welcome to Your Dashboard</h2>
+  <p>Select a course-level AI tutor below:</p>
+
+  <div class="row">
+    <div
+      class="col-md-6 mb-4"
+      *ngFor="let agent of aiAgents"
+    >
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ agent.name }}</h5>
+          <iframe
+            [src]="agent.url | safeUrl"
+            width="100%"
+            height="350"
+            style="border: 1px solid #ccc; border-radius: 8px;"
+          ></iframe>
+        </div>
       </div>
     </div>
   </div>

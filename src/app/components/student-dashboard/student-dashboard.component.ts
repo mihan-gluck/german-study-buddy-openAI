@@ -1,12 +1,15 @@
 //student-dashboard.component.ts
 
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 
 @Component({
   standalone: false,
   selector: 'app-student-dashboard',
   templateUrl: './student-dashboard.component.html',
-  styleUrls: ['./student-dashboard.component.css']
+  styleUrls: ['./student-dashboard.component.css'],
+  
 })
 export class StudentDashboardComponent implements OnInit, OnDestroy {
 
@@ -37,7 +40,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     }
     
   ];
-  private supportScriptId = 'chat-support-widget';
+  private supportScriptId = 'support-widget';
   loadChatSupportWidget: any;
 
   ngOnInit(): void {
