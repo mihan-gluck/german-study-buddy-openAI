@@ -2,7 +2,8 @@
 
 const express = require('express');
 const router = express.Router();
-const Subscription = require('../models/Subscription');
+
+const Subscription = require('../models/subscriptions');
 const authMiddleware = require('../middleware/auth'); // JWT auth middleware
 
 // GET /api/student/vapi-courses
