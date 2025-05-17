@@ -2,13 +2,23 @@
 
 <h2>Welcome to Student Dashboard</h2>
 
-<div *ngIf="loading">Loading...</div>
-<p *ngIf="error">{{ error }}</p>
+<div class="dashboard-container">
+  <h2>Welcome to Student Dashboard</h2>
 
-<div *ngFor="let course of vapiCourses">
-  <h3>{{ course.name }}</h3>
-  <button (click)="openVapi(course)">Open German Buddy</button>
+  <div *ngIf="loading">Loading courses...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div *ngIf="!loading && vapiCourses.length > 0" class="course-list">
+    <div *ngFor="let course of vapiCourses" class="course-card">
+      <h3>{{ course.name }}</h3>
+      <button (click)="startCall(course)" [disabled]="vapiActive">Start</button>
+      <button (click)="stopCall()" [disabled]="!vapiActive">Stop</button>
+    </div>
+  </div>
+
+  <div *ngIf="vapiActive" class="status">Voice assistant is active...</div>
 </div>
+
 
 
 <!-- <div class="container mt-4">

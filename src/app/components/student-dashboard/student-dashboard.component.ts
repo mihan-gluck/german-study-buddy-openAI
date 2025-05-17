@@ -1,10 +1,12 @@
 //student-dashboard.component.ts
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { VapiWidgetService } from '../../services/vapi-widget.service';
 import { Renderer2 } from '@angular/core';
 import { Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { VapiUsageService, VapiUsageData } from '../../services/vapi-usage.service';
 // import { AuthService } from '../../services/auth.service';
 // import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
@@ -24,6 +26,160 @@ interface VapiCourse {
 })
 
 export class StudentDashboardComponent implements OnInit {
+  loading: boolean = false;
+  error: string | null = null;
+  vapiCourses: VapiCourse[] = [];
+
+  callStartTime: number | null = null;
+  callEndTime: number | null = null;
+  selectedCourse: VapiCourse | null = null;
+  vapiActive: boolean = false;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document,
+    private http: HttpClient
+  ) {}
+
+  ngOnInit(): void {
+    this.fetchCourses();
+  }
+
+  fetchCourses(): void {
+    this.loading = true;
+
+    // Replace with your real backend call
+    setTimeout(() => {
+      try {
+        this.vapiCourses = [
+          {
+            name: 'A1 Spoken German',
+            assistantID: 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8',
+            apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde'
+          }
+        ];
+        this.loading = false;
+      } catch (err: any) {
+        this.error = err.message || 'Something went wrong';
+        this.loading = false;
+      }
+    }, 1000);
+  }
+
+  startCall(course: VapiCourse): void {
+    this.selectedCourse = course;
+    this.callStartTime = Date.now();
+    this.vapiActive = true;
+
+    // Remove existing widget
+    const existingScript = this.document.getElementById('vapi-script');
+    if (existingScript) existingScript.remove();
+
+    // Inject CSS
+    const style = this.renderer.createElement('style');
+    style.textContent = `
+      .vapi-widget {
+        z-index: 9999;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+      }
+    `;
+    this.renderer.appendChild(this.document.head, style);
+
+    // Inject script
+    const script = this.renderer.createElement('script');
+    script.type = 'text/javascript';
+    script.id = 'vapi-script';
+    script.text = `
+      var vapiInstance = null;
+      const assistant = "${course.assistantID}";
+      const apiKey = "${course.apiKey}";
+      const config = {
+        position: "center",
+        idle: {
+          color: "#0447dd",
+          title: "Talk to German Buddy",
+          subtitle: "Ask your question"
+        },
+        loading: {
+          title: "Connecting...",
+          subtitle: "Please wait"
+        },
+        active: {
+          title: "In call",
+          subtitle: "Speak now"
+        }
+      };
+
+      document.addEventListener("DOMContentLoaded", initVapi);
+      function initVapi() {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+        s.defer = true;
+        s.async = true;
+        s.onload = function () {
+          try {
+            vapiInstance = window.vapiSDK.run({ apiKey, assistant, config });
+
+            vapiInstance.on("callStarted", () => {
+              window.dispatchEvent(new Event("vapi-call-start"));
+            });
+
+            vapiInstance.on("callEnded", () => {
+              window.dispatchEvent(new Event("vapi-call-end"));
+            });
+
+            window.vapiInstance = vapiInstance;
+          } catch (e) {
+            console.error("Error loading VAPI", e);
+          }
+        };
+        document.head.appendChild(s);
+      }
+    `;
+    this.renderer.appendChild(this.document.body, script);
+  }
+
+  stopCall(): void {
+    this.callEndTime = Date.now();
+    this.vapiActive = false;
+
+    if (window && (window as any).vapiInstance) {
+      try {
+        (window as any).vapiInstance.endCall(); // Close widget and end call
+      } catch (e) {
+        console.error('Failed to stop VAPI call:', e);
+      }
+    }
+
+    if (this.selectedCourse) {
+      this.logUsage(this.selectedCourse);
+    }
+  }
+
+  logUsage(course: VapiCourse): void {
+    if (this.callStartTime && this.callEndTime) {
+      const duration = Math.round((this.callEndTime - this.callStartTime) / 1000); // in seconds
+      const payload = {
+        course: course.name,
+        assistantID: course.assistantID,
+        duration,
+        timestamp: new Date().toISOString()
+      };
+
+      this.http.post('/api/vapi-usage', payload).subscribe({
+        next: () => console.log('Usage logged'),
+        error: err => console.error('Logging failed', err)
+      });
+
+      this.callStartTime = null;
+      this.callEndTime = null;
+    }
+  }
+}
+
+/* export class StudentDashboardComponent implements OnInit {
 
   loading: boolean = false;
   error: string | null = null;
@@ -32,6 +188,8 @@ export class StudentDashboardComponent implements OnInit {
   // Usage tracking
   callStartTime: number | null = null;
   callEndTime: number | null = null;
+  selectedCourse: VapiCourse | null = null;
+  vapiActive: boolean = false;
 
   constructor(
     private renderer: Renderer2,
@@ -171,7 +329,7 @@ export class StudentDashboardComponent implements OnInit {
       this.callEndTime = null;
     }
   }
-}
+} */
   
 /* })
 export class StudentDashboardComponent implements OnInit {

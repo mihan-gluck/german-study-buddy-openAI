@@ -74,13 +74,17 @@ app.get("*", (req, res) => {
 
 // server.js or routes/vapi.js
 app.post('/api/vapi-usage', (req, res) => {
-  const { course, assistantID, duration, timestamp } = req.body;
+  /* const { course, assistantID, duration, timestamp } = req.body;
 
   // Store in DB or log
   console.log(`VAPI USAGE LOG:`, { course, assistantID, duration, timestamp });
 
-  res.status(200).send({ message: 'Usage logged successfully' });
+  res.status(200).send({ message: 'Usage logged successfully' }); */
 });
+
+// Route for routes/vapuUsage.js
+const vapiUsageRoutes = require("./routes/vapiUsage");
+app.use('/api/vapi-usage', vapiUsageRoutes);
 
 
 // Start server
