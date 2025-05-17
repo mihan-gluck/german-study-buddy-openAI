@@ -67,6 +67,38 @@
   transform: translate(-50%, -50%) !important;
 }
 
+/* === Responsive Tweaks === */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .course-list {
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .course-card {
+    padding: 1rem;
+  }
+
+  .course-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .course-card button {
+    width: 100%;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    padding: 0.6rem;
+  }
+
+  .status {
+    font-size: 0.9rem;
+  }
+}
+
+
 
 
 /* .student-dashboard-container {
