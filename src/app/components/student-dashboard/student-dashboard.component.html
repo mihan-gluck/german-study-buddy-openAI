@@ -2,7 +2,16 @@
 
 <h2>Welcome to Student Dashboard</h2>
 
-<div class="container mt-4">
+<div *ngIf="loading">Loading...</div>
+<p *ngIf="error">{{ error }}</p>
+
+<div *ngFor="let course of vapiCourses">
+  <h3>{{ course.name }}</h3>
+  <button (click)="openVapi(course)">Open German Buddy</button>
+</div>
+
+
+<!-- <div class="container mt-4">
   
   <p>Select a course-level AI tutor below:</p>
 
@@ -19,6 +28,10 @@
     </button>
   </div>
 </div>
+
+<div *ngIf="loading">Loading courses...</div>
+<p *ngIf="error">{{ error }}</p>
+
 
 <ng-template #noCourses>
   <p>No subscribed courses found.</p>
@@ -45,7 +58,7 @@
     </div>
   </div>
 </div>
-
+ -->
 <!-- Vapi widget will be automatically loaded here via script -->
 
 

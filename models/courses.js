@@ -1,3 +1,5 @@
+//models/courses.js
+
 const mongoose = require("mongoose");
 
 const CourseSchema = new mongoose.Schema({

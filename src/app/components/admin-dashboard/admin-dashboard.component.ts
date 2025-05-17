@@ -1,3 +1,5 @@
+//src/app/components/admin-dashboard/admin-dashboard.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
@@ -13,6 +15,10 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./admin-dashboard.component.css']
 })
 export class AdminDashboardComponent implements OnInit {
+assignCourse: any;
+students: any;
+selectedCourse: any;
+vapiApiKey: any;
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {

@@ -15,7 +15,6 @@ const User = require("./models/User");
 
 const app = express();
 
-const MONGO_URI="mongodb+srv://GluckSL:<gluck123>@german-cluster.b8lodfj.mongodb.net/?retryWrites=true&w=majority&appName=german-cluster"
 
 // Middleware
 app.use(express.json());
