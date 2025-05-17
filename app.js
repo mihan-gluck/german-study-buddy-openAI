@@ -72,6 +72,17 @@ app.get("*", (req, res) => {
   //res.sendFile(path.join(frontendPath, "dist/angular-germanbuddy/index.html"));
 });
 
+// server.js or routes/vapi.js
+app.post('/api/vapi-usage', (req, res) => {
+  const { course, assistantID, duration, timestamp } = req.body;
+
+  // Store in DB or log
+  console.log(`VAPI USAGE LOG:`, { course, assistantID, duration, timestamp });
+
+  res.status(200).send({ message: 'Usage logged successfully' });
+});
+
+
 // Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); 
