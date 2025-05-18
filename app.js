@@ -16,7 +16,7 @@ const studentRoutes = require("./routes/student")
 const User = require("./models/User");
 const profileRoutes = require('./routes/profile');
 const teacherRoutes = require('./routes/teacher');
-const path = require('path');
+
 
 
 const app = express();
