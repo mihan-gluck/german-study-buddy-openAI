@@ -8,12 +8,21 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["student", "teacher", "admin"], required: true },
   subscription: { type: String, enum: ["free", "premium"], default: "free" },
+  courseAssigned: String,
   isActive: { type: Boolean, default: true },
   profilePic: { type: String, default: "" },
   subscriptionExpiry: { type: Date, default: null },
   lastLogin: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  vapiAccess: {
+    assistantID: String,
+    apiKey: String,
+    status: { type: String, enum: ['active', 'paused', 'finished'], default: 'paused' },
+    totalMonthlyUsage: { type: Number, default: 0 } // in minutes
+  },
+  registeredAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model("User", UserSchema);
+

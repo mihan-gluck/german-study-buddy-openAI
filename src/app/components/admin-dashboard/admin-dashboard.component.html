@@ -1,4 +1,55 @@
-<!--admin-dashboard.component.html-->
+<!-- src/app/components/admin-dashboard/admin-dashboard.component.html -->
 
-<p>admin-dashboard works!</p>
+<div class="admin-dashboard-container">
+  <h2>Admin Dashboard</h2>
 
+  <p *ngIf="loading">Loading students...</p>
+  <p *ngIf="error">{{ error }}</p>
+
+  <table *ngIf="!loading && students.length > 0" class="student-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Course</th>
+        <th>Assistant ID</th>
+        <th>API Key</th>
+        <th>Status</th>
+        <th>Usage (mins)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let student of students; trackBy: trackById">
+        <td>{{ student.name }}</td>
+        <td>{{ student.email }}</td>
+        <td>
+          <input [(ngModel)]="student.courseAssigned" placeholder="Course name" />
+        </td>
+        <td>
+          <input [(ngModel)]="student.vapiAccess.assistantID" placeholder="Assistant ID" />
+        </td>
+        <td>
+          <input [(ngModel)]="student.vapiAccess.apiKey" placeholder="API Key" />
+        </td>
+        <td>{{ student.vapiAccess.status }}</td>
+        <td>
+        <select
+            [value]="student.vapiAccess.status"
+            (change)="onStatusChange($event, student._id)">
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="finished">Finished</option>
+        </select>
+        </td>
+
+        <td>{{ student.vapiAccess.totalMonthlyUsage || 0 }}</td>
+        <td>
+          <button (click)="assignCourseToStudent(student)">Assign</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p *ngIf="!loading && students.length === 0">No students found.</p>
+</div>

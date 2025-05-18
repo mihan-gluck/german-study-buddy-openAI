@@ -1,24 +1,41 @@
 //middleware/auth.js
 
-const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET; // Secret from .env file
+require('dotenv').config(); // Load environment variables
 
-module.exports = function (req, res, next) {
-  const token = req.header('Authorization')?.replace('Bearer ', ''); // Extract token from Authorization header
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Middleware: Verify JWT token
+function verifyToken(req, res, next) {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
     return res.status(401).json({ msg: 'No token, authorization denied' });
   }
 
   try {
-    // Verify the token and decode it
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // Attach the decoded token to the request object (user info)
-    next(); // Proceed to the next middleware or route handler
+    req.user = decoded; // Attach user payload
+    next();
   } catch (err) {
-    res.status(401).json({ msg: 'Invalid token' });
+    return res.status(401).json({ msg: 'Invalid token' });
   }
+}
+
+// Middleware: Check if user is admin
+function isAdmin(req, res, next) {
+  if (req.user && req.user.role === 'admin') {
+    next(); // User is admin
+  } else {
+    return res.status(403).json({ msg: 'Access denied: Admins only' });
+  }
+}
+
+module.exports = {
+  verifyToken,
+  isAdmin
 };
+
 
 
 /* require('dotenv').config();  // Import dotenv to access environment variables

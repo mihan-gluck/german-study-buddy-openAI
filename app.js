@@ -11,7 +11,13 @@ const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courses");
 const subscriptionRoutes = require("./routes/subscriptions");
 const aiConversationRoutes = require("./routes/aiConversations");
+const adminRoutes = require("./routes/admin");
+const studentRoutes = require("./routes/student")
 const User = require("./models/User");
+const profileRoutes = require('./routes/profile');
+const teacherRoutes = require('./routes/teacher');
+const path = require('path');
+
 
 const app = express();
 
@@ -44,7 +50,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/aiConversations', aiConversationRoutes);
-app.use('/api/student', require('./routes/student'));
+app.use('/api/student', studentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/teacher', teacherRoutes);
+
 
 
 // Protected user profile route
@@ -61,6 +71,12 @@ app.get("/api/user/profile", auth, async (req, res) => {
 // Serve Angular frontend only for non-API routes in production
 const frontendPath = path.join(__dirname, "dist", "angular-germanbuddy", "browser");
 app.use(express.static(frontendPath));
+
+// Serve uploads
+app.use('/uploads', express.static('uploads')); 
+
+// Serve static files (images)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get("*", (req, res) => {
   //if it's not an API call, return Angular app

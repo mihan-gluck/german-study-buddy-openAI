@@ -19,9 +19,23 @@
   }
   
   .profile-pic {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #007bff;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
   }
+
+  input[type="file"] {
+  display: block;
+  margin-top: 10px;
+}
+
+button[type="submit"] {
+  display: block;
+  margin-top: 10px;
+}
   

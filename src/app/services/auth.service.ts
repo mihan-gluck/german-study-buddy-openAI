@@ -8,69 +8,91 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-
 export class AuthService {
-  private apiUrl = 'http://localhost:4000/api/auth'; // Backend API URL
+  // Change backend API URL to your EC2 URL or keep localhost for development
+  private apiUrl = 'http://localhost:4000/api';  // Base API URL
 
   constructor(private http: HttpClient) {}
 
   signup(user: { name: string, email: string, password: string, role: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/signup`, user);
+    return this.http.post(`${this.apiUrl}/auth/signup`, user);
   }
 
   login(user: { email: string, password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, user);
+    return this.http.post(`${this.apiUrl}/auth/login`, user);
   }
 
   saveToken(token: string) {
-    localStorage.setItem('authToken', token); // Store token in local storage
+    localStorage.setItem('authToken', token);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('authToken'); // Retrieve token from local storage
+    return localStorage.getItem('authToken');
   }
 
-  // Method to fetch Vapi data
-  getStudentVapiData() {
-  return this.http.get<any>('/api/student/vapi-access'); // Adjust route as needed
-}
-
-  // Method to get Vapi Courses
-  getVapiCourses() {
-  return this.http.get<any[]>('/api/student/vapi-courses');
-}
-
-
-  // Method to fetch the user's profile data
+  // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
     const token = this.getToken();
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.get('http://localhost:4000/api/user/profile', { headers }); // Fetch user profile from backend
+    // Corrected route to match backend profile route
+    return this.http.get(`${this.apiUrl}/profile`, { headers });
   }
 
-  //
   getUserRole(): string | null {
     const token = this.getToken();
     if (!token) return null;
-    const payload = JSON.parse(atob(token.split('.')[1])); // Decode JWT
-    return payload.role; // Assuming role is stored in JWT payload
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role;
+    } catch {
+      return null;
+    }
   }
-  
-  // Check if the JWT token is expired
+
   isTokenExpired(): boolean {
     const token = this.getToken();
     if (!token) return true;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const expiry = payload.exp * 1000; // Convert to milliseconds
-    return Date.now() > expiry;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp * 1000;
+      return Date.now() > expiry;
+    } catch {
+      return true;
+    }
   }
-
-  
 
   logOut() {
     localStorage.removeItem('authToken');
   }
+
+  // Additional methods for VAPI data - you can adjust these endpoints if needed
+  getStudentVapiData() {
+    return this.http.get<any>(`${this.apiUrl}/student/vapi-access`);
+  }
+
+  getVapiCourses() {
+    return this.http.get<any[]>(`${this.apiUrl}/student/vapi-courses`);
+  }
+
+  // Upload profile photo
+  uploadProfilePhoto(file: File): Observable<any> {
+  const token = this.getToken();
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  const formData = new FormData();
+  formData.append('profilePhoto', file);
+
+  // Backend endpoint for photo upload — adjust if needed
+  return this.http.post(`${this.apiUrl}/profile/upload-photo`, formData, { headers });
+} 
+
+
 }
+
+
+
 
 
 /* export class AuthService {
