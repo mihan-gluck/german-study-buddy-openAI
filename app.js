@@ -6,6 +6,8 @@ const path = require('path');
 const mongoose = require("mongoose");
 const cors = require("cors");
 const auth = require("./middleware/auth");
+//const { verifyToken, isAdmin} = require('./middleware/auth');
+
 
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courses");
@@ -45,8 +47,10 @@ mongoose.connect(process.env.MONGO_URI, {
   console.error("❌ Error connecting to MongoDB Atlas:", err);
 }); */
 
+
 // API Routes
 app.use('/api/auth', authRoutes);
+//app.use('/api/verifyToken, isAdmin', auth);
 app.use('/api/courses', courseRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/aiConversations', aiConversationRoutes);
@@ -57,8 +61,9 @@ app.use('/api/teacher', teacherRoutes);
 
 
 
+
 // Protected user profile route
-app.get("/api/user/profile", auth, async (req, res) => {
+app.get("/api/user/profile", auth.verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
     if (!user) return res.status(404).json({ msg: "User not found" });

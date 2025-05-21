@@ -4,8 +4,14 @@ const express = require('express');
 const router = express.Router();
 const Subscription = require('../models/subscriptions');
 const User = require('../models/User');
-//const authMiddleware = require('../middleware/auth');
-const { verifyToken, isAdmin } = require('../middleware/auth');
+//const auth = require('../middleware/auth');
+const { verifyToken, isAdmin } = require('../middleware/auth'); // ✅ Correct import
+const checkRole = require('../middleware/checkRole');
+
+// Admin dashboard route
+router.get("/admin-dashboard", verifyToken, checkRole("admin"), (req, res) => {
+  res.json({ msg: "Welcome Admin" });
+});
 
 // Get all students
 router.get('/students', verifyToken, isAdmin, async (req, res) => {
@@ -70,5 +76,5 @@ router.post('/update-vapi-status', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-
 module.exports = router;
+

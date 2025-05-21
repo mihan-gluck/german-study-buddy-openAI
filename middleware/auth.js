@@ -1,7 +1,6 @@
 //middleware/auth.js
 
-require('dotenv').config(); // Load environment variables
-
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -15,14 +14,28 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // Attach user payload
+    req.user = decoded; // Add user data to request
     next();
   } catch (err) {
     return res.status(401).json({ msg: 'Invalid token' });
   }
 }
 
-// Middleware: Check if user is admin
+// ✅ Optional role check (if needed)
+function isAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ msg: 'Access denied. Admins only.' });
+  }
+  next();
+}
+
+module.exports = {
+  verifyToken,
+  isAdmin
+}; // ✅ Now exports the auth function directly
+
+
+/* // Middleware: Check if user is admin
 function isAdmin(req, res, next) {
   if (req.user && req.user.role === 'admin') {
     next(); // User is admin
@@ -34,7 +47,7 @@ function isAdmin(req, res, next) {
 module.exports = {
   verifyToken,
   isAdmin
-};
+}; */
 
 
 
