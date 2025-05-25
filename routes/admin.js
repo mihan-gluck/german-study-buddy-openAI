@@ -1,20 +1,63 @@
 //routes/admin.js
 
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Subscription = require('../models/subscriptions');
 const User = require('../models/User');
+const VapiAgent = require('../models/VapiAgent');
 //const auth = require('../middleware/auth');
 const { verifyToken, isAdmin, checkRole } = require('../middleware/auth'); // ✅ Correct import
-
+const VapiUsage = require('../models/VapiUsage');
 
 // Admin dashboard route
 router.get("/admin-dashboard", verifyToken, checkRole("admin"), (req, res) => {
   res.json({ msg: "Welcome Admin" });
 });
 
+
+
+// Get all available VAPI agents
+router.get('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const agents = await VapiAgent.find();
+    res.json(agents);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch agents' });
+  }
+});
+
+// Add a new VAPI agent
+router.post('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
+  const { assistantID, name, description } = req.body;
+
+  try {
+    const newAgent = new VapiAgent({ assistantID, name, description });
+    await newAgent.save();
+    res.status(201).json({ message: 'Agent added successfully' });
+  } catch (err) {
+    console.error('Error adding VAPI agent:', err);
+    res.status(500).json({ message: 'Error adding agent', error: err });
+  }
+});
+
+// Delete an agent
+router.delete('/vapi-agents/:id', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const deleted = await VapiAgent.findByIdAndDelete(req.params.id);
+if (!deleted) {
+  return res.status(404).json({ message: 'Agent not found' });
+}
+
+    res.json({ message: 'Agent deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete agent' });
+  }
+  
+});
+
 // Get all students
-router.get('/students', verifyToken, isAdmin, checkRole("admin"), async (req, res) => {
+router.get('/students', verifyToken, isAdmin, async (req, res) => {
   try {
     const students = await User.find({ role: 'student' }).select('-password');
     res.status(200).json(students);
@@ -51,6 +94,49 @@ router.post('/assign-course', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+// Update student's subscription - PUT /api/subscriptions/:id
+router.put("/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const updated = await Subscription.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updated) return res.status(404).json({ message: "Subscription not found" });
+    res.status(200).json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+// Delete a subscription - DELETE /api/subscriptions/:id
+router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    await Subscription.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Subscription deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// View subscriptions for a specific student - GET /api/subscriptions/user/:userId
+router.get("/user/:userId", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const subs = await Subscription.find({ userId: req.params.userId });
+    res.status(200).json(subs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// List all courses a student is enrolled in - GET /api/courses/enrolled/:studentId
+router.get("/enrolled/:studentId", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const courses = await Course.find({ students: req.params.studentId });
+    res.status(200).json(courses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 // Update VAPI access status for a student
 router.post('/update-vapi-status', verifyToken, isAdmin, async (req, res) => {
   const { studentId, newStatus } = req.body;
@@ -76,5 +162,69 @@ router.post('/update-vapi-status', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+// Get usage data for a student
+router.get('/vapi-usage/daily/:studentId', verifyToken, isAdmin, async (req, res) => {
+  const { studentId } = req.params;
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const usage = await VapiUsage.aggregate([
+    { $match: { studentId: new mongoose.Types.ObjectId(studentId), timestamp: { $gte: startOfDay } } },
+    { $group: { _id: null, totalDuration: { $sum: "$duration" } } }
+  ]);
+
+  res.json({ totalDuration: usage[0]?.totalDuration || 0 });
+});
+
+// Get monthly usage for a student
+router.get('/vapi-usage/monthly/:studentId', verifyToken, isAdmin, async (req, res) => {
+  const { studentId } = req.params;
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  try {
+    const usage = await VapiUsage.aggregate([
+      { $match: { studentId: new mongoose.Types.ObjectId(studentId), timestamp: { $gte: startOfMonth } } },
+      { $group: { _id: null, totalDuration: { $sum: "$duration" } } }
+    ]);
+
+    res.json({ totalDuration: usage[0]?.totalDuration || 0 }); // in seconds
+  } catch (err) {
+    console.error("Error fetching monthly usage:", err);
+    res.status(500).json({ message: 'Error fetching usage' });
+  }
+});
+
 module.exports = router;
+
+/* router.get('/vapi-usage/monthly/:studentId', verifyToken, isAdmin, async (req, res) => {
+  const { studentId } = req.params;
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const usage = await VapiUsage.aggregate([
+    { $match: { studentId: new mongoose.Types.ObjectId(studentId), timestamp: { $gte: startOfMonth } } },
+    { $group: { _id: null, totalDuration: { $sum: "$duration" } } }
+  ]);
+
+
+  const remainingTime = 60 * 60 - student.vapiAccess.totalMonthlyUsage * 60; // remaining in seconds
+
+if (remainingTime <= 600 && student.vapiAccess.status === 'active') {
+  // Send alert: less than 10 min remaining (simulate or integrate email service)
+  console.log('Alert: Student has less than 10 minutes left.');
+}
+if (remainingTime <= 0 && student.vapiAccess.status === 'active') {
+  student.vapiAccess.status = 'paused';
+  console.log('VAPI access auto-disabled due to usage limit.');
+}
+
+
+  res.json({ totalDuration: usage[0]?.totalDuration || 0 });
+}); */
+
+
+
 

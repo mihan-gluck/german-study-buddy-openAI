@@ -25,6 +25,16 @@ router.get('/vapi-courses', verifyToken, checkRole('student'), async (req, res) 
   }
 });
 
+// View own active subscriptions - GET /api/subscriptions/me
+router.get("/me", verifyToken, checkRole("student"), async (req, res) => {
+  try {
+    const subs = await Subscription.find({ userId: req.user.id });
+    res.status(200).json(subs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ✅ GET /api/student/profile - Get current student's profile
 router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
   try {

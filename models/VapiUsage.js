@@ -6,7 +6,12 @@ const VapiUsageSchema = new mongoose.Schema({
   assistantID: String,
   duration: Number, // seconds
   timestamp: Date,
+  studentId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User'
+},
 });
+
 
 module.exports = mongoose.model('VapiUsage', VapiUsageSchema);
 
