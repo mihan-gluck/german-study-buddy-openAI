@@ -5,8 +5,8 @@ const router = express.Router();
 const Subscription = require('../models/subscriptions');
 const User = require('../models/User');
 //const auth = require('../middleware/auth');
-const { verifyToken, isAdmin } = require('../middleware/auth'); // ✅ Correct import
-const checkRole = require('../middleware/checkRole');
+const { verifyToken, isAdmin, checkRole } = require('../middleware/auth'); // ✅ Correct import
+
 
 // Admin dashboard route
 router.get("/admin-dashboard", verifyToken, checkRole("admin"), (req, res) => {
@@ -14,7 +14,7 @@ router.get("/admin-dashboard", verifyToken, checkRole("admin"), (req, res) => {
 });
 
 // Get all students
-router.get('/students', verifyToken, isAdmin, async (req, res) => {
+router.get('/students', verifyToken, isAdmin, checkRole("admin"), async (req, res) => {
   try {
     const students = await User.find({ role: 'student' }).select('-password');
     res.status(200).json(students);

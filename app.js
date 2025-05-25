@@ -18,6 +18,7 @@ const studentRoutes = require("./routes/student")
 const User = require("./models/User");
 const profileRoutes = require('./routes/profile');
 const teacherRoutes = require('./routes/teacher');
+const roleProtectedRoutes = require('./routes/roleProtected');
 
 
 
@@ -58,6 +59,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/protected', roleProtectedRoutes);
 
 
 

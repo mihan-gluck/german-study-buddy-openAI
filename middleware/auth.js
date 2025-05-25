@@ -2,6 +2,7 @@
 
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // Middleware: Verify JWT token
@@ -21,7 +22,7 @@ function verifyToken(req, res, next) {
   }
 }
 
-// ✅ Optional role check (if needed)
+// Optional middleware for explicit admin check
 function isAdmin(req, res, next) {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ msg: 'Access denied. Admins only.' });
@@ -29,10 +30,24 @@ function isAdmin(req, res, next) {
   next();
 }
 
+// General role-based access control middleware
+const checkRole = (role) => {
+  return (req, res, next) => {
+    if (req.user && req.user.role === role) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+    }
+  };
+};
+
+
+// ✅ Export all middleware
 module.exports = {
   verifyToken,
-  isAdmin
-}; // ✅ Now exports the auth function directly
+  isAdmin,
+  checkRole,
+};
 
 
 /* // Middleware: Check if user is admin
