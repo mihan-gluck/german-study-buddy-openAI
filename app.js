@@ -16,6 +16,7 @@ const aiConversationRoutes = require("./routes/aiConversations");
 const adminRoutes = require("./routes/admin");
 const studentRoutes = require("./routes/student")
 const User = require("./models/User");
+const Course = require('./models/Course');
 const profileRoutes = require('./routes/profile');
 const teacherRoutes = require('./routes/teacher');
 const roleProtectedRoutes = require('./routes/roleProtected');

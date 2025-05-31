@@ -22,22 +22,23 @@ router.get('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
   try {
     const agents = await VapiAgent.find();
     res.json(agents);
+    res.status(200).json({ success: true, data: agents});
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch agents' });
+    res.status(500).json({ success: false, message: 'Failed to fetch agents' });
   }
 });
 
-// Add a new VAPI agent
+// Add/ Post a new VAPI agent
 router.post('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
   const { assistantID, name, description } = req.body;
 
   try {
     const newAgent = new VapiAgent({ assistantID, name, description });
     await newAgent.save();
-    res.status(201).json({ message: 'Agent added successfully' });
+    res.status(201).json({ success: true, message: 'Agent added successfully' });
   } catch (err) {
     console.error('Error adding VAPI agent:', err);
-    res.status(500).json({ message: 'Error adding agent', error: err });
+    res.status(500).json({ success: false, message: 'Error adding agent', error: err });
   }
 });
 
@@ -45,13 +46,13 @@ router.post('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
 router.delete('/vapi-agents/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const deleted = await VapiAgent.findByIdAndDelete(req.params.id);
-if (!deleted) {
-  return res.status(404).json({ message: 'Agent not found' });
-}
+    if (!deleted) {
+      return res.status(404).json({ message: 'Agent not found' });
+    }
 
-    res.json({ message: 'Agent deleted successfully' });
+    res.json({ success: true, message: 'Agent deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to delete agent' });
+    res.status(500).json({ success: false, message: 'Failed to delete agent' });
   }
   
 });
@@ -60,20 +61,20 @@ if (!deleted) {
 router.get('/students', verifyToken, isAdmin, async (req, res) => {
   try {
     const students = await User.find({ role: 'student' }).select('-password');
-    res.status(200).json(students);
+    res.json({ success: true, data: students });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Failed to fetch students', error: err.message});
   }
 });
 
-// Assign a course to a student
+// Assign/ Post a course to a student
 router.post('/assign-course', verifyToken, isAdmin, async (req, res) => {
   const { studentId, courseName, assistantId, apiKey } = req.body;
 
   try {
     const student = await User.findById(studentId);
     if (!student || student.role !== 'student') {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
     // Update student's VAPI access
@@ -87,10 +88,10 @@ router.post('/assign-course', verifyToken, isAdmin, async (req, res) => {
     student.updatedAt = new Date();
 
     await student.save();
-    return res.status(201).json({ message: 'Course assigned successfully' });
+    return res.status(201).json({ success: true, message: 'Course assigned successfully' });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Error assigning course', error: err });
+    return res.status(500).json({ success: false, message: 'Error assigning course', error: err });
   }
 });
 
@@ -120,9 +121,9 @@ router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
 router.get("/user/:userId", verifyToken, isAdmin, async (req, res) => {
   try {
     const subs = await Subscription.find({ userId: req.params.userId });
-    res.status(200).json(subs);
+    res.status(200).json({ success: true, data: subs });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -130,14 +131,14 @@ router.get("/user/:userId", verifyToken, isAdmin, async (req, res) => {
 router.get("/enrolled/:studentId", verifyToken, isAdmin, async (req, res) => {
   try {
     const courses = await Course.find({ students: req.params.studentId });
-    res.status(200).json(courses);
+    res.status(200).json({ success: true, data: courses });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 
-// Update VAPI access status for a student
+// Update/ POST VAPI access status for a student
 router.post('/update-vapi-status', verifyToken, isAdmin, async (req, res) => {
   const { studentId, newStatus } = req.body;
 
@@ -155,7 +156,7 @@ router.post('/update-vapi-status', verifyToken, isAdmin, async (req, res) => {
     student.updatedAt = new Date();
     await student.save();
 
-    return res.status(200).json({ message: 'VAPI access status updated successfully' });
+    return res.status(200).json({ success: true, message: 'VAPI access status updated successfully' });
   } catch (err) {
     console.error('Error updating VAPI status:', err);
     return res.status(500).json({ message: 'Error updating VAPI status', error: err });
@@ -173,7 +174,7 @@ router.get('/vapi-usage/daily/:studentId', verifyToken, isAdmin, async (req, res
     { $group: { _id: null, totalDuration: { $sum: "$duration" } } }
   ]);
 
-  res.json({ totalDuration: usage[0]?.totalDuration || 0 });
+  res.json({ success: true, data: { totalDuration: usage[0]?.totalDuration || 0 } });
 });
 
 // Get monthly usage for a student
@@ -189,7 +190,7 @@ router.get('/vapi-usage/monthly/:studentId', verifyToken, isAdmin, async (req, r
       { $group: { _id: null, totalDuration: { $sum: "$duration" } } }
     ]);
 
-    res.json({ totalDuration: usage[0]?.totalDuration || 0 }); // in seconds
+    res.json({ success: true, data: { totalDuration: usage[0]?.totalDuration || 0 } }); // in seconds
   } catch (err) {
     console.error("Error fetching monthly usage:", err);
     res.status(500).json({ message: 'Error fetching usage' });

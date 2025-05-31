@@ -1,4 +1,4 @@
-//models/courses.js
+//models/Course.js
 
 const mongoose = require("mongoose");
 
