@@ -20,6 +20,7 @@ const Course = require('./models/Course');
 const profileRoutes = require('./routes/profile');
 const teacherRoutes = require('./routes/teacher');
 const roleProtectedRoutes = require('./routes/roleProtected');
+const feedbackRoutes = require('./routes/feedback');
 
 
 
@@ -61,6 +62,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/protected', roleProtectedRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 
 
@@ -109,6 +111,10 @@ app.post('/api/vapi-usage', (req, res) => {
 // Route for routes/vapuUsage.js
 const vapiUsageRoutes = require("./routes/vapiUsage");
 app.use('/api/vapi-usage', vapiUsageRoutes);
+
+// Student feedback route
+const feedbackRoutes = require('./routes/feedback');
+app.use('/api/feedback', feedbackRoutes);
 
 
 // Start server

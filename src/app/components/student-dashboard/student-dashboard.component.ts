@@ -7,8 +7,25 @@ import { Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { VapiUsageService, VapiUsageData } from '../../services/vapi-usage.service';
-// import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
 // import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FeedbackService } from '../../services/feedback.service';
+
+interface FeedbackEntry {
+  timestamp: string;
+  studentName: string;
+  studentId: string;
+  summary: string;
+  conversationTime: number;
+  fluency: string;
+  accent: string;
+  grammar: string;
+  overallCfbr: string;
+  commonMistakes: string;
+  currentLevel: string;
+  suggestedImprovement: string;
+}
+
 
 interface VapiCourse {
 
@@ -26,6 +43,11 @@ interface VapiCourse {
 })
 
 export class StudentDashboardComponent implements OnInit {
+  feedbackList: FeedbackEntry[] = [];
+  feedbackLoading: boolean = false;
+  feedbackError: string | null = null;
+
+
   loading: boolean = false;
   error: string | null = null;
   vapiCourses: VapiCourse[] = [];
@@ -34,16 +56,45 @@ export class StudentDashboardComponent implements OnInit {
   callEndTime: number | null = null;
   selectedCourse: VapiCourse | null = null;
   vapiActive: boolean = false;
+openVapi: any;
 
   constructor(
     private renderer: Renderer2,
     @Inject(DOCUMENT) private document: Document,
-    private http: HttpClient
+    private http: HttpClient,
+    private feedbackService: FeedbackService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.fetchCourses();
+    this.loadFeedback();
   }
+
+  loadFeedback(): void {
+  this.feedbackLoading = true;
+
+  const studentId = this.authService.getUserId();  // Assuming this returns the logged-in student's _id
+  if (!studentId) {
+    this.feedbackError = 'Student ID not found';
+    this.feedbackLoading = false;
+    return;
+  }
+
+  this.feedbackService.getStudentFeedback(studentId).subscribe({
+    next: (data: any) => {
+      this.feedbackList = data;
+      this.feedbackLoading = false;
+    },
+    error: (err) => {
+      this.feedbackError = 'Failed to load feedback';
+      console.error(err);
+      this.feedbackLoading = false;
+    }
+  });
+}
+
+
 
   fetchCourses(): void {
     this.loading = true;

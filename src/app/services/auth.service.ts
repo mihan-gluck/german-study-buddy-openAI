@@ -11,8 +11,23 @@ import { Observable } from 'rxjs';
 export class AuthService {
   // Change backend API URL to your EC2 URL or keep localhost for development
   private apiUrl = 'http://localhost:4000/api';  // Base API URL
+  
 
   constructor(private http: HttpClient) {}
+
+  getUserId(): string {
+    const token = localStorage.getItem('token');
+    if (!token) return '';
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id || '';
+    } catch (error) {
+      console.error('Invalid token format', error);
+      return '';
+    }
+  }
+
 
   signup(user: { name: string, email: string, password: string, role: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user);
@@ -29,6 +44,7 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('authToken');
   }
+  
 
   // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
