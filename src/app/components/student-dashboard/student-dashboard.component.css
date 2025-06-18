@@ -98,6 +98,49 @@
   }
 }
 
+.feedback-table {
+  margin-top: 2rem;
+}
+
+.feedback-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.feedback-table th,
+.feedback-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.feedback-table th {
+  background-color: #f0f0f0;
+}
+
+.profile-box {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+}
+
+.profile-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+.details {
+  flex: 1;
+}
 
 
 

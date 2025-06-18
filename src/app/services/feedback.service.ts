@@ -20,6 +20,16 @@ export class FeedbackService {
     return this.http.get(`/api/feedback/student/${studentId}`);
   }
 
+  submitFeedback(feedback: any): Observable<any> {
+    return this.http.post('/api/feedback', feedback);
+  }
+
+  getAllStudents(): Observable<any[]> {
+    return this.http.get<any[]>('/api/teacher/students');
+  }
+
+
+
 
   
 }

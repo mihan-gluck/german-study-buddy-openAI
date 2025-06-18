@@ -4,6 +4,13 @@ import { Injectable } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
+
+interface DecodeToken {
+  name: string;
+  email: string;
+  level?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -11,14 +18,28 @@ import { Observable } from 'rxjs';
 export class AuthService {
   // Change backend API URL to your EC2 URL or keep localhost for development
   private apiUrl = 'http://localhost:4000/api';  // Base API URL
+  //getUserId: any;
   
 
   constructor(private http: HttpClient) {}
 
+  getUser(): DecodeToken | null {
+    const token = localStorage.getItem('authToken'); // FIXED
+    if (!token) return null;
+
+    try {
+      return jwtDecode(token) as DecodeToken;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+
+
   getUserId(): string {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken'); // FIXED
     if (!token) return '';
-    
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.id || '';
@@ -27,6 +48,8 @@ export class AuthService {
       return '';
     }
   }
+
+
 
 
   signup(user: { name: string, email: string, password: string, role: string }): Observable<any> {

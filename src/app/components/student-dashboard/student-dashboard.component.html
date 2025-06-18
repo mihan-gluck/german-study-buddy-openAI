@@ -3,6 +3,24 @@
 <div class="dashboard-container">
   <h2>Welcome to Student Dashboard</h2>
 
+  <div *ngIf="userProfile" class="profile-box">
+  <h3>Your Profile</h3>
+
+  <div class="profile-info">
+    <img 
+      [src]="userProfile.profilePhoto || 'assets/default-profile.png'" 
+      alt="Profile Photo" 
+      class="profile-photo"
+    />
+    <div class="details">
+      <p><strong>Name:</strong> {{ userProfile.name }}</p>
+      <p><strong>Email:</strong> {{ userProfile.email }}</p>
+      <p><strong>Current Level:</strong> {{ userProfile.level || 'Not Set' }}</p>
+    </div>
+  </div>
+</div>
+
+
   <div *ngIf="loading">Loading courses...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
@@ -15,6 +33,69 @@
   </div>
 
   <div *ngIf="vapiActive" class="status">Voice assistant is active...</div>
+
+  <!-- Feedback Section -->
+<div *ngIf="feedbackLoading">Loading your feedback...</div>
+<div *ngIf="feedbackError" class="error">{{ feedbackError }}</div>
+
+<div *ngIf="!feedbackLoading && feedbackList.length > 0" class="feedback-table">
+  <h3>Your Teacher's Feedback</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Summary</th>
+        <th>Conversation Time</th>
+        <th>Fluency</th>
+        <th>Accent</th>
+        <th>Grammar</th>
+        <th>Overall</th>
+        <th>Mistakes</th>
+        <th>Level</th>
+        <th>Suggestions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let fb of feedbackList">
+        <td>{{ fb.timestamp | date: 'short' }}</td>
+        <td>{{ fb.summary }}</td>
+        <td>{{ fb.conversationTime }} min</td>
+        <td>{{ fb.fluency }}</td>
+        <td>{{ fb.accent }}</td>
+        <td>{{ fb.grammar }}</td>
+        <td>{{ fb.overallCfbr }}</td>
+        <td>{{ fb.commonMistakes }}</td>
+        <td>{{ fb.currentLevel }}</td>
+        <td>{{ fb.suggestedImprovement }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="!feedbackLoading && feedbackList.length === 0">
+  <p>No feedback available yet. Please check back later.</p>
+</div>
+
+<!-- Profile Info -->
+<div *ngIf="authService.getUser() as user" class="profile-box">
+  <h3>Your Profile</h3>
+  <p><strong>Name:</strong> {{ user.name }}</p>
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>Current Level:</strong> {{ user.level || 'Not Set' }}</p>
+</div>
+
+<!-- Feedback Summary -->
+<div *ngIf="feedbackList.length">
+  <h3>Feedback Summary</h3>
+  <p><strong>Average Fluency:</strong> {{ getAverageScore('fluency') | number:'1.1-2' }}</p>
+  <p><strong>Average Grammar:</strong> {{ getAverageScore('grammar') | number:'1.1-2' }}</p>
+  <!-- Add more if needed -->
+</div>
+
+<!-- CSV Export -->
+<button (click)="exportToCSV()" *ngIf="feedbackList.length">Download Feedback as CSV</button>
+
+  
 </div>
 
 

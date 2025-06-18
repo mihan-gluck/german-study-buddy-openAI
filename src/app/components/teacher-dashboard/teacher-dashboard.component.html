@@ -1,5 +1,165 @@
 <!--teacher-dashboard.component.html-->
 
-<h2>Teacher Dashboard</h2>
-<p>Welcome, Teacher! Manage lessons and students here.</p>
+<div class="dashboard">
+  <h2>Teacher Dashboard</h2>
+  <p>Welcome, Teacher! Manage lessons and students here.</p>
 
+  <!-- Student Dropdown -->
+  <label for="student">Select Student:</label>
+  <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" id="student">
+    <option value="">-- Choose a Student --</option>
+    <option *ngFor="let student of students" [value]="student._id">
+      {{ student.name }} ({{ student._id }})
+    </option>
+  </select>
+
+  <!-- Feedback Results -->
+  <div *ngIf="loading">Loading feedback...</div>
+  <div *ngIf="!loading && feedbackList.length">
+    <h3>Feedback for Selected Student</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Summary</th>
+          <th>Conversation Time</th>
+          <th>Fluency</th>
+          <th>Accent</th>
+          <th>Grammar</th>
+          <th>Overall</th>
+          <th>Mistakes</th>
+          <th>Level</th>
+          <th>Suggestions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fb of feedbackList">
+          <td>{{ fb.timestamp | date:'short' }}</td>
+          <td>{{ fb.summary }}</td>
+          <td>{{ fb.conversationTime }}</td>
+          <td>{{ fb.fluency }}</td>
+          <td>{{ fb.accent }}</td>
+          <td>{{ fb.grammar }}</td>
+          <td>{{ fb.overallCfbr }}</td>
+          <td>{{ fb.commonMistakes }}</td>
+          <td>{{ fb.currentLevel }}</td>
+          <td>{{ fb.suggestedImprovement }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && !feedbackList.length && selectedStudentId">
+    <p>No feedback found for this student.</p>
+  </div>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <!-- Level Filter -->
+<label for="level">Filter by Level:</label>
+<select [(ngModel)]="selectedLevel" (change)="onLevelChange()" id="level">
+  <option value="">-- All Levels --</option>
+  <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+</select>
+
+<!-- Feedback Table -->
+    <table *ngIf="filteredFeedback.length">
+  <thead>
+    <tr>
+      <th>Student</th>
+      <th>Timestamp</th>
+      <th>Summary</th>
+      <th>Conversation Time</th>
+      <th>Fluency</th>
+      <th>Accent</th>
+      <th>Grammar</th>
+      <th>Overall</th>
+      <th>Mistakes</th>
+      <th>Level</th>
+      <th>Suggestions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let fb of filteredFeedback">
+      <td>{{ fb.studentName || getStudentNameById(fb.studentId) }}</td>
+      <td>{{ fb.timestamp | date:'short' }}</td>
+      <td>{{ fb.summary }}</td>
+      <td>{{ fb.conversationTime }}</td>
+      <td>{{ fb.fluency }}</td>
+      <td>{{ fb.accent }}</td>
+      <td>{{ fb.grammar }}</td>
+      <td>{{ fb.overallCfbr }}</td>
+      <td>{{ fb.commonMistakes }}</td>
+      <td>{{ fb.currentLevel }}</td>
+      <td>{{ fb.suggestedImprovement }}</td>
+    </tr>
+  </tbody>
+</table>
+
+
+    <!-- Pagination Controls -->
+    <div *ngIf="filteredFeedback.length">
+        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
+        <span>Page {{ currentPage }}</span>
+        <button (click)="onPageChange(currentPage + 1)" [disabled]="(currentPage * itemsPerPage) >= feedbackList.length">Next</button>
+    </div>
+
+    <!-- Date Range Filters -->
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" [(ngModel)]="startDate" (change)="onDateChange()">
+
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" [(ngModel)]="endDate" (change)="onDateChange()">
+
+    <button (click)="clearFilters()">Clear Filters</button>
+
+
+    <h3>Submit Feedback for a Student</h3>
+
+    <label for="student">Select Student:</label>
+    <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" id="student">
+        <option value="">-- Choose a Student --</option>
+        <option *ngFor="let student of students" [value]="student._id">
+            {{ student.name }} ({{ student._id }})
+        </option>
+    </select>
+
+    <form (ngSubmit)="submitFeedback()" #feedbackForm="ngForm" *ngIf="selectedStudentId">
+
+        <input type="hidden" name="studentId" [(ngModel)]="newFeedback.studentId" [value]="selectedStudentId" />
+
+        <label for="summary">Summary:</label>
+        <textarea id="summary" name="summary" [(ngModel)]="newFeedback.summary"></textarea>
+
+        <label for="fluency">Fluency:</label>
+        <input type="text" id="fluency" name="fluency" [(ngModel)]="newFeedback.fluency" />
+
+        <label for="accent">Accent:</label>
+        <input type="text" id="accent" name="accent" [(ngModel)]="newFeedback.accent" />
+
+        <label for="grammar">Grammar:</label>
+        <input type="text" id="grammar" name="grammar" [(ngModel)]="newFeedback.grammar" />
+
+        <label for="overallCFBR">Overall CFBR:</label>
+        <input type="text" id="overallCFBR" name="overallCFBR" [(ngModel)]="newFeedback.overallCFBR" />
+
+        <label for="commonMistakes">Common Mistakes:</label>
+        <input type="text" id="commonMistakes" name="commonMistakes" [(ngModel)]="newFeedback.commonMistakes" />
+
+        <label for="currentLevel">Current Level:</label>
+        <input type="text" id="currentLevel" name="currentLevel" [(ngModel)]="newFeedback.currentLevel" />
+
+        <label for="suggestedImprovement">Suggested Improvement:</label>
+        <input type="text" id="suggestedImprovement" name="suggestedImprovement" [(ngModel)]="newFeedback.suggestedImprovement" />
+
+        <button type="submit" [disabled]="!feedbackForm.form.valid">Submit Feedback</button>
+    </form>
+
+    <button (click)="exportToCSV()" *ngIf="filteredFeedback.length">Export to CSV</button>
+
+    <div *ngIf="filteredFeedback.length">
+        <p><strong>Average Fluency:</strong> {{ getAverageScore('fluency') | number:'1.1-2' }}</p>
+        <p><strong>Average Grammar:</strong> {{ getAverageScore('grammar') | number:'1.1-2' }}</p>
+    </div>
+
+</div>

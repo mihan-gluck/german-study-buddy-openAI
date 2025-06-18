@@ -56,19 +56,22 @@ export class StudentDashboardComponent implements OnInit {
   callEndTime: number | null = null;
   selectedCourse: VapiCourse | null = null;
   vapiActive: boolean = false;
-openVapi: any;
+  openVapi: any;
+
+  userProfile: any = null;
 
   constructor(
     private renderer: Renderer2,
     @Inject(DOCUMENT) private document: Document,
     private http: HttpClient,
     private feedbackService: FeedbackService,
-    private authService: AuthService
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.fetchCourses();
     this.loadFeedback();
+    this.loadUserProfile();
   }
 
   loadFeedback(): void {
@@ -228,6 +231,38 @@ openVapi: any;
       this.callEndTime = null;
     }
   }
+
+  getAverageScore(category: keyof FeedbackEntry): number {
+    const validScores = this.feedbackList.map(f => parseFloat(f[category] as string)).filter(n => !isNaN(n));
+    if (!validScores.length) return 0;
+    return validScores.reduce((sum, val) => sum + val, 0) / validScores.length;
+  }
+
+  exportToCSV(): void {
+    const headers = Object.keys(this.feedbackList[0] || {}).join(',');
+    const rows = this.feedbackList.map(fb => Object.values(fb).join(','));
+    const csvContent = [headers, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'feedback.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  loadUserProfile(): void {
+    this.authService.getUserProfile().subscribe({
+      next: (data) => {
+        this.userProfile = data;
+      },
+      error: (err) => {
+        console.error('Failed to load profile:', err);
+      }
+    });
+  }
+
+
 }
 
 /* export class StudentDashboardComponent implements OnInit {
