@@ -34,6 +34,28 @@
 
   <div *ngIf="vapiActive" class="status">Voice assistant is active...</div>
 
+
+  <!-- ✅ Profile Info Section -->
+<div class="profile-box" *ngIf="basicUser && userProfile">
+  <h3>Your Profile</h3>
+
+  <img *ngIf="userProfile.profilePhoto" [src]="userProfile.profilePhoto" alt="Profile Photo" width="100" />
+  <p><strong>Name:</strong> {{ basicUser.name }}</p>
+  <p><strong>Email:</strong> {{ basicUser.email }}</p>
+  <p><strong>Current Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
+  <p><strong>Subscription Plan:</strong> {{ userProfile.subscriptionPlan || 'Free' }}</p>
+</div>
+
+  <!-- Course Progress Section -->
+<div *ngIf="courseProgressList.length > 0" class="progress-box">
+  <h3>Your Course Progress</h3>
+  <div *ngFor="let progress of courseProgressList" class="progress-item">
+    <p><strong>{{ progress.courseId.name }}</strong></p>
+    <mat-progress-bar mode="determinate" [value]="progress.progressPercentage"></mat-progress-bar>
+    <p>{{ progress.progressPercentage }}%</p>
+  </div>
+</div>
+
   <!-- Feedback Section -->
 <div *ngIf="feedbackLoading">Loading your feedback...</div>
 <div *ngIf="feedbackError" class="error">{{ feedbackError }}</div>
@@ -74,14 +96,6 @@
 
 <div *ngIf="!feedbackLoading && feedbackList.length === 0">
   <p>No feedback available yet. Please check back later.</p>
-</div>
-
-<!-- Profile Info -->
-<div *ngIf="authService.getUser() as user" class="profile-box">
-  <h3>Your Profile</h3>
-  <p><strong>Name:</strong> {{ user.name }}</p>
-  <p><strong>Email:</strong> {{ user.email }}</p>
-  <p><strong>Current Level:</strong> {{ user.level || 'Not Set' }}</p>
 </div>
 
 <!-- Feedback Summary -->

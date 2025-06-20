@@ -92,4 +92,42 @@ router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
   }
 });
 
+// ✅ Get course progress for current student
+router.get('/course-progress', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).populate('courseProgress.courseId', 'name');
+    if (!user) return res.status(404).json({ msg: 'Student not found' });
+
+    res.status(200).json(user.courseProgress);
+  } catch (err) {
+    console.error('Fetch progress error:', err);
+    res.status(500).json({ msg: 'Failed to fetch course progress' });
+  }
+});
+
+// ✅ Update course progress
+router.put('/course-progress', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const { courseId, progressPercent } = req.body;
+
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ msg: 'Student not found' });
+
+    const existing = user.courseProgress.find(cp => cp.courseId.toString() === courseId);
+    if (existing) {
+      existing.progressPercent = progressPercent;
+      existing.lastUpdated = new Date();
+    } else {
+      user.courseProgress.push({ courseId, progressPercent });
+    }
+
+    await user.save();
+    res.status(200).json({ msg: 'Progress updated', courseProgress: user.courseProgress });
+  } catch (err) {
+    console.error('Course progress update error:', err);
+    res.status(500).json({ msg: 'Failed to update course progress' });
+  }
+});
+
+
 module.exports = router;

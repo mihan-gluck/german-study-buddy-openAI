@@ -10,6 +10,7 @@ import { VapiUsageService, VapiUsageData } from '../../services/vapi-usage.servi
 import { AuthService } from '../../services/auth.service';
 // import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FeedbackService } from '../../services/feedback.service';
+import { CourseProgressService } from '../../services/course-progress.service';
 
 interface FeedbackEntry {
   timestamp: string;
@@ -33,6 +34,12 @@ interface VapiCourse {
   //openVapiTab: string;
   assistantID: string;
   apiKey: string;
+}
+
+interface CourseProgress {
+  courseId: { _id: string; name: string };
+  progressPercentage: number;
+  lastUpdated: string;
 }
 
 @Component({
@@ -60,18 +67,25 @@ export class StudentDashboardComponent implements OnInit {
 
   userProfile: any = null;
 
+  basicUser: { name: string; email: string; level?: string } | null = null;  // From token
+
+  courseProgressList: CourseProgress[] = [];
+
   constructor(
     private renderer: Renderer2,
     @Inject(DOCUMENT) private document: Document,
     private http: HttpClient,
     private feedbackService: FeedbackService,
-    public authService: AuthService
+    public authService: AuthService,
+    private courseProgressService: CourseProgressService,
   ) {}
 
   ngOnInit(): void {
+    this.basicUser = this.authService.getUser();  // from token
     this.fetchCourses();
     this.loadFeedback();
-    this.loadUserProfile();
+    this.fetchUserProfile();
+    this.loadProgress();
   }
 
   loadFeedback(): void {
@@ -251,13 +265,24 @@ export class StudentDashboardComponent implements OnInit {
     window.URL.revokeObjectURL(url);
   }
 
-  loadUserProfile(): void {
-    this.authService.getUserProfile().subscribe({
+  fetchUserProfile(): void {
+  this.authService.getUserProfile().subscribe({
+    next: (profile) => {
+      this.userProfile = profile;
+    },
+    error: (err) => {
+      console.error('Failed to load full user profile:', err);
+    }
+  });
+}
+
+  loadProgress(): void {
+    this.courseProgressService.getProgress().subscribe({
       next: (data) => {
-        this.userProfile = data;
+        this.courseProgressList = data;
       },
       error: (err) => {
-        console.error('Failed to load profile:', err);
+        console.error('Failed to fetch course progress:', err);
       }
     });
   }

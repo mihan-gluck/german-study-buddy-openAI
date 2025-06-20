@@ -113,7 +113,6 @@ const vapiUsageRoutes = require("./routes/vapiUsage");
 app.use('/api/vapi-usage', vapiUsageRoutes);
 
 // Student feedback route
-const feedbackRoutes = require('./routes/feedback');
 app.use('/api/feedback', feedbackRoutes);
 
 

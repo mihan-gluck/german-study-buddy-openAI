@@ -142,6 +142,15 @@
   flex: 1;
 }
 
+.progress-box {
+  margin-top: 20px;
+}
+
+.progress-item {
+  margin-bottom: 16px;
+}
+
+
 
 
 /* .student-dashboard-container {

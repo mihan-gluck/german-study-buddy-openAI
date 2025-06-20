@@ -18,11 +18,27 @@ const UserSchema = new mongoose.Schema({
   vapiAccess: {
     assistantID: String,
     apiKey: String,
-    status: { type: String, enum: ['active', 'paused', 'finished'], default: 'paused' },
+    status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
     totalMonthlyUsage: { type: Number, default: 0 } // in minutes
   },
   registeredAt: { type: Date, default: Date.now }
 });
+
+courseProgress: [{
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
+  progressPercent: {
+    type: Number,
+    default: 0
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now
+  }
+}]
+
 
 module.exports = mongoose.model("User", UserSchema);
 

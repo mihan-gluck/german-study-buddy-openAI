@@ -7,6 +7,8 @@ import { FormsModule } from '@angular/forms';
 import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 //import { StudentRoutingModule } from './student-routing.module';
 import { RouterModule, Routes } from '@angular/router';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatCardModule } from '@angular/material/card';
 
 
 const routes: Routes = [
@@ -19,7 +21,8 @@ const routes: Routes = [
     SafeUrlPipe,
   ],
   imports: [CommonModule,
-            
+            MatProgressBarModule,
+            MatCardModule,
             RouterModule.forChild(routes) 
             //StudentRoutingModule
         ],
