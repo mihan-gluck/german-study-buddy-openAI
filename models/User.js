@@ -21,7 +21,15 @@ const UserSchema = new mongoose.Schema({
     status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
     totalMonthlyUsage: { type: Number, default: 0 } // in minutes
   },
-  registeredAt: { type: Date, default: Date.now }
+  registeredAt: { type: Date, default: Date.now },
+
+  elevenLabsAccess: {
+    assistantID: { type: String },
+    apiKey: { type: String },
+    status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
+    totalMonthlyUsage: { type: Number, default: 0 } // in minutes
+  },
+
 });
 
 courseProgress: [{
@@ -45,6 +53,7 @@ assignedCourses: [
     progress: { type: Number, default: 0 } // progress in percentage
   }
 ]
+
 
 module.exports = mongoose.model("User", UserSchema);
 

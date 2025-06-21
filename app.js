@@ -21,8 +21,8 @@ const profileRoutes = require('./routes/profile');
 const teacherRoutes = require('./routes/teacher');
 const roleProtectedRoutes = require('./routes/roleProtected');
 const feedbackRoutes = require('./routes/feedback');
-
-
+const vapiUsageRoutes = require('./routes/vapiUsage');
+const elevenlabsUsageRoutes = require('./routes/elevenlabsusage');
 
 const app = express();
 
@@ -63,8 +63,8 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/protected', roleProtectedRoutes);
 app.use('/api/feedback', feedbackRoutes);
-
-
+app.use('/api/vapiUsage', vapiUsageRoutes);
+app.use('/api/elevenlabs-usage', elevenlabsUsageRoutes);
 
 
 // Protected user profile route

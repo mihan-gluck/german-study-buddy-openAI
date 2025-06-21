@@ -21,6 +21,19 @@
 </div>
 
 
+  <div *ngFor="let course of elevenLabsCourses" class="elevenlabs-course-container">
+    <h4>{{ course.name }}</h4>
+    <div class="elevenlabs-buttons">
+      <button (click)="startElevenLabsCall(course)">Start ElevenLabs Call</button>
+      <button (click)="endElevenLabsCall()" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId">
+        End Call
+      </button>
+    </div>
+  </div>
+
+
+
+
   <div *ngIf="loading">Loading courses...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
@@ -105,6 +118,20 @@
   <p><strong>Average Grammar:</strong> {{ getAverageScore('grammar') | number:'1.1-2' }}</p>
   <!-- Add more if needed -->
 </div>
+
+<!-- Course progress bar -->
+ <div *ngIf="userProfile?.assignedCourses?.length">
+  <h3>Your Course Progress</h3>
+  <div *ngFor="let course of userProfile.assignedCourses" class="course-progress-box">
+    <p><strong>{{ course.courseId.name }}</strong> – {{ course.progress || 0 }}%</p>
+    <mat-progress-bar 
+      mode="determinate" 
+      [value]="course.progress || 0"
+      [color]="getProgressColor(course.progress)">
+    </mat-progress-bar>
+  </div>
+</div>
+
 
 <!-- CSV Export -->
 <button (click)="exportToCSV()" *ngIf="feedbackList.length">Download Feedback as CSV</button>

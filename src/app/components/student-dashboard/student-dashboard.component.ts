@@ -1,7 +1,7 @@
 //student-dashboard.component.ts
 
 import { Component, OnInit } from '@angular/core';
-import { VapiWidgetService } from '../../services/vapi-widget.service';
+//mport { VapiWidgetService } from '../../services/vapi-widget.service';
 import { Renderer2 } from '@angular/core';
 import { Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
@@ -11,6 +11,9 @@ import { AuthService } from '../../services/auth.service';
 // import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FeedbackService } from '../../services/feedback.service';
 import { CourseProgressService } from '../../services/course-progress.service';
+import { ElevenLabsUsageData, ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
+// import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
+import { VoiceAgentService } from '../../services/voice-agent.service';
 
 interface FeedbackEntry {
   timestamp: string;
@@ -35,6 +38,12 @@ interface VapiCourse {
   assistantID: string;
   apiKey: string;
 }
+
+interface ElevenLabsCourse {
+  name: string;
+  agentId: string;
+}
+
 
 interface CourseProgress {
   courseId: { _id: string; name: string };
@@ -63,13 +72,34 @@ export class StudentDashboardComponent implements OnInit {
   callEndTime: number | null = null;
   selectedCourse: VapiCourse | null = null;
   vapiActive: boolean = false;
-  openVapi: any;
+  // openVapi: any;
 
   userProfile: any = null;
 
   basicUser: { name: string; email: string; level?: string } | null = null;  // From token
 
   courseProgressList: CourseProgress[] = [];
+
+  //elevenLabsCourses: ElevenLabsCourse[] = [];
+  selectedElevenLabsCourse: ElevenLabsCourse | null = null;
+  elevenLabsCallStart: number | null = null;
+  //selectedElevenLabsCourse: any = null;
+
+  elevenLabsCourses = [
+  {
+    name: 'B1 German Coach',
+    agentId: 'agent-12345678',  // Replace with real ElevenLabs Agent ID
+    description: 'Pronunciation practice for B1',
+    type: 'elevenlabs' as const
+  },
+  {
+    name: 'A2 Grammar Guide',
+    agentId: 'agent-abcdef12',  // Replace with real ID
+    description: 'Basic grammar help',
+    type: 'elevenlabs' as const
+  }
+];
+
 
   constructor(
     private renderer: Renderer2,
@@ -78,6 +108,9 @@ export class StudentDashboardComponent implements OnInit {
     private feedbackService: FeedbackService,
     public authService: AuthService,
     private courseProgressService: CourseProgressService,
+    private elevenLabsUsageService: ElevenLabsUsageService,
+    private voiceAgentService: VoiceAgentService,
+
   ) {}
 
   ngOnInit(): void {
@@ -86,33 +119,34 @@ export class StudentDashboardComponent implements OnInit {
     this.loadFeedback();
     this.fetchUserProfile();
     this.loadProgress();
+    this.loadElevenLabsCourses();
   }
 
+  
   loadFeedback(): void {
-  this.feedbackLoading = true;
+    this.feedbackLoading = true;
 
-  const studentId = this.authService.getUserId();  // Assuming this returns the logged-in student's _id
-  if (!studentId) {
-    this.feedbackError = 'Student ID not found';
-    this.feedbackLoading = false;
-    return;
-  }
-
-  this.feedbackService.getStudentFeedback(studentId).subscribe({
-    next: (data: any) => {
-      this.feedbackList = data;
-      this.feedbackLoading = false;
-    },
-    error: (err) => {
-      this.feedbackError = 'Failed to load feedback';
-      console.error(err);
-      this.feedbackLoading = false;
+    const studentId = this.authService.getUserId();  // Assuming this returns the logged-in student's _id
+    if (!studentId) {
+        this.feedbackError = 'Student ID not found';
+        this.feedbackLoading = false;
+        return;
     }
-  });
-}
 
+    this.feedbackService.getStudentFeedback(studentId).subscribe({
+        next: (data: any) => {
+        this.feedbackList = data;
+        this.feedbackLoading = false;
+        },
+        error: (err) => {
+        this.feedbackError = 'Failed to load feedback';
+        console.error(err);
+        this.feedbackLoading = false;
+        }
+    });
+    }
 
-
+  
   fetchCourses(): void {
     this.loading = true;
 
@@ -135,96 +169,47 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   startCall(course: VapiCourse): void {
+    if (this.voiceAgentService.getActiveAgent()) {
+      alert('Please stop the current call before starting a new one.');
+      return;
+    }
+
     this.selectedCourse = course;
     this.callStartTime = Date.now();
     this.vapiActive = true;
 
-    // Remove existing widget
-    const existingScript = this.document.getElementById('vapi-script');
-    if (existingScript) existingScript.remove();
-
-    // Inject CSS
-    const style = this.renderer.createElement('style');
-    style.textContent = `
-      .vapi-widget {
-        z-index: 9999;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-      }
-    `;
-    this.renderer.appendChild(this.document.head, style);
-
-    // Inject script
-    const script = this.renderer.createElement('script');
-    script.type = 'text/javascript';
-    script.id = 'vapi-script';
-    script.text = `
-      var vapiInstance = null;
-      const assistant = "${course.assistantID}";
-      const apiKey = "${course.apiKey}";
-      const config = {
-        position: "center",
-        idle: {
-          color: "#0447dd",
-          title: "Talk to German Buddy",
-          subtitle: "Ask your question"
-        },
-        loading: {
-          title: "Connecting...",
-          subtitle: "Please wait"
-        },
-        active: {
-          title: "In call",
-          subtitle: "Speak now"
-        }
-      };
-
-      document.addEventListener("DOMContentLoaded", initVapi);
-      function initVapi() {
-        const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
-        s.defer = true;
-        s.async = true;
-        s.onload = function () {
-          try {
-            vapiInstance = window.vapiSDK.run({ apiKey, assistant, config });
-
-            vapiInstance.on("callStarted", () => {
-              window.dispatchEvent(new Event("vapi-call-start"));
-            });
-
-            vapiInstance.on("callEnded", () => {
-              window.dispatchEvent(new Event("vapi-call-end"));
-            });
-
-            window.vapiInstance = vapiInstance;
-          } catch (e) {
-            console.error("Error loading VAPI", e);
-          }
-        };
-        document.head.appendChild(s);
-      }
-    `;
-    this.renderer.appendChild(this.document.body, script);
+    this.voiceAgentService.startVapiCall(course.assistantID, course.apiKey);
   }
+
+
 
   stopCall(): void {
     this.callEndTime = Date.now();
     this.vapiActive = false;
 
-    if (window && (window as any).vapiInstance) {
-      try {
-        (window as any).vapiInstance.endCall(); // Close widget and end call
-      } catch (e) {
-        console.error('Failed to stop VAPI call:', e);
-      }
-    }
+    this.voiceAgentService.stopVapiCall();
 
     if (this.selectedCourse) {
-      this.logUsage(this.selectedCourse);
+        this.logUsage(this.selectedCourse);
     }
-  }
+    }
+
+  loadElevenLabsCourses(): void {
+    this.elevenLabsCourses = [
+        {
+        name: 'B1 German Coach',
+        agentId: 'agent-12345678',
+        description: 'Pronunciation practice for B1',
+        type: 'elevenlabs'
+        },
+        {
+        name: 'A2 Grammar Guide',
+        agentId: 'agent-abcdef12',
+        description: 'Basic grammar help',
+        type: 'elevenlabs'
+        }
+    ];
+    }  
 
   logUsage(course: VapiCourse): void {
     if (this.callStartTime && this.callEndTime) {
@@ -266,15 +251,15 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   fetchUserProfile(): void {
-  this.authService.getUserProfile().subscribe({
-    next: (profile) => {
-      this.userProfile = profile;
-    },
-    error: (err) => {
-      console.error('Failed to load full user profile:', err);
+    this.authService.getUserProfile().subscribe({
+        next: (profile) => {
+        this.userProfile = profile;
+        },
+        error: (err) => {
+        console.error('Failed to load full user profile:', err);
+        }
+    });
     }
-  });
-}
 
   loadProgress(): void {
     this.courseProgressService.getProgress().subscribe({
@@ -288,14 +273,49 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   getProgressColor(value: number): 'primary' | 'accent' | 'warn' {
-  if (value >= 75) return 'primary';
-  if (value >= 40) return 'accent';
-  return 'warn';
+    if (value >= 75) return 'primary';
+    if (value >= 40) return 'accent';
+    return 'warn';
+  }
+  
+
+  startElevenLabsCall(course: ElevenLabsCourse): void {
+    if (this.voiceAgentService.getActiveAgent()) {
+      alert('Please stop the current call before starting a new one.');
+      return;
+    }
+
+    this.selectedElevenLabsCourse = course;
+    this.elevenLabsCallStart = Date.now();
+
+    this.voiceAgentService.startElevenLabsCall(course.agentId);
+    window.addEventListener('beforeunload', this.endElevenLabsCall.bind(this));
+  }
+
+
+
+  endElevenLabsCall(): void {
+    const end = Date.now();
+    if (this.elevenLabsCallStart && this.selectedElevenLabsCourse) {
+        const duration = Math.round((end - this.elevenLabsCallStart) / 1000);
+        const usageData: ElevenLabsUsageData = {
+        course: this.selectedElevenLabsCourse.name,
+        assistantID: this.selectedElevenLabsCourse.agentId,
+        duration,
+        timestamp: new Date(),
+        };
+        this.elevenLabsUsageService.logUsage(usageData);
+    }
+
+    this.elevenLabsCallStart = null;
+    this.selectedElevenLabsCourse = null;
+    this.voiceAgentService.stopElevenLabsCall();
+    window.removeEventListener('beforeunload', this.endElevenLabsCall);
+    }
+
+
 }
 
-
-
-}
 
 /* export class StudentDashboardComponent implements OnInit {
 
