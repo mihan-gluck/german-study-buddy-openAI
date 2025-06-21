@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { TeacherDashboardComponent } from './teacher-dashboard.component';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 const routes: Routes = [
   { path: '', component: TeacherDashboardComponent }
@@ -15,7 +16,8 @@ const routes: Routes = [
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule.forChild(routes)
+    RouterModule.forChild(routes),
+    MatProgressBarModule,
   ]
 })
 export class TeacherDashboardModule {}

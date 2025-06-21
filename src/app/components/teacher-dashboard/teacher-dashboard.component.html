@@ -162,4 +162,17 @@
         <p><strong>Average Grammar:</strong> {{ getAverageScore('grammar') | number:'1.1-2' }}</p>
     </div>
 
+    <div *ngIf="studentCourses.length">
+      <h3>Course Progress</h3>
+      <div *ngFor="let course of studentCourses" class="course-progress-item">
+        <p><strong>{{ course.name }}:</strong></p>
+        <mat-progress-bar mode="determinate" [value]="course.progress || 0"></mat-progress-bar>
+
+        <label for="progressInput">Update Progress (%):</label>
+        <input type="number" [(ngModel)]="course.progress" min="0" max="100" />
+        <button (click)="updateProgress(selectedStudentId, course._id, course.progress)">Save</button>
+      </div>
+    </div>
+
+
 </div>

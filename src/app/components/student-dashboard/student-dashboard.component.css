@@ -150,6 +150,15 @@
   margin-bottom: 16px;
 }
 
+::ng-deep .mat-progress-bar-fill::after {
+  transition: width 1s ease-in-out !important;
+}
+
+.course-progress-box {
+  margin-bottom: 1rem;
+}
+
+
 
 
 

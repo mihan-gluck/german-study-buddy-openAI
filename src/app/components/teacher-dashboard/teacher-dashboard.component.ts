@@ -4,6 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { FeedbackService } from '../../services/feedback.service';
 import { HttpClient } from '@angular/common/http';
 import * as Papa from 'papaparse';
+import { CoursesService } from '../../services/courses.service';
+import { CourseProgressService } from '../../services/course-progress.service';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -28,6 +30,8 @@ export class TeacherDashboardComponent implements OnInit {
   startDate: string = '';
   endDate: string = '';
 
+  studentCourses: any[] =[];
+
   newFeedback: any = {
     studentId: '',
     summary: '',
@@ -42,7 +46,9 @@ export class TeacherDashboardComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private feedbackService: FeedbackService
+    private feedbackService: FeedbackService,
+    private coursesService: CoursesService,
+    private courseProgressService: CourseProgressService,
   ) {}
 
   ngOnInit(): void {
@@ -211,5 +217,30 @@ getAverageScore(type: 'fluency' | 'grammar'): number {
   const total = relevant.reduce((sum, fb) => sum + +fb[type], 0);
   return relevant.length ? (total / relevant.length) : 0;
 }
+
+// update a student's progress
+updateProgress(studentId: string, courseId: string, newProgress: number): void {
+    this.http.put('/api/teacher/update-progress', {
+      studentId,
+      courseId,
+      progress: newProgress
+    }).subscribe({
+      next: () => alert('Progress updated successfully'),
+      error: err => alert('Failed to update progress')
+    });
+  }
+  
+// view and update progress per course
+fetchStudentCourses(studentId: string): void {
+  this.http.get(`/api/teacher/student-courses/${studentId}`).subscribe({
+    next: (data: any) => {
+      this.studentCourses = data; // Each should have courseId, name, and current progress
+    },
+    error: err => {
+      console.error('Failed to load student courses:', err);
+    }
+  });
+}
+
 
 }

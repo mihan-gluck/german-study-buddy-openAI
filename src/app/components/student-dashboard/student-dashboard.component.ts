@@ -287,6 +287,13 @@ export class StudentDashboardComponent implements OnInit {
     });
   }
 
+  getProgressColor(value: number): 'primary' | 'accent' | 'warn' {
+  if (value >= 75) return 'primary';
+  if (value >= 40) return 'accent';
+  return 'warn';
+}
+
+
 
 }
 

@@ -33,4 +33,13 @@ export class CoursesService {
   enrollInCourse(courseId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/enroll`, { courseId });
   }
+
+  // Update course progress
+  updateCourseProgress(studentId: string, courseId: string, progress: number) {
+  return this.http.put(`/api/teacher/update-course-progress/${studentId}`, {
+    courseId,
+    progress
+  });
+}
+
 }

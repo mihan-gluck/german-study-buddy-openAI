@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["student", "teacher", "admin"], required: true },
   subscription: { type: String, enum: ["free", "premium"], default: "free" },
-  courseAssigned: String,
+  assignedCourses: String,
   isActive: { type: Boolean, default: true },
   profilePic: { type: String, default: "" },
   subscriptionExpiry: { type: Date, default: null },
@@ -39,6 +39,12 @@ courseProgress: [{
   }
 }]
 
+assignedCourses: [
+  {
+    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+    progress: { type: Number, default: 0 } // progress in percentage
+  }
+]
 
 module.exports = mongoose.model("User", UserSchema);
 
