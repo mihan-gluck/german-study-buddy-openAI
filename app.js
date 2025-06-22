@@ -109,7 +109,6 @@ app.post('/api/vapi-usage', (req, res) => {
 });
 
 // Route for routes/vapuUsage.js
-const vapiUsageRoutes = require("./routes/vapiUsage");
 app.use('/api/vapi-usage', vapiUsageRoutes);
 
 // Student feedback route
