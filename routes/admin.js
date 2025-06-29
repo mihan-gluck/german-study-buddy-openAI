@@ -30,10 +30,10 @@ router.get('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
 
 // Add/ Post a new VAPI agent
 router.post('/vapi-agents', verifyToken, isAdmin, async (req, res) => {
-  const { assistantID, name, description } = req.body;
+  const { assistantId, name, description } = req.body;
 
   try {
-    const newAgent = new VapiAgent({ assistantID, name, description });
+    const newAgent = new VapiAgent({ assistantId, name, description });
     await newAgent.save();
     res.status(201).json({ success: true, message: 'Agent added successfully' });
   } catch (err) {
@@ -80,7 +80,7 @@ router.post('/assign-course', verifyToken, isAdmin, async (req, res) => {
     // Update student's VAPI access
     student.courseAssigned = courseName;
     student.vapiAccess = {
-      assistantID: assistantId,
+      assistantId: assistantId,
       apiKey: apiKey,
       status: 'active',
       totalMonthlyUsage: 0
@@ -196,6 +196,51 @@ router.get('/vapi-usage/monthly/:studentId', verifyToken, isAdmin, async (req, r
     res.status(500).json({ message: 'Error fetching usage' });
   }
 });
+
+// Bulk assign course
+router.post('/bulk-assign', adminAuth, async (req, res) => {
+  try {
+    const { studentIds, courseName, assistantId, apiKey } = req.body;
+
+    if (!studentIds || !Array.isArray(studentIds) || !courseName || !assistantId || !apiKey) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    await User.updateMany(
+      { _id: { $in: studentIds } },
+      {
+        courseAssigned: courseName,
+        vapiAccess: {
+          status: 'active',
+          assistantId,
+          apiKey
+        }
+      }
+    );
+
+    res.json({ message: 'Bulk assignment successful' });
+  } catch (err) {
+    console.error('Bulk assignment error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// routes/admin.js
+
+router.post('/reset-monthly-usage', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+  try {
+    await User.updateMany(
+      { role: 'student' },
+      { $set: { 'vapiAccess.totalMonthlyUsage': 0 } }
+    );
+    res.status(200).json({ success: true, message: 'Monthly usage reset for all students.' });
+  } catch (error) {
+    console.error('Error resetting monthly usage:', error);
+    res.status(500).json({ success: false, message: 'Failed to reset monthly usage.' });
+  }
+});
+
 
 module.exports = router;
 

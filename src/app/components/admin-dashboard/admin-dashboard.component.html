@@ -6,6 +6,38 @@
   <p *ngIf="loading">Loading students...</p>
   <p *ngIf="error">{{ error }}</p>
 
+  <!-- Filters Section -->
+  <div class="filter-section">
+    <label>
+      Filter by Course:
+      <input [(ngModel)]="filters.course" (input)="applyFilters()" placeholder="Course name" />
+    </label>
+
+    <label>
+      Filter by Level:
+      <select [(ngModel)]="filters.level" (change)="applyFilters()">
+        <option value="">All</option>
+        <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+      </select>
+    </label>
+
+    <label>
+      Filter by VAPI Status:
+      <select [(ngModel)]="filters.status" (change)="applyFilters()">
+        <option value="">All</option>
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+        <option value="finished">Finished</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Reset Button -->
+<div class="admin-actions">
+  <button (click)="resetMonthlyUsage()">🔄 Reset Monthly Usage</button>
+</div>
+
+
   <table *ngIf="!loading && students.length > 0" class="student-table">
     <thead>
       <tr>
@@ -20,7 +52,14 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let student of students; trackBy: trackById">
+      <tr *ngFor="let student of filteredStudents; trackBy: trackById">
+        <th>Select</th>
+        <td>
+          <input type="checkbox"
+            [checked]="selectedStudentIds.has(student._id)"
+            (change)="toggleStudentSelection(student._id)" />
+          {{ student.name }}
+        </td>
         <td>{{ student.name }}</td>
         <td>{{ student.email }}</td>
         <td>
@@ -32,24 +71,95 @@
         <td>
           <input [(ngModel)]="student.vapiAccess.apiKey" placeholder="API Key" />
         </td>
-        <td>{{ student.vapiAccess.status }}</td>
         <td>
-        <select
+          <select
             [value]="student.vapiAccess.status"
             (change)="onStatusChange($event, student._id)">
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="finished">Finished</option>
-        </select>
+          </select>
         </td>
-
         <td>{{ student.vapiAccess.totalMonthlyUsage || 0 }}</td>
         <td>
           <button (click)="assignCourseToStudent(student)">Assign</button>
+          <button (click)="loadFeedbackForStudent(student._id)">View Feedback</button>
         </td>
       </tr>
+
+      <!-- Feedback averages per student -->
+      <tr *ngIf="student.feedbackStats">
+        <td colspan="8">
+          <strong>Avg Fluency:</strong> {{ student.feedbackStats.fluency }} |
+          <strong>Grammar:</strong> {{ student.feedbackStats.grammar }} |
+          <strong>Accent:</strong> {{ student.feedbackStats.accent }} |
+          <strong>Overall:</strong> {{ student.feedbackStats.overallCFBR }}
+        </td>
+      </tr>
+
+      <!-- Course progress per student -->
+      <tr *ngIf="student.courseProgress && student.courseProgress.length" class="course-progress-row">
+        <td colspan="8">
+          <table class="course-progress-table">
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Progress</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cp of student.courseProgress">
+                <td>{{ cp.courseName }}</td>
+                <td>
+                  <div class="progress-bar-container" title="{{ cp.progressPercentage }}%">
+                    <div class="progress-bar-fill" [style.width.%]="cp.progressPercentage"></div>
+                  </div>
+                </td>
+                <td>{{ cp.lastUpdated | date: 'shortDate' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+
     </tbody>
   </table>
 
   <p *ngIf="!loading && students.length === 0">No students found.</p>
+
+  <!-- Detailed Feedback Section -->
+  <div *ngIf="selectedStudentId && feedbackMap[selectedStudentId]">
+    <h3>Feedback for {{ selectedStudentName }}</h3>
+
+    <table class="student-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Summary</th>
+          <th>Fluency</th>
+          <th>Accent</th>
+          <th>Grammar</th>
+          <th>CFBR</th>
+          <th>Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fb of feedbackMap[selectedStudentId]">
+          <td>{{ fb.timestamp | date: 'short' }}</td>
+          <td>{{ fb.summary }}</td>
+          <td>{{ fb.fluency }}</td>
+          <td>{{ fb.accent }}</td>
+          <td>{{ fb.grammar }}</td>
+          <td>{{ fb.overallCfbr }}</td>
+          <td>{{ fb.currentLevel }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button (click)="exportFeedbackAsCSV(selectedStudentId)">
+      Export Feedback as CSV
+    </button>
+  </div>
 </div>
+

@@ -15,6 +15,32 @@ import { ElevenLabsUsageData, ElevenLabsUsageService } from '../../services/elev
 // import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
 import { VoiceAgentService } from '../../services/voice-agent.service';
 
+
+interface Student {
+  _id: string;
+  name: string;
+  email: string;
+  courseAssigned: string;
+  registeredAt: string;
+  vapiAccess: {
+    status: 'active' | 'paused' | 'finished';
+    totalMonthlyUsage: number;
+    apiKey?: string;
+    assistantId?: string; // ✅ corrected here
+  };
+  feedbackStats?: {
+    fluency: number;
+    grammar: number;
+    accent: number;
+    overallCFBR: number;
+  };
+  courseProgress?: {
+    courseName: string;
+    progressPercentage: number;
+    lastUpdated: string;
+  }[];
+}
+
 interface FeedbackEntry {
   timestamp: string;
   studentName: string;
@@ -35,7 +61,7 @@ interface VapiCourse {
 
   name: string;
   //openVapiTab: string;
-  assistantID: string;
+  assistantId: string;
   apiKey: string;
 }
 
@@ -109,7 +135,7 @@ export class StudentDashboardComponent implements OnInit {
     public authService: AuthService,
     private courseProgressService: CourseProgressService,
     private elevenLabsUsageService: ElevenLabsUsageService,
-    private voiceAgentService: VoiceAgentService,
+    public voiceAgentService: VoiceAgentService,
 
   ) {}
 
@@ -156,7 +182,7 @@ export class StudentDashboardComponent implements OnInit {
         this.vapiCourses = [
           {
             name: 'A1 Spoken German',
-            assistantID: 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8',
+            assistantId: 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8',
             apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde'
           }
         ];
@@ -178,7 +204,7 @@ export class StudentDashboardComponent implements OnInit {
     this.callStartTime = Date.now();
     this.vapiActive = true;
 
-    this.voiceAgentService.startVapiCall(course.assistantID, course.apiKey);
+    this.voiceAgentService.startVapiCall(course.assistantId, course.apiKey);
   }
 
 
@@ -216,7 +242,7 @@ export class StudentDashboardComponent implements OnInit {
       const duration = Math.round((this.callEndTime - this.callStartTime) / 1000); // in seconds
       const payload = {
         course: course.name,
-        assistantID: course.assistantID,
+        assistantID: course.assistantId,
         duration,
         timestamp: new Date().toISOString()
       };

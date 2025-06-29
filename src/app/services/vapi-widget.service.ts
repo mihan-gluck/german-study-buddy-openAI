@@ -1,9 +1,10 @@
-// vapi-widget.service.ts
+// src/app/services/vapi-widget.service.ts
 import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class VapiWidgetService {
   private vapiInstance: any;
+    endCall: any;
 
   loadWidget(apiKey: string, assistantId: string): void {
     const styleElement = document.createElement('style');

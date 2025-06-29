@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   vapiAccess: {
-    assistantID: String,
+    assistantId: String,
     apiKey: String,
     status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
     totalMonthlyUsage: { type: Number, default: 0 } // in minutes
@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
   registeredAt: { type: Date, default: Date.now },
 
   elevenLabsAccess: {
-    assistantID: { type: String },
+    assistandId: { type: String },
     apiKey: { type: String },
     status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
     totalMonthlyUsage: { type: Number, default: 0 } // in minutes
