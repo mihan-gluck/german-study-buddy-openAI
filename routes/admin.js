@@ -198,7 +198,7 @@ router.get('/vapi-usage/monthly/:studentId', verifyToken, isAdmin, async (req, r
 });
 
 // Bulk assign course
-router.post('/bulk-assign', adminAuth, async (req, res) => {
+router.post('/bulk-assign', verifyToken, checkRole('admin'), async (req, res) => {
   try {
     const { studentIds, courseName, assistantId, apiKey } = req.body;
 
@@ -228,7 +228,7 @@ router.post('/bulk-assign', adminAuth, async (req, res) => {
 
 // routes/admin.js
 
-router.post('/reset-monthly-usage', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+router.post('/reset-monthly-usage', verifyToken, checkRole('admin'), async (req, res) => {
   try {
     await User.updateMany(
       { role: 'student' },
