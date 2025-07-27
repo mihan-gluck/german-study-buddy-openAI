@@ -9,6 +9,8 @@ const authMiddleware = require('../middleware/auth'); // JWT auth middleware
 const { verifyToken, checkRole } = require('../middleware/auth');
 const Courses = require('../models/Course');
 
+const CourseProgress = require('../models/CourseProgress');
+
 // ✅ Combined dashboard data route
 router.get('/dashboard', verifyToken, checkRole('student'), async (req, res) => {
   try {
@@ -69,7 +71,9 @@ router.get("/me", verifyToken, checkRole("student"), async (req, res) => {
 // ✅ GET /api/student/profile - Get current student's profile
 router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    const user = await User.findById(req.userId)
+      .select('-password')
+      .populate('assignedCourses.courseId', 'name language level');
 
     if (!user) {
       return res.status(404).json({ msg: 'Student not found' });
@@ -85,12 +89,16 @@ router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
       registeredAt: user.registeredAt,
       subscriptionPlan: user.subscriptionPlan || null,
       assignedCourses: user.assignedCourses || [],
+      elevenLabsAccess: user.elevenLabsAccess || null,
+      vapiAccess: user.vapiAccess || null,
+      preferredVoiceAgent: user.preferredVoiceAgent || null
     });
   } catch (err) {
     console.error('Student profile error:', err);
     res.status(500).json({ msg: 'Error retrieving student profile', error: err.message });
   }
 });
+
 
 // ✅ Get course progress for current student
 router.get('/course-progress', verifyToken, checkRole('student'), async (req, res) => {
@@ -102,6 +110,19 @@ router.get('/course-progress', verifyToken, checkRole('student'), async (req, re
   } catch (err) {
     console.error('Fetch progress error:', err);
     res.status(500).json({ msg: 'Failed to fetch course progress' });
+  }
+});
+
+// ✅ GET /api/student/progress - Get course progress for logged-in student
+router.get('/progress', verifyToken, checkRole('student'), async (req, res) => {
+  try {
+    const studentId = req.user.userId;
+    const progress = await CourseProgress.find({ studentId }).populate('courseId', 'name');
+
+    res.status(200).json(progress);
+  } catch (err) {
+    console.error('Error fetching course progress:', err);
+    res.status(500).json({ msg: 'Server error fetching course progress' });
   }
 });
 

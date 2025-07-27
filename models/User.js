@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["student", "teacher", "admin"], required: true },
   subscription: { type: String, enum: ["free", "premium"], default: "free" },
-  assignedCourses: String,
+  //assignedCourses: String,
   isActive: { type: Boolean, default: true },
   profilePic: { type: String, default: "" },
   subscriptionExpiry: { type: Date, default: null },
@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
   registeredAt: { type: Date, default: Date.now },
 
   elevenLabsAccess: {
-    assistandId: { type: String },
+    agentId: { type: String },
     apiKey: { type: String },
     status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
     totalMonthlyUsage: { type: Number, default: 0 } // in minutes
@@ -50,6 +50,7 @@ courseProgress: [{
 assignedCourses: [
   {
     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+    assignedAt: Date,
     progress: { type: Number, default: 0 } // progress in percentage
   }
 ]

@@ -1,143 +1,120 @@
 <!--student-dashboard.component.html-->
 
-<div class="dashboard-container">
-  <h2>Welcome to Student Dashboard</h2>
-
-  <div *ngIf="userProfile" class="profile-box">
-  <h3>Your Profile</h3>
-
-  <div class="profile-info">
+<div class="student-dashboard">
+  <!-- Profile Section -->
+  <div class="profile-box" *ngIf="basicUser && userProfile">
+    <h3>Your Profile</h3>
     <img 
       [src]="userProfile.profilePhoto || 'assets/default-profile.png'" 
       alt="Profile Photo" 
+      width="100"
       class="profile-photo"
     />
-    <div class="details">
-      <p><strong>Name:</strong> {{ userProfile.name }}</p>
-      <p><strong>Email:</strong> {{ userProfile.email }}</p>
-      <p><strong>Current Level:</strong> {{ userProfile.level || 'Not Set' }}</p>
-    </div>
+    <p><strong>Name:</strong> {{ userProfile.name || basicUser.name }}</p>
+    <p><strong>Email:</strong> {{ userProfile.email || basicUser.email }}</p>
+    <p><strong>Current Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
+    <p><strong>Subscription Plan:</strong> {{ userProfile.subscriptionPlan || 'Free' }}</p>
   </div>
-</div>
 
+  <!-- Active Call Indicator -->
+  <div class="call-status active-call-box" *ngIf="currentVoiceAgent">
+    <p>🟢 <strong>Active Call:</strong> {{ currentVoiceAgent | titlecase }}</p>
+    <button (click)="stopAnyCall()">End Call</button>
+  </div>
 
-  <div *ngFor="let course of elevenLabsCourses" class="elevenlabs-course-container">
-    <h4>{{ course.name }}</h4>
-    <div class="elevenlabs-buttons">
-      <button (click)="startElevenLabsCall(course)">Start ElevenLabs Call</button>
-      <button (click)="endElevenLabsCall()" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId">
-        End Call
+  <!-- VAPI Courses Section -->
+  <div *ngIf="vapiCourses.length > 0" class="courses-section">
+    <h3>Vapi Practice Courses</h3>
+    <div *ngFor="let course of vapiCourses" class="course-card">
+      <h4>{{ course.name }}</h4>
+      <p><strong>Language:</strong> {{ course.language }}</p>
+      <button (click)="startCall(course)" [disabled]="vapiActive || currentVoiceAgent">
+        Start Vapi Call
+      </button>
+      <button (click)="stopCall()" [disabled]="!vapiActive">
+        Stop Vapi Call
       </button>
     </div>
   </div>
 
-
-
-
-  <div *ngIf="loading">Loading courses...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
-
-  <div *ngIf="!loading && vapiCourses.length > 0" class="course-list">
-    <div *ngFor="let course of vapiCourses" class="course-card">
-      <h3>{{ course.name }}</h3>
-      <button (click)="startCall(course)" [disabled]="vapiActive">Start</button>
-      <button (click)="stopCall()" [disabled]="!vapiActive">Stop</button>
+  <!-- ElevenLabs Courses Section -->
+  <div *ngIf="elevenLabsCourses.length > 0" class="courses-section">
+    <h3>ElevenLabs Practice Courses</h3>
+    <div *ngFor="let course of elevenLabsCourses" class="course-card">
+      <h4>{{ course.name }}</h4>
+      <p>{{ course.description }}</p>
+      <button 
+        (click)="startElevenLabsCall(course)" 
+        [disabled]="currentVoiceAgent"
+      >
+        Start ElevenLabs Call
+      </button>
+      <button 
+        *ngIf="selectedElevenLabsCourse?.agentId === course.agentId" 
+        (click)="endElevenLabsCall()"
+      >
+        End ElevenLabs Call
+      </button>
     </div>
   </div>
 
-  <div *ngIf="vapiActive" class="status">Voice assistant is active...</div>
-
-
-  <!-- ✅ Profile Info Section -->
-<div class="profile-box" *ngIf="basicUser && userProfile">
-  <h3>Your Profile</h3>
-
-  <img *ngIf="userProfile.profilePhoto" [src]="userProfile.profilePhoto" alt="Profile Photo" width="100" />
-  <p><strong>Name:</strong> {{ basicUser.name }}</p>
-  <p><strong>Email:</strong> {{ basicUser.email }}</p>
-  <p><strong>Current Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
-  <p><strong>Subscription Plan:</strong> {{ userProfile.subscriptionPlan || 'Free' }}</p>
-</div>
-
   <!-- Course Progress Section -->
-<div *ngIf="courseProgressList.length > 0" class="progress-box">
-  <h3>Your Course Progress</h3>
-  <div *ngFor="let progress of courseProgressList" class="progress-item">
-    <p><strong>{{ progress.courseId.name }}</strong></p>
-    <mat-progress-bar mode="determinate" [value]="progress.progressPercentage"></mat-progress-bar>
-    <p>{{ progress.progressPercentage }}%</p>
+  <div *ngIf="userProfile?.assignedCourses?.length > 0" class="progress-section">
+    <h3>Course Progress</h3>
+    <div *ngFor="let course of userProfile.assignedCourses">
+      <h4>{{ course.courseId?.name }} ({{ course.courseId?.language }})</h4>
+      <div class="progress-bar-wrapper">
+        <div 
+          class="progress-bar" 
+          [style.width.%]="course.progress" 
+          [ngClass]="{
+            'low-progress': course.progress < 50,
+            'medium-progress': course.progress >= 50 && course.progress < 80,
+            'high-progress': course.progress >= 80
+          }"
+        >
+          {{ course.progress }}%
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Table Section -->
+  <div *ngIf="feedbackList.length > 0" class="feedback-table-section">
+    <h3>Feedback</h3>
+    <button (click)="exportToCSV()">Export to CSV</button>
+    <table class="feedback-table">
+      <thead>
+        <tr>
+          <th (click)="sortFeedback('date')">Date</th>
+          <th (click)="sortFeedback('fluency')">Fluency</th>
+          <th (click)="sortFeedback('grammar')">Grammar</th>
+          <th (click)="sortFeedback('pronunciation')">Pronunciation</th>
+          <th>Comments</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let feedback of paginatedFeedbackList">
+          <td>{{ feedback.date | date }}</td>
+          <td>{{ feedback.fluency }}</td>
+          <td>{{ feedback.grammar }}</td>
+          <td>{{ feedback.pronunciation }}</td>
+          <td>{{ feedback.comments }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-controls">
+      <button (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
+      <span>Page {{ currentPage }}</span>
+      <button (click)="nextPage()" [disabled]="currentPage * itemsPerPage >= feedbackList.length">
+        Next
+      </button>
+    </div>
   </div>
 </div>
 
-  <!-- Feedback Section -->
-<div *ngIf="feedbackLoading">Loading your feedback...</div>
-<div *ngIf="feedbackError" class="error">{{ feedbackError }}</div>
-
-<div *ngIf="!feedbackLoading && feedbackList.length > 0" class="feedback-table">
-  <h3>Your Teacher's Feedback</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Timestamp</th>
-        <th>Summary</th>
-        <th>Conversation Time</th>
-        <th>Fluency</th>
-        <th>Accent</th>
-        <th>Grammar</th>
-        <th>Overall</th>
-        <th>Mistakes</th>
-        <th>Level</th>
-        <th>Suggestions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let fb of feedbackList">
-        <td>{{ fb.timestamp | date: 'short' }}</td>
-        <td>{{ fb.summary }}</td>
-        <td>{{ fb.conversationTime }} min</td>
-        <td>{{ fb.fluency }}</td>
-        <td>{{ fb.accent }}</td>
-        <td>{{ fb.grammar }}</td>
-        <td>{{ fb.overallCfbr }}</td>
-        <td>{{ fb.commonMistakes }}</td>
-        <td>{{ fb.currentLevel }}</td>
-        <td>{{ fb.suggestedImprovement }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div *ngIf="!feedbackLoading && feedbackList.length === 0">
-  <p>No feedback available yet. Please check back later.</p>
-</div>
-
-<!-- Feedback Summary -->
-<div *ngIf="feedbackList.length">
-  <h3>Feedback Summary</h3>
-  <p><strong>Average Fluency:</strong> {{ getAverageScore('fluency') | number:'1.1-2' }}</p>
-  <p><strong>Average Grammar:</strong> {{ getAverageScore('grammar') | number:'1.1-2' }}</p>
-  <!-- Add more if needed -->
-</div>
-
-<!-- Course progress bar -->
- <div *ngIf="userProfile?.assignedCourses?.length">
-  <h3>Your Course Progress</h3>
-  <div *ngFor="let course of userProfile.assignedCourses" class="course-progress-box">
-    <p><strong>{{ course.courseId.name }}</strong> – {{ course.progress || 0 }}%</p>
-    <mat-progress-bar 
-      mode="determinate" 
-      [value]="course.progress || 0"
-      [color]="getProgressColor(course.progress)">
-    </mat-progress-bar>
-  </div>
-</div>
-
-
-<!-- CSV Export -->
-<button (click)="exportToCSV()" *ngIf="feedbackList.length">Download Feedback as CSV</button>
-
-  
-</div>
 
 
 

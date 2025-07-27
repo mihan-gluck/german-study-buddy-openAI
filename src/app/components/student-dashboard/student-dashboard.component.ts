@@ -12,9 +12,8 @@ import { AuthService } from '../../services/auth.service';
 import { FeedbackService } from '../../services/feedback.service';
 import { CourseProgressService } from '../../services/course-progress.service';
 import { ElevenLabsUsageData, ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
-// import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
 import { VoiceAgentService } from '../../services/voice-agent.service';
-
+import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
 
 interface Student {
   _id: string;
@@ -58,7 +57,6 @@ interface FeedbackEntry {
 
 
 interface VapiCourse {
-
   name: string;
   //openVapiTab: string;
   assistantId: string;
@@ -125,6 +123,9 @@ export class StudentDashboardComponent implements OnInit {
     type: 'elevenlabs' as const
   }
 ];
+  loadProgress: any;
+  elevenLabsWidgetService: any;
+  user: any;
 
 
   constructor(
@@ -136,6 +137,7 @@ export class StudentDashboardComponent implements OnInit {
     private courseProgressService: CourseProgressService,
     private elevenLabsUsageService: ElevenLabsUsageService,
     public voiceAgentService: VoiceAgentService,
+    private widgetService: ElevenLabsWidgetService,
 
   ) {}
 
@@ -176,7 +178,7 @@ export class StudentDashboardComponent implements OnInit {
   fetchCourses(): void {
     this.loading = true;
 
-    // Replace with your real backend call
+    // Replace with real backend call
     setTimeout(() => {
       try {
         this.vapiCourses = [
@@ -202,11 +204,16 @@ export class StudentDashboardComponent implements OnInit {
 
     this.selectedCourse = course;
     this.callStartTime = Date.now();
-    this.vapiActive = true;
+    
+    if (course?.assistantId && course?.apiKey) {
+      this.voiceAgentService.startVapiCall(course.assistantId, course.apiKey);
+      this.vapiActive = true;
+    } else {
+      alert('This course is missing assistant configuration.');
+    }
 
-    this.voiceAgentService.startVapiCall(course.assistantId, course.apiKey);
+
   }
-
 
 
   stopCall(): void {
@@ -277,26 +284,27 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   fetchUserProfile(): void {
-    this.authService.getUserProfile().subscribe({
-        next: (profile) => {
-        this.userProfile = profile;
-        },
-        error: (err) => {
-        console.error('Failed to load full user profile:', err);
-        }
-    });
+  this.authService.getUserProfile().subscribe({
+    next: (profile) => {
+      this.userProfile = profile;
+
+      const preferredAgent = profile?.preferredVoiceAgent;
+
+     if (preferredAgent === 'vapi' && profile?.vapiAccess?.assistantId && profile?.vapiAccess?.apiKey) {
+      this.voiceAgentService.loadVapi(profile.vapiAccess.assistantId, profile.vapiAccess.apiKey);
     }
 
-  loadProgress(): void {
-    this.courseProgressService.getProgress().subscribe({
-      next: (data) => {
-        this.courseProgressList = data;
-      },
-      error: (err) => {
-        console.error('Failed to fetch course progress:', err);
+      if (preferredAgent === 'elevenlabs' && profile?.elevenLabsAccess?.agentId) {
+        this.elevenLabsWidgetService.loadWidget(profile.elevenLabsAccess.agentId);
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('❌ Failed to load student profile', err);
+    }
+  });
+}
+
+
 
   getProgressColor(value: number): 'primary' | 'accent' | 'warn' {
     if (value >= 75) return 'primary';
@@ -339,7 +347,16 @@ export class StudentDashboardComponent implements OnInit {
     window.removeEventListener('beforeunload', this.endElevenLabsCall);
     }
 
+   stopAnyCall(): void {
+      const active = this.voiceAgentService.getActiveAgent();
 
+      if (active === 'vapi') {
+        this.stopCall();
+      } else if (active === 'elevenlabs') {
+        this.endElevenLabsCall();
+      }
+    }
+ 
 }
 
 
