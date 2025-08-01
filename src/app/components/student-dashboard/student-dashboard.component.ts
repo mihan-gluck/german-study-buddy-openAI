@@ -57,6 +57,7 @@ interface FeedbackEntry {
 
 
 interface VapiCourse {
+language: any;
   name: string;
   //openVapiTab: string;
   assistantId: string;
@@ -110,22 +111,29 @@ export class StudentDashboardComponent implements OnInit {
   //selectedElevenLabsCourse: any = null;
 
   elevenLabsCourses = [
-  {
-    name: 'B1 German Coach',
-    agentId: 'agent-12345678',  // Replace with real ElevenLabs Agent ID
-    description: 'Pronunciation practice for B1',
-    type: 'elevenlabs' as const
-  },
-  {
-    name: 'A2 Grammar Guide',
-    agentId: 'agent-abcdef12',  // Replace with real ID
-    description: 'Basic grammar help',
-    type: 'elevenlabs' as const
-  }
-];
+    {
+      name: 'B1 German Coach',
+      agentId: 'agent-12345678',  // Replace with real ElevenLabs Agent ID
+      description: 'Pronunciation practice for B1',
+      type: 'elevenlabs' as const
+    },
+    {
+      name: 'A2 Grammar Guide',
+      agentId: 'agent-abcdef12',  // Replace with real ID
+      description: 'Basic grammar help',
+      type: 'elevenlabs' as const
+    }
+  ];
+
   loadProgress: any;
   elevenLabsWidgetService: any;
   user: any;
+  sortFeedback: any;
+  paginatedFeedbackList: any;
+  previousPage: any;
+  currentPage: any;
+  nextPage: any;
+  itemsPerPage: any;
 
 
   constructor(
@@ -185,7 +193,8 @@ export class StudentDashboardComponent implements OnInit {
           {
             name: 'A1 Spoken German',
             assistantId: 'd6c86545-f5b8-4bf3-9b8d-085ea08038c8',
-            apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde'
+            apiKey: '90d61da6-0eb0-444e-a78e-d59d8ff2dbde',
+            language: undefined
           }
         ];
         this.loading = false;
@@ -284,26 +293,25 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   fetchUserProfile(): void {
-  this.authService.getUserProfile().subscribe({
-    next: (profile) => {
-      this.userProfile = profile;
+    this.authService.getUserProfile().subscribe({
+      next: (profile) => {
+        this.userProfile = profile;
 
-      const preferredAgent = profile?.preferredVoiceAgent;
+        const preferredAgent = profile?.preferredVoiceAgent;
 
-     if (preferredAgent === 'vapi' && profile?.vapiAccess?.assistantId && profile?.vapiAccess?.apiKey) {
-      this.voiceAgentService.loadVapi(profile.vapiAccess.assistantId, profile.vapiAccess.apiKey);
-    }
-
-      if (preferredAgent === 'elevenlabs' && profile?.elevenLabsAccess?.agentId) {
-        this.elevenLabsWidgetService.loadWidget(profile.elevenLabsAccess.agentId);
+      if (preferredAgent === 'vapi' && profile?.vapiAccess?.assistantId && profile?.vapiAccess?.apiKey) {
+        this.voiceAgentService.loadVapi(profile.vapiAccess.assistantId, profile.vapiAccess.apiKey);
       }
-    },
-    error: (err) => {
-      console.error('❌ Failed to load student profile', err);
-    }
-  });
-}
 
+        if (preferredAgent === 'elevenlabs' && profile?.elevenLabsAccess?.agentId) {
+          this.elevenLabsWidgetService.loadWidget(profile.elevenLabsAccess.agentId);
+        }
+      },
+      error: (err) => {
+        console.error('❌ Failed to load student profile', err);
+      }
+    });
+  }
 
 
   getProgressColor(value: number): 'primary' | 'accent' | 'warn' {
@@ -325,7 +333,6 @@ export class StudentDashboardComponent implements OnInit {
     this.voiceAgentService.startElevenLabsCall(course.agentId);
     window.addEventListener('beforeunload', this.endElevenLabsCall.bind(this));
   }
-
 
 
   endElevenLabsCall(): void {
@@ -357,6 +364,10 @@ export class StudentDashboardComponent implements OnInit {
       }
     }
  
+    get currentVoiceAgent(): 'vapi' | 'elevenlabs' | null {
+      return this.voiceAgentService.getActiveAgent();
+    }
+
 }
 
 

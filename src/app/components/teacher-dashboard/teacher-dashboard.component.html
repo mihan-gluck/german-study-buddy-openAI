@@ -1,9 +1,14 @@
 <!--teacher-dashboard.component.html-->
 
-<div class="dashboard">
+<div class="dashboard-container">
   <h2>Teacher Dashboard</h2>
-  <p>Welcome, Teacher! Manage lessons and students here.</p>
 
+  <div class="scrollable-content">
+    <!-- Your dashboard content goes here -->
+    
+    <h2>Welcome, {{ teacherName }}</h2>
+
+  
   <!-- Student Dropdown -->
   <label for="student">Select Student:</label>
   <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" id="student">
@@ -174,5 +179,6 @@
       </div>
     </div>
 
+    </div>
 
 </div>

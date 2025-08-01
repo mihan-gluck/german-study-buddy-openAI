@@ -141,3 +141,41 @@ button:hover:not(:disabled) {
   display: inline-block;
   vertical-align: middle;
 }
+
+
+.dashboard-container {
+  padding: 20px;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.scrollable-content {
+  height: calc(100vh - 100px); /* adjust based on your header/footer */
+  overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin; /* Firefox */
+}
+
+.student-card {
+  background: #f9f9f9;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Optional: Customize scrollbar for WebKit browsers */
+.scrollable-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+

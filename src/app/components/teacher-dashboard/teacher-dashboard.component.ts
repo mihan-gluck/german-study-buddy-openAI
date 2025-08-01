@@ -43,6 +43,8 @@ export class TeacherDashboardComponent implements OnInit {
     currentLevel: '',
     suggestedImprovement: ''
   };
+    
+    teacherName: string = '';
 
   constructor(
     private http: HttpClient,
@@ -242,5 +244,16 @@ fetchStudentCourses(studentId: string): void {
   });
 }
 
+// load teacher profile-data
+ loadTeacherProfile(): void {
+    this.http.get<any>('/api/teacher/profile').subscribe({
+      next: (data) => {
+        this.teacherName = data.name;
+      },
+      error: (err) => {
+        console.error('Failed to load teacher profile', err);
+      }
+    });
 
+  }
 }

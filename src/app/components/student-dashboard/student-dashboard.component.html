@@ -1,6 +1,11 @@
 <!--student-dashboard.component.html-->
 
-<div class="student-dashboard">
+<div class="student-dashboard-container">
+  <div class="scrollable-content">
+    <!-- Your dashboard content goes here -->
+
+    <h2>Welcome, {{ user?.name }}</h2>
+
   <!-- Profile Section -->
   <div class="profile-box" *ngIf="basicUser && userProfile">
     <h3>Your Profile</h3>
@@ -112,6 +117,7 @@
         Next
       </button>
     </div>
+  </div>
   </div>
 </div>
 
