@@ -1,0 +1,12 @@
+/* studetn-card.component.css*/
+
+.student-card {
+  margin: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.avatar {
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+}

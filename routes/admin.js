@@ -16,6 +16,22 @@ router.get("/admin-dashboard", verifyToken, checkRole("admin"), (req, res) => {
 });
 
 
+// Puting elevenlabs link
+router.put('/students/:id/elevenlabs-link', verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { elevenLabsLink } = req.body;
+
+  try {
+    const updatedStudent = await User.findByIdAndUpdate(id, {
+      elevenLabsLink
+    }, { new: true });
+
+    res.json({ success: true, data: updatedStudent });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 // Get all available VAPI agents
 router.get('/vapi-agents', verifyToken, isAdmin, async (req, res) => {

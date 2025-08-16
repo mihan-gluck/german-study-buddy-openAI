@@ -13,7 +13,7 @@ router.post('/log', verifyToken, checkRole('student'), async (req, res) => {
   try {
     const usage = new VapiUsage({
       course,
-      assistantID,
+      assistantId,
       duration, // in seconds
       studentId: req.user.id,
       timestamp: new Date(),

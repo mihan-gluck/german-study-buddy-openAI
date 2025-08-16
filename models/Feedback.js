@@ -1,56 +1,34 @@
+// models/Feedback.js
 const mongoose = require('mongoose');
 
-const studentFeedbackSchema = new mongoose.Schema({
-  studentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  studentName: {
-    type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  summary: {
-    type: String,
-    required: true
-  },
-  conversationTime: {
-    type: String, // e.g. "12 minutes", "600 seconds"
-    required: true
-  },
-  fluency: {
-    type: String, // ✅ Text input
-    required: true
-  },
-  accent: {
-    type: String, // ✅ Text input
-    required: true
-  },
-  grammar: {
-    type: String, // ✅ Text input
-    required: true
-  },
-  overallCFBR: {
-    type: String, // ✅ Text input (combined score or description)
-    required: true
-  },
-  commonMistakes: {
-    type: String, // or Array of Strings if needed
-    required: true
-  },
-  currentLevel: {
-    type: String, // e.g. "A2", "B1", etc.
-    required: true
-  },
-  suggestedImprovement: {
-    type: String,
-    required: true
-  }
-});
+const feedbackSchema = new mongoose.Schema(
+  {
+    studentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    studentName: {
+      type: String,
+      required: true,
+    },
 
-const StudentFeedback = mongoose.model('StudentFeedback', studentFeedbackSchema);
-module.exports = StudentFeedback;
+    /* ---------- session summary data ---------- */
+    summary: { type: String, required: true },
+    conversationTime: { type: String, required: true },   // e.g. "12 min 30 s"
+
+    /* ---------- qualitative scores (text) ---------- */
+    fluency: { type: String, required: true },
+    accent: { type: String, required: true },
+    grammar: { type: String, required: true },
+    overallCFBR: { type: String, required: true },        // combined rating
+
+    /* ---------- error analysis & guidance ---------- */
+    commonMistakes: { type: String, required: true },     // or Array<String>
+    currentLevel: { type: String, required: true },       // e.g. "B1"
+    suggestedImprovement: { type: String, required: true }
+  },
+  { timestamps: true }   // adds createdAt / updatedAt automatically
+);
+
+module.exports = mongoose.model('Feedback', feedbackSchema);

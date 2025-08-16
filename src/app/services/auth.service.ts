@@ -50,8 +50,6 @@ export class AuthService {
   }
 
 
-
-
   signup(user: { name: string, email: string, password: string, role: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user);
   }

@@ -30,6 +30,13 @@ const UserSchema = new mongoose.Schema({
     totalMonthlyUsage: { type: Number, default: 0 } // in minutes
   },
 
+  
+  elevenLabsLink: {
+    type: String,
+    default: ''
+  },
+
+
 });
 
 courseProgress: [{
@@ -54,7 +61,6 @@ assignedCourses: [
     progress: { type: Number, default: 0 } // progress in percentage
   }
 ]
-
 
 module.exports = mongoose.model("User", UserSchema);
 

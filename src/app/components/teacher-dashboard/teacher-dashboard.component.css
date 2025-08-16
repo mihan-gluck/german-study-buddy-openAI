@@ -1,133 +1,145 @@
-/* Container styling */
+/* teacher-dashboard.component.css */
+
+/* Main Dashboard Container */
 .dashboard {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: #f9f9f9;
-  font-family: 'Segoe UI', sans-serif;
+  background: #fafafa;
+  font-family: Roboto, 'Segoe UI', sans-serif;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Headings */
-.dashboard h2, .dashboard h3 {
+.dashboard h2,
+.dashboard h3 {
+  color: #3f51b5; /* Material primary */
   margin-bottom: 1rem;
-  color: #2c3e50;
 }
 
-/* Labels */
+/* Form Labels */
 label {
+  font-weight: 600;
+  color: #424242;
   display: block;
   margin-top: 1rem;
-  font-weight: 600;
-  color: #34495e;
 }
 
-/* Select and Input */
-select, input[type="date"], input[type="text"], textarea {
+/* Inputs & Selects (Material components will override these) */
+input[type="text"],
+input[type="date"],
+input[type="number"],
+textarea,
+select {
   width: 100%;
   max-width: 400px;
-  padding: 0.5rem;
   margin-top: 0.3rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
   font-size: 14px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+/* MatInput/Select override if needed */
+::ng-deep .mat-form-field {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 0.5rem;
 }
 
 /* Textarea */
 textarea {
-  height: 80px;
+  height: 100px;
 }
 
 /* Tables */
 table {
   width: 100%;
+  margin-top: 1.5rem;
   border-collapse: collapse;
-  margin-top: 1rem;
-  background-color: white;
+  background: #fff;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 th, td {
-  padding: 0.6rem;
-  border: 1px solid #ddd;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
   text-align: left;
-  vertical-align: top;
-  font-size: 14px;
 }
 
 th {
-  background-color: #f2f2f2;
-  color: #2c3e50;
+  background-color: #eeeeee;
+  color: #212121;
+  font-weight: 600;
 }
 
-/* Buttons */
+/* Buttons (fallback styling) */
 button {
   margin-top: 1rem;
   margin-right: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #3498db;
-  color: white;
-  border: none;
+  padding: 0.6rem 1.2rem;
   font-size: 14px;
   border-radius: 4px;
+  background-color: #3f51b5;
+  color: white;
+  border: none;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
+button:hover:not(:disabled) {
+  background-color: #303f9f;
+}
+
 button:disabled {
-  background-color: #95a5a6;
+  background-color: #cfd8dc;
   cursor: not-allowed;
 }
 
-button:hover:not(:disabled) {
-  background-color: #2980b9;
+/* Mat Buttons override if needed */
+::ng-deep .mat-raised-button {
+  margin-right: 8px;
 }
 
 /* Error message */
 .error {
+  color: #e53935;
   margin-top: 1rem;
-  color: #e74c3c;
   font-weight: 600;
 }
 
 /* Pagination */
 .dashboard .pagination {
   margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
-.dashboard .pagination button {
-  margin-right: 0.5rem;
-}
-
-/* Average Score Display */
+/* Strong text in summary */
 .dashboard p strong {
-  color: #2c3e50;
+  color: #3f51b5;
 }
 
-/* Course Progress Section */
+/* Course Progress Box */
 .course-progress-item {
   margin: 1.5rem 0;
   padding: 1rem;
   background-color: #ffffff;
   border: 1px solid #e1e1e1;
   border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .course-progress-item p {
   margin: 0 0 0.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: #333;
 }
 
-/* Mat Progress Bar */
-::ng-deep mat-progress-bar {
-  height: 20px;
-  border-radius: 10px;
-  margin-bottom: 0.5rem;
-}
-
-/* Progress Input Field */
 .course-progress-item input[type="number"] {
   width: 100px;
   margin-top: 0.3rem;
@@ -136,46 +148,53 @@ button:hover:not(:disabled) {
   vertical-align: middle;
 }
 
-/* Save Button */
 .course-progress-item button {
   display: inline-block;
   vertical-align: middle;
 }
 
+/* Mat Progress Bar Styling */
+::ng-deep mat-progress-bar {
+  height: 20px;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
 
+/* Scrollable Content Container */
 .dashboard-container {
-  padding: 20px;
   height: 100vh;
+  padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .scrollable-content {
-  height: calc(100vh - 100px); /* adjust based on your header/footer */
+  height: calc(100vh - 100px);
   overflow-y: auto;
   padding-right: 10px;
-  scrollbar-width: thin; /* Firefox */
+  scrollbar-width: thin;
 }
 
-.student-card {
-  background: #f9f9f9;
-  margin-bottom: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* Optional: Customize scrollbar for WebKit browsers */
+/* Scrollbar Styling (WebKit) */
 .scrollable-content::-webkit-scrollbar {
   width: 8px;
 }
 
 .scrollable-content::-webkit-scrollbar-thumb {
-  background-color: #ccc;
+  background-color: #bdbdbd;
   border-radius: 4px;
 }
 
 .scrollable-content::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Student Card Display */
+.student-card {
+  background: #fefefe;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 

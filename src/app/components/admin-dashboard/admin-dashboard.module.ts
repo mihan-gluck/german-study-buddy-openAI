@@ -1,8 +1,8 @@
-//src/app/components/student-dashnoard/student-dashbaord.module.ts
+/* //src/app/components/student-dashnoard/admin-dashbaord.module.ts
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StudentDashboardComponent } from './student-dashboard.component';
+import { AdminDashboardComponent } from './admin-dashboard.component';
 import { FormsModule } from '@angular/forms';
 import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 //import { StudentRoutingModule } from './student-routing.module';
@@ -14,24 +14,25 @@ import { NgChartsModule } from 'ng2-charts';
 
 
 const routes: Routes = [
-  { path: '', component: StudentDashboardComponent}
+  { path: '', component: AdminDashboardComponent}
 ];
 
 @NgModule({
   declarations: [
-    StudentDashboardComponent,
+    AdminDashboardComponent,
     SafeUrlPipe,
   ],
   imports: [CommonModule,
             MatProgressBarModule,
             MatCardModule,
-            RouterModule.forChild(routes),
+            RouterModule,
             MaterialModule,
             NgChartsModule,
+            FormsModule,
             //StudentRoutingModule
         ],
-  exports: [StudentDashboardComponent]
+  exports: [AdminDashboardComponent]
 })
-export class StudentDashboardModule {}
-
+export class AdminDashboardModule {}
+*/
 

@@ -1,3 +1,5 @@
+// models/aiConversations.js
+
 const mongoose = require("mongoose");
 
 const AiConversationSchema = new mongoose.Schema({

@@ -1,184 +1,155 @@
-<!--teacher-dashboard.component.html-->
-
 <div class="dashboard-container">
-  <h2>Teacher Dashboard</h2>
+  <div class="scrollable-content dashboard">
 
-  <div class="scrollable-content">
-    <!-- Your dashboard content goes here -->
-    
-    <h2>Welcome, {{ teacherName }}</h2>
+    <!-- Title -->
+    <h2>Teacher Dashboard</h2>
 
-  
-  <!-- Student Dropdown -->
-  <label for="student">Select Student:</label>
-  <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" id="student">
-    <option value="">-- Choose a Student --</option>
-    <option *ngFor="let student of students" [value]="student._id">
-      {{ student.name }} ({{ student._id }})
-    </option>
-  </select>
+    <!-- Feedback Submission Section -->
+    <mat-card class="mb-4">
+      <mat-card-title>Submit Feedback</mat-card-title>
+      <mat-card-content>
+        <form (ngSubmit)="submitFeedback()">
 
-  <!-- Feedback Results -->
-  <div *ngIf="loading">Loading feedback...</div>
-  <div *ngIf="!loading && feedbackList.length">
-    <h3>Feedback for Selected Student</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Summary</th>
-          <th>Conversation Time</th>
-          <th>Fluency</th>
-          <th>Accent</th>
-          <th>Grammar</th>
-          <th>Overall</th>
-          <th>Mistakes</th>
-          <th>Level</th>
-          <th>Suggestions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let fb of feedbackList">
-          <td>{{ fb.timestamp | date:'short' }}</td>
-          <td>{{ fb.summary }}</td>
-          <td>{{ fb.conversationTime }}</td>
-          <td>{{ fb.fluency }}</td>
-          <td>{{ fb.accent }}</td>
-          <td>{{ fb.grammar }}</td>
-          <td>{{ fb.overallCfbr }}</td>
-          <td>{{ fb.commonMistakes }}</td>
-          <td>{{ fb.currentLevel }}</td>
-          <td>{{ fb.suggestedImprovement }}</td>
-        </tr>
-      </tbody>
-    </table>
+          <!-- Student Selection -->
+          <mat-form-field appearance="fill">
+            <mat-label>Student</mat-label>
+            <mat-select [(ngModel)]="feedback.studentId" name="studentId" required>
+              <mat-option *ngFor="let student of students" [value]="student._id">
+                {{ student.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Course Selection -->
+          <mat-form-field appearance="fill">
+            <mat-label>Course</mat-label>
+            <mat-select [(ngModel)]="feedback.course" name="course" required>
+              <mat-option *ngFor="let course of courses" [value]="course.name">
+                {{ course.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Fluency -->
+          <mat-form-field appearance="fill">
+            <mat-label>Fluency</mat-label>
+            <input matInput type="number" min="1" max="10" [(ngModel)]="feedback.fluency" name="fluency" required>
+          </mat-form-field>
+
+          <!-- Grammar -->
+          <mat-form-field appearance="fill">
+            <mat-label>Grammar</mat-label>
+            <input matInput type="number" min="1" max="10" [(ngModel)]="feedback.grammar" name="grammar" required>
+          </mat-form-field>
+
+          <!-- Feedback Text -->
+          <mat-form-field appearance="fill" class="w-100">
+            <mat-label>Feedback</mat-label>
+            <textarea matInput rows="4" [(ngModel)]="feedback.feedbackText" name="feedbackText" required></textarea>
+          </mat-form-field>
+
+          <div>
+            <button mat-raised-button color="primary" type="submit">Submit Feedback</button>
+          </div>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Feedback Table -->
+    <mat-card class="mb-4">
+      <mat-card-title>Submitted Feedback</mat-card-title>
+      <mat-card-content>
+        <table mat-table [dataSource]="feedbackList" class="mat-elevation-z2" *ngIf="feedbackList?.length">
+
+          <!-- Student -->
+          <ng-container matColumnDef="student">
+            <th mat-header-cell *matHeaderCellDef> Student </th>
+            <td mat-cell *matCellDef="let feedback"> {{ feedback.studentName }} </td>
+          </ng-container>
+
+          <!-- Course -->
+          <ng-container matColumnDef="course">
+            <th mat-header-cell *matHeaderCellDef> Course </th>
+            <td mat-cell *matCellDef="let feedback"> {{ feedback.course }} </td>
+          </ng-container>
+
+          <!-- Fluency -->
+          <ng-container matColumnDef="fluency">
+            <th mat-header-cell *matHeaderCellDef> Fluency </th>
+            <td mat-cell *matCellDef="let feedback"> {{ feedback.fluency }} </td>
+          </ng-container>
+
+          <!-- Grammar -->
+          <ng-container matColumnDef="grammar">
+            <th mat-header-cell *matHeaderCellDef> Grammar </th>
+            <td mat-cell *matCellDef="let feedback"> {{ feedback.grammar }} </td>
+          </ng-container>
+
+          <!-- Feedback Text -->
+          <ng-container matColumnDef="feedbackText">
+            <th mat-header-cell *matHeaderCellDef> Feedback </th>
+            <td mat-cell *matCellDef="let feedback"> {{ feedback.feedbackText }} </td>
+          </ng-container>
+
+          <!-- Date -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef> Date </th>
+            <td mat-cell *matCellDef="let feedback"> {{ feedback.date | date:'short' }} </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Pagination -->
+        <mat-paginator [pageSize]="5" [length]="feedbackList.length" [pageSizeOptions]="[5, 10, 20]">
+        </mat-paginator>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Course Progress Section -->
+    <mat-card class="mb-4">
+      <mat-card-title>Update Student Course Progress</mat-card-title>
+      <mat-card-content>
+        <div *ngFor="let student of students" class="course-progress-item">
+          <p>{{ student.name }} - {{ student.currentCourse }}</p>
+          <mat-form-field appearance="outline">
+            <mat-label>Progress (%)</mat-label>
+            <input matInput type="number" [(ngModel)]="student.progress" [name]="'progress' + student._id" min="0" max="100">
+          </mat-form-field>
+          <button mat-raised-button color="accent" (click)="updateCourseProgress(student)">Update</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Average Summary -->
+    <mat-card class="mb-4">
+      <mat-card-title>Feedback Summary</mat-card-title>
+      <mat-card-content>
+        <p><strong>Average Fluency:</strong> {{ averageScores.fluency | number: '1.1-1' }}</p>
+        <p><strong>Average Grammar:</strong> {{ averageScores.grammar | number: '1.1-1' }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- CSV Export -->
+    <mat-card>
+      <mat-card-content>
+        <button mat-stroked-button color="primary" (click)="exportFeedbackToCSV()">Export to CSV</button>
+      </mat-card-content>
+    </mat-card>
+
+  <mat-card>
+    <mat-card-title>Feedback Analytics</mat-card-title>
+    <mat-card-content>
+      <canvas baseChart 
+        [data]="feedbackChartData"
+        [options]="feedbackChartOptions"
+        [type]="feedbackChartType">
+      </canvas>
+    </mat-card-content>
+  </mat-card>
+
+
   </div>
-
-  <div *ngIf="!loading && !feedbackList.length && selectedStudentId">
-    <p>No feedback found for this student.</p>
-  </div>
-
-  <div *ngIf="error" class="error">{{ error }}</div>
-
-  <!-- Level Filter -->
-<label for="level">Filter by Level:</label>
-<select [(ngModel)]="selectedLevel" (change)="onLevelChange()" id="level">
-  <option value="">-- All Levels --</option>
-  <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
-</select>
-
-<!-- Feedback Table -->
-    <table *ngIf="filteredFeedback.length">
-  <thead>
-    <tr>
-      <th>Student</th>
-      <th>Timestamp</th>
-      <th>Summary</th>
-      <th>Conversation Time</th>
-      <th>Fluency</th>
-      <th>Accent</th>
-      <th>Grammar</th>
-      <th>Overall</th>
-      <th>Mistakes</th>
-      <th>Level</th>
-      <th>Suggestions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let fb of filteredFeedback">
-      <td>{{ fb.studentName || getStudentNameById(fb.studentId) }}</td>
-      <td>{{ fb.timestamp | date:'short' }}</td>
-      <td>{{ fb.summary }}</td>
-      <td>{{ fb.conversationTime }}</td>
-      <td>{{ fb.fluency }}</td>
-      <td>{{ fb.accent }}</td>
-      <td>{{ fb.grammar }}</td>
-      <td>{{ fb.overallCfbr }}</td>
-      <td>{{ fb.commonMistakes }}</td>
-      <td>{{ fb.currentLevel }}</td>
-      <td>{{ fb.suggestedImprovement }}</td>
-    </tr>
-  </tbody>
-</table>
-
-
-    <!-- Pagination Controls -->
-    <div *ngIf="filteredFeedback.length">
-        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
-        <span>Page {{ currentPage }}</span>
-        <button (click)="onPageChange(currentPage + 1)" [disabled]="(currentPage * itemsPerPage) >= feedbackList.length">Next</button>
-    </div>
-
-    <!-- Date Range Filters -->
-    <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" [(ngModel)]="startDate" (change)="onDateChange()">
-
-    <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" [(ngModel)]="endDate" (change)="onDateChange()">
-
-    <button (click)="clearFilters()">Clear Filters</button>
-
-
-    <h3>Submit Feedback for a Student</h3>
-
-    <label for="student">Select Student:</label>
-    <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" id="student">
-        <option value="">-- Choose a Student --</option>
-        <option *ngFor="let student of students" [value]="student._id">
-            {{ student.name }} ({{ student._id }})
-        </option>
-    </select>
-
-    <form (ngSubmit)="submitFeedback()" #feedbackForm="ngForm" *ngIf="selectedStudentId">
-
-        <input type="hidden" name="studentId" [(ngModel)]="newFeedback.studentId" [value]="selectedStudentId" />
-
-        <label for="summary">Summary:</label>
-        <textarea id="summary" name="summary" [(ngModel)]="newFeedback.summary"></textarea>
-
-        <label for="fluency">Fluency:</label>
-        <input type="text" id="fluency" name="fluency" [(ngModel)]="newFeedback.fluency" />
-
-        <label for="accent">Accent:</label>
-        <input type="text" id="accent" name="accent" [(ngModel)]="newFeedback.accent" />
-
-        <label for="grammar">Grammar:</label>
-        <input type="text" id="grammar" name="grammar" [(ngModel)]="newFeedback.grammar" />
-
-        <label for="overallCFBR">Overall CFBR:</label>
-        <input type="text" id="overallCFBR" name="overallCFBR" [(ngModel)]="newFeedback.overallCFBR" />
-
-        <label for="commonMistakes">Common Mistakes:</label>
-        <input type="text" id="commonMistakes" name="commonMistakes" [(ngModel)]="newFeedback.commonMistakes" />
-
-        <label for="currentLevel">Current Level:</label>
-        <input type="text" id="currentLevel" name="currentLevel" [(ngModel)]="newFeedback.currentLevel" />
-
-        <label for="suggestedImprovement">Suggested Improvement:</label>
-        <input type="text" id="suggestedImprovement" name="suggestedImprovement" [(ngModel)]="newFeedback.suggestedImprovement" />
-
-        <button type="submit" [disabled]="!feedbackForm.form.valid">Submit Feedback</button>
-    </form>
-
-    <button (click)="exportToCSV()" *ngIf="filteredFeedback.length">Export to CSV</button>
-
-    <div *ngIf="filteredFeedback.length">
-        <p><strong>Average Fluency:</strong> {{ getAverageScore('fluency') | number:'1.1-2' }}</p>
-        <p><strong>Average Grammar:</strong> {{ getAverageScore('grammar') | number:'1.1-2' }}</p>
-    </div>
-
-    <div *ngIf="studentCourses.length">
-      <h3>Course Progress</h3>
-      <div *ngFor="let course of studentCourses" class="course-progress-item">
-        <p><strong>{{ course.name }}:</strong></p>
-        <mat-progress-bar mode="determinate" [value]="course.progress || 0"></mat-progress-bar>
-
-        <label for="progressInput">Update Progress (%):</label>
-        <input type="number" [(ngModel)]="course.progress" min="0" max="100" />
-        <button (click)="updateProgress(selectedStudentId, course._id, course.progress)">Save</button>
-      </div>
-    </div>
-
-    </div>
-
 </div>

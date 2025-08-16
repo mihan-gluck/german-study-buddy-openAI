@@ -1,20 +1,33 @@
 //src/app/components/teacher-dashboard/teacher-dashboard.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { FeedbackService } from '../../services/feedback.service';
 import { HttpClient } from '@angular/common/http';
 import * as Papa from 'papaparse';
 import { CoursesService } from '../../services/courses.service';
 import { CourseProgressService } from '../../services/course-progress.service';
+import { CdkTableDataSourceInput } from '@angular/cdk/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { ViewChild } from '@angular/core';
+import { MatTableDataSource } from '@angular/material/table';
+import { ChartConfiguration, ChartType, ChartOptions } from 'chart.js';
+import { MaterialModule } from '../../shared/material.module';
+import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: false,
+  
   templateUrl: './teacher-dashboard.component.html',
   styleUrls: ['./teacher-dashboard.component.css']
 })
 
-export class TeacherDashboardComponent implements OnInit {
+export class TeacherDashboardComponent implements OnInit, AfterViewInit{
+  dataSource: MatTableDataSource<any> = new MatTableDataSource<any>();
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   students: any[] = []; // List of students with name and ID
   selectedStudentId: string = '';
   feedbackList: any[] = [];
@@ -45,6 +58,18 @@ export class TeacherDashboardComponent implements OnInit {
   };
     
     teacherName: string = '';
+    saveProgress: any;
+    studentProgress: any;
+    //displayedColumns: Iterable<string>;
+    displayedColumns: string[] = ['student', 'course', 'fluency', 'grammar', 'feedbackText', 'date'];
+    feedbackText: any;
+    studentId: any;
+    courses: any;
+    selectedCourse: any;
+    exportFeedbackToCSV: any;
+    averageScores: any;
+    updateCourseProgress: any;
+    feedback: any;
 
   constructor(
     private http: HttpClient,
@@ -52,6 +77,11 @@ export class TeacherDashboardComponent implements OnInit {
     private coursesService: CoursesService,
     private courseProgressService: CourseProgressService,
   ) {}
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    throw new Error('Method not implemented.');
+  }
 
   ngOnInit(): void {
     this.fetchStudents();
@@ -256,4 +286,25 @@ fetchStudentCourses(studentId: string): void {
     });
 
   }
+
+
+
+// Optionally update dataSource when feedbackList is received
+  loadFeedback(feedbackList: any[]) {
+    this.dataSource.data = feedbackList;
+  }
+
+
+public feedbackChartData: ChartConfiguration<'bar'>['data'] = {
+  labels: ['Fluency', 'Grammar', 'Pronunciation'],
+  datasets: [
+    { data: [8.2, 7.5, 6.9], label: 'Average Score' }
+  ]
+};
+
+public feedbackChartOptions: ChartConfiguration['options'] = {
+  responsive: true,
+};
+public feedbackChartType: ChartType = 'bar';
+    
 }

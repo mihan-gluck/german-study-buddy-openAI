@@ -14,6 +14,7 @@ import { CourseProgressService } from '../../services/course-progress.service';
 import { ElevenLabsUsageData, ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
 import { VoiceAgentService } from '../../services/voice-agent.service';
 import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
+import { ChartOptions, ChartConfiguration, ChartType } from 'chart.js';
 
 interface Student {
   _id: string;
