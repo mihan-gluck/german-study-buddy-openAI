@@ -10,11 +10,14 @@ const upload = require('../middleware/upload');
 // GET /api/profile - Get logged-in user's profile
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    console.log("Decoded user in profile route:", req.user);
+
+    const user = await User.findById(req.user.id).select('-password'); // 👈 FIXED
 
     if (!user) {
       return res.status(404).json({ success: false, msg: 'User not found' });
     }
+
 
     let profileData = {
       _id: user._id,

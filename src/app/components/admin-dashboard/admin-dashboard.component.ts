@@ -15,6 +15,7 @@ import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 import { MaterialModule } from '../../shared/material.module';
 import { MatDialog } from '@angular/material/dialog';
 import { AssignElevenlabsDialogComponent } from '../../assign-elevenlabs-dialog/assign-elevenlabs-dialog.component';
+import { HttpHeaders } from '@angular/common/http';
 
 type VapiStatus = 'active' | 'paused' | 'finished';
 
@@ -131,25 +132,56 @@ export class AdminDashboardComponent implements OnInit {
     this.fetchStudents();
   }
 
-  fetchStudents(): void {
-    this.loading = true;
-    this.http.get<Student[]>('/api/admin/students').subscribe({
-      next: data => {
-        this.students = data;
+fetchStudents(): void {
+  this.loading = true;
+  const token = this.authService.getToken();
+  const headers = token
+    ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+    : new HttpHeaders();
+
+  this.http.get<{ success: boolean; data: Student[] }>('/api/admin/students', { headers }).subscribe({
+    next: res => {
+      if (res.success) {
+        this.students = res.data;
         this.students.forEach(student => {
           this.loadFeedbackStats(student);
           this.loadCourseProgress(student);
         });
         this.filteredStudents = [...this.students];
-        this.loading = false;
-      },
-      error: err => {
-        console.error('Error fetching students:', err);
+      } else {
         this.error = 'Failed to load students';
-        this.loading = false;
       }
-    });
+      this.loading = false;
+    },
+    error: err => {
+      console.error('Error fetching students:', err);
+      this.error = err.error?.msg || 'Failed to load students';
+      this.loading = false;
+    }
+  });
   }
+
+
+  // fetchStudents(): void {
+  // this.loading = true;
+  // this.http.get<{ success: boolean; data: Student[] }>('/api/admin/students').subscribe({
+  //   next: res => {
+  //     this.students = res.data;   // ✅ use res.data instead of res
+  //     this.students.forEach(student => {
+  //       this.loadFeedbackStats(student);
+  //       this.loadCourseProgress(student);
+  //     });
+  //     this.filteredStudents = [...this.students];
+  //     this.loading = false;
+  //   },
+  //   error: err => {
+  //     console.error('Error fetching students:', err);
+  //     this.error = 'Failed to load students';
+  //     this.loading = false;
+  //   }
+  // });
+  // }
+
 
   applyFilters(): void {
     this.filteredStudents = this.students.filter(student => {

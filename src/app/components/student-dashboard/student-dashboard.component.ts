@@ -103,7 +103,7 @@ export class StudentDashboardComponent implements OnInit {
   userProfile: any = null;
 
   basicUser: { name: string; email: string; level?: string } | null = null;  // From token
-
+  
   courseProgressList: CourseProgress[] = [];
 
   //elevenLabsCourses: ElevenLabsCourse[] = [];
@@ -224,7 +224,6 @@ export class StudentDashboardComponent implements OnInit {
 
 
   }
-
 
   stopCall(): void {
     this.callEndTime = Date.now();
@@ -364,6 +363,7 @@ export class StudentDashboardComponent implements OnInit {
         this.endElevenLabsCall();
       }
     }
+
  
     get currentVoiceAgent(): 'vapi' | 'elevenlabs' | null {
       return this.voiceAgentService.getActiveAgent();

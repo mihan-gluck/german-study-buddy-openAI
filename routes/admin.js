@@ -17,7 +17,7 @@ router.get("/admin-dashboard", verifyToken, checkRole("admin"), (req, res) => {
 
 
 // Puting elevenlabs link
-router.put('/students/:id/elevenlabs-link', verifyAdmin, async (req, res) => {
+router.put('/students/:id/elevenlabs-link', [verifyToken, isAdmin], async (req, res) => {
   const { id } = req.params;
   const { elevenLabsLink } = req.body;
 
@@ -79,7 +79,11 @@ router.get('/students', verifyToken, isAdmin, async (req, res) => {
     const students = await User.find({ role: 'student' }).select('-password');
     res.json({ success: true, data: students });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to fetch students', error: err.message});
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch students',
+      error: err.message
+    });
   }
 });
 

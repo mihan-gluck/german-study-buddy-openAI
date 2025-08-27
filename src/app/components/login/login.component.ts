@@ -30,10 +30,12 @@ export class LoginComponent {
         // Redirect the user based on their role after login
         if (response.user.role === 'admin') {
           this.router.navigate(['/admin-dashboard']);
+          console.log('This is admin token: ', response.token);
         } else if (response.user.role === 'teacher') {
           this.router.navigate(['/teacher-dashboard']);
         } else {
           this.router.navigate(['/student-dashboard']);
+          console.log('This is student token: ', response.token);
         }
       },
       (error) => {

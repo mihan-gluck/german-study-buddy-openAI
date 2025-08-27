@@ -2,7 +2,7 @@
 
 <div class="student-dashboard-container">
   <div class="scrollable-content">
-    <h2>Welcome, {{ user?.name }}</h2>
+    <h2>Welcome, {{ basicUser?.name}}</h2>
 
     <!-- Profile Section -->
     <mat-card class="profile-box" *ngIf="basicUser && userProfile">
@@ -25,7 +25,7 @@
       <button mat-raised-button color="warn" (click)="stopAnyCall()">End Call</button>
     </mat-card>
 
-    <!-- Vapi Courses -->
+    <!-- Vapi Courses
     <section *ngIf="vapiCourses.length > 0">
       <h3>Vapi Practice Courses</h3>
       <mat-card *ngFor="let course of vapiCourses" class="course-card">
@@ -36,7 +36,7 @@
           <button mat-stroked-button color="warn" (click)="stopCall()" [disabled]="!vapiActive">Stop Vapi Call</button>
         </mat-card-content>
       </mat-card>
-    </section>
+    </section> -->
 
     <!-- ElevenLabs Courses -->
     <section *ngIf="elevenLabsCourses.length > 0">
