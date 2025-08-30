@@ -42,7 +42,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Course</th>
-        <th>VAPI Status</th>
+        <!-- <th>VAPI Status</th> -->
         <th>Fluency</th>
         <th>Grammar</th>
         <th>Accent</th>
@@ -64,13 +64,13 @@
           <input type="text" [(ngModel)]="student.courseAssigned">
           <button (click)="assignCourseToStudent(student)">Assign</button>
         </td>
-        <td>
+        <!-- <td>
           <select [value]="student.vapiAccess.status" (change)="onStatusChange($event, student._id)">
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="finished">Finished</option>
           </select>
-        </td>
+        </td> -->
         <td>{{ student.feedbackStats?.fluency || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.grammar || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.accent || 'N/A' }}</td>

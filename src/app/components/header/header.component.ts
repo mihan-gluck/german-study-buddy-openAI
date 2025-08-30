@@ -40,4 +40,5 @@ export class HeaderComponent {
   navigateTo(path: string) {
     this.router.navigate([path]);
   }
+
 }

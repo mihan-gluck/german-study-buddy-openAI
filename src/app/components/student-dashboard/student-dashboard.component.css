@@ -38,51 +38,55 @@
   background: #616161;
 }
 
-/* Profile section box */
-.profile-box {
-  margin-bottom: 2rem;
-  max-width: 600px;
-  margin-inline: auto;
+/* Card container (aligned to body edges, not centered) */
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; /* align to body */
+  gap: 24px;
+  margin-bottom: 20px;
+  margin-top: 2%;
+  padding: 0 24px; /* align cards with page padding */
+  box-sizing: border-box;
+}
+
+/* General card styling */
+.profile-box,
+.call-status,
+.course-card,
+.curriculum-card,
+.course-progress-box {
+  flex: 1 1 calc(33.33% - 24px); /* 3 cards per row */
   background: white;
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  min-width: 280px; /* prevents shrinking too small */
+  box-sizing: border-box;
 }
 
-/* Call status banner */
+/* Profile box overrides */
+.profile-box {
+  font-weight: 500;
+}
+
+/* Call status box overrides */
 .call-status {
   background-color: #fffde7;
   border-left: 5px solid #ffc107;
-  padding: 16px;
-  margin-bottom: 1.5rem;
-  max-width: 600px;
-  margin-inline: auto;
-  border-radius: 4px;
-  font-weight: 500;
   color: #795548;
 }
 
-/* Cards and progress display */
-.course-card,
-.course-progress-box {
-  margin-bottom: 1.5rem;
-  max-width: 600px;
-  margin-inline: auto;
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-/* Feedback section */
+/* Feedback section (keep full width) */
 .feedback-table-section {
   margin-top: 2rem;
-  max-width: 800px;
+  max-width: 100%;
   margin-inline: auto;
   background: white;
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 /* Pagination styling */
@@ -91,8 +95,10 @@
   justify-content: space-between;
   margin-top: 1rem;
   align-items: center;
-  max-width: 800px;
+  max-width: 100%;
   margin-inline: auto;
+  padding: 0 24px;
+  box-sizing: border-box;
 }
 
 /* Material-themed buttons and tables (if used) */
@@ -101,13 +107,23 @@
 }
 
 /* Responsive tweaks */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .profile-box,
+  .call-status,
   .course-card,
-  .course-progress-box,
-  .feedback-table-section {
-    padding: 12px;
-    margin: 0 12px 1.5rem;
+  .course-progress-box {
+    flex: 1 1 calc(50% - 24px); /* 2 cards per row */
   }
 }
 
+@media (max-width: 768px) {
+  .profile-box,
+  .call-status,
+  .course-card,
+  .course-progress-box,
+  .feedback-table-section {
+    flex: 1 1 100%; /* 1 card per row on small screens */
+    padding: 12px;
+    margin: 0 0 1.5rem;
+  }
+}

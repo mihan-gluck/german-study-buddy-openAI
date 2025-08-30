@@ -85,6 +85,7 @@ router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
       email: user.email,
       role: user.role,
       level: user.level,
+      subscription: user.subscription,
       profilePhoto: user.profilePhoto,
       registeredAt: user.registeredAt,
       subscriptionPlan: user.subscriptionPlan || null,

@@ -17,20 +17,34 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, subscription, batch, elevenLabsWidgetLink, elevenLabsApiKey } = req.body;
 
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: "User already exists" });
-
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    user = new User({ name, email, password: hashedPassword, role });
+
+    user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
+    if (user.role === 'student') {
+      user.subscription = subscription;
+      user.batch = batch;
+      user.elevenLabsWidgetLink = elevenLabsWidgetLink;
+      user.elevenLabsApiKey = elevenLabsApiKey;
+    };
 
     await user.save();
-    res.status(201).json({ msg: "User created successfully" });
+    console.log("New user created:", user);
+    res.status(201).json({ msg: "User created successfully", user });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ✅ Login
 router.post("/login", async (req, res) => {

@@ -19,14 +19,32 @@ export class SignupComponent {
   email: string = '';
   password: string = '';
   role: string = 'student'; // default role
+  batch: string = '';
+  subscription: string = '';
+  elevenLabsWidgetLink: string = '';
+  elevenLabsApiKey: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
-    const user = { name: this.name, email: this.email, password: this.password, role: this.role };
+    const user: any = { 
+      name: this.name, 
+      email: this.email, 
+      password: this.password, 
+      role: this.role, 
+    };
+
+    if (this.role === 'student') {
+      user.batch = this.batch;
+      user.subscription = this.subscription;
+      user.elevenLabsWidgetLink = "";
+      user.elevenLabsApiKey = "";
+    };
+
     this.authService.signup(user).subscribe(
       (response: any) => {
-        console.log('User registered', response);
+        alert(user.role + ' registered successfully');
+        console.log('User registered', user);
         this.router.navigate(['/auth/login']);  // Redirect to login after signup
       },
       (error: any) => {

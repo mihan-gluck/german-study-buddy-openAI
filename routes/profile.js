@@ -6,6 +6,7 @@ const User = require('../models/User');
 const { verifyToken } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 const upload = require('../middleware/upload');
+const { Subscription } = require('rxjs');
 
 // GET /api/profile - Get logged-in user's profile
 router.get('/', verifyToken, async (req, res) => {
@@ -24,6 +25,7 @@ router.get('/', verifyToken, async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      subscription: user.subscription,
       registeredAt: user.registeredAt,
     };
 

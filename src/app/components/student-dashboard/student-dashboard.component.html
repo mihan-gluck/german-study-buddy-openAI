@@ -1,58 +1,53 @@
-<!--student-dashboard.component.html-->
-
 <div class="student-dashboard-container">
   <div class="scrollable-content">
-    <h2>Welcome, {{ basicUser?.name}}</h2>
+    <h2>Guten Tag, {{ basicUser?.name}} !</h2>
+    <h6>Ready to practice your German today?</h6>
 
     <!-- Profile Section -->
-    <mat-card class="profile-box" *ngIf="basicUser && userProfile">
-      <mat-card-header>
-        <div mat-card-avatar class="profile-photo">
-          <img [src]="userProfile.profilePhoto || 'assets/default-profile.png'" alt="Profile" />
-        </div>
-        <mat-card-title>{{ userProfile.name || basicUser.name }}</mat-card-title>
-        <mat-card-subtitle>{{ userProfile.email || basicUser.email }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p><strong>Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
-        <p><strong>Plan:</strong> {{ userProfile.subscriptionPlan || 'Free' }}</p>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Active Call -->
-    <mat-card *ngIf="currentVoiceAgent" class="call-status">
-      <p>🟢 <strong>Active Call:</strong> {{ currentVoiceAgent | titlecase }}</p>
-      <button mat-raised-button color="warn" (click)="stopAnyCall()">End Call</button>
-    </mat-card>
-
-    <!-- Vapi Courses
-    <section *ngIf="vapiCourses.length > 0">
-      <h3>Vapi Practice Courses</h3>
-      <mat-card *ngFor="let course of vapiCourses" class="course-card">
-        <mat-card-title>{{ course.name }}</mat-card-title>
+    <section class="card-container">
+      <mat-card class="profile-box" *ngIf="basicUser && userProfile">
+        <mat-card-header>
+          <mat-card-title>{{ userProfile.name || basicUser.name }}</mat-card-title>
+          <mat-card-subtitle>{{ userProfile.email || basicUser.email }}</mat-card-subtitle>
+        </mat-card-header>
+        
         <mat-card-content>
-          <p><strong>Language:</strong> {{ course.language }}</p>
-          <button mat-raised-button color="primary" (click)="startCall(course)" [disabled]="vapiActive || currentVoiceAgent">Start Vapi Call</button>
-          <button mat-stroked-button color="warn" (click)="stopCall()" [disabled]="!vapiActive">Stop Vapi Call</button>
+          <p><strong>Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
+          <p><strong>Plan:</strong> {{ userProfile.subscription}}</p>
         </mat-card-content>
       </mat-card>
-    </section> -->
+
+      <!-- Active Call -->
+      <mat-card *ngIf="currentVoiceAgent" class="call-status">
+        <p>🟢 <strong>Active Call:</strong> {{ currentVoiceAgent | titlecase }}</p>
+        <button mat-raised-button color="warn" (click)="stopAnyCall()">End Call</button>
+      </mat-card>
+    <!-- </section> -->
 
     <!-- ElevenLabs Courses -->
-    <section *ngIf="elevenLabsCourses.length > 0">
-      <h3>ElevenLabs Practice Courses</h3>
-      <mat-card *ngFor="let course of elevenLabsCourses" class="course-card">
-        <mat-card-title>{{ course.name }}</mat-card-title>
+    <!-- <section *ngIf="elevenLabsCourses.length > 0" class="card-container"> -->
+      <!-- <h3>ElevenLabs Practice Courses</h3> -->
+      <mat-card class="course-card">
+        <mat-card-title>Start Learning</mat-card-title>
         <mat-card-content>
-          <p>{{ course.description }}</p>
-          <button mat-raised-button color="primary" (click)="startElevenLabsCall(course)" [disabled]="currentVoiceAgent">Start Call</button>
-          <button mat-stroked-button color="warn" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId" (click)="endElevenLabsCall()">End Call</button>
+          <p>Jump straight into your German conversation practice</p>
+          <!-- <button mat-raised-button color="primary" (click)="startElevenLabsCall(course)" [disabled]="currentVoiceAgent">Start Call</button>
+          <button mat-stroked-button color="warn" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId" (click)="endElevenLabsCall()">End Call</button> -->
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="curriculum-card">
+        <mat-card-title>Curriculum</mat-card-title>
+        <mat-card-content>
+          <p>Access your learning materials and resources</p>
+          <!-- <button mat-raised-button color="primary" (click)="startElevenLabsCall(course)" [disabled]="currentVoiceAgent">Start Call</button>
+          <button mat-stroked-button color="warn" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId" (click)="endElevenLabsCall()">End Call</button> -->
         </mat-card-content>
       </mat-card>
     </section>
 
     <!-- Course Progress -->
-    <section *ngIf="userProfile?.assignedCourses?.length > 0">
+    <section *ngIf="userProfile?.assignedCourses?.length > 0" class="card-container">
       <h3>Course Progress</h3>
       <mat-card *ngFor="let course of userProfile.assignedCourses" class="course-progress-box">
         <p><strong>{{ course.courseId?.name }} ({{ course.courseId?.language }})</strong></p>
@@ -110,111 +105,3 @@
     </section>
   </div>
 </div>
-
-
-
-
-<!-- <div class="container mt-4">
-  
-  <p>Select a course-level AI tutor below:</p>
-
-  <div *ngFor="let course of vapiCourses" class="card">
-  <h4>{{ course.name }}</h4>
-  <button (click)="openVapiTab(course.name)">Open AI Voice Agent</button>
-</div>
-
-<h2>Available AI Courses</h2>
-<div *ngIf="vapiCourses.length > 0; else noCourses">
-  <div *ngFor="let course of vapiCourses" class="course-button">
-    <button (click)="openAgent(course)">
-      🎧 {{ course.name }} - Talk with AI
-    </button>
-  </div>
-</div>
-
-<div *ngIf="loading">Loading courses...</div>
-<p *ngIf="error">{{ error }}</p>
-
-
-<ng-template #noCourses>
-  <p>No subscribed courses found.</p>
-</ng-template>
-
-
-
-  <div class="row">
-    <div
-      class="col-md-6 mb-4"
-      *ngFor="let agent of aiAgents"
-    >
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">{{ agent.name }}</h5>
-          <iframe
-            [src]="agent.url | safeUrl"
-            width="100%"
-            height="350"
-            style="border: 1px solid #ccc; border-radius: 8px;"
-          ></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
- -->
-<!-- Vapi widget will be automatically loaded here via script -->
-
-
-<!-- <div class="student-dashboard-container">
-  <div class="container">
-    <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
-    <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>
-
-    <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-4 mb-4" *ngFor="let agent of aiAgents">
-        <div class="card shadow-lg">
-          <div class="card-body text-center">
-            <h5 class="card-title">{{ agent.name }}</h5>
-            <p class="card-text">Start interacting with the AI at your level.</p>
-            <a [href]="agent.url" class="btn btn-primary" target="_blank">Start Conversation</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-     Centered Vapi Widget 
-    <div id="vapi-widget-container" class="vapi-center-container"></div>
-  </div>
-</div> -->
-
-
-<!-- <div class="student-dashboard-container">
-  <div class="container">
-    <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
-    <p class="text-center mb-4">Select an AI Agent to start your conversation:</p>
-
-    <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-4 mb-4" *ngFor="let agent of aiAgents">
-        <div class="card shadow-lg">
-          <div class="card-body text-center">
-            <h5 class="card-title">{{ agent.name }}</h5>
-            <p class="card-text">Start interacting with the AI at your level.</p>
-            <a [href]="agent.url" class="btn btn-primary" target="_blank">Start Conversation</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<div class="student-dashboard">
-    <h2>Student Dashboard</h2>
-    <p>Select an AI Agent to start your conversation:</p>
-    <div class="ai-agent-links">
-      <button *ngFor="let agent of aiAgents" (click)="openAgent(agent.url)">
-        {{ agent.name }}
-      </button>
-    </div>
-  </div>-->
-  

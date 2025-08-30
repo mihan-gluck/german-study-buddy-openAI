@@ -20,6 +20,7 @@ interface Student {
   _id: string;
   name: string;
   email: string;
+  subscription: string;
   courseAssigned: string;
   registeredAt: string;
   vapiAccess: {
@@ -103,7 +104,7 @@ export class StudentDashboardComponent implements OnInit {
   userProfile: any = null;
 
   basicUser: { name: string; email: string; level?: string } | null = null;  // From token
-  
+
   courseProgressList: CourseProgress[] = [];
 
   //elevenLabsCourses: ElevenLabsCourse[] = [];
@@ -294,17 +295,16 @@ export class StudentDashboardComponent implements OnInit {
 
   fetchUserProfile(): void {
     this.authService.getUserProfile().subscribe({
-      next: (profile) => {
-        this.userProfile = profile;
+      next: (res: any) => {
+        this.userProfile = res.user; // <-- assign the nested user object
+        const preferredAgent = this.userProfile?.preferredVoiceAgent;
 
-        const preferredAgent = profile?.preferredVoiceAgent;
+        if (preferredAgent === 'vapi' && this.userProfile?.vapiAccess?.assistantId && this.userProfile?.vapiAccess?.apiKey) {
+          this.voiceAgentService.loadVapi(this.userProfile.vapiAccess.assistantId, this.userProfile.vapiAccess.apiKey);
+        }
 
-      if (preferredAgent === 'vapi' && profile?.vapiAccess?.assistantId && profile?.vapiAccess?.apiKey) {
-        this.voiceAgentService.loadVapi(profile.vapiAccess.assistantId, profile.vapiAccess.apiKey);
-      }
-
-        if (preferredAgent === 'elevenlabs' && profile?.elevenLabsAccess?.agentId) {
-          this.elevenLabsWidgetService.loadWidget(profile.elevenLabsAccess.agentId);
+        if (preferredAgent === 'elevenlabs' && this.userProfile?.elevenLabsAccess?.agentId) {
+          this.elevenLabsWidgetService.loadWidget(this.userProfile.elevenLabsAccess.agentId);
         }
       },
       error: (err) => {

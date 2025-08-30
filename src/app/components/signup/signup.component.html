@@ -5,6 +5,23 @@
     <h2 class="text-center text-primary mb-4">Create an Account</h2>
 
     <form (ngSubmit)="onSubmit()" #signupForm="ngForm">
+
+      <!-- Role Selection -->
+      <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select
+          id="role"
+          name="role"
+          [(ngModel)]="role"
+          required
+          class="form-select"
+        >
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
       <!-- Name -->
       <div class="mb-3">
         <label for="name" class="form-label">Full Name</label>
@@ -21,7 +38,9 @@
 
       <!-- Email -->
       <div class="mb-3">
-        <label for="email" class="form-label">Email Address</label>
+        <label for="email" class="form-label">
+          {{ role === 'admin' || role === 'teacher' ? 'Email Address' : 'Zoho Mail Address' }}
+        </label>
         <input
           type="email"
           id="email"
@@ -47,20 +66,58 @@
         />
       </div>
 
-      <!-- Role Selection -->
-      <div class="mb-3">
-        <label for="role" class="form-label">Role</label>
+      
+      <!-- Batch -->
+      <div class="mb-3" *ngIf="role === 'student'">
+        <label for="batch" class="form-label">Batch</label>
+        <input
+          type="text"
+          id="batch"
+          name="batch"
+          [(ngModel)]="batch"
+          required
+          class="form-control"
+        />
+      </div>
+
+      <!-- Subscription -->
+      <div class="mb-3" *ngIf="role === 'student'">
+        <label for="subscription" class="form-label">Subscription Plan</label>
         <select
-          id="role"
-          name="role"
-          [(ngModel)]="role"
+          id="subscription"
+          name="subscription"
+          [(ngModel)]="subscription"
           required
           class="form-select"
         >
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
-          <option value="admin">Admin</option>
+          <option value="silver">Silver</option>
+          <option value="platinum">Platinum</option>
         </select>
+
+      </div>
+
+      <!-- Widget Link -->
+      <div class="mb-3" *ngIf="role === 'student' && subscription === 'platinum'">
+        <label for="elevenLabsWidgetLink" class="form-label">ElevenLabs Widget Link</label>
+        <input
+          type="url"
+          id="elevenLabsWidgetLink"
+          name="elevenLabsWidgetLink"
+          [(ngModel)]="elevenLabsWidgetLink"
+          class="form-control"
+        />
+      </div>
+
+      <!-- ElevenLabs API Key -->
+      <div class="mb-3" *ngIf="role === 'student' && subscription === 'platinum'">
+        <label for="elevenLabsApiKey" class="form-label">ElevenLabs API Key</label>
+        <input
+          type="text"
+          id="elevenLabsApiKey"
+          name="elevenLabsApiKey"
+          [(ngModel)]="elevenLabsApiKey"
+          class="form-control"
+        />
       </div>
 
       <!-- Submit Button -->
@@ -69,7 +126,7 @@
         [disabled]="!signupForm.form.valid"
         class="btn btn-primary w-100 py-2"
       >
-        Sign Up
+        Register
       </button>
     </form>
 

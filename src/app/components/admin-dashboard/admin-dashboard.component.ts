@@ -84,6 +84,7 @@ interface FeedbackEntry {
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })
+
 export class AdminDashboardComponent implements OnInit {
   students: Student[] = [];
   filteredStudents: Student[] = [];
@@ -146,6 +147,7 @@ fetchStudents(): void {
         this.students.forEach(student => {
           this.loadFeedbackStats(student);
           this.loadCourseProgress(student);
+          console.log('Student data:', student);
         });
         this.filteredStudents = [...this.students];
       } else {

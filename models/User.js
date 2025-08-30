@@ -1,5 +1,3 @@
-//models/User.js
-
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
@@ -7,60 +5,49 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ["student", "teacher", "admin"], required: true },
-  subscription: { type: String, enum: ["free", "premium"], default: "free" },
-  //assignedCourses: String,
+  subscription: { type: String, enum: ["silver", "platinum"], required: function() { return this.role === "student"; } },
+  batch: { type: String, required: function() { return this.role === "student"; }},
+  elevenLabsWidgetLink: { type: String, default: ""},
+  elevenLabsApiKey: { type: String, default: ""},
+
   isActive: { type: Boolean, default: true },
   profilePic: { type: String, default: "" },
   subscriptionExpiry: { type: Date, default: null },
   lastLogin: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  registeredAt: { type: Date, default: Date.now },
+
   vapiAccess: {
     assistantId: String,
     apiKey: String,
     status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
-    totalMonthlyUsage: { type: Number, default: 0 } // in minutes
+    totalMonthlyUsage: { type: Number, default: 0 }
   },
-  registeredAt: { type: Date, default: Date.now },
 
   elevenLabsAccess: {
     agentId: { type: String },
     apiKey: { type: String },
     status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
-    totalMonthlyUsage: { type: Number, default: 0 } // in minutes
+    totalMonthlyUsage: { type: Number, default: 0 }
   },
 
-  
-  elevenLabsLink: {
-    type: String,
-    default: ''
-  },
+  elevenLabsLink: { type: String, default: '' },
 
+  // ✅ move these inside schema
+  courseProgress: [{
+    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+    progressPercent: { type: Number, default: 0 },
+    lastUpdated: { type: Date, default: Date.now }
+  }],
 
+  assignedCourses: [
+    {
+      courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+      assignedAt: Date,
+      progress: { type: Number, default: 0 }
+    }
+  ]
 });
 
-courseProgress: [{
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
-  },
-  progressPercent: {
-    type: Number,
-    default: 0
-  },
-  lastUpdated: {
-    type: Date,
-    default: Date.now
-  }
-}]
-
-assignedCourses: [
-  {
-    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-    assignedAt: Date,
-    progress: { type: Number, default: 0 } // progress in percentage
-  }
-]
-
 module.exports = mongoose.model("User", UserSchema);
-

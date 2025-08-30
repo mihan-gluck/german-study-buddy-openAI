@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ["free", "premium"], required: true },
+  type: { type: String, enum: ["silver", "platinum"], required: true },
   startDate: { type: Date, required: true },
   expiryDate: { type: Date, required: true },
   courses: [
