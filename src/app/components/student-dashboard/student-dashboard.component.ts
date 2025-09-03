@@ -16,6 +16,7 @@ import { VoiceAgentService } from '../../services/voice-agent.service';
 import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
 import { ChartOptions, ChartConfiguration, ChartType } from 'chart.js';
 
+
 interface Student {
   _id: string;
   name: string;
@@ -78,6 +79,7 @@ interface CourseProgress {
   lastUpdated: string;
 }
 
+
 @Component({
   standalone: false,
   selector: 'app-student-dashboard',
@@ -136,7 +138,11 @@ export class StudentDashboardComponent implements OnInit {
   currentPage: any;
   nextPage: any;
   itemsPerPage: any;
+  usage: ElevenLabsUsageData | null = null;
 
+  characterCount: number = 0;
+  characterLimit: number = 0;
+  remainingMinutes: number = 0;
 
   constructor(
     private renderer: Renderer2,
@@ -148,6 +154,7 @@ export class StudentDashboardComponent implements OnInit {
     private elevenLabsUsageService: ElevenLabsUsageService,
     public voiceAgentService: VoiceAgentService,
     private widgetService: ElevenLabsWidgetService,
+    private elevenLabsService: ElevenLabsUsageService
 
   ) {}
 
@@ -156,8 +163,14 @@ export class StudentDashboardComponent implements OnInit {
     this.fetchCourses();
     this.loadFeedback();
     this.fetchUserProfile();
-    this.loadProgress();
+    //this.loadProgress();
     this.loadElevenLabsCourses();
+    this.loadElevenLabsUsage();
+
+    this.elevenLabsUsageService.getUsage().subscribe({
+      next: (res) => console.log('✅ Usage Response:', res),
+      error: (err) => console.error('❌ Usage Error:', err),
+    });
   }
 
   
@@ -367,6 +380,32 @@ export class StudentDashboardComponent implements OnInit {
  
     get currentVoiceAgent(): 'vapi' | 'elevenlabs' | null {
       return this.voiceAgentService.getActiveAgent();
+    }
+
+    openFeedbackForm(): void {
+      window.open('https://docs.google.com/forms/d/e/1FAIpQLSfkLNGgOGOk7eoBXlT2xv06lGbKvCubjiWlGyizl7tiXR6PZg/viewform?usp=header')
+    }
+
+    
+    loadElevenLabsUsage(): void {
+
+      this.elevenLabsService.getUsage().subscribe({
+        next: (res) => {
+
+          if (res && res.voices && res.voices.subscription) {
+            const subscription = res.voices.subscription;
+            this.characterCount = subscription.character_count || 0;
+            this.characterLimit = subscription.character_limit || 0;
+
+            const remaining = this.characterLimit - this.characterCount;
+            this.remainingMinutes = this.characterLimit
+              ? Math.floor((remaining / this.characterLimit) * 15)
+              : 0;
+
+          }
+        },
+        error: (err) => console.error('❌ Failed to fetch ElevenLabs usage:', err)
+      });
     }
 
 }

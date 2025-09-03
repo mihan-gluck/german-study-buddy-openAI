@@ -41,13 +41,16 @@
         <th></th>
         <th>Name</th>
         <th>Email</th>
+        <th>Plan</th>
         <th>Course</th>
         <!-- <th>VAPI Status</th> -->
-        <th>Fluency</th>
-        <th>Grammar</th>
-        <th>Accent</th>
-        <th>Overall CFBR</th>
+        <!-- <th>Fluency</th> -->
+        <!-- <th>Grammar</th> -->
+        <!-- <th>Accent</th> -->
+        <!-- <th>Overall CFBR</th> -->
         <th>Level</th>
+        <th>Bot Remaining Minutes</th>
+        <th>Subscription Update Date</th>
         <th>ElevenLabs Link</th>
         <th>Course Progress</th>
         <th>Feedback</th>
@@ -60,6 +63,7 @@
         </td>
         <td>{{ student.name }}</td>
         <td>{{ student.email }}</td>
+        <td>{{student.subscription}}</td>
         <td>
           <input type="text" [(ngModel)]="student.courseAssigned">
           <button (click)="assignCourseToStudent(student)">Assign</button>
@@ -71,11 +75,13 @@
             <option value="finished">Finished</option>
           </select>
         </td> -->
-        <td>{{ student.feedbackStats?.fluency || 'N/A' }}</td>
+        <!-- <td>{{ student.feedbackStats?.fluency || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.grammar || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.accent || 'N/A' }}</td>
-        <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td>
+        <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td> -->
         <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td>
+        <td>{{ student.remainingMinutes || 'N/A' }}</td>
+        <td>{{ student.planUpgradeDate || 'N/A' }}</td>
 
         <!-- ElevenLabs column -->
         <td>

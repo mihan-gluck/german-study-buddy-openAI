@@ -41,4 +41,15 @@ export class HeaderComponent {
     this.router.navigate([path]);
   }
 
+  openInternalReports() {
+    window.open("https://drive.google.com/drive/folders/1VmkwmDthwT0Lf5qeohlPQrLlfDOUIssg");
+  }
+
+  openStudentReports() {
+    window.open("https://drive.google.com/drive/folders/1tHsTZ7zfARUaOzQYpyEu2WAMP5SuiyTA");
+  }
+
+  openStudentFeedback() {
+    window.open("https://docs.google.com/spreadsheets/d/1Wb3xMBUJeATQxSaAUFdIIB-F2p2Rrlo1vII5iO2nVZg/edit?usp=sharing");
+  }
 }

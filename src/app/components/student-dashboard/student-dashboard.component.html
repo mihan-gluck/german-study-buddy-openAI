@@ -5,7 +5,7 @@
 
     <!-- Profile Section -->
     <section class="card-container">
-      <mat-card class="profile-box" *ngIf="basicUser && userProfile">
+      <!-- <mat-card class="profile-box" *ngIf="basicUser && userProfile">
         <mat-card-header>
           <mat-card-title>{{ userProfile.name || basicUser.name }}</mat-card-title>
           <mat-card-subtitle>{{ userProfile.email || basicUser.email }}</mat-card-subtitle>
@@ -15,35 +15,48 @@
           <p><strong>Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
           <p><strong>Plan:</strong> {{ userProfile.subscription}}</p>
         </mat-card-content>
-      </mat-card>
+      </mat-card> -->
 
       <!-- Active Call -->
-      <mat-card *ngIf="currentVoiceAgent" class="call-status">
+      <!-- <mat-card *ngIf="currentVoiceAgent" class="call-status">
         <p>🟢 <strong>Active Call:</strong> {{ currentVoiceAgent | titlecase }}</p>
         <button mat-raised-button color="warn" (click)="stopAnyCall()">End Call</button>
-      </mat-card>
+      </mat-card> -->
     <!-- </section> -->
 
     <!-- ElevenLabs Courses -->
-    <!-- <section *ngIf="elevenLabsCourses.length > 0" class="card-container"> -->
-      <!-- <h3>ElevenLabs Practice Courses</h3> -->
-      <mat-card class="course-card">
-        <mat-card-title>Start Learning</mat-card-title>
+    <mat-card class="course-card">
+    <mat-card-title><h3>Start Learning</h3></mat-card-title>
+      <mat-card-content>
+        <p>Jump straight into your German conversation practice.</p>
+        <h6>You have remaining {{ remainingMinutes }} minutes of practice time.</h6>
+
+        <!-- ElevenLabs Widget -->
+        <elevenlabs-convai 
+          [attr.agent-id]="userProfile?.elevenLabsWidgetLink" 
+        >
+        </elevenlabs-convai>
+      </mat-card-content>
+    </mat-card>
+
+
+      <mat-card class="curriculum-card">
+        <mat-card-title><h3>Curriculum</h3></mat-card-title>
         <mat-card-content>
-          <p>Jump straight into your German conversation practice</p>
-          <!-- <button mat-raised-button color="primary" (click)="startElevenLabsCall(course)" [disabled]="currentVoiceAgent">Start Call</button>
-          <button mat-stroked-button color="warn" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId" (click)="endElevenLabsCall()">End Call</button> -->
+          <p>Access your learning materials and resources</p>
+          <button mat-raised-button color="primary">View Curriculum</button>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="curriculum-card">
-        <mat-card-title>Curriculum</mat-card-title>
+      <!-- Feedback -->
+      <mat-card class="feedback-card">
+        <mat-card-title><h3>Feedback</h3></mat-card-title>
         <mat-card-content>
-          <p>Access your learning materials and resources</p>
-          <!-- <button mat-raised-button color="primary" (click)="startElevenLabsCall(course)" [disabled]="currentVoiceAgent">Start Call</button>
-          <button mat-stroked-button color="warn" *ngIf="selectedElevenLabsCourse?.agentId === course.agentId" (click)="endElevenLabsCall()">End Call</button> -->
+          <p>Share your learning experience and help us improve</p>
+          <button mat-raised-button color="primary" (click)="openFeedbackForm()">Student Feedback Form</button>
         </mat-card-content>
       </mat-card>
+
     </section>
 
     <!-- Course Progress -->

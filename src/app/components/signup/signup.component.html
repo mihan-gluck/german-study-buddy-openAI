@@ -22,6 +22,19 @@
         </select>
       </div>
 
+      <!-- Registration No -->
+      <div class="mb-3">
+        <label for="regNo" class="form-label">Registration Number</label>
+        <input
+          type="text"
+          id="regNo"
+          name="regNo"
+          [(ngModel)]="regNo"
+          required
+          class="form-control"
+        />
+      </div>
+
       <!-- Name -->
       <div class="mb-3">
         <label for="name" class="form-label">Full Name</label>
@@ -98,9 +111,9 @@
 
       <!-- Widget Link -->
       <div class="mb-3" *ngIf="role === 'student' && subscription === 'platinum'">
-        <label for="elevenLabsWidgetLink" class="form-label">ElevenLabs Widget Link</label>
+        <label for="elevenLabsWidgetLink" class="form-label">ElevenLabs Agent ID</label>
         <input
-          type="url"
+          type="text"
           id="elevenLabsWidgetLink"
           name="elevenLabsWidgetLink"
           [(ngModel)]="elevenLabsWidgetLink"

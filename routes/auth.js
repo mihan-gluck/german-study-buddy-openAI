@@ -17,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, role, subscription, batch, elevenLabsWidgetLink, elevenLabsApiKey } = req.body;
+    const { regNo, name, email, password, role, subscription, batch, elevenLabsWidgetLink, elevenLabsApiKey } = req.body;
 
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: "User already exists" });
@@ -25,6 +25,7 @@ router.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     user = new User({
+      regNo,
       name,
       email,
       password: hashedPassword,

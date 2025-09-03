@@ -16,6 +16,7 @@ import { HttpClientModule } from '@angular/common/http';
 })
 export class SignupComponent {
   name: string = '';
+  regNo: string = '';
   email: string = '';
   password: string = '';
   role: string = 'student'; // default role
@@ -27,18 +28,19 @@ export class SignupComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
-    const user: any = { 
-      name: this.name, 
-      email: this.email, 
-      password: this.password, 
-      role: this.role, 
+    const user: any = {
+      regNo: this.regNo,
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      role: this.role,
     };
 
     if (this.role === 'student') {
       user.batch = this.batch;
       user.subscription = this.subscription;
-      user.elevenLabsWidgetLink = "";
-      user.elevenLabsApiKey = "";
+      user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
+      user.elevenLabsApiKey = this.elevenLabsApiKey;
     };
 
     this.authService.signup(user).subscribe(

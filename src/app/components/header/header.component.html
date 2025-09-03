@@ -8,8 +8,10 @@
       <!-- <li><a (click)="navigateTo('/login')" *ngIf="!isLoggedIn()">Login</a></li> -->
       <li><a (click)="navigateTo('/chat')" *ngIf="isLoggedIn() && getUserRole() === 'student'">Chat</a></li>
       <li><a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'admin'">Admin Dashboard</a></li>
-
       <li><a (click)="navigateTo('/courses')" *ngIf="isLoggedIn() && getUserRole() === 'admin'">Courses</a></li>
+      <li><a (click)="openInternalReports()" *ngIf="isLoggedIn() && getUserRole() === 'admin'">Internal Reports</a></li>
+      <li><a (click)="openStudentReports()" *ngIf="isLoggedIn() && getUserRole() === 'admin'">Student Reports</a></li>
+      <li><a (click)="openStudentFeedback()" *ngIf="isLoggedIn() && getUserRole() === 'admin'">Student Feedback</a></li>
       <li><a (click)="navigateTo('/teacher-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'teacher'">Teacher Dashboard</a></li>
       <li><a (click)="navigateTo('/student-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'student'">Student Dashboard</a></li>
       <li><a (click)="navigateTo('/contact')"*ngIf="getUserRole() === 'student'">Contact</a></li>

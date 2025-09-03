@@ -16,6 +16,7 @@ import { MaterialModule } from '../../shared/material.module';
 import { MatDialog } from '@angular/material/dialog';
 import { AssignElevenlabsDialogComponent } from '../../assign-elevenlabs-dialog/assign-elevenlabs-dialog.component';
 import { HttpHeaders } from '@angular/common/http';
+import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
 
 type VapiStatus = 'active' | 'paused' | 'finished';
 
@@ -35,6 +36,8 @@ interface Student {
   email: string;
   courseAssigned: string;
   registeredAt: string;
+  elevenLabsApiKey?: string;
+  subscription: string;
 
   vapiAccess: {
     assistantId: any;
@@ -51,6 +54,9 @@ interface Student {
     overallCFBR: number;
   };
   courseProgress?: CourseProgress[];
+
+  remainingMinutes?: number;
+  planUpgradeDate?: string;
 }
 
 interface FeedbackEntry {
@@ -105,12 +111,18 @@ export class AdminDashboardComponent implements OnInit {
   bulkApiKey: string = '';
   selectedStudentId!: string;
 
+  characterCount = 0;
+  characterLimit = 0;
+  remainingMinutes = 0;
+  planUpgradeDate: string | null = null;
+
   constructor(
     private authService: AuthService,
     private router: Router,
     private http: HttpClient,
     private feedbackService: FeedbackService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private elevenLabsService: ElevenLabsUsageService
   ) {}
 
   ngOnInit(): void {
@@ -131,6 +143,7 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
     this.fetchStudents();
+    
   }
 
 fetchStudents(): void {
@@ -147,6 +160,7 @@ fetchStudents(): void {
         this.students.forEach(student => {
           this.loadFeedbackStats(student);
           this.loadCourseProgress(student);
+          this.loadElevenLabsUsage(student); // <-- pass single student
           console.log('Student data:', student);
         });
         this.filteredStudents = [...this.students];
@@ -399,6 +413,54 @@ fetchStudents(): void {
       }
     });
   }
+
+  loadElevenLabsUsage(student: Student): void {
+  console.log(`🔹 loadUsage called for student: ${student.name}`);
+
+  if (!student.elevenLabsApiKey) {
+    console.log(`❌ No ElevenLabs API key for ${student.name}`);
+    student.remainingMinutes = 0;
+    student.planUpgradeDate = undefined;
+    return;
+  }
+
+  this.elevenLabsService.getUsageByApiKey(student.elevenLabsApiKey).subscribe({
+    next: (res) => {
+      console.log(`🔹 API response for ${student.name}:`, res);
+
+      if (res && res.usage && res.usage.subscription) {
+        const subscription = res.usage.subscription;
+        const characterCount = subscription.character_count || 0;
+        const characterLimit = subscription.character_limit || 0;
+        const remaining = characterLimit - characterCount;
+
+        student.remainingMinutes = characterLimit
+          ? Math.floor((remaining / characterLimit) * 15)
+          : 0;
+
+        student.planUpgradeDate = subscription.next_character_count_reset_unix
+        ? new Date(subscription.next_character_count_reset_unix * 1000)
+          .toISOString()
+          .slice(0, 10)  // take only YYYY-MM-DD
+        : undefined;
+
+        console.log(`✅ Processed usage for ${student.name}:`, {
+          remainingMinutes: student.remainingMinutes,
+          planUpgradeDate: student.planUpgradeDate
+        });
+      }
+    },
+    error: (err) => {
+      console.error(`❌ Failed to fetch ElevenLabs usage for ${student.name}:`, err);
+      student.remainingMinutes = 0;
+      student.planUpgradeDate = undefined;
+    }
+  });
+}
+
+
+
+
 
   saveElevenLabsLink(student: any): void {
     this.http.put(`/api/admin/students/${student._id}/elevenlabs-link`, {

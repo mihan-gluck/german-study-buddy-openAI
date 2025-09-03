@@ -33,6 +33,7 @@ router.get('/', verifyToken, async (req, res) => {
     if (user.role === 'student') {
       profileData.courseAssigned = user.courseAssigned;
       profileData.vapiAccess = user.vapiAccess;
+      profileData.elevenLabsWidgetLink = user.elevenLabsWidgetLink;
     }
 
     if (user.role === 'admin') {

@@ -1,6 +1,6 @@
 //src/app/components/student-dashnoard/student-dashbaord.module.ts
 
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StudentDashboardComponent } from './student-dashboard.component';
 import { FormsModule } from '@angular/forms';
@@ -30,7 +30,8 @@ const routes: Routes = [
             NgChartsModule,
             //StudentRoutingModule
         ],
-  exports: [StudentDashboardComponent]
+  exports: [StudentDashboardComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]   // 👈 allow custom elements like <elevenlabs-convai>
 })
 export class StudentDashboardModule {}
 

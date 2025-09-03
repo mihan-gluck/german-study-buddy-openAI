@@ -19,6 +19,7 @@
     <p><strong>Name:</strong> {{ userProfile.name }}</p>
     <p><strong>Email:</strong> {{ userProfile.email }}</p>
     <p><strong>Role:</strong> {{ userProfile.role }}</p>
+    <p><strong>Subscription Plan:</strong> {{ userProfile.subscription}}</p>
 
     <form (submit)="uploadPhoto($event)" class="mt-3">
       <input type="file" (change)="onFileSelected($event)" accept="image/*" />
