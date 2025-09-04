@@ -76,7 +76,7 @@ router.delete('/vapi-agents/:id', verifyToken, isAdmin, async (req, res) => {
 // Get all students
 router.get('/students', verifyToken, isAdmin, async (req, res) => {
   try {
-    const students = await User.find({ role: 'student' }).select('-password');
+    const students = await User.find({ role: 'STUDENT' }).select('-password');
     res.json({ success: true, data: students });
   } catch (err) {
     res.status(500).json({
@@ -93,7 +93,7 @@ router.post('/assign-course', verifyToken, isAdmin, async (req, res) => {
 
   try {
     const student = await User.findById(studentId);
-    if (!student || student.role !== 'student') {
+    if (!student || student.role !== 'STUDENT') {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
@@ -251,7 +251,7 @@ router.post('/bulk-assign', verifyToken, checkRole('admin'), async (req, res) =>
 router.post('/reset-monthly-usage', verifyToken, checkRole('admin'), async (req, res) => {
   try {
     await User.updateMany(
-      { role: 'student' },
+      { role: 'STUDENT' },
       { $set: { 'vapiAccess.totalMonthlyUsage': 0 } }
     );
     res.status(200).json({ success: true, message: 'Monthly usage reset for all students.' });

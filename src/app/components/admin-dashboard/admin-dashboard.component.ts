@@ -133,7 +133,7 @@ export class AdminDashboardComponent implements OnInit {
     }
     try {
       const decodedToken: any = jwtDecode(token);
-      if (decodedToken.role !== 'admin') {
+      if (decodedToken.role !== 'ADMIN') {
         this.router.navigate(['/dashboard']);
         return;
       }
@@ -415,51 +415,45 @@ fetchStudents(): void {
   }
 
   loadElevenLabsUsage(student: Student): void {
-  console.log(`🔹 loadUsage called for student: ${student.name}`);
-
-  if (!student.elevenLabsApiKey) {
-    console.log(`❌ No ElevenLabs API key for ${student.name}`);
-    student.remainingMinutes = 0;
-    student.planUpgradeDate = undefined;
-    return;
-  }
-
-  this.elevenLabsService.getUsageByApiKey(student.elevenLabsApiKey).subscribe({
-    next: (res) => {
-      console.log(`🔹 API response for ${student.name}:`, res);
-
-      if (res && res.usage && res.usage.subscription) {
-        const subscription = res.usage.subscription;
-        const characterCount = subscription.character_count || 0;
-        const characterLimit = subscription.character_limit || 0;
-        const remaining = characterLimit - characterCount;
-
-        student.remainingMinutes = characterLimit
-          ? Math.floor((remaining / characterLimit) * 15)
-          : 0;
-
-        student.planUpgradeDate = subscription.next_character_count_reset_unix
-        ? new Date(subscription.next_character_count_reset_unix * 1000)
-          .toISOString()
-          .slice(0, 10)  // take only YYYY-MM-DD
-        : undefined;
-
-        console.log(`✅ Processed usage for ${student.name}:`, {
-          remainingMinutes: student.remainingMinutes,
-          planUpgradeDate: student.planUpgradeDate
-        });
-      }
-    },
-    error: (err) => {
-      console.error(`❌ Failed to fetch ElevenLabs usage for ${student.name}:`, err);
+    if (!student.elevenLabsApiKey) {
       student.remainingMinutes = 0;
       student.planUpgradeDate = undefined;
+      return;
     }
-  });
-}
 
+    this.elevenLabsService.getUsageByApiKey(student.elevenLabsApiKey).subscribe({
+      next: (res) => {
+        console.log(`🔹 API response for ${student.name}:`, res);
 
+        if (res && res.usage && res.usage.subscription) {
+          const subscription = res.usage.subscription;
+          const characterCount = subscription.character_count || 0;
+          const characterLimit = subscription.character_limit || 0;
+          const remaining = characterLimit - characterCount;
 
+          student.remainingMinutes = characterLimit
+            ? Math.floor((remaining / characterLimit) * 15)
+            : 0;
+
+          student.planUpgradeDate = subscription.next_character_count_reset_unix
+            ? new Date(subscription.next_character_count_reset_unix * 1000)
+            .toISOString()
+            .slice(0, 10)  // take only YYYY-MM-DD
+          : undefined;
+
+          console.log(`✅ Processed usage for ${student.name}:`, {
+            remainingMinutes: student.remainingMinutes,
+            planUpgradeDate: student.planUpgradeDate
+          });
+        }
+      },
+      error: (err) => {
+        console.error(`❌ Failed to fetch ElevenLabs usage for ${student.name}:`, err);
+        student.remainingMinutes = 0;
+        student.planUpgradeDate = undefined;
+      }
+    });
+  }
 
 
   saveElevenLabsLink(student: any): void {

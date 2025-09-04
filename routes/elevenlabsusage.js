@@ -79,7 +79,7 @@ router.get('/apiKey', verifyToken, async (req, res) => {
   // GET - Get ElevenLabs usage by API key (Admin)
   router.get('/admin/usage/:apiKey', verifyToken, async (req, res) => {
     try {
-      if (req.user.role !== 'admin') {
+      if (req.user.role !== 'ADMIN') {
         return res.status(403).json({ success: false, msg: 'Access denied' });
       }
 

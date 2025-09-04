@@ -30,17 +30,17 @@ router.get('/', verifyToken, async (req, res) => {
     };
 
     // Add role-specific fields
-    if (user.role === 'student') {
+    if (user.role === 'STUDENT') {
       profileData.courseAssigned = user.courseAssigned;
       profileData.vapiAccess = user.vapiAccess;
       profileData.elevenLabsWidgetLink = user.elevenLabsWidgetLink;
     }
 
-    if (user.role === 'admin') {
+    if (user.role === 'ADMIN') {
       profileData.isAdmin = true;
     }
 
-    if (user.role === 'teacher') {
+    if (user.role === 'TEACHER') {
       profileData.assignedCourses = user.assignedCourses || [];
     }
 

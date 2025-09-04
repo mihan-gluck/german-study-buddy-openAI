@@ -12,7 +12,7 @@ const Courses = require('../models/Course');
 const CourseProgress = require('../models/CourseProgress');
 
 // ✅ Combined dashboard data route
-router.get('/dashboard', verifyToken, checkRole('student'), async (req, res) => {
+router.get('/dashboard', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
     const studentId = req.user.id;
 
@@ -43,7 +43,7 @@ router.get('/dashboard', verifyToken, checkRole('student'), async (req, res) => 
 });
 
 // GET /api/student/vapi-courses
-router.get('/vapi-courses', verifyToken, checkRole('student'), async (req, res) => {
+router.get('/vapi-courses', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
     const subscription = await Subscription.findOne({ userId: req.user.id });
 
@@ -59,7 +59,7 @@ router.get('/vapi-courses', verifyToken, checkRole('student'), async (req, res) 
 });
 
 // View own active subscriptions - GET /api/subscriptions/me
-router.get("/me", verifyToken, checkRole("student"), async (req, res) => {
+router.get("/me", verifyToken, checkRole("STUDENT"), async (req, res) => {
   try {
     const subs = await Subscription.find({ userId: req.user.id });
     res.status(200).json(subs);
@@ -69,7 +69,7 @@ router.get("/me", verifyToken, checkRole("student"), async (req, res) => {
 });
 
 // ✅ GET /api/student/profile - Get current student's profile
-router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
+router.get('/profile', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
     const user = await User.findById(req.userId)
       .select('-password')
@@ -102,7 +102,7 @@ router.get('/profile', verifyToken, checkRole('student'), async (req, res) => {
 
 
 // ✅ Get course progress for current student
-router.get('/course-progress', verifyToken, checkRole('student'), async (req, res) => {
+router.get('/course-progress', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).populate('courseProgress.courseId', 'name');
     if (!user) return res.status(404).json({ msg: 'Student not found' });
@@ -115,7 +115,7 @@ router.get('/course-progress', verifyToken, checkRole('student'), async (req, re
 });
 
 // ✅ GET /api/student/progress - Get course progress for logged-in student
-router.get('/progress', verifyToken, checkRole('student'), async (req, res) => {
+router.get('/progress', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
     const studentId = req.user.userId;
     const progress = await CourseProgress.find({ studentId }).populate('courseId', 'name');
@@ -128,7 +128,7 @@ router.get('/progress', verifyToken, checkRole('student'), async (req, res) => {
 });
 
 // ✅ Update course progress
-router.put('/course-progress', verifyToken, checkRole('student'), async (req, res) => {
+router.put('/course-progress', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
     const { courseId, progressPercent } = req.body;
 

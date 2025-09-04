@@ -19,8 +19,9 @@ export class SignupComponent {
   regNo: string = '';
   email: string = '';
   password: string = '';
-  role: string = 'student'; // default role
+  role: string = 'STUDENT'; // default role
   batch: string = '';
+  medium: string = '';
   subscription: string = '';
   elevenLabsWidgetLink: string = '';
   elevenLabsApiKey: string = '';
@@ -28,21 +29,32 @@ export class SignupComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
+
+  if (this.role === 'STUDENT') {
+    if (!this.medium || !this.subscription || !this.batch) {
+      alert("Batch, Medium, and Subscription are required for students!");
+      return;
+    }
+  }
+
     const user: any = {
       regNo: this.regNo,
       name: this.name,
       email: this.email,
       password: this.password,
       role: this.role,
+      
     };
 
-    if (this.role === 'student') {
+    if (this.role === 'STUDENT') {
       user.batch = this.batch;
+      user.medium = this.medium;
       user.subscription = this.subscription;
       user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
       user.elevenLabsApiKey = this.elevenLabsApiKey;
     };
 
+    console.log('Registering user:', user);
     this.authService.signup(user).subscribe(
       (response: any) => {
         alert(user.role + ' registered successfully');
@@ -50,7 +62,8 @@ export class SignupComponent {
         this.router.navigate(['/auth/login']);  // Redirect to login after signup
       },
       (error: any) => {
-        console.error('Signup failed', error);
+        alert('Registration failed: ' + (error.error?.msg || 'Please try again later.'));
+        console.error('Register failed', error);
       }
     );
   }

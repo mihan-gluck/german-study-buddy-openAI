@@ -39,7 +39,7 @@ export const routes: Routes = [
     loadChildren: () => import('./components/teacher-dashboard/teacher-dashboard.module')
       .then(m => m.TeacherDashboardModule),
     canActivate: [AuthGuard, RoleGuard], 
-    data: { role: 'teacher' } 
+    data: { role: 'TEACHER' } 
   },
 
   // Student dashboard route with RoleGuard
@@ -48,7 +48,7 @@ export const routes: Routes = [
     loadChildren: () => import('./components/student-dashboard/student-dashboard.module')
       .then(m => m.StudentDashboardModule),
     canActivate: [AuthGuard, RoleGuard], 
-    data: { role: 'student' } 
+    data: { role: 'STUDENT' } 
   },
 
   // Admin dashboard route with RoleGuard
@@ -57,7 +57,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component')
       .then(m => m.AdminDashboardComponent),
     canActivate: [AuthGuard, RoleGuard], 
-    data: { role: 'admin' } 
+    data: { role: 'ADMIN' } 
   },
 
   // Forgot password route

@@ -50,7 +50,17 @@ export class AuthService {
   }
 
 
-  signup(user: { name: string, email: string, password: string, role: string, batch?: string, subscription?: string, elevenLabsWidgetLink?: string, elevenLabsApiKey?: string }): Observable<any> {
+  signup(user: { 
+    name: string, 
+    email: string, 
+    password: string, 
+    role: string, 
+    batch?: string, 
+    medium?: string, 
+    subscription?: string, 
+    elevenLabsWidgetLink?: string, 
+    elevenLabsApiKey?: string 
+  }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user);
   }
 

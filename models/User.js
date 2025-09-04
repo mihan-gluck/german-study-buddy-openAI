@@ -5,9 +5,10 @@ const UserSchema = new mongoose.Schema({
   regNo: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["student", "teacher", "admin"], required: true },
-  subscription: { type: String, enum: ["silver", "platinum"], required: function() { return this.role === "student"; } },
-  batch: { type: String, required: function() { return this.role === "student"; }},
+  role: { type: String, enum: ["STUDENT", "TEACHER", "ADMIN"], required: true },
+  subscription: { type: String, enum: ["SILVER", "PLATINUM"], required: function() { return this.role === "STUDENT"; } },
+  batch: { type: String, required: function() { return this.role === "STUDENT"; }},
+  medium: { type: String, required: function() { return this.role === "STUDENT"; }},
   elevenLabsWidgetLink: { type: String, default: ""},
   elevenLabsApiKey: { type: String, default: ""},
 

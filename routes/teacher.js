@@ -6,7 +6,7 @@ const User = require('../models/User');
 const { verifyToken, checkRole } = require('../middleware/auth');
 
 // Get current teacher profile (GET /api/teacher/profile)
-router.get('/profile', verifyToken, checkRole('teacher'), async (req, res) => {
+router.get('/profile', verifyToken, checkRole('TEACHER'), async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-password');
     
@@ -29,7 +29,7 @@ router.get('/profile', verifyToken, checkRole('teacher'), async (req, res) => {
 // Get list of all students
 router.get('/students', async (req, res) => {
   try {
-    const students = await User.find({ role: 'student' }).select('_id name');
+    const students = await User.find({ role: 'STUDENT' }).select('_id name');
     res.json(students);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -37,7 +37,7 @@ router.get('/students', async (req, res) => {
 });
 
 // PUT /api/teacher/update-course-progress/:studentId
-router.put('/update-course-progress/:studentId', verifyToken, checkRole(['teacher', 'admin']), async (req, res) => {
+router.put('/update-course-progress/:studentId', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res) => {
   const { courseId, progress } = req.body;
 
   try {

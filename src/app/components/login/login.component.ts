@@ -28,12 +28,12 @@ export class LoginComponent {
         this.authService.saveToken(response.token);
 
         // Redirect the user based on their role after login
-        if (response.user.role === 'admin') {
+        if (response.user.role === 'ADMIN') {
           this.router.navigate(['/admin-dashboard']);
           this.authService.saveToken(response.token);
 
           console.log('This is admin token: ', response.token);
-        } else if (response.user.role === 'teacher') {
+        } else if (response.user.role === 'TEACHER') {
           this.router.navigate(['/teacher-dashboard']);
           this.authService.saveToken(response.token);
 
