@@ -53,18 +53,19 @@ export class AuthService {
   signup(user: { 
     name: string, 
     email: string, 
-    password: string, 
     role: string, 
     batch?: string, 
     medium?: string, 
-    subscription?: string, 
+    subscription?: string,
+    level?: string, 
+    conversationId?: string,
     elevenLabsWidgetLink?: string, 
     elevenLabsApiKey?: string 
   }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user);
   }
 
-  login(user: { email: string, password: string }): Observable<any> {
+  login(user: { regNo: string, password: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/login`, user);
   }
 

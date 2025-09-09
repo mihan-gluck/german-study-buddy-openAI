@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { CoursesService } from '../../services/courses.service'
 
 @Component({
   selector: 'app-signup',
@@ -16,17 +17,33 @@ import { HttpClientModule } from '@angular/common/http';
 })
 export class SignupComponent {
   name: string = '';
-  regNo: string = '';
   email: string = '';
-  password: string = '';
   role: string = 'STUDENT'; // default role
   batch: string = '';
   medium: string = '';
+  conversationId: string = '';
   subscription: string = '';
+  level: string = 'A1'; // default level
   elevenLabsWidgetLink: string = '';
   elevenLabsApiKey: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+   // Teacher fields
+  assignedCourses: string[] = []; // selected course IDs
+  courses: any[] = []; // list fetched from backend
+
+
+  constructor(private authService: AuthService, private router: Router, private coursesService: CoursesService) {}
+
+  ngOnInit(): void {
+    this.loadCourses();
+  }
+
+  loadCourses() {
+    this.coursesService.getCourses().subscribe({
+      next: (data) => this.courses = data,
+      error: (err) => console.error('Failed to load courses', err)
+    });
+  }
 
   onSubmit() {
 
@@ -37,11 +54,17 @@ export class SignupComponent {
     }
   }
 
+  if (this.role === 'TEACHER') {
+    if (!this.medium || this.assignedCourses.length === 0) {
+      alert("Medium and at least one course are required for teachers!");
+      return;
+    }
+  }
+
+
     const user: any = {
-      regNo: this.regNo,
       name: this.name,
       email: this.email,
-      password: this.password,
       role: this.role,
       
     };
@@ -49,17 +72,24 @@ export class SignupComponent {
     if (this.role === 'STUDENT') {
       user.batch = this.batch;
       user.medium = this.medium;
+      user.conversationId = this.conversationId;
       user.subscription = this.subscription;
+      user.level = this.level;
       user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
       user.elevenLabsApiKey = this.elevenLabsApiKey;
     };
 
+    if (this.role === 'TEACHER') {
+      user.medium = this.medium;
+      user.assignedCourses = this.assignedCourses; // IDs from dropdown
+    }
+
     console.log('Registering user:', user);
     this.authService.signup(user).subscribe(
       (response: any) => {
-        alert(user.role + ' registered successfully');
+        alert(user.role + ' Registered Successfully');
         console.log('User registered', user);
-        this.router.navigate(['/auth/login']);  // Redirect to login after signup
+        this.router.navigate(['/admin-dashboard']);  // Redirect to login after signup
       },
       (error: any) => {
         alert('Registration failed: ' + (error.error?.msg || 'Please try again later.'));
@@ -73,6 +103,14 @@ export class SignupComponent {
 
 scrollToBottom() {
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+onCourseChange(event: any, courseId: string) {
+  if (event.target.checked) {
+    this.assignedCourses.push(courseId);
+  } else {
+    this.assignedCourses = this.assignedCourses.filter(id => id !== courseId);
+  }
 }
 
 }

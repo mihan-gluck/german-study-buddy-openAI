@@ -62,7 +62,8 @@ export class CoursesComponent implements OnInit {
     this.coursesService.addCourse(this.course).subscribe(
       (response) => {
         console.log('Course created successfully', response);
-        this.loadCourses(); // Reload the course list
+        // this.loadCourses(); // Reload the course list
+        window.location.reload(); 
       },
       (error) => {
         console.error('Error creating course', error);

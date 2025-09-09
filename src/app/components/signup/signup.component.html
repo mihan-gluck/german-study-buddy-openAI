@@ -22,19 +22,6 @@
         </select>
       </div>
 
-      <!-- Registration No -->
-      <div class="mb-3">
-        <label for="regNo" class="form-label">Registration Number</label>
-        <input
-          type="text"
-          id="regNo"
-          name="regNo"
-          [(ngModel)]="regNo"
-          required
-          class="form-control"
-        />
-      </div>
-
       <!-- Name -->
       <div class="mb-3">
         <label for="name" class="form-label">Full Name</label>
@@ -65,20 +52,6 @@
         />
       </div>
 
-      <!-- Password -->
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          [(ngModel)]="password"
-          required
-          placeholder="Create a strong password"
-          class="form-control"
-        />
-      </div>
-
       
       <!-- Batch -->
       <div class="mb-3" *ngIf="role === 'STUDENT'">
@@ -93,9 +66,21 @@
         />
       </div>
 
+      <!--Assign Courses for Teacher-->
+      <div *ngIf="role === 'TEACHER'">
+        <label>Assign Courses</label>
+        <div *ngFor="let course of courses">
+          <input type="checkbox" 
+                [value]="course._id" 
+                (change)="onCourseChange($event, course._id)">
+          {{ course.title }}
+        </div>
+        <small>Select one or more courses</small>
+      </div>
+
 
       <!-- Medium -->
-      <div class="mb-3" *ngIf="role === 'STUDENT'">
+      <div class="mb-3" *ngIf="role === 'STUDENT' || role === 'TEACHER'">
         <label for="medium" class="form-label">Medium</label>
         <select
           id="medium"
@@ -126,6 +111,37 @@
 
       </div>
 
+      <!-- Level -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="level" class="form-label">CEFR Level</label>
+        <select
+          id="level"
+          name="level"
+          [(ngModel)]="level"
+          required
+          class="form-select"
+        >
+          <option value="A1">A1</option>
+          <option value="A2">A2</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
+          <option value="C1">C1</option>
+          <option value="C2">C2</option>
+        </select>
+      </div>
+
+      <!-- Conversation ID -->
+      <div class="mb-3" *ngIf="role === 'STUDENT' && subscription === 'PLATINUM'">
+        <label for="conversationId" class="form-label">Conversation ID</label>
+        <input
+          type="text"
+          id="conversationId"
+          name="conversationId"
+          [(ngModel)]="conversationId"
+          class="form-control"
+        />
+      </div>
+
       <!-- Widget Link -->
       <div class="mb-3" *ngIf="role === 'STUDENT' && subscription === 'PLATINUM'">
         <label for="elevenLabsWidgetLink" class="form-label">ElevenLabs Agent ID</label>
@@ -149,6 +165,7 @@
           class="form-control"
         />
       </div>
+
 
       <!-- Submit Button -->
       <button

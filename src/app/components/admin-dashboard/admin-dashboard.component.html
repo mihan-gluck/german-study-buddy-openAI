@@ -4,17 +4,24 @@
 
   <!-- Filters -->
   <div class="filters">
-    <input type="text" [(ngModel)]="filters.course" placeholder="Filter by course" (input)="applyFilters()">
-    <select [(ngModel)]="filters.level" (change)="applyFilters()">
-      <option value="">All Levels</option>
-      <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+  <input type="text" [(ngModel)]="filters.course" placeholder="Filter by course" (input)="applyFilters()">
+
+    <select [(ngModel)]="filters.plan" (change)="applyFilters()">
+      <option value="">Filter by Plan</option>
+      <option value="PLATINUM">PLATINUM</option>
+      <option value="SILVER">SILVER</option>
     </select>
-    <select [(ngModel)]="filters.status" (change)="applyFilters()">
+
+    <input type="text" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
+
+
+    <!-- <select [(ngModel)]="filters.batch" (change)="applyFilters()">
       <option value="">All Status</option>
       <option value="active">Active</option>
       <option value="paused">Paused</option>
       <option value="finished">Finished</option>
-    </select>
+    </select> -->
+
   </div>
 
   <!-- Bulk assignment -->
@@ -42,18 +49,19 @@
         <th>Name</th>
         <th>Email</th>
         <th>Plan</th>
+        <th>Batch</th>
+        <th>Level</th>
         <th>Course</th>
         <!-- <th>VAPI Status</th> -->
         <!-- <th>Fluency</th> -->
         <!-- <th>Grammar</th> -->
         <!-- <th>Accent</th> -->
         <!-- <th>Overall CFBR</th> -->
-        <th>Level</th>
         <th>Bot Remaining Minutes</th>
         <th>Subscription Update Date</th>
-        <th>ElevenLabs Link</th>
+        <!-- <th>ElevenLabs Link</th>
         <th>Course Progress</th>
-        <th>Feedback</th>
+        <th>Feedback</th> -->
       </tr>
     </thead>
     <tbody>
@@ -64,6 +72,8 @@
         <td>{{ student.name }}</td>
         <td>{{ student.email }}</td>
         <td>{{student.subscription}}</td>
+        <td>{{ student.batch || 'N/A' }}</td>
+        <td>{{ student.level || 'N/A' }}</td>
         <td>
           <input type="text" [(ngModel)]="student.courseAssigned">
           <button (click)="assignCourseToStudent(student)">Assign</button>
@@ -79,11 +89,11 @@
         <td>{{ student.feedbackStats?.grammar || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.accent || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td> -->
-        <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td>
+        <!-- <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td> -->
         <td>{{ student.remainingMinutes || 'N/A' }}</td>
         <td>{{ student.planUpgradeDate || 'N/A' }}</td>
 
-        <!-- ElevenLabs column -->
+        <!-- ElevenLabs column
         <td>
           <div *ngIf="!student.editingElevenLabs">
             <a *ngIf="student.elevenLabsLink" [href]="student.elevenLabsLink" target="_blank">Link</a>
@@ -97,7 +107,7 @@
           </div>
         </td>
 
-        <!-- Course progress -->
+        Course progress
         <td>
           <div *ngIf="student.courseProgress?.length; else noProgress">
             <div *ngFor="let progress of student.courseProgress">
@@ -108,8 +118,8 @@
           <ng-template #noProgress>No progress</ng-template>
         </td>
 
-        <!-- Feedback -->
-        <td>
+        Feedback -->
+        <!-- <td>
           <button (click)="loadFeedbackForStudent(student._id)">Load Feedback</button>
           <button (click)="exportFeedbackAsCSV(student._id)">Export CSV</button>
           <div *ngIf="feedbackMap[student._id]?.length">
@@ -119,7 +129,7 @@
               </li>
             </ul>
           </div>
-        </td>
+        </td> -->
       </tr>
     </tbody>
   </table>

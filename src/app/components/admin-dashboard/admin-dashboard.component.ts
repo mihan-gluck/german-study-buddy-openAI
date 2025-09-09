@@ -34,10 +34,13 @@ interface Student {
   _id: string;
   name: string;
   email: string;
+  batch?: string;
+  medium?: string;
   courseAssigned: string;
   registeredAt: string;
   elevenLabsApiKey?: string;
   subscription: string;
+  level: string;
 
   vapiAccess: {
     assistantId: any;
@@ -92,13 +95,14 @@ interface FeedbackEntry {
 })
 
 export class AdminDashboardComponent implements OnInit {
-  students: Student[] = [];
-  filteredStudents: Student[] = [];
+  students: any[] = [];          // original data
+  filteredStudents: any[] = [];  // shown in table
   selectedStudentIds = new Set<string>();
 
   loading = false;
   error = '';
-  filters = { course: '', level: '', status: '' };
+  filters = { course: '', plan: '', batch: '' };
+  plan: string[] = ['PLATINUM', 'SILVER'];
   levels: string[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
   feedbackMap: Record<string, any[]> = {};
@@ -143,6 +147,7 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
     this.fetchStudents();
+    this.filteredStudents = [...this.students];
     
   }
 
@@ -198,14 +203,17 @@ fetchStudents(): void {
   // });
   // }
 
-
-  applyFilters(): void {
+  applyFilters() {
     this.filteredStudents = this.students.filter(student => {
-      const matchesCourse = this.filters.course === '' || (student.courseAssigned?.toLowerCase().includes(this.filters.course.toLowerCase()));
-      const matchesStatus = this.filters.status === '' || student.vapiAccess?.status === this.filters.status;
-      const feedback = student.feedbackStats;
-      const matchesLevel = this.filters.level === '' || (feedback && feedback.currentLevel === this.filters.level);
-      return matchesCourse && matchesStatus && matchesLevel;
+      const course = student.courseAssigned ? student.courseAssigned.toLowerCase() : '';
+      const plan   = student.subscription ? student.subscription.toUpperCase() : '';
+      const status = student.vapiAccess?.status ? student.vapiAccess.status.toLowerCase() : '';
+
+      return (
+        (!this.filters.course || course.includes(this.filters.course.toLowerCase())) &&
+        (!this.filters.plan   || plan === this.filters.plan.toUpperCase()) &&
+        (!this.filters.batch || student.batch === this.filters.batch)
+      );
     });
   }
 

@@ -15,13 +15,13 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  email: string = '';
+  regNo: string = '';
   password: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
-    const user = { email: this.email, password: this.password };
+    const user = { regNo: this.regNo, password: this.password };
     this.authService.login(user).subscribe(
       (response) => {
         // Save token using the AuthService method (already stored in localStorage)

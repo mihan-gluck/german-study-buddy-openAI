@@ -7,8 +7,8 @@ const Course = require("../models/Course");
 // Create a new course
 router.post("/", async (req, res) => {
   try {
-    const { title, description, teacherId, students } = req.body;
-    const newCourse = new Course({ title, description, teacherId, students });
+    const { title, description } = req.body;
+    const newCourse = new Course({ title, description});
     await newCourse.save();
     res.status(201).json(newCourse);
   } catch (error) {
@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
 // Get all courses
 router.get("/", async (req, res) => {
   try {
-    const courses = await Course.find().populate("teacherId").populate("students");
+    const courses = await Course.find();
     res.status(200).json(courses);
   } catch (error) {
     res.status(500).json({ message: error.message });

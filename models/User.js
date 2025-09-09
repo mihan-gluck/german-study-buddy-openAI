@@ -7,10 +7,14 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["STUDENT", "TEACHER", "ADMIN"], required: true },
   subscription: { type: String, enum: ["SILVER", "PLATINUM"], required: function() { return this.role === "STUDENT"; } },
+  level: { type: String, enum: ["A1", "A2", "B1", "B2", "C1", "C2"], required: function() { return this.role === "STUDENT"; }},
   batch: { type: String, required: function() { return this.role === "STUDENT"; }},
-  medium: { type: String, required: function() { return this.role === "STUDENT"; }},
+  medium: { type: String, required: function() { return this.role === "STUDENT" || this.role === "TEACHER"; }},
+  conversationId: { type: String, default: "" },
   elevenLabsWidgetLink: { type: String, default: ""},
   elevenLabsApiKey: { type: String, default: ""},
+
+  assignedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: function() { return this.role === "TEACHER"; } }], // Courses assigned to the user
 
   isActive: { type: Boolean, default: true },
   profilePic: { type: String, default: "" },
@@ -43,13 +47,13 @@ const UserSchema = new mongoose.Schema({
     lastUpdated: { type: Date, default: Date.now }
   }],
 
-  assignedCourses: [
-    {
-      courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-      assignedAt: Date,
-      progress: { type: Number, default: 0 }
-    }
-  ]
+  // assignedCourses: [
+  //   {
+  //     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+  //     assignedAt: Date,
+  //     progress: { type: Number, default: 0 }
+  //   }
+  // ]
 });
 
 module.exports = mongoose.model("User", UserSchema);
