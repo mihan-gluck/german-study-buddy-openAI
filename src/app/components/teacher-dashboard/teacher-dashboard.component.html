@@ -4,46 +4,46 @@
     <!-- Title -->
     <h2>Teacher Dashboard</h2>
 
-    <!-- Feedback Submission Section -->
+    <!-- Feedback Submission Section
     <mat-card class="mb-4">
       <mat-card-title>Submit Feedback</mat-card-title>
       <mat-card-content>
-        <form (ngSubmit)="submitFeedback()">
+        <form (ngSubmit)="submitFeedback()"> -->
 
           <!-- Student Selection -->
-          <mat-form-field appearance="fill">
+          <!-- <mat-form-field appearance="fill">
             <mat-label>Student</mat-label>
             <mat-select [(ngModel)]="feedback.studentId" name="studentId" required>
               <mat-option *ngFor="let student of students" [value]="student._id">
                 {{ student.name }}
               </mat-option>
             </mat-select>
-          </mat-form-field>
+          </mat-form-field> -->
 
           <!-- Course Selection -->
-          <mat-form-field appearance="fill">
+          <!-- <mat-form-field appearance="fill">
             <mat-label>Course</mat-label>
             <mat-select [(ngModel)]="feedback.course" name="course" required>
               <mat-option *ngFor="let course of courses" [value]="course.name">
                 {{ course.name }}
               </mat-option>
             </mat-select>
-          </mat-form-field>
+          </mat-form-field> -->
 
           <!-- Fluency -->
-          <mat-form-field appearance="fill">
+          <!-- <mat-form-field appearance="fill">
             <mat-label>Fluency</mat-label>
             <input matInput type="number" min="1" max="10" [(ngModel)]="feedback.fluency" name="fluency" required>
-          </mat-form-field>
+          </mat-form-field> -->
 
           <!-- Grammar -->
-          <mat-form-field appearance="fill">
+          <!-- <mat-form-field appearance="fill">
             <mat-label>Grammar</mat-label>
             <input matInput type="number" min="1" max="10" [(ngModel)]="feedback.grammar" name="grammar" required>
-          </mat-form-field>
+          </mat-form-field> -->
 
           <!-- Feedback Text -->
-          <mat-form-field appearance="fill" class="w-100">
+          <!-- <mat-form-field appearance="fill" class="w-100">
             <mat-label>Feedback</mat-label>
             <textarea matInput rows="4" [(ngModel)]="feedback.feedbackText" name="feedbackText" required></textarea>
           </mat-form-field>
@@ -54,62 +54,62 @@
 
         </form>
       </mat-card-content>
-    </mat-card>
+    </mat-card> -->
 
     <!-- Feedback Table -->
-    <mat-card class="mb-4">
+    <!-- <mat-card class="mb-4">
       <mat-card-title>Submitted Feedback</mat-card-title>
       <mat-card-content>
-        <table mat-table [dataSource]="feedbackList" class="mat-elevation-z2" *ngIf="feedbackList?.length">
+        <table mat-table [dataSource]="feedbackList" class="mat-elevation-z2" *ngIf="feedbackList?.length"> -->
 
           <!-- Student -->
-          <ng-container matColumnDef="student">
+          <!-- <ng-container matColumnDef="student">
             <th mat-header-cell *matHeaderCellDef> Student </th>
             <td mat-cell *matCellDef="let feedback"> {{ feedback.studentName }} </td>
-          </ng-container>
+          </ng-container> -->
 
           <!-- Course -->
-          <ng-container matColumnDef="course">
+          <!-- <ng-container matColumnDef="course">
             <th mat-header-cell *matHeaderCellDef> Course </th>
             <td mat-cell *matCellDef="let feedback"> {{ feedback.course }} </td>
-          </ng-container>
+          </ng-container> -->
 
           <!-- Fluency -->
-          <ng-container matColumnDef="fluency">
+          <!-- <ng-container matColumnDef="fluency">
             <th mat-header-cell *matHeaderCellDef> Fluency </th>
             <td mat-cell *matCellDef="let feedback"> {{ feedback.fluency }} </td>
-          </ng-container>
+          </ng-container> -->
 
           <!-- Grammar -->
-          <ng-container matColumnDef="grammar">
+          <!-- <ng-container matColumnDef="grammar">
             <th mat-header-cell *matHeaderCellDef> Grammar </th>
             <td mat-cell *matCellDef="let feedback"> {{ feedback.grammar }} </td>
-          </ng-container>
+          </ng-container> -->
 
           <!-- Feedback Text -->
-          <ng-container matColumnDef="feedbackText">
+          <!-- <ng-container matColumnDef="feedbackText">
             <th mat-header-cell *matHeaderCellDef> Feedback </th>
             <td mat-cell *matCellDef="let feedback"> {{ feedback.feedbackText }} </td>
-          </ng-container>
+          </ng-container> -->
 
           <!-- Date -->
-          <ng-container matColumnDef="date">
+          <!-- <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef> Date </th>
             <td mat-cell *matCellDef="let feedback"> {{ feedback.date | date:'short' }} </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
+        </table> -->
 
         <!-- Pagination -->
-        <mat-paginator [pageSize]="5" [length]="feedbackList.length" [pageSizeOptions]="[5, 10, 20]">
+        <!-- <mat-paginator [pageSize]="5" [length]="feedbackList.length" [pageSizeOptions]="[5, 10, 20]">
         </mat-paginator>
       </mat-card-content>
-    </mat-card>
+    </mat-card> -->
 
     <!-- Course Progress Section -->
-    <mat-card class="mb-4">
+    <!-- <mat-card class="mb-4">
       <mat-card-title>Update Student Course Progress</mat-card-title>
       <mat-card-content>
         <div *ngFor="let student of students" class="course-progress-item">
@@ -121,25 +121,25 @@
           <button mat-raised-button color="accent" (click)="updateCourseProgress(student)">Update</button>
         </div>
       </mat-card-content>
-    </mat-card>
+    </mat-card> -->
 
     <!-- Average Summary -->
-    <mat-card class="mb-4">
+    <!-- <mat-card class="mb-4">
       <mat-card-title>Feedback Summary</mat-card-title>
       <mat-card-content>
         <p><strong>Average Fluency:</strong> {{ averageScores.fluency | number: '1.1-1' }}</p>
         <p><strong>Average Grammar:</strong> {{ averageScores.grammar | number: '1.1-1' }}</p>
       </mat-card-content>
-    </mat-card>
+    </mat-card> -->
 
     <!-- CSV Export -->
-    <mat-card>
+    <!-- <mat-card>
       <mat-card-content>
         <button mat-stroked-button color="primary" (click)="exportFeedbackToCSV()">Export to CSV</button>
       </mat-card-content>
-    </mat-card>
+    </mat-card> -->
 
-  <mat-card>
+  <!-- <mat-card>
     <mat-card-title>Feedback Analytics</mat-card-title>
     <mat-card-content>
       <canvas baseChart 
@@ -148,8 +148,56 @@
         [type]="feedbackChartType">
       </canvas>
     </mat-card-content>
-  </mat-card>
+  </mat-card> -->
 
+  <div class="filters">
+  <select [(ngModel)]="filters.level" (change)="applyFilters()">
+    <option value="">Filter by Level</option>
+    <option value="A1">A1</option>
+    <option value="A2">A2</option>
+    <option value="B1">B1</option>
+    <option value="B2">B2</option>
+  </select>
+
+  <select [(ngModel)]="filters.plan" (change)="applyFilters()">
+    <option value="">Filter by Plan</option>
+    <option value="PLATINUM">PLATINUM</option>
+    <option value="SILVER">SILVER</option>
+  </select>
+
+  <input type="number" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
+
+  </div>
+
+  <!-- Students Table -->
+  <table class="students-table">
+    <thead>
+      <tr>
+        <!-- <th></th> -->
+        <th>Name</th>
+        <th>Email</th>
+        <th>Plan</th>
+        <th>Batch</th>
+        <th>Level</th>
+        <th>Assigned Teacher</th>
+        <th>Bot Remaining Minutes</th>
+        <th>Subscription Update Date</th>
+  
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let student of filteredStudents; trackBy: trackById">
+        <td>{{ student.name }}</td>
+        <td>{{ student.email }}</td>
+        <td>{{student.subscription}}</td>
+        <td>{{ student.batch || 'N/A' }}</td>
+        <td>{{ student.level || 'N/A' }}</td>
+        <td>{{ student.assignedTeacher?.name || 'N/A' }}</td>
+        <td>{{ student.remainingMinutes || 'N/A' }}</td>
+        <td>{{ student.planUpgradeDate || 'N/A' }}</td>
+      </tr>
+    </tbody>
+  </table>
 
   </div>
 </div>

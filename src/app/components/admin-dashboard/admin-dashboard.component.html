@@ -2,18 +2,23 @@
 
 <div class="admin-dashboard">
 
-  <!-- Filters -->
-  <div class="filters">
-  <input type="text" [(ngModel)]="filters.course" placeholder="Filter by course" (input)="applyFilters()">
+<!-- Filters -->
+<div class="filters">
+  <select [(ngModel)]="filters.level" (change)="applyFilters()">
+    <option value="">Filter by Level</option>
+    <option value="A1">A1</option>
+    <option value="A2">A2</option>
+    <option value="B1">B1</option>
+    <option value="B2">B2</option>
+  </select>
 
-    <select [(ngModel)]="filters.plan" (change)="applyFilters()">
-      <option value="">Filter by Plan</option>
-      <option value="PLATINUM">PLATINUM</option>
-      <option value="SILVER">SILVER</option>
-    </select>
+  <select [(ngModel)]="filters.plan" (change)="applyFilters()">
+    <option value="">Filter by Plan</option>
+    <option value="PLATINUM">PLATINUM</option>
+    <option value="SILVER">SILVER</option>
+  </select>
 
-    <input type="text" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
-
+  <input type="number" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
 
     <!-- <select [(ngModel)]="filters.batch" (change)="applyFilters()">
       <option value="">All Status</option>
@@ -24,20 +29,20 @@
 
   </div>
 
-  <!-- Bulk assignment -->
+  <!-- Bulk assignment
   <div class="bulk-assign">
     <input type="text" placeholder="Course Name" [(ngModel)]="bulkCourseName">
     <input type="text" placeholder="Assistant ID" [(ngModel)]="bulkAssistantId">
     <input type="text" placeholder="API Key" [(ngModel)]="bulkApiKey">
     <button (click)="bulkAssign()">Bulk Assign</button>
-  </div>
+  </div> -->
 
-  <!-- Reset Monthly Usage -->
+  <!-- Reset Monthly Usage
   <div class="reset-usage">
     <button (click)="resetMonthlyUsage()">Reset Monthly Usage</button>
-  </div>
+  </div> -->
 
-  <div class="reset-usage">
+  <div class="add-user">
     <button routerLink="/signup">Add New User</button>
   </div>
 
@@ -45,13 +50,14 @@
   <table class="students-table">
     <thead>
       <tr>
-        <th></th>
+        <!-- <th></th> -->
         <th>Name</th>
         <th>Email</th>
         <th>Plan</th>
         <th>Batch</th>
         <th>Level</th>
-        <th>Course</th>
+        <th>Assigned Teacher</th>
+        <!-- <th>Course</th> -->
         <!-- <th>VAPI Status</th> -->
         <!-- <th>Fluency</th> -->
         <!-- <th>Grammar</th> -->
@@ -66,18 +72,19 @@
     </thead>
     <tbody>
       <tr *ngFor="let student of filteredStudents; trackBy: trackById">
-        <td>
+        <!-- <td>
           <input type="checkbox" [checked]="selectedStudentIds.has(student._id)" (change)="toggleStudentSelection(student._id)">
-        </td>
+        </td> -->
         <td>{{ student.name }}</td>
         <td>{{ student.email }}</td>
         <td>{{student.subscription}}</td>
         <td>{{ student.batch || 'N/A' }}</td>
         <td>{{ student.level || 'N/A' }}</td>
-        <td>
+        <td>{{ student.assignedTeacher?.name || 'N/A' }}</td>
+        <!-- <td>
           <input type="text" [(ngModel)]="student.courseAssigned">
           <button (click)="assignCourseToStudent(student)">Assign</button>
-        </td>
+        </td> -->
         <!-- <td>
           <select [value]="student.vapiAccess.status" (change)="onStatusChange($event, student._id)">
             <option value="active">Active</option>

@@ -35,6 +35,7 @@ export class LoginComponent {
           console.log('This is admin token: ', response.token);
         } else if (response.user.role === 'TEACHER') {
           this.router.navigate(['/teacher-dashboard']);
+          console.log('This is teacher token: ', response.token);
           this.authService.saveToken(response.token);
 
         } else {

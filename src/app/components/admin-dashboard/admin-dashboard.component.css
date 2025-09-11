@@ -29,21 +29,57 @@ h2, h3 {
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: flex-end; /* Align filters to the right */
+  align-items: center;
 }
 
 .filters input,
 .filters select {
-  padding: 6px 10px;
+  padding: 8px 14px;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
+  border-radius: 25px; /* pill-shaped for modern look */
+  background: #fff;
   font-size: 14px;
+  min-width: 150px;
+  transition: all 0.2s ease-in-out;
+  outline: none;
 }
 
-.filters select {
-  cursor: pointer;
+/* Hover and focus effects for better UX */
+.filters input:hover,
+.filters select:hover,
+.filters input:focus,
+.filters select:focus {
+  border-color: #7b5fff; /* subtle highlight */
+  box-shadow: 0 0 6px rgba(123, 95, 255, 0.3);
+  background-color: #f9f9ff;
+}
+
+/* Placeholder styling */
+.filters input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .filters {
+    justify-content: flex-start; /* stack left on small screens */
+  }
+
+  .filters input,
+  .filters select {
+    min-width: 100%;
+  }
+}
+
+
+.add-user {
+  display: flex;
+  justify-content: flex-end; /* moves content to the right */
+  padding: 10px 0; /* top & bottom padding */
 }
 
 /* ====== Bulk Assignment & Reset Buttons ====== */

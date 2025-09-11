@@ -26,6 +26,10 @@ export class SignupComponent {
   level: string = 'A1'; // default level
   elevenLabsWidgetLink: string = '';
   elevenLabsApiKey: string = '';
+  
+  // Teacher assignment
+  assignedTeacher: string = '';   // ✅ selected teacher ID
+  teachers: any[] = [];           // all fetched teachers
 
    // Teacher fields
   assignedCourses: string[] = []; // selected course IDs
@@ -37,7 +41,7 @@ export class SignupComponent {
   ngOnInit(): void {
     this.loadCourses();
   }
-
+  // Fetch available courses from backend
   loadCourses() {
     this.coursesService.getCourses().subscribe({
       next: (data) => this.courses = data,
@@ -45,21 +49,38 @@ export class SignupComponent {
     });
   }
 
+  // Load teachers dynamically when student selects level + medium
+  loadTeachers() {
+    if (this.level && this.medium) {
+      this.authService.getTeachers(this.level, this.medium).subscribe({
+        next: (data) => this.teachers = data,
+        error: (err) => {
+          this.teachers = [];
+          console.error('Failed to load teachers', err);
+        }
+      });
+    }
+  }
+
   onSubmit() {
 
-  if (this.role === 'STUDENT') {
-    if (!this.medium || !this.subscription || !this.batch) {
-      alert("Batch, Medium, and Subscription are required for students!");
-      return;
+    if (this.role === 'STUDENT') {
+      if (!this.medium || !this.subscription || !this.batch) {
+        alert('Batch, Medium, and Subscription are required for students!');
+        return;
+      }
+      if (!this.assignedTeacher) {
+        alert('You must select a teacher for the student!');
+        return;
+      }
     }
-  }
 
-  if (this.role === 'TEACHER') {
-    if (!this.medium || this.assignedCourses.length === 0) {
-      alert("Medium and at least one course are required for teachers!");
-      return;
+    if (this.role === 'TEACHER') {
+      if (!this.medium || this.assignedCourses.length === 0) {
+        alert("Medium and at least one course are required for teachers!");
+        return;
+      }
     }
-  }
 
 
     const user: any = {
@@ -75,6 +96,7 @@ export class SignupComponent {
       user.conversationId = this.conversationId;
       user.subscription = this.subscription;
       user.level = this.level;
+      user.assignedTeacher = this.assignedTeacher; // ✅ send selected teacher ID
       user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
       user.elevenLabsApiKey = this.elevenLabsApiKey;
     };

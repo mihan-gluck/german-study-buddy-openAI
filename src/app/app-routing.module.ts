@@ -12,6 +12,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { ProfileComponent } from './components/profile/profile.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { CreateCourseComponent } from './components/courses/course-create.component';
 
 export const routes: Routes = [
   // Default route
@@ -65,6 +66,7 @@ export const routes: Routes = [
 
 
   { path: 'courses', loadComponent: () => import('./components/courses/courses.component').then(m => m.CoursesComponent), canActivate: [AuthGuard] },
+  { path: 'create-course', loadComponent: () => import('./components/courses/course-create.component').then(m => m.CreateCourseComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
   { path: 'subscriptions', loadComponent: () => import('./components/subscriptions/subscriptions.component').then(m => m.SubscriptionsComponent), canActivate: [AuthGuard] },
   { path: 'ai-conversations', loadComponent: () => import('./components/ai-conversations/ai-conversations.component').then(m => m.AiConversationsComponent), canActivate: [AuthGuard] },
 

@@ -76,7 +76,13 @@ router.delete('/vapi-agents/:id', verifyToken, isAdmin, async (req, res) => {
 // Get all students
 router.get('/students', verifyToken, isAdmin, async (req, res) => {
   try {
-    const students = await User.find({ role: 'STUDENT' }).select('-password');
+    const students = await User.find({ role: 'STUDENT' })
+      .select('-password') // exclude passwords
+      .populate({
+        path: 'assignedTeacher',   // the field in User schema
+        select: 'name regNo email medium' // fetch only useful teacher info
+      });
+
     res.json({ success: true, data: students });
   } catch (err) {
     res.status(500).json({

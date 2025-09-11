@@ -86,6 +86,7 @@
           id="medium"
           name="medium"
           [(ngModel)]="medium"
+          (change)="loadTeachers()"
           required
           class="form-select"
         >
@@ -118,6 +119,7 @@
           id="level"
           name="level"
           [(ngModel)]="level"
+          (change)="loadTeachers()"
           required
           class="form-select"
         >
@@ -127,6 +129,17 @@
           <option value="B2">B2</option>
           <option value="C1">C1</option>
           <option value="C2">C2</option>
+        </select>
+      </div>
+
+
+      <!-- Select Teacher (only for Students) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="teacher" class="form-label">Assign Teacher</label>
+        <select id="assignedTeacher" [(ngModel)]="assignedTeacher" name="assignedTeacher" required class="form-select">
+          <option *ngFor="let teacher of teachers" [value]="teacher._id">
+            {{ teacher.name }} ({{ teacher.regNo }})
+          </option>
         </select>
       </div>
 

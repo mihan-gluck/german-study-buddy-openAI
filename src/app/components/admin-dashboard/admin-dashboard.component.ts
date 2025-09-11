@@ -101,9 +101,9 @@ export class AdminDashboardComponent implements OnInit {
 
   loading = false;
   error = '';
-  filters = { course: '', plan: '', batch: '' };
+  filters = { level: '', plan: '', batch: '' };
   plan: string[] = ['PLATINUM', 'SILVER'];
-  levels: string[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  level: string[] = ['A1', 'A2', 'B1', 'B2'];
 
   feedbackMap: Record<string, any[]> = {};
   selectedStudentName?: string;
@@ -210,9 +210,9 @@ fetchStudents(): void {
       const status = student.vapiAccess?.status ? student.vapiAccess.status.toLowerCase() : '';
 
       return (
-        (!this.filters.course || course.includes(this.filters.course.toLowerCase())) &&
+        (!this.filters.level || student.level === this.filters.level) &&
         (!this.filters.plan   || plan === this.filters.plan.toUpperCase()) &&
-        (!this.filters.batch || student.batch === this.filters.batch)
+        (!this.filters.batch || student.batch === this.filters.batch.toString())
       );
     });
   }

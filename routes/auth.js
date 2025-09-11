@@ -6,6 +6,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Course = require("../models/Course");
 const router = express.Router();
 const transporter = require("../config/emailConfig");
 
@@ -68,10 +69,43 @@ async function generatePassword(role, regNo) {
   return password;
 }
 
+// ✅ Get teachers by student level + medium
+router.get("/teachers", async (req, res) => {
+  try {
+    const { level, medium } = req.query;
+
+    if (!level || !medium) {
+      return res.status(400).json({ msg: "Level and medium are required" });
+    }
+
+    // 1️⃣ Find the course for this level
+    const course = await Course.findOne({ title: level }); // assuming title = level like "A1"
+    if (!course) {
+      return res.status(404).json({ msg: "No course found for this level" });
+    }
+
+    // 2️⃣ Find teachers who teach this course & match medium
+    const teachers = await User.find({
+      role: "TEACHER",
+      medium: medium,
+      assignedCourses: course._id
+    }).select("name email regNo medium assignedCourses");
+
+    if (!teachers || teachers.length === 0) {
+      return res.status(404).json({ msg: "No teachers found for this level and medium" });
+    }
+
+    res.json(teachers);
+  } catch (err) {
+    console.error("Error fetching teachers:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, role, subscription, level, batch, medium, conversationId, elevenLabsWidgetLink, elevenLabsApiKey, assignedCourses } = req.body;
+    const { name, email, role, subscription, level, batch, medium, conversationId, elevenLabsWidgetLink, elevenLabsApiKey, assignedCourses, assignedTeacher } = req.body;
 
     const regNo = await generateRegNo(role);  
     const password = await generatePassword(role, regNo); // generate random password
@@ -94,6 +128,31 @@ router.post("/signup", async (req, res) => {
       user.level = level;
       user.batch = batch;
       user.medium = medium;
+      
+      // 🔍 Teacher assignment
+      if (assignedTeacher) {
+        // case 1: frontend provided teacher id
+        user.assignedTeacher = assignedTeacher;
+      } else {
+        // case 2: backend finds one automatically
+        const course = await Course.findOne({ level });
+        if (!course) {
+          return res.status(400).json({ msg: "No course found for this level" });
+        }
+
+        const teacher = await User.findOne({
+          role: "TEACHER",
+          medium: medium,
+          assignedCourses: course._id
+        });
+
+        if (teacher) {
+          user.assignedTeacher = teacher._id;
+        } else {
+          return res.status(400).json({ msg: "No teacher found for this level and medium" });
+        }
+      }
+
 
       if (user.subscription === "PLATINUM") {
         user.conversationId = conversationId;

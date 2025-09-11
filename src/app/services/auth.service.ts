@@ -49,6 +49,13 @@ export class AuthService {
     }
   }
 
+  // ✅ Get teachers for a specific level and medium
+  getTeachers(level: string, medium: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/auth/teachers`, {
+      params: { level, medium }
+    });
+  }
+
 
   signup(user: { 
     name: string, 
@@ -61,6 +68,8 @@ export class AuthService {
     conversationId?: string,
     elevenLabsWidgetLink?: string, 
     elevenLabsApiKey?: string 
+    assignedCourses?: string[],   // for TEACHER
+    assignedTeacher?: string      // for STUDENT (teacher _id)
   }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user);
   }

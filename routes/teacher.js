@@ -26,15 +26,15 @@ router.get('/profile', verifyToken, checkRole('TEACHER'), async (req, res) => {
 });
 
 
-// Get list of all students
-router.get('/students', async (req, res) => {
-  try {
-    const students = await User.find({ role: 'STUDENT' }).select('_id name');
-    res.json(students);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+// // Get list of all students
+// router.get('/students', async (req, res) => {
+//   try {
+//     const students = await User.find({ role: 'STUDENT' }).select('_id name');
+//     res.json(students);
+//   } catch (err) {
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
 
 // PUT /api/teacher/update-course-progress/:studentId
 router.put('/update-course-progress/:studentId', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res) => {
@@ -56,6 +56,33 @@ router.put('/update-course-progress/:studentId', verifyToken, checkRole(['TEACHE
     res.status(500).json({ message: 'Failed to update course progress', error: err.message });
   }
 });
+
+// Get students assigned to the logged-in teacher
+router.get('/students', verifyToken, async (req, res) => {
+  try {
+    // req.user.id should contain the logged-in teacher's ID
+    const teacherId = req.user.id;
+
+    const students = await User.find({ 
+        role: 'STUDENT', 
+        assignedTeacher: teacherId // filter by assignedTeacher
+      })
+      .select('-password') // exclude passwords
+      .populate({
+        path: 'assignedTeacher',  
+        select: 'name regNo email medium' // useful teacher info
+      });
+
+    res.json({ success: true, data: students });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch students',
+      error: err.message
+    });
+  }
+});
+
 
 module.exports = router;
 
