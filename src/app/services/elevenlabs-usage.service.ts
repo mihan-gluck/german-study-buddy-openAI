@@ -31,36 +31,22 @@ export class ElevenLabsUsageService {
   }
 
   // Fetch usage data
-  
   getUsage(studentId?: string): Observable<any> {
-    const token = this.authService.getToken();
-    if (!token) {
-      console.error('❌ No token found in localStorage');
-    }
-
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-    // ✅ Correct endpoint matches backend: /api/elevenlabs-usage/apiKey
     const endpoint = studentId
       ? `${this.apiUrl}/apiKey/${studentId}`
       : `${this.apiUrl}/apiKey`;
 
-    return this.http.get<any>(endpoint, { headers });
+    return this.http.get<any>(endpoint, { withCredentials: true });
   }
+
 
   // Get ElevenLabs usage by API key (Admin)
-
   getUsageByApiKey(apiKey: string): Observable<any> {
-    const token = this.authService.getToken();
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-    return this.http.get(`/api/elevenlabs-usage/admin/usage/${apiKey}`, { headers });
+    return this.http.get(`/api/elevenlabs-usage/admin/usage/${apiKey}`, { withCredentials: true });
   }
 
-  /**
-   * Optional: Observable-based logging
-   */
+  // Optional: Observable-based logging
   logUsage$(data: ElevenLabsUsageData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/log`, data);
+    return this.http.post(`${this.apiUrl}/log`, data, { withCredentials: true });
   }
 }

@@ -15,6 +15,7 @@ import { ElevenLabsUsageData, ElevenLabsUsageService } from '../../services/elev
 import { VoiceAgentService } from '../../services/voice-agent.service';
 import { ElevenLabsWidgetService } from '../../services/elevenlabs-widget.service';
 import { ChartOptions, ChartConfiguration, ChartType } from 'chart.js';
+import { Router } from '@angular/router';
 
 
 interface Student {
@@ -154,49 +155,49 @@ export class StudentDashboardComponent implements OnInit {
     private elevenLabsUsageService: ElevenLabsUsageService,
     public voiceAgentService: VoiceAgentService,
     private widgetService: ElevenLabsWidgetService,
-    private elevenLabsService: ElevenLabsUsageService
+    private elevenLabsService: ElevenLabsUsageService,
+    private router: Router
 
   ) {}
 
-  ngOnInit(): void {
-    this.basicUser = this.authService.getUser();  // from token
-    this.fetchCourses();
-    this.loadFeedback();
-    this.fetchUserProfile();
-    //this.loadProgress();
-    this.loadElevenLabsCourses();
-    this.loadElevenLabsUsage();
+ngOnInit(): void {
+  this.authService.getUserProfile().subscribe({
+    next: (user) => {
+      this.basicUser = user;   // backend gives user info
+      this.fetchCourses();
+      this.loadFeedback(user._id);   // pass studentId directly
+      this.fetchUserProfile();
+      this.loadElevenLabsCourses();
+      this.loadElevenLabsUsage();
 
-    this.elevenLabsUsageService.getUsage().subscribe({
-      next: (res) => console.log('✅ Usage Response:', res),
-      error: (err) => console.error('❌ Usage Error:', err),
-    });
-  }
+      this.elevenLabsUsageService.getUsage().subscribe({
+        next: (res) => console.log('✅ Usage Response:', res),
+        error: (err) => console.error('❌ Usage Error:', err),
+      });
+    },
+    error: (err) => {
+      console.error('❌ Failed to load user:', err);
+      this.router.navigate(['/login']); // if not logged in
+    }
+  });
+}
 
   
-  loadFeedback(): void {
-    this.feedbackLoading = true;
+loadFeedback(studentId: string): void {
+  this.feedbackLoading = true;
 
-    const studentId = this.authService.getUserId();  // Assuming this returns the logged-in student's _id
-    if (!studentId) {
-        this.feedbackError = 'Student ID not found';
-        this.feedbackLoading = false;
-        return;
+  this.feedbackService.getStudentFeedback(studentId).subscribe({
+    next: (data: any) => {
+      this.feedbackList = data;
+      this.feedbackLoading = false;
+    },
+    error: (err) => {
+      this.feedbackError = 'Failed to load feedback';
+      console.error(err);
+      this.feedbackLoading = false;
     }
-
-    this.feedbackService.getStudentFeedback(studentId).subscribe({
-        next: (data: any) => {
-        this.feedbackList = data;
-        this.feedbackLoading = false;
-        },
-        error: (err) => {
-        this.feedbackError = 'Failed to load feedback';
-        console.error(err);
-        this.feedbackLoading = false;
-        }
-    });
-    }
-
+  });
+}
   
   fetchCourses(): void {
     this.loading = true;

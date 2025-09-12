@@ -18,6 +18,8 @@ import { AssignElevenlabsDialogComponent } from '../../assign-elevenlabs-dialog/
 import { HttpHeaders } from '@angular/common/http';
 import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
 
+
+
 type VapiStatus = 'active' | 'paused' | 'finished';
 
 interface CourseProgress {
@@ -130,35 +132,30 @@ export class AdminDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const token = this.authService.getToken();
-    if (!token) {
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-    try {
-      const decodedToken: any = jwtDecode(token);
-      if (decodedToken.role !== 'ADMIN') {
-        this.router.navigate(['/dashboard']);
-        return;
+    // ✅ Check user profile from backend (cookie included automatically)
+    this.authService.getUserProfile().subscribe({
+      next: (user) => {
+        if (user.role !== 'ADMIN') {
+          this.router.navigate(['/dashboard']);
+          return;
+        }
+        this.fetchStudents();
+      },
+      error: (err) => {
+        console.error('Not authenticated:', err);
+        this.router.navigate(['/auth/login']);
       }
-    } catch (error) {
-      console.error('Invalid token:', error);
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-    this.fetchStudents();
-    this.filteredStudents = [...this.students];
-    
+    });
   }
 
 fetchStudents(): void {
   this.loading = true;
-  const token = this.authService.getToken();
-  const headers = token
-    ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-    : new HttpHeaders();
+  // const token = this.authService.getToken();
+  // const headers = token
+  //   ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+  //   : new HttpHeaders();
 
-  this.http.get<{ success: boolean; data: Student[] }>('/api/admin/students', { headers }).subscribe({
+  this.http.get<{ success: boolean; data: Student[] }>('/api/admin/students', { withCredentials: true }).subscribe({
     next: res => {
       if (res.success) {
         this.students = res.data;

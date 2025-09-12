@@ -23,36 +23,36 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  getUser(): DecodeToken | null {
-    const token = localStorage.getItem('authToken'); // FIXED
-    if (!token) return null;
+  // getUser(): DecodeToken | null {
+  //   const token = localStorage.getItem('authToken'); // FIXED
+  //   if (!token) return null;
 
-    try {
-      return jwtDecode(token) as DecodeToken;
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  }
+  //   try {
+  //     return jwtDecode(token) as DecodeToken;
+  //   } catch (error) {
+  //     console.error('Error decoding token:', error);
+  //     return null;
+  //   }
+  // }
 
 
-  getUserId(): string {
-    const token = localStorage.getItem('authToken'); // FIXED
-    if (!token) return '';
+  // getUserId(): string {
+  //   const token = localStorage.getItem('authToken'); // FIXED
+  //   if (!token) return '';
 
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.id || '';
-    } catch (error) {
-      console.error('Invalid token format', error);
-      return '';
-    }
-  }
+  //   try {
+  //     const payload = JSON.parse(atob(token.split('.')[1]));
+  //     return payload.id || '';
+  //   } catch (error) {
+  //     console.error('Invalid token format', error);
+  //     return '';
+  //   }
+  // }
 
   // ✅ Get teachers for a specific level and medium
   getTeachers(level: string, medium: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/auth/teachers`, {
-      params: { level, medium }
+      params: { level, medium }, withCredentials: true
     });
   }
 
@@ -71,55 +71,54 @@ export class AuthService {
     assignedCourses?: string[],   // for TEACHER
     assignedTeacher?: string      // for STUDENT (teacher _id)
   }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/signup`, user);
+    return this.http.post(`${this.apiUrl}/auth/signup`, user, { withCredentials: true });
   }
 
   login(user: { regNo: string, password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/login`, user);
+  // ✅ tell Angular to include/set cookies
+    return this.http.post(`${this.apiUrl}/auth/login`, user, { withCredentials: true });
   }
 
-  saveToken(token: string) {
-    localStorage.setItem('authToken', token);
-  }
+  // saveToken(token: string) {
+  //   localStorage.setItem('authToken', token);
+  // }
 
-  getToken(): string | null {
-    return localStorage.getItem('authToken');
-  }
+  // getToken(): string | null {
+  //   return localStorage.getItem('authToken');
+  // }
   
 
   // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
-    const token = this.getToken();
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    // Corrected route to match backend profile route
-    return this.http.get(`${this.apiUrl}/profile`, { headers });
+    return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true });
   }
 
-  getUserRole(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.role;
-    } catch {
-      return null;
-    }
-  }
+  // getUserRole(): string | null {
+  //   const token = this.getToken();
+  //   if (!token) return null;
+  //   try {
+  //     const payload = JSON.parse(atob(token.split('.')[1]));
+  //     return payload.role;
+  //   } catch {
+  //     return null;
+  //   }
+  // }
 
-  isTokenExpired(): boolean {
-    const token = this.getToken();
-    if (!token) return true;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiry = payload.exp * 1000;
-      return Date.now() > expiry;
-    } catch {
-      return true;
-    }
-  }
+  // isTokenExpired(): boolean {
+  //   const token = this.getToken();
+  //   if (!token) return true;
+  //   try {
+  //     const payload = JSON.parse(atob(token.split('.')[1]));
+  //     const expiry = payload.exp * 1000;
+  //     return Date.now() > expiry;
+  //   } catch {
+  //     return true;
+  //   }
+  // }
 
-  logOut() {
-    localStorage.removeItem('authToken');
+  // ✅ Logout (clears cookie from backend)
+  logout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true });
   }
 
   // Additional methods for VAPI data - you can adjust these endpoints if needed
@@ -133,17 +132,14 @@ export class AuthService {
 
   // Upload profile photo
   uploadProfilePhoto(file: File): Observable<any> {
-  const token = this.getToken();
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`
-  });
 
-  const formData = new FormData();
-  formData.append('profilePhoto', file);
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
 
-  // Backend endpoint for photo upload — adjust if needed
-  return this.http.post(`${this.apiUrl}/profile/upload-photo`, formData, { headers });
-} 
+    // Backend endpoint for photo upload — adjust if needed
+    return this.http.post(`${this.apiUrl}/profile/upload-photo`, formData, { withCredentials: true });
+  } 
+
 
 
 }

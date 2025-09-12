@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Middleware: Verify JWT token
+// Middleware: Verify JWT token from cookie
 function verifyToken(req, res, next) {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  const token = req.cookies.authToken; // Get token from cookies
 
   if (!token) {
     return res.status(401).json({ msg: 'No token, authorization denied' });

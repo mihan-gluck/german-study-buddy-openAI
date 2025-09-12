@@ -21,9 +21,9 @@ export class TeacherService {
 
   // ✅ Get students assigned to the logged-in teacher
   getAssignedStudents(): Observable<any> {
-  const token = localStorage.getItem('authToken');
-  console.log('Retrieved token:', token); // Debugging line
-  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  return this.http.get<any>(`${this.baseUrl}/students`, { headers });
-}
+    // const token = localStorage.getItem('authToken');
+    // console.log('Retrieved token:', token); // Debugging line
+    // const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<any>(`${this.baseUrl}/students`, { withCredentials: true});
+  }
 }

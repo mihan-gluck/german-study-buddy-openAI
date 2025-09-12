@@ -227,8 +227,16 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    // ✅ Set cookie instead of sending token
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: false,   // ❌ keep false for localhost, set true in production (HTTPS)
+      sameSite: "Lax", // use "Strict" in production for stronger CSRF protection
+      maxAge: 60 * 60 * 1000 // 1 hour
+    });
+
+    // ✅ Send user info only (no token in response)
     res.json({
-      token,
       user: {
         name: user.name,
         email: user.email,

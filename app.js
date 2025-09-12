@@ -8,6 +8,9 @@ const cors = require("cors");
 const auth = require("./middleware/auth");
 //const { verifyToken, isAdmin} = require('./middleware/auth');
 
+const allowedOrigins = ['http://localhost:4200']; // frontend origin
+
+
 
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courses");
@@ -25,11 +28,20 @@ const vapiUsageRoutes = require('./routes/vapiUsage');
 const elevenlabsUsageRoutes = require('./routes/elevenlabsusage');
 
 const app = express();
+const cookieParser = require('cookie-parser');
 
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,           // ✅ important for sending cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(cookieParser()); // Add cookie parser middleware
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
