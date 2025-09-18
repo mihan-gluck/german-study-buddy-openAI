@@ -7,6 +7,9 @@ const { verifyToken } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 const upload = require('../middleware/upload');
 const { Subscription } = require('rxjs');
+const fs = require('fs');
+const path = require('path');
+
 
 // GET /api/profile - Get logged-in user's profile
 router.get('/', verifyToken, async (req, res) => {
@@ -112,30 +115,49 @@ router.put('/update-password', verifyToken, async (req, res) => {
 // POST /api/profile/upload-photo - Upload profile photo
 router.post('/upload-photo', verifyToken, upload.single('profilePhoto'), async (req, res) => {
   try {
+    console.log("[UPLOAD PHOTO] req.user:", req.user);
+
     if (!req.file) {
+      console.log("[UPLOAD PHOTO] No file uploaded");
       return res.status(400).json({ msg: 'No file uploaded' });
     }
 
-    // Update user profilePhoto field with the file path or URL
-    // You can store just the relative path or full URL if you have a CDN or domain
     const photoPath = `/uploads/profile-photos/${req.file.filename}`;
+    const fullUrl = `${req.protocol}://${req.get('host')}${photoPath}`;
+    console.log("[UPLOAD PHOTO] File uploaded:", fullUrl);
 
-    const user = await User.findByIdAndUpdate(
-      req.user.userId,
-      { profilePhoto: photoPath, updatedAt: new Date() },
-      { new: true, select: '-password' }
-    );
-
+    const user = await User.findById(req.user.id);
     if (!user) {
+      console.log("[UPLOAD PHOTO] User not found in DB, deleting uploaded file");
+      fs.unlinkSync(path.join(__dirname, '..', 'uploads/profile-photos', req.file.filename));
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    res.json({ msg: 'Profile photo uploaded successfully', profilePhoto: photoPath });
+    // Optional: delete old photo
+    if (user.profilePic) {
+      const oldFile = path.join(__dirname, '..', 'uploads/profile-photos', path.basename(user.profilePic));
+      if (fs.existsSync(oldFile)) {
+        console.log("[UPLOAD PHOTO] Deleting old profile photo:", oldFile);
+        fs.unlinkSync(oldFile);
+      }
+    }
+
+    // ✅ Update photo only (skip required field validation)
+    await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePic: fullUrl, updatedAt: new Date() },
+      { new: true, runValidators: false }
+    );
+
+    console.log("[UPLOAD PHOTO] Profile photo updated in DB for user:", user.name);
+
+    res.json({ msg: 'Profile photo uploaded successfully', profilePhoto: fullUrl });
   } catch (err) {
-    console.error('Upload error:', err);
+    console.error('[UPLOAD PHOTO] Error uploading photo:', err);
     res.status(500).json({ msg: 'Error uploading photo', error: err.message });
   }
 });
+
 
 module.exports = router;
 

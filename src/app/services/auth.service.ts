@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 
 interface DecodeToken {
@@ -19,7 +19,10 @@ export class AuthService {
   // Change backend API URL to your EC2 URL or keep localhost for development
   private apiUrl = 'http://localhost:4000/api';  // Base API URL
   //getUserId: any;
-  
+
+  // ✅ Holds logged-in user state
+  private currentUserSubject = new BehaviorSubject<any | null>(null);
+  currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -75,8 +78,13 @@ export class AuthService {
   }
 
   login(user: { regNo: string, password: string }): Observable<any> {
-  // ✅ tell Angular to include/set cookies
-    return this.http.post(`${this.apiUrl}/auth/login`, user, { withCredentials: true });
+    return this.http.post(`${this.apiUrl}/auth/login`, user, { withCredentials: true })
+      .pipe(
+        tap(() => {
+          // ✅ Immediately fetch and update user after login
+          this.refreshUserProfile().subscribe();
+        })
+      );
   }
 
   // saveToken(token: string) {
@@ -91,6 +99,21 @@ export class AuthService {
   // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
     return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true });
+  }
+
+
+  // ✅ Helper: refresh user profile and update BehaviorSubject
+  refreshUserProfile(): Observable<any> {
+    return this.getUserProfile().pipe(
+      tap({
+        next: (user) => this.currentUserSubject.next(user),
+        error: () => this.currentUserSubject.next(null)
+      })
+    );
+  }
+
+  isLoggedIn(): boolean {
+    return this.currentUserSubject.value !== null;
   }
 
   // getUserRole(): string | null {
@@ -116,9 +139,14 @@ export class AuthService {
   //   }
   // }
 
-  // ✅ Logout (clears cookie from backend)
+  // Logout
   logout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true });
+    return this.http.post(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true })
+      .pipe(
+        tap(() => {
+          this.currentUserSubject.next(null); // clear state
+        })
+      );
   }
 
   // Additional methods for VAPI data - you can adjust these endpoints if needed
@@ -139,6 +167,7 @@ export class AuthService {
     // Backend endpoint for photo upload — adjust if needed
     return this.http.post(`${this.apiUrl}/profile/upload-photo`, formData, { withCredentials: true });
   } 
+
 
 
 

@@ -62,19 +62,19 @@ export class ProfileComponent implements OnInit {
     this.uploading = true;
     this.uploadError = '';
 
-    const formData = new FormData();
-    formData.append('profilePhoto', this.selectedFile);
-
-    // ✅ With HttpOnly cookie → no manual Authorization header
-    this.http.post('http://localhost:4000/api/profile/upload-photo', formData, {
-      withCredentials: true  // <--- IMPORTANT
-    }).subscribe({
+    this.authService.uploadProfilePhoto(this.selectedFile).subscribe({
       next: (res: any) => {
         this.uploading = false;
         alert('Profile photo uploaded successfully!');
+
         if (res.profilePhoto) {
-          this.userProfile.profilePhoto = res.profilePhoto;
+          if (res.profilePhoto.startsWith('/uploads')) {
+            this.userProfile.profilePhoto = `http://localhost:4000${res.profilePhoto}`;
+          } else {
+            this.userProfile.profilePhoto = res.profilePhoto;
+          }
         }
+
         this.selectedFile = null;
       },
       error: (err) => {

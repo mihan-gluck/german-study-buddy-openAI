@@ -93,6 +93,25 @@ router.get('/students', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+
+// Get all teachers
+router.get('/teachers', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const teachers = await User.find({ role: 'TEACHER' })
+      .populate('assignedCourses', 'title') // <-- only fetch 'name' field of Course
+      .select('-password');
+
+    res.json({ success: true, data: teachers });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teachers',
+      error: err.message
+    });
+  }
+});
+
+
 // Assign/ Post a course to a student
 router.post('/assign-course', verifyToken, isAdmin, async (req, res) => {
   const { studentId, courseName, assistantId, apiKey } = req.body;

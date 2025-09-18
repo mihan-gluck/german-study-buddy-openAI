@@ -1,22 +1,27 @@
 <!-- header.component.html -->
 
 <header>
+  <div class="logo-container">
+    <img src="assets/logo.avif" alt="Glück Global" class="company-logo">
+    <span class="logo-text">Glück Global</span>
+  </div>
   <nav>
     <ul class="nav-links">
-      <li><a (click)="navigateTo('/home')" *ngIf="isLoggedIn() && getUserRole() !== 'ADMIN'">Home</a></li>
+      <!-- <li><a (click)="navigateTo('/home')" *ngIf="isLoggedIn() && userRole !== 'ADMIN'">Home</a></li> -->
       <!-- <li><a (click)="navigateTo('/signup')" *ngIf="!isLoggedIn()">Sign Up</a></li> -->
       <!-- <li><a (click)="navigateTo('/login')" *ngIf="!isLoggedIn()">Login</a></li> -->
-      <li><a (click)="navigateTo('/chat')" *ngIf="isLoggedIn() && getUserRole() === 'student'">Chat</a></li>
-      <li><a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'ADMIN'">Admin Dashboard</a></li>
-      <li><a (click)="navigateTo('/courses')" *ngIf="isLoggedIn() && getUserRole() === 'ADMIN'">Courses</a></li>
-      <li><a (click)="openInternalReports()" *ngIf="isLoggedIn() && getUserRole() === 'ADMIN'">Internal Reports</a></li>
-      <li><a (click)="openStudentReports()" *ngIf="isLoggedIn() && getUserRole() === 'ADMIN'">Student Reports</a></li>
-      <li><a (click)="openStudentFeedback()" *ngIf="isLoggedIn() && getUserRole() === 'ADMIN'">Student Feedback</a></li>
-      <li><a (click)="navigateTo('/teacher-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'TEACHER'">Teacher Dashboard</a></li>
-      <li><a (click)="navigateTo('/student-dashboard')" *ngIf="isLoggedIn() && getUserRole() === 'STUDENT'">Student Dashboard</a></li>
-      <li><a (click)="navigateTo('/contact')" *ngIf="getUserRole() === 'STUDENT'">Contact</a></li>
+      <li><a (click)="navigateTo('/chat')" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Chat</a></li>
+      <li><a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Admin Dashboard</a></li>
+      <li><a (click)="navigateTo('/courses')" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Courses</a></li>
+      <li><a (click)="navigateTo('/teachers')" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>
+      <li><a (click)="openInternalReports()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
+      <li><a (click)="openStudentReports()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
+      <li><a (click)="openStudentFeedback()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Feedback</a></li>
+      <li><a (click)="navigateTo('/teacher-dashboard')" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>
+      <li><a (click)="navigateTo('/student-dashboard')" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Student Dashboard</a></li>
+      <li><a (click)="navigateTo('/contact')" *ngIf="userRole === 'STUDENT'">Contact</a></li>
       <li><a (click)="navigateTo('/profile')" *ngIf="isLoggedIn()">Profile</a></li>
-      <li><a href="#" (click)="logOut()" *ngIf="isLoggedIn()">Logout</a></li>
+      <li><a class="logout-button" href="#" (click)="logOut()" *ngIf="isLoggedIn() && isAuthenticated">Logout</a></li>
     </ul>
   </nav>
 </header>

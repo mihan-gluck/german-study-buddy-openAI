@@ -43,7 +43,7 @@
   </div> -->
 
   <div class="add-user">
-    <button routerLink="/signup">Add New User</button>
+    <button class="add-user-btn" routerLink="/signup">Add New User</button>
   </div>
 
   <!-- Students Table -->
@@ -75,12 +75,12 @@
         <!-- <td>
           <input type="checkbox" [checked]="selectedStudentIds.has(student._id)" (change)="toggleStudentSelection(student._id)">
         </td> -->
-        <td>{{ student.name }}</td>
-        <td>{{ student.email }}</td>
-        <td>{{student.subscription}}</td>
-        <td>{{ student.batch || 'N/A' }}</td>
-        <td>{{ student.level || 'N/A' }}</td>
-        <td>{{ student.assignedTeacher?.name || 'N/A' }}</td>
+        <td data-label="Name">{{ student.name }}</td>
+        <td data-label="Email">{{ student.email }}</td>
+        <td data-label="Plan">{{student.subscription}}</td>
+        <td data-label="Batch">{{ student.batch || 'N/A' }}</td>
+        <td data-label="Level">{{ student.level || 'N/A' }}</td>
+        <td data-label="Assigned Teacher">{{ student.assignedTeacher?.name || 'N/A' }}</td>
         <!-- <td>
           <input type="text" [(ngModel)]="student.courseAssigned">
           <button (click)="assignCourseToStudent(student)">Assign</button>
@@ -97,8 +97,8 @@
         <td>{{ student.feedbackStats?.accent || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td> -->
         <!-- <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td> -->
-        <td>{{ student.remainingMinutes || 'N/A' }}</td>
-        <td>{{ student.planUpgradeDate || 'N/A' }}</td>
+        <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes || 'N/A' }}</td>
+        <td data-label="Subscription Update Date">{{ student.planUpgradeDate || 'N/A' }}</td>
 
         <!-- ElevenLabs column
         <td>

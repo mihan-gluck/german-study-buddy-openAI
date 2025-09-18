@@ -1,14 +1,14 @@
 <div class="container">
     <h2>Available Courses</h2>
+    <div class="course-btn-container">
+      <a [routerLink]="['/create-course']" class="create-course-btn">Create a New Course</a>
+    </div>
 
-    <a [routerLink]="['/create-course']" class="create-course-btn">Create New Course</a>
-  
     <div class="course-list">
-      <h3>Courses</h3>
       <ul>
         <li *ngFor="let course of courses">
-          <p>{{ course.title }}</p>
-          <p>{{ course.description }}</p>
+          <p class="course-title">{{ course.title }}</p>
+          <p class="course-description">{{ course.description }}</p>
         </li>
       </ul>
     </div>

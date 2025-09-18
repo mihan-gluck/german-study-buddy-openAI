@@ -1,0 +1,26 @@
+/* Make the app take full height */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Sticky header */
+app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* keep it above content */
+}
+
+/* Main content should grow */
+.main-content {
+  flex: 1;
+  padding-bottom: 50px;
+  box-sizing: border-box;
+  background: #f9f9f9; /* optional */
+}
+
+/* Footer just stays at bottom naturally */
+app-footer {
+  margin-top: auto; /* pushes footer down if little content */
+}

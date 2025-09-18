@@ -26,6 +26,7 @@ const roleProtectedRoutes = require('./routes/roleProtected');
 const feedbackRoutes = require('./routes/feedback');
 const vapiUsageRoutes = require('./routes/vapiUsage');
 const elevenlabsUsageRoutes = require('./routes/elevenlabsusage');
+const profilePicUploadRoutes = require('./routes/profile');
 
 const app = express();
 const cookieParser = require('cookie-parser');
@@ -62,6 +63,8 @@ mongoose.connect(process.env.MONGO_URI, {
   console.error("❌ Error connecting to MongoDB Atlas:", err);
 }); */
 
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -77,6 +80,7 @@ app.use('/api/protected', roleProtectedRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/vapiUsage', vapiUsageRoutes);
 app.use('/api/elevenlabs-usage', elevenlabsUsageRoutes);
+
 
 
 // Protected user profile route
@@ -95,10 +99,10 @@ const frontendPath = path.join(__dirname, "dist", "angular-germanbuddy", "browse
 app.use(express.static(frontendPath));
 
 // Serve uploads
-app.use('/uploads', express.static('uploads')); 
+// app.use('/uploads', express.static('uploads')); 
 
 // Serve static files (images)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get("*", (req, res) => {
   //if it's not an API call, return Angular app

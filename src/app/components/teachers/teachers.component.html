@@ -1,0 +1,60 @@
+<!-- src/app/components/admin-dashboard/admin-dashboard.component.html -->
+
+<div class="admin-dashboard">
+
+<!-- Filters -->
+<div class="filters">
+  <select [(ngModel)]="filters.course" (change)="applyFilters()">
+    <option value="">Filter by Course</option>
+    <option value="A1">A1</option>
+    <option value="A2">A2</option>
+    <option value="B1">B1</option>
+    <option value="B2">B2</option>
+  </select>
+
+  <select [(ngModel)]="filters.medium" (change)="applyFilters()">
+    <option value="">Filter by Medium</option>
+    <option value="Sinhala">Sinhala</option>
+    <option value="Tamil">Tamil</option>
+  </select>
+
+  </div>
+
+
+  <div class="add-user">
+    <button class="add-user-btn" routerLink="/signup">Add New Teacher</button>
+  </div>
+
+  <!-- Teachers Table -->
+  <table class="teachers-table">
+    <thead>
+      <tr>
+        <!-- <th></th> -->
+        <th>Name</th>
+        <th>Registration No</th>
+        <th>Email</th>
+        <th>Assigned Courses</th>
+        <th>Medium</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let teacher of filteredTeachers; trackBy: trackById">
+        <td data-label="Name">{{ teacher.name }}</td>
+        <td data-label="Registration No">{{ teacher.regNo }}</td>
+        <td data-label="Email">{{ teacher.email }}</td>
+
+        <td data-label="Assigned Courses">
+          <ng-container *ngIf="teacher.assignedCourses?.length; else noCourses">
+            <span *ngFor="let c of teacher.assignedCourses; let last = last">
+              {{ c.title }}<span *ngIf="!last">, </span>
+            </span>
+          </ng-container>
+          <ng-template #noCourses>N/A</ng-template>
+        </td>
+
+        <td data-label="Medium">{{ teacher.medium || 'N/A' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>

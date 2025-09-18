@@ -1,9 +1,28 @@
-/*header.component.css/*/
-
 header {
-  background-color: #405980;
+  background-color: #000e89;
   color: white;
-  padding: 10px 0;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.company-logo {
+  height: 50px; /* adjust logo size */
+  width: auto;
+  margin-right: 10px; /* space between logo and text */
+}
+
+.logo-text {
+  color: white;          /* white text */
+  font-weight: bold;     /* bold text */
+  font-size: 22px;       /* adjust size if needed */
+  font-family: 'Brastika Bold'; /* custom font */
 }
 
 nav ul {
@@ -11,6 +30,7 @@ nav ul {
   display: flex;
   justify-content: space-around;
   padding: 0;
+  margin: 0;
 }
 
 nav ul li {
@@ -21,17 +41,38 @@ nav a {
   color: white;
   text-decoration: none;
   padding: 10px;
+  font-weight: bold;
 }
 
-nav a:hover {
-  background-color: #73a9be;
+nav ul li a:hover:not(.logout-button) {
+  background-color: #000e89;
+  color: yellow;
+  font-weight: bold;
   border-radius: 5px;
 }
 
+.logout-button {
+  background-color: #ff4d4d; /* red background */
+  color: white;               /* white text */
+  padding: 8px 12px;         /* padding */
+  border: none;              /* no border */
+  border-radius: 5px;        /* rounded corners */
+  cursor: pointer;           /* pointer cursor on hover */
+  font-weight: bold;
+}
+
 @media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+
   nav ul {
     flex-direction: column;
     align-items: center;
   }
-}
 
+  .logo-container {
+    margin-bottom: 10px;
+  }
+}

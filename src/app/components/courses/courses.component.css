@@ -1,10 +1,10 @@
 /* Overall container styling */
 .container {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 1000px;
+  margin: 20px auto;
   padding: 20px;
   background-color: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -16,56 +16,128 @@ h2 {
   margin-bottom: 20px;
 }
 
-/* Center the "Create New Course" link/button */
-.create-course-btn {
-  display: block;
-  width: 200px;
-  padding: 12px;
-  font-size: 1.2rem;
-  background-color: #28a745;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-align: center;
-  margin: 0 auto 10px auto; /* centers horizontally and adds bottom margin */
-  transition: background-color 0.3s ease;
+.course-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
-.create-course-btn:hover {
-  background-color: #218838;
+/* Create New Course button */
+.create-course-btn {
+  background-color: #000e89;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  &:hover {
+    color: yellow;
+  }
+}
+
+/* .create-course-btn:hover {
+  background-color: yellow;
+  transform: scale(1.03);
 }
 
 .create-course-btn:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
-}
+} */
 
-/* Course list styling */
+/* Course list */
 .course-list {
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 .course-list h3 {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   margin-bottom: 15px;
+  text-align: center;
 }
 
 .course-list ul {
   list-style: none;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 .course-list li {
   background-color: #fff;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 6px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
 }
 
-.course-list li p {
-  margin: 5px 0;
+.course-list li:hover {
+  transform: translateY(-4px);
+}
+
+.course-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.course-description {
+  margin: 8px 0;
   font-size: 1rem;
+  text-align: justify;
   color: #333;
+}
+
+/* ------------------ RESPONSIVENESS ------------------ */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .container {
+    padding: 15px;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  .create-course-btn {
+    font-size: 1rem;
+    min-width: 180px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .container {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .create-course-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+
+  .course-list h3 {
+    font-size: 1.3rem;
+  }
+
+  .course-list ul {
+    grid-template-columns: 1fr;
+  }
+
+  .course-list li {
+    padding: 15px;
+  }
 }

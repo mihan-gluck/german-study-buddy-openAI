@@ -13,7 +13,6 @@ const transporter = require("../config/emailConfig");
 //const auth = require("../middleware/auth");
 const { verifyToken, isAdmin } = require('../middleware/auth'); 
 const checkRole = require("../middleware/checkRole");
-
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // ✅ Reg No generation for different roles
@@ -46,7 +45,7 @@ async function generateRegNo(role) {
   return prefix + String(nextNumber).padStart(3, "0");
 }
 
-
+//Password generation
 async function generatePassword(role, regNo) {
   // map roles to prefixes
   const prefixMap = {
@@ -250,6 +249,18 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+// ✅ Logout
+router.post("/logout", (req, res) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: false, // set true in production with HTTPS
+    sameSite: "Lax",
+  });
+  return res.json({ msg: "Logged out successfully" });
+});
+
+
 // ✅ Profile route
 router.get("/profile", verifyToken, async (req, res) => {
   try {
@@ -261,6 +272,8 @@ router.get("/profile", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
 
 // ✅ Protected role-based routes
 router.get("/protected", verifyToken, (req, res) => {

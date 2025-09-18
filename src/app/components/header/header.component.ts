@@ -22,17 +22,19 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // ✅ Ask backend who the user is
-    this.authService.getUserProfile().subscribe({
-      next: (user) => {
+    // Subscribe to user state
+    this.authService.currentUser$.subscribe((user) => {
+      if (user) {
         this.isAuthenticated = true;
-        this.userRole = user.role;
-      },
-      error: () => {
+        this.userRole = user.role?.toUpperCase();
+      } else {
         this.isAuthenticated = false;
         this.userRole = null;
       }
     });
+
+    // On app start, check if session exists
+    this.authService.refreshUserProfile().subscribe();
   }
 
   // ✅ Logout: clears cookie in backend

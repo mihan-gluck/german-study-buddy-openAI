@@ -80,61 +80,34 @@ h2, h3 {
   }
 }
 
-/* ====== Bulk Assignment & Reset Buttons ====== */
-.bulk-assign,
-.reset-usage {
-  margin-bottom: 15px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.bulk-assign button,
-.reset-usage button {
-  background-color: #405980;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s ease;
-}
-
-.bulk-assign button:hover,
-.reset-usage button:hover {
-  background-color: #2f4362;
-}
-
 /* ====== Students Table ====== */
-.students-table-container {
+.teachers-table-container {
   width: 100%;
   overflow-x: auto;
 }
 
-.students-table {
+.teachers-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.students-table th,
-.students-table td {
+.teachers-table th,
+.teachers-table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   text-align: left;
   font-size: 14px;
 }
 
-.students-table th {
+.teachers-table th {
   background-color: #405980;
   color: white;
   font-weight: 500;
 }
 
-.students-table tr:hover {
+.teachers-table tr:hover {
   background-color: #f1f1f1;
 }
 
@@ -143,7 +116,7 @@ h2, h3 {
   h2, h3 {
     font-size: 1.3rem;
   }
-  .students-table td, .students-table th {
+  .teachers-table td, .teachers-table th {
     font-size: 13px;
     padding: 6px;
   }
@@ -162,21 +135,21 @@ h2, h3 {
 
 /* ====== Mobile Friendly Table ====== */
 @media (max-width: 768px) {
-  .students-table,
-  .students-table thead,
-  .students-table tbody,
-  .students-table th,
-  .students-table td,
-  .students-table tr {
+  .teachers-table,
+  .teachers-table thead,
+  .teachers-table tbody,
+  .teachers-table th,
+  .teachers-table td,
+  .teachers-table tr {
     display: block;
     width: 100%;
   }
 
-  .students-table thead {
+  .teachers-table thead {
     display: none; /* hide table headers */
   }
 
-  .students-table tr {
+  .teachers-table tr {
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -184,7 +157,7 @@ h2, h3 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 
-  .students-table td {
+  .teachers-table td {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -194,12 +167,12 @@ h2, h3 {
     font-size: 14px;
   }
 
-  .students-table td:last-child {
+  .teachers-table td:last-child {
     border-bottom: none;
   }
 
   /* Show column name before value */
-  .students-table td::before {
+  .teachers-table td::before {
     content: attr(data-label);
     font-weight: 600;
     color: #405980;
@@ -208,7 +181,7 @@ h2, h3 {
     padding-right: 10px;
   }
 
-  .students-table td span {
+  .teachers-table td span {
     flex: 2;
     text-align: right;
   }
