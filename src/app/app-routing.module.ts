@@ -71,6 +71,23 @@ export const routes: Routes = [
   { path: 'subscriptions', loadComponent: () => import('./components/subscriptions/subscriptions.component').then(m => m.SubscriptionsComponent), canActivate: [AuthGuard] },
   { path: 'ai-conversations', loadComponent: () => import('./components/ai-conversations/ai-conversations.component').then(m => m.AiConversationsComponent), canActivate: [AuthGuard] },
 
+  { path: 'time-table', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+
+  { 
+    path: 'time-table-view-admin', 
+    loadComponent: () => import('./components/time-table/time-table-view.component')
+                        .then(m => m.TimeTableViewComponent), 
+    canActivate: [AuthGuard, RoleGuard], 
+    data: { role: 'ADMIN' }
+  },
+  { 
+    path: 'time-table-view-student', 
+    loadComponent: () => import('./components/time-table/time-table-view.component')
+                        .then(m => m.TimeTableViewComponent), 
+    canActivate: [AuthGuard, RoleGuard], 
+    data: { role: 'STUDENT' }
+  },
+
 
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }

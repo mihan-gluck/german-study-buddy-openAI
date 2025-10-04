@@ -106,7 +106,7 @@ export class StudentDashboardComponent implements OnInit {
 
   userProfile: any = null;
 
-  basicUser: { name: string; email: string; level?: string } | null = null;  // From token
+  basicUser: { name: string; email: string; level?: string; elevenLabsWidgetLink?: string; } | null = null;  // From token
 
   courseProgressList: CourseProgress[] = [];
 
@@ -142,12 +142,14 @@ export class StudentDashboardComponent implements OnInit {
   usage: ElevenLabsUsageData | null = null;
 
   characterCount: number = 0;
-  characterLimit: number = 0;
+  characterLimit: number = 100000;
   remainingMinutes: number = 0;
+  planUpgradeDate: string = '';
+  remainingDays: number = 0;
 
   constructor(
     private renderer: Renderer2,
-    @Inject(DOCUMENT) private document: Document,
+    //@Inject(DOCUMENT) private document: Document,
     private http: HttpClient,
     private feedbackService: FeedbackService,
     public authService: AuthService,
@@ -169,6 +171,8 @@ ngOnInit(): void {
       this.fetchUserProfile();
       this.loadElevenLabsCourses();
       this.loadElevenLabsUsage();
+
+      console.log('Basic User Info from Token:', this.basicUser);
 
       this.elevenLabsUsageService.getUsage().subscribe({
         next: (res) => console.log('✅ Usage Response:', res),
@@ -312,6 +316,7 @@ loadFeedback(studentId: string): void {
       next: (res: any) => {
         this.userProfile = res.user; // <-- assign the nested user object
         const preferredAgent = this.userProfile?.preferredVoiceAgent;
+        console.log('User Profile:', this.userProfile);
 
         if (preferredAgent === 'vapi' && this.userProfile?.vapiAccess?.assistantId && this.userProfile?.vapiAccess?.apiKey) {
           this.voiceAgentService.loadVapi(this.userProfile.vapiAccess.assistantId, this.userProfile.vapiAccess.apiKey);
@@ -396,11 +401,18 @@ loadFeedback(studentId: string): void {
           if (res && res.voices && res.voices.subscription) {
             const subscription = res.voices.subscription;
             this.characterCount = subscription.character_count || 0;
-            this.characterLimit = subscription.character_limit || 0;
+
+            this.planUpgradeDate = subscription.next_character_count_reset_unix
+            ? new Date(subscription.next_character_count_reset_unix * 1000)
+            .toISOString()
+            .slice(0, 10)  // take only YYYY-MM-DD
+            : '';
+
+            this.remainingDays = this.planUpgradeDate ? Math.ceil((new Date(this.planUpgradeDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0; 
 
             const remaining = this.characterLimit - this.characterCount;
             this.remainingMinutes = this.characterLimit
-              ? Math.floor((remaining / this.characterLimit) * 15)
+              ? Math.floor((remaining / this.characterLimit) * 250)
               : 0;
 
           }

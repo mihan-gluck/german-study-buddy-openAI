@@ -1,0 +1,154 @@
+<!-- time-table.component.html -->
+<div class="container min-vh-100 d-flex justify-content-center align-items-center px-4">
+  <div class="card shadow-lg p-4 w-100" style="max-width: 600px;">
+    <h2 class="text-center text-primary mb-4">Create Time Table</h2>
+
+    <form (ngSubmit)="createTimeTable()" #timeTableForm="ngForm">
+
+        <div class="row">
+        <!-- Week Start Date -->
+        <div class="col-md-6 mb-3">
+            <label for="weekStartDate" class="form-label">Week Start Date</label>
+            <input
+            type="date"
+            id="weekStartDate"
+            name="weekStartDate"
+            [(ngModel)]="timeTable.weekStartDate"
+            required
+            class="form-control"
+            />
+        </div>
+
+        <!-- Week End Date -->
+        <div class="col-md-6 mb-3">
+            <label for="weekEndDate" class="form-label">Week End Date</label>
+            <input
+            type="date"
+            id="weekEndDate"
+            name="weekEndDate"
+            [(ngModel)]="timeTable.weekEndDate"
+            required
+            class="form-control"
+            />
+        </div>
+        </div>
+
+      <!-- Batch -->
+      <div class="mb-3">
+        <label for="batch" class="form-label">Batch</label>
+        <input
+          type="text"
+          id="batch"
+          name="batch"
+          [(ngModel)]="timeTable.batch"
+          required
+          placeholder="Enter batch name"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Medium -->
+      <div class="mb-3">
+        <label for="medium" class="form-label">Medium</label>
+        <select
+          id="medium"
+          name="medium"
+          [(ngModel)]="medium"
+          (change)="loadTeachers()"
+          required
+          class="form-select"
+        >
+          <option value="Tamil">Tamil</option>
+          <option value="Sinhala">Sinhala</option>
+        </select>
+      </div>
+
+      <!-- Plan -->
+      <div class="mb-3">
+        <label for="plan" class="form-label">Plan</label>
+        <select
+          id="plan"
+          name="plan"
+          [(ngModel)]="timeTable.plan"
+          required
+          class="form-select"
+        >
+          <option value="Tamil">PLATINUM</option>
+          <option value="Sinhala">SILVER</option>
+        </select>
+      </div>
+
+      <!-- Assign Teacher -->
+      <div class="mb-3">
+        <label for="assignedTeacher" class="form-label">Assign Teacher</label>
+        <select
+          id="assignedTeacher"
+          name="assignedTeacher"
+          [(ngModel)]="timeTable.assignedTeacher"
+          required
+          class="form-select"
+        >
+          <option *ngFor="let teacher of teachers" [value]="teacher._id">
+            {{ teacher.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Time Slots for Each Day -->
+      <div class="mb-3" *ngFor="let day of daysOfWeek">
+        <label class="form-label text-capitalize">{{ day }}</label>
+
+        <!-- Existing Slots -->
+        <div *ngFor="let slot of timeTable[day]; let i = index" class="d-flex mb-2">
+          <input
+            type="time"
+            [(ngModel)]="slot.start"
+            [name]="day + '_start_' + i"
+            required
+            class="form-control me-2"
+          />
+          <input
+            type="time"
+            [(ngModel)]="slot.end"
+            [name]="day + '_end_' + i"
+            required
+            class="form-control me-2"
+          />
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="removeTimeSlot(day, i)"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Add Slot Button -->
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm"
+          (click)="addTimeSlot(day)"
+        >
+          + Add Slot
+        </button>
+      </div>
+
+      <!-- Error / Success Messages -->
+      <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+        {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="alert alert-success mt-3">
+        {{ successMessage }}
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        [disabled]="!timeTableForm.form.valid || isLoading"
+        class="btn btn-primary w-100 py-2 mt-3"
+      >
+        {{ isLoading ? 'Saving...' : 'Create Time Table' }}
+      </button>
+    </form>
+  </div>
+</div>

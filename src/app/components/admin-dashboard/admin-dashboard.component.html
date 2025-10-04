@@ -64,6 +64,7 @@
         <!-- <th>Accent</th> -->
         <!-- <th>Overall CFBR</th> -->
         <th>Bot Remaining Minutes</th>
+        <th>Remaining Days</th>
         <th>Subscription Update Date</th>
         <!-- <th>ElevenLabs Link</th>
         <th>Course Progress</th>
@@ -98,6 +99,7 @@
         <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td> -->
         <!-- <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td> -->
         <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes || 'N/A' }}</td>
+        <td data-label="Remaining Days">{{ student.remainingDays || 'N/A' }}</td>
         <td data-label="Subscription Update Date">{{ student.planUpgradeDate || 'N/A' }}</td>
 
         <!-- ElevenLabs column

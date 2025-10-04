@@ -148,6 +148,11 @@
   font-size: 0.95rem;
 }
 
+.warning {
+  color: red;
+  font-weight: bold;
+}
+
 /* Material buttons */
 .mat-raised-button,
 .mat-stroked-button {

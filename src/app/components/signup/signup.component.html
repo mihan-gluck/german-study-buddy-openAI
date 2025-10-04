@@ -39,7 +39,7 @@
       <!-- Email -->
       <div class="mb-3">
         <label for="email" class="form-label">
-          {{ role === 'ADMIN' || role === 'TEACHER' ? 'Email Address' : 'Zoho Mail Address' }}
+          {{ role === 'ADMIN' || role === 'TEACHER' ? 'Email Address' : 'Email' }}
         </label>
         <input
           type="email"
@@ -189,11 +189,6 @@
         Register
       </button>
     </form>
-
-    <!-- Login Link -->
-    <p class="text-center text-muted mt-3">
-      Already have an account? <a routerLink="/auth/login" class="text-primary">Log In</a>
-    </p>
   </div>
 </div>
 

@@ -15,6 +15,7 @@
       <li><a (click)="navigateTo('/courses')" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Courses</a></li>
       <li><a (click)="navigateTo('/teachers')" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>
       <li><a (click)="openInternalReports()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
+      <li><a (click)="navigateTo(userRole === 'ADMIN' ? '/time-table-view-admin' : '/time-table-view-student')">Time Table</a></li>
       <li><a (click)="openStudentReports()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
       <li><a (click)="openStudentFeedback()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Feedback</a></li>
       <li><a (click)="navigateTo('/teacher-dashboard')" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>

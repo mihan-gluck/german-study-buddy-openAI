@@ -60,6 +60,14 @@ export class AuthService {
   }
 
 
+  // ✅ Get teachers for a specific level and medium
+  getTeachersByMedium(medium: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/auth/teachersByMedium`, {
+      params: { medium }, withCredentials: true
+    });
+  }
+
+
   signup(user: { 
     name: string, 
     email: string, 
@@ -115,29 +123,6 @@ export class AuthService {
   isLoggedIn(): boolean {
     return this.currentUserSubject.value !== null;
   }
-
-  // getUserRole(): string | null {
-  //   const token = this.getToken();
-  //   if (!token) return null;
-  //   try {
-  //     const payload = JSON.parse(atob(token.split('.')[1]));
-  //     return payload.role;
-  //   } catch {
-  //     return null;
-  //   }
-  // }
-
-  // isTokenExpired(): boolean {
-  //   const token = this.getToken();
-  //   if (!token) return true;
-  //   try {
-  //     const payload = JSON.parse(atob(token.split('.')[1]));
-  //     const expiry = payload.exp * 1000;
-  //     return Date.now() > expiry;
-  //   } catch {
-  //     return true;
-  //   }
-  // }
 
   // Logout
   logout(): Observable<any> {

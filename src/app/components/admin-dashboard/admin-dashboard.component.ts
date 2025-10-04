@@ -62,6 +62,7 @@ interface Student {
 
   remainingMinutes?: number;
   planUpgradeDate?: string;
+  remainingDays?: number;
 }
 
 interface FeedbackEntry {
@@ -437,7 +438,7 @@ fetchStudents(): void {
           const remaining = characterLimit - characterCount;
 
           student.remainingMinutes = characterLimit
-            ? Math.floor((remaining / characterLimit) * 15)
+            ? Math.floor((remaining / characterLimit) * 250)
             : 0;
 
           student.planUpgradeDate = subscription.next_character_count_reset_unix
@@ -445,6 +446,10 @@ fetchStudents(): void {
             .toISOString()
             .slice(0, 10)  // take only YYYY-MM-DD
           : undefined;
+
+          student.remainingDays = student.planUpgradeDate
+            ? Math.ceil((new Date(student.planUpgradeDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+            : undefined;
 
           console.log(`✅ Processed usage for ${student.name}:`, {
             remainingMinutes: student.remainingMinutes,

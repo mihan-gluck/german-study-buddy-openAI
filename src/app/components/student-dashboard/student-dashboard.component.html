@@ -25,17 +25,19 @@
     <!-- </section> -->
 
     <!-- ElevenLabs Courses -->
-    <mat-card class="course-card" *ngIf="userProfile?.subscription === 'PLATINUM'">
+    <mat-card class="course-card">
     <mat-card-title><h3>Start Learning</h3></mat-card-title>
       <mat-card-content>
         <p>Jump straight into your German conversation practice.</p>
-        <h6>You have remaining {{ remainingMinutes }} minutes of practice time.</h6>
-
-        <!-- ElevenLabs Widget -->
-        <elevenlabs-convai 
-          [attr.agent-id]="userProfile?.elevenLabsWidgetLink" 
-        >
-        </elevenlabs-convai>
+        <p>
+          You have 
+          <strong [ngClass]="{ 'warning': remainingMinutes > 125 && remainingDays < 7 }">
+            {{ remainingMinutes }}
+          </strong> minutes of practice time, and 
+          <strong>{{ remainingDays }}</strong> 
+          {{ remainingDays > 1 ? 'days' : 'day' }} remaining. 
+          Please use them before <strong>{{ planUpgradeDate }}</strong>.
+        </p>
       </mat-card-content>
     </mat-card>
 
@@ -75,6 +77,12 @@
         <p>{{ course.progress }}%</p>
       </mat-card>
     </section>
+
+    <!-- ElevenLabs Widget -->
+        <elevenlabs-convai 
+          [attr.agent-id]="basicUser?.elevenLabsWidgetLink" 
+        >
+        </elevenlabs-convai>
 
     <!-- Feedback Table -->
     <section *ngIf="feedbackList.length > 0" class="feedback-table-section">

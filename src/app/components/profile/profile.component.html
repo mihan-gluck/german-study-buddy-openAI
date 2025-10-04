@@ -24,6 +24,9 @@
       <p *ngIf="userProfile.role === 'STUDENT'">
         <strong>Subscription Plan:</strong> {{ userProfile.subscription }}
       </p>
+      <p *ngIf="userProfile.role === 'STUDENT'">
+        <strong>Teacher Name:</strong> {{ userProfile.assignedTeacher?.name }}
+      </p>
     </div>
 
     <form (submit)="uploadPhoto($event)" class="upload-form">

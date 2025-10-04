@@ -101,6 +101,32 @@ router.get("/teachers", async (req, res) => {
   }
 });
 
+// ✅ Get teachers by student medium
+router.get("/teachersByMedium", async (req, res) => {
+  try {
+    const { medium } = req.query;
+
+    if (!medium) {
+      return res.status(400).json({ msg: "Medium is required" });
+    }
+
+    const teachers = await User.find({
+      role: "TEACHER",
+      medium: medium
+    }).select("name email regNo medium assignedCourses");
+
+    if (!teachers || teachers.length === 0) {
+      return res.status(404).json({ msg: "No teachers found for this medium" });
+    }
+
+    res.json(teachers);
+  } catch (err) {
+    console.error("Error fetching teachers:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
@@ -264,8 +290,20 @@ router.post("/logout", (req, res) => {
 // ✅ Profile route
 router.get("/profile", verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    let query = User.findById(req.user.id).select("-password");
+
+    // If the logged-in user is a student → populate teacher info
+    if (req.user.role === "STUDENT") {
+      query = query.populate("assignedTeacher", "name email"); 
+      // 👆 populate assignedTeacher with only name & email fields
+    }
+
+    const user = await query;
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.json(user);
   } catch (err) {
     console.error("Error fetching profile:", err);

@@ -27,6 +27,7 @@ const feedbackRoutes = require('./routes/feedback');
 const vapiUsageRoutes = require('./routes/vapiUsage');
 const elevenlabsUsageRoutes = require('./routes/elevenlabsusage');
 const profilePicUploadRoutes = require('./routes/profile');
+const timeTableRoutes = require('./routes/timeTable');
 
 const app = express();
 const cookieParser = require('cookie-parser');
@@ -80,7 +81,7 @@ app.use('/api/protected', roleProtectedRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/vapiUsage', vapiUsageRoutes);
 app.use('/api/elevenlabs-usage', elevenlabsUsageRoutes);
-
+app.use('/api/timeTable', timeTableRoutes);
 
 
 // Protected user profile route

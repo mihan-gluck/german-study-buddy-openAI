@@ -71,4 +71,5 @@ export class HeaderComponent implements OnInit {
   openStudentFeedback() {
     window.open('https://docs.google.com/spreadsheets/d/1Wb3xMBUJeATQxSaAUFdIIB-F2p2Rrlo1vII5iO2nVZg/edit?usp=sharing');
   }
+
 }
