@@ -253,4 +253,71 @@ cron.schedule("*/1 * * * *", async () => {
   }
 });
 
+// ✅ Get a timetable by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const timeTable = await TimeTable.findById(req.params.id);
+    if (!timeTable) {
+      return res.status(404).json({ message: "Time table not found." });
+    }
+    res.status(200).json(timeTable);
+  } catch (error) {
+    console.error("❌ Error fetching timetable:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+
+// ✅ Update timetable by ID
+router.put("/:id", async (req, res) => {
+  try {
+    const {
+      batch,
+      medium,
+      plan,
+      weekStartDate,
+      weekEndDate,
+      assignedTeacher,
+      monday = [],
+      tuesday = [],
+      wednesday = [],
+      thursday = [],
+      friday = [],
+      saturday = [],
+      sunday = []
+    } = req.body;
+
+    const updatedTimeTable = await TimeTable.findByIdAndUpdate(
+      req.params.id,
+      {
+        batch,
+        medium,
+        plan,
+        weekStartDate,
+        weekEndDate,
+        assignedTeacher,
+        monday,
+        tuesday,
+        wednesday,
+        thursday,
+        friday,
+        saturday,
+        sunday
+      },
+      { new: true } // Return updated document
+    );
+
+    if (!updatedTimeTable) {
+      return res.status(404).json({ message: "Time table not found." });
+    }
+
+    console.log("✅ Timetable updated:", updatedTimeTable);
+    res.status(200).json({ message: "Time table updated successfully.", data: updatedTimeTable });
+  } catch (error) {
+    console.error("❌ Error updating timetable:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+
 module.exports = router;

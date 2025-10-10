@@ -26,5 +26,9 @@ export class TeacherService {
     // const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.get<any>(`${this.baseUrl}/students`, { withCredentials: true});
   }
+  
+  getTeacherById(teacherId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${teacherId}`, { withCredentials: true });
+  }
 
 }

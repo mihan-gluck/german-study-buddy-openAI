@@ -37,11 +37,17 @@ nav ul li {
   padding: 5px;
 }
 
+a{
+  cursor: pointer;
+}
+
 nav a {
   color: white;
   text-decoration: none;
   padding: 10px;
   font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 nav ul li a:hover:not(.logout-button) {

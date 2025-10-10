@@ -53,6 +53,22 @@
         </td>
 
         <td data-label="Medium">{{ teacher.medium || 'N/A' }}</td>
+
+                <td data-label="Actions">
+          <button 
+            class="btn btn-outline-primary btn-sm"
+            [routerLink]="['/signup', teacher._id]"
+          >
+            Update
+          </button>
+        </td>
+        <td data-label="Delete"> 
+          <button
+            class="btn btn-outline-danger btn-sm"
+            (click)="deleteUser(teacher._id)">
+            Delete
+          </button>
+        </td>
       </tr>
     </tbody>
   </table>

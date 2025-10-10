@@ -66,16 +66,21 @@
         />
       </div>
 
-      <!--Assign Courses for Teacher-->
-      <div *ngIf="role === 'TEACHER'">
-        <label>Assign Courses</label>
-        <div *ngFor="let course of courses">
-          <input type="checkbox" 
-                [value]="course._id" 
-                (change)="onCourseChange($event, course._id)">
-          {{ course.title }}
+      <!-- Assign Courses for Teacher -->
+      <div *ngIf="role === 'TEACHER'" class="assign-courses-section">
+        <label class="form-label mb-2">Assign Courses</label>
+        <div class="course-list">
+          <div class="course-item" *ngFor="let course of courses">
+            <input 
+              type="checkbox"
+              [value]="course._id"
+              (change)="onCourseChange($event, course._id)"
+              id="{{course._id}}"
+            />
+            <label [for]="course._id">{{ course.title }}</label>
+          </div>
         </div>
-        <small>Select one or more courses</small>
+        <small class="text-muted">Select one or more courses</small>
       </div>
 
 
@@ -92,6 +97,7 @@
         >
           <option value="Tamil">Tamil</option>
           <option value="Sinhala">Sinhala</option>
+          <option value="Malayalam">Malayalam</option>
         </select>
 
       </div>
@@ -186,7 +192,7 @@
         [disabled]="!signupForm.form.valid"
         class="btn btn-primary w-100 py-2"
       >
-        Register
+        {{ isEditMode ? 'Update' : 'Register' }}
       </button>
     </form>
   </div>

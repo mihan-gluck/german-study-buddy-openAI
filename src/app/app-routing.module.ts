@@ -28,6 +28,8 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./components/signup/signup.component').then(m => m.SignupComponent) },
 
+  { path: 'signup/:id', loadComponent: () => import('./components/signup/signup.component').then(m => m.SignupComponent) },
+
   // AI Chat route (standalone, no guard)
   { path: 'ai-chat', loadComponent: () => import('./components/ai-chat/ai-chat.component').then(m => m.AiChatComponent) },
 
@@ -72,6 +74,8 @@ export const routes: Routes = [
   { path: 'ai-conversations', loadComponent: () => import('./components/ai-conversations/ai-conversations.component').then(m => m.AiConversationsComponent), canActivate: [AuthGuard] },
 
   { path: 'time-table', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+
+  { path: 'time-table/:id', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
   { 
     path: 'time-table-view-admin', 

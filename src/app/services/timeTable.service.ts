@@ -50,4 +50,15 @@ export class TimeTableService {
     const params = { batch, medium, plan };
     return this.http.get<TimeTable[]>(`${this.apiUrl}/forStudent`, { params, withCredentials: true });
   }
+
+  getTimeTableById(id: string) {
+    return this.http.get<TimeTable>(`${this.apiUrl}/${id}`);
+  }
+
+  updateTimeTable(id: string, timeTable: TimeTable) {
+    return this.http.put(`${this.apiUrl}/${id}`, timeTable);
+  }
+
 }
+
+

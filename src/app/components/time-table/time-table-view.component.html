@@ -14,34 +14,45 @@
         <th *ngIf="userRole === 'ADMIN'">Batch</th>
         <th *ngIf="userRole === 'ADMIN'">Medium</th>
         <th *ngIf="userRole === 'ADMIN'">Plan</th>
+        <th *ngIf="userRole === 'ADMIN'">Assigned Teacher</th>
         <th *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']">
           {{ day | titlecase }}
         </th>
       </tr>
-    </thead>
-    <tbody>
-      <ng-container *ngFor="let weekGroup of groupByWeek(timeTables, userRole === 'STUDENT')">
-        <ng-container *ngFor="let tt of weekGroup.items; let i = index">
-          <tr>
-            <td *ngIf="i === 0" [attr.rowspan]="weekGroup.items.length">
-              {{ tt.weekStartDate | date:'M/d/yy' }} - {{ tt.weekEndDate | date:'M/d/yy' }}
-            </td>
-
-            <!-- Only show these columns for ADMIN -->
-            <td *ngIf="userRole === 'ADMIN'">{{ tt.batch }}</td>
-            <td *ngIf="userRole === 'ADMIN'">{{ tt.medium }}</td>
-            <td *ngIf="userRole === 'ADMIN'">{{ tt.plan }}</td>
-
-            <!-- Days -->
-            <td *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']">
-              <ng-container *ngIf="tt[day] && tt[day].length > 0; else noSlot">
-                <div *ngFor="let slot of tt[day]">
-                  {{ slot.start }} - {{ slot.end }}
-                </div>
-              </ng-container>
-              <ng-template #noSlot>-</ng-template>
-            </td>
-          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let weekGroup of groupByWeek(timeTables, userRole === 'STUDENT')">
+            <ng-container *ngFor="let tt of weekGroup.items; let i = index">
+              <tr>
+                <td *ngIf="i === 0" [attr.rowspan]="weekGroup.items.length" data-label="Week Period">
+                  <span>{{ tt.weekStartDate | date:'M/d/yy' }} - {{ tt.weekEndDate | date:'M/d/yy' }}</span>
+                </td>
+                <td *ngIf="userRole === 'ADMIN'" data-label="Batch"><span>{{ tt.batch }}</span></td>
+                <td *ngIf="userRole === 'ADMIN'" data-label="Medium"><span>{{ tt.medium }}</span></td>
+                <td *ngIf="userRole === 'ADMIN'" data-label="Plan"><span>{{ tt.plan }}</span></td>
+                <td *ngIf="userRole === 'ADMIN'" data-label="Assigned Teacher">
+                  <span>{{ teachersCache[tt.assignedTeacher] || 'Loading...' }}</span>
+                </td>
+                <td *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']" 
+                    [attr.data-label]="day | titlecase">
+                  <span>
+                    <ng-container *ngIf="tt[day] && tt[day].length > 0; else noSlot">
+                      <div *ngFor="let slot of tt[day]">
+                        {{ slot.start }} - {{ slot.end }}
+                      </div>
+                    </ng-container>
+                    <ng-template #noSlot>-</ng-template>
+                  </span>
+                </td>
+                <td *ngIf="userRole === 'ADMIN'" data-label="Actions">
+                  <button 
+                    class="btn btn-outline-primary btn-sm"
+                    [routerLink]="['/time-table', tt._id]"
+                  >
+                    Update
+                  </button>
+                </td>
+              </tr>
         </ng-container>
       </ng-container>
     </tbody>

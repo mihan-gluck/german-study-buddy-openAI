@@ -84,6 +84,39 @@ router.get('/students', verifyToken, async (req, res) => {
 });
 
 
+// GET /api/teacher/:teacherId  →  Fetch teacher details by ID
+router.get('/:teacherId', verifyToken, async (req, res) => {
+  try {
+    const teacherId = req.params.teacherId;
+
+    // Find teacher by ID
+    const teacher = await User.findOne({ _id: teacherId, role: 'TEACHER' }).select('-password');
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        _id: teacher._id,
+        name: teacher.name,
+      }
+      
+    });
+
+  } catch (err) {
+    console.error('Error fetching teacher by ID:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teacher details',
+      error: err.message
+    });
+  }
+});
+
+
+
 module.exports = router;
 
 

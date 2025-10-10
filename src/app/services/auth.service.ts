@@ -12,6 +12,24 @@ interface DecodeToken {
   level?: string;
 }
 
+interface User {
+  _id?: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'TEACHER' | 'STUDENT';
+  batch?: string;
+  medium?: string;
+  subscription?: string;
+  level?: string;
+  conversationId?: string;
+  elevenLabsWidgetLink?: string;
+  elevenLabsApiKey?: string;
+  assignedCourses?: string[];   // for TEACHER
+  assignedTeacher?: string;      // for STUDENT (teacher _id)
+  profilePhotoUrl?: string;      // URL to profile photo
+  [key: string]: any;            // Allow additional properties
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -152,6 +170,18 @@ export class AuthService {
     // Backend endpoint for photo upload — adjust if needed
     return this.http.post(`${this.apiUrl}/profile/upload-photo`, formData, { withCredentials: true });
   } 
+
+  getUserById(id: string) {
+    return this.http.get<User>(`${this.apiUrl}/auth/${id}`, { withCredentials: true });
+  }
+
+  updateUser(id: string, user: User) {
+    return this.http.put(`${this.apiUrl}/auth/${id}`, user, { withCredentials: true });
+  }
+
+  deleteUser(id: string) {
+    return this.http.delete(`${this.apiUrl}/auth/${id}`, { withCredentials: true });
+  }
 
 
 

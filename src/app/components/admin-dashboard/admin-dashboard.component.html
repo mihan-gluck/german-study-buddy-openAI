@@ -20,27 +20,8 @@
 
   <input type="number" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
 
-    <!-- <select [(ngModel)]="filters.batch" (change)="applyFilters()">
-      <option value="">All Status</option>
-      <option value="active">Active</option>
-      <option value="paused">Paused</option>
-      <option value="finished">Finished</option>
-    </select> -->
-
   </div>
 
-  <!-- Bulk assignment
-  <div class="bulk-assign">
-    <input type="text" placeholder="Course Name" [(ngModel)]="bulkCourseName">
-    <input type="text" placeholder="Assistant ID" [(ngModel)]="bulkAssistantId">
-    <input type="text" placeholder="API Key" [(ngModel)]="bulkApiKey">
-    <button (click)="bulkAssign()">Bulk Assign</button>
-  </div> -->
-
-  <!-- Reset Monthly Usage
-  <div class="reset-usage">
-    <button (click)="resetMonthlyUsage()">Reset Monthly Usage</button>
-  </div> -->
 
   <div class="add-user">
     <button class="add-user-btn" routerLink="/signup">Add New User</button>
@@ -54,31 +35,21 @@
         <th>Name</th>
         <th>Email</th>
         <th>Plan</th>
+        <th>Medium</th>
         <th>Batch</th>
         <th>Level</th>
         <th>Assigned Teacher</th>
-        <!-- <th>Course</th> -->
-        <!-- <th>VAPI Status</th> -->
-        <!-- <th>Fluency</th> -->
-        <!-- <th>Grammar</th> -->
-        <!-- <th>Accent</th> -->
-        <!-- <th>Overall CFBR</th> -->
         <th>Bot Remaining Minutes</th>
         <th>Remaining Days</th>
         <th>Subscription Update Date</th>
-        <!-- <th>ElevenLabs Link</th>
-        <th>Course Progress</th>
-        <th>Feedback</th> -->
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let student of filteredStudents; trackBy: trackById">
-        <!-- <td>
-          <input type="checkbox" [checked]="selectedStudentIds.has(student._id)" (change)="toggleStudentSelection(student._id)">
-        </td> -->
         <td data-label="Name">{{ student.name }}</td>
         <td data-label="Email">{{ student.email }}</td>
         <td data-label="Plan">{{student.subscription}}</td>
+        <td data-label="Medium">{{ student.medium || 'N/A' }}</td>
         <td data-label="Batch">{{ student.batch || 'N/A' }}</td>
         <td data-label="Level">{{ student.level || 'N/A' }}</td>
         <td data-label="Assigned Teacher">{{ student.assignedTeacher?.name || 'N/A' }}</td>
@@ -101,6 +72,21 @@
         <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes || 'N/A' }}</td>
         <td data-label="Remaining Days">{{ student.remainingDays || 'N/A' }}</td>
         <td data-label="Subscription Update Date">{{ student.planUpgradeDate || 'N/A' }}</td>
+        <td data-label="Actions">
+          <button 
+            class="btn btn-outline-primary btn-sm"
+            [routerLink]="['/signup', student._id]"
+          >
+            Update
+          </button>
+        </td>
+        <td data-label="Delete"> 
+          <button
+            class="btn btn-outline-danger btn-sm"
+            (click)="deleteUser(student._id)">
+            Delete
+          </button>
+        </td>
 
         <!-- ElevenLabs column
         <td>

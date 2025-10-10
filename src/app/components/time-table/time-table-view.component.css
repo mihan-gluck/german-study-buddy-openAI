@@ -1,44 +1,47 @@
+/* ====== Container ====== */
 .timetable-container {
   padding: 20px;
-  overflow-x: auto;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto; /* always allow horizontal scroll if needed */
+  padding-bottom: 15%;
 }
 
-.title {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 24px;
-  font-weight: 600;
-  color: black;
-}
-
+/* ====== Table for all screens ====== */
 .timetable {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
-  font-size: 14px;
+  font-size: 1rem;
+  min-width: 600px; /* ensures table scrolls if needed */
+}
+
+.title {
+  text-align: center;
+  color: black;
+  margin-bottom: 20px;
+  font-size: 2rem;
 }
 
 .timetable th,
 .timetable td {
   border: 1px solid #ccc;
-  padding: 8px 12px;
+  padding: 10px 12px;
   vertical-align: middle;
+  word-break: break-word;
 }
 
 .timetable th {
-  background-color: #3f51b5;
+  background-color: #405980;
   color: white;
+  font-weight: 600;
 }
 
 .timetable tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
-.timetable td {
-  min-width: 100px;
-}
-
-/* ====== Add timetable button ====== */
+/* ====== Add Timetable Button ====== */
 .add-timetable {
   display: flex;
   justify-content: flex-end;
@@ -49,28 +52,99 @@
   background-color: #000e89;
   color: white;
   border: none;
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.2s ease;
-  &:hover {
-    color: yellow;
-  }
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
+
+.add-timetable-btn:hover {
+  background-color: #3f51b5;
+  color: yellow;
+}
+
+/* ====== Mobile Table ====== */
 @media (max-width: 768px) {
+  .timetable {
+    min-width: unset; /* remove fixed min-width */
+    font-size: 0.9rem;
+  }
+
+  .timetable thead {
+    display: none; /* hide headers */
+  }
+
+  .timetable tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff;
+    box-sizing: border-box;
+  }
+
+  .timetable td {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 8px 5px;
+    border: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  .timetable td:last-child {
+    border-bottom: 0;
+  }
+
+  .timetable td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #3f51b5;
+    flex: 1 1 40%; /* label width */
+    margin-right: 5px;
+    text-align: left;
+  }
+
+  .timetable td span {
+    flex: 1 1 60%; /* content width */
+    text-align: right;
+  }
+
   .add-timetable {
     justify-content: center;
   }
+
+  .add-timetable-btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
 }
 
-@media (max-width: 768px) {
-  .timetable {
-    font-size: 12px;
+@media (max-width: 480px) {
+  .timetable-container {
+    padding: 10px;
   }
-  .timetable td,
-  .timetable th {
-    padding: 6px;
+
+  .timetable td::before {
+    flex: 1 1 100%;
+    margin-bottom: 3px;
+  }
+
+  .timetable td span {
+    flex: 1 1 100%;
+    text-align: left;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .add-timetable-btn {
+    padding: 6px 10px;
+    font-size: 0.85rem;
   }
 }

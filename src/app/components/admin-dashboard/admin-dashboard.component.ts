@@ -465,6 +465,22 @@ fetchStudents(): void {
     });
   }
 
+  deleteUser(id: string): void {
+    if (confirm('Are you sure you want to delete this user?')) {
+      this.authService.deleteUser(id).subscribe({
+        next: (response) => {
+          alert('User deleted successfully!');
+          console.log('Deleted:', response);
+          this.fetchStudents(); // Refresh your user list after deletion
+        },
+        error: (error) => {
+          alert('Failed to delete user: ' + (error.error?.message || 'Please try again.'));
+          console.error('Delete failed:', error);
+        }
+      });
+    }
+  }
+
 
   saveElevenLabsLink(student: any): void {
     this.http.put(`/api/admin/students/${student._id}/elevenlabs-link`, {

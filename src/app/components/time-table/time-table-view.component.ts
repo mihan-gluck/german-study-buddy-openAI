@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { TimeTableService } from '../../services/timeTable.service';
 import { AuthService } from '../../services/auth.service';
 import { StudentService } from '../../services/student.service';
+import { TeacherService } from '../../services/teacher.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -42,13 +43,15 @@ interface UserProfile {
 })
 export class TimeTableViewComponent implements OnInit {
   timeTables: TimeTable[] = [];
+  teachersCache: { [key: string]: string } = {}; // cache id => name
   userRole: string = '';
   userProfile?: UserProfile;
 
   constructor(
     private timeTableService: TimeTableService,
     private authService: AuthService,
-    private studentService: StudentService
+    private studentService: StudentService,
+    private teacherService: TeacherService,
   ) {}
 
   ngOnInit(): void {
@@ -74,23 +77,75 @@ export class TimeTableViewComponent implements OnInit {
     });
   }
 
-  // Admin - all timetables
+  // Admin - all timetables (✅ filtered by current month)
   private loadTimeTables(): void {
     this.timeTableService.getTimeTables().subscribe(
-      (data: TimeTable[]) => (this.timeTables = data),
+      (data: TimeTable[]) => {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        // ✅ Filter timetables for current month only
+        this.timeTables = data.filter((tt: any) => {
+          const startDate = new Date(tt.weekStartDate);
+          const endDate = new Date(tt.weekEndDate);
+          return (
+            (startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear) ||
+            (endDate.getMonth() === currentMonth && endDate.getFullYear() === currentYear)
+          );
+        });
+
+        this.preloadTeacherNames(this.timeTables); // ✅ preload teacher names
+      },
       (error) => console.error('Error fetching timetables', error)
     );
   }
 
-  // Student - only their timetable
+  // Student - only their timetable (✅ filtered by current month)
   private loadTimeTablesforStudent(batch: string, medium: string, plan: string): void {
     this.timeTableService.getTimeTablesbyBatchMediumPlan(batch, medium, plan).subscribe(
       (data: TimeTable[]) => {
         console.log('Student timetable fetched:', data);
-        this.timeTables = data;
+
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        // ✅ Filter timetables for current month only
+        this.timeTables = data.filter((tt: any) => {
+          const startDate = new Date(tt.weekStartDate);
+          const endDate = new Date(tt.weekEndDate);
+          return (
+            (startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear) ||
+            (endDate.getMonth() === currentMonth && endDate.getFullYear() === currentYear)
+          );
+        });
+
+        this.preloadTeacherNames(this.timeTables); // ✅ also preload for student timetables
       },
       (error) => console.error('Error fetching student timetable', error)
     );
+  }
+
+  // ✅ Preload teacher names (Option 2)
+  private preloadTeacherNames(timeTables: TimeTable[]): void {
+    const teacherIds = [...new Set(timeTables.map(tt => tt.assignedTeacher))];
+
+    teacherIds.forEach(id => {
+      if (!this.teachersCache[id]) {
+        this.teacherService.getTeacherById(id).subscribe({
+          next: (teacher) => {
+            // based on backend structure { success, data: { name } }
+            this.teachersCache[id] = teacher.data.name;
+          },
+          error: (err) => console.error('Error fetching teacher', err)
+        });
+      }
+    });
+  }
+
+  findTeacherByID(assignedTeacher: string): string {
+    return this.teachersCache[assignedTeacher] || 'Loading...';
   }
 
   groupByWeek(timeTables: TimeTable[], forStudent: boolean = false): { week: string; items: TimeTable[] }[] {
@@ -109,6 +164,6 @@ export class TimeTableViewComponent implements OnInit {
     }
 
     return Object.keys(groups).map(k => ({ week: k, items: groups[k] }));
-}
+  }
 
 }

@@ -2,8 +2,8 @@
 
 <header>
   <div class="logo-container">
-    <img src="assets/logo.avif" alt="Glück Global" class="company-logo">
-    <span class="logo-text">Glück Global</span>
+    <a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && userRole=== 'ADMIN'"><img src="assets/logo.avif" alt="Glück Global" class="company-logo">
+    <span class="logo-text">Glück Global</span></a>
   </div>
   <nav>
     <ul class="nav-links">

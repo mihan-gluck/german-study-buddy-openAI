@@ -312,6 +312,90 @@ router.get("/profile", verifyToken, async (req, res) => {
 });
 
 
+// ✅ Get a user by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("❌ Error fetching user:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+
+// ✅ Update user by ID
+router.put("/:id", async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      role,
+      subscription,
+      level,
+      batch,
+      medium,
+      plan,
+      conversationId,
+      elevenLabsWidgetLink,
+      elevenLabsApiKey,
+      assignedCourses,
+      assignedTeacher
+    } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        email,
+        role,
+        subscription,
+        level,
+        batch,
+        medium,
+        plan,
+        conversationId,
+        elevenLabsWidgetLink,
+        elevenLabsApiKey,
+        assignedCourses,
+        assignedTeacher
+      },
+      { new: true } // Return updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    console.log("✅ User updated:", updatedUser);
+    res.status(200).json({ message: "User updated successfully.", data: updatedUser });
+  } catch (error) {
+    console.error("❌ Error updating user:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// ✅ Delete user by ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    console.log("🗑️ User deleted:", deletedUser);
+    res.status(200).json({ message: "User deleted successfully." });
+  } catch (error) {
+    console.error("❌ Error deleting user:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+
 
 // ✅ Protected role-based routes
 router.get("/protected", verifyToken, (req, res) => {

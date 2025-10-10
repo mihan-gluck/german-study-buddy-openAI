@@ -2,7 +2,7 @@
 
 import { Component } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
@@ -35,11 +35,26 @@ export class SignupComponent {
   assignedCourses: string[] = []; // selected course IDs
   courses: any[] = []; // list fetched from backend
 
+  isEditMode = false; // ✅ flag to track update mode
+  studentId: string | null = null;
 
-  constructor(private authService: AuthService, private router: Router, private coursesService: CoursesService) {}
+
+  constructor(
+    private authService: AuthService, 
+    private router: Router, 
+    private coursesService: CoursesService,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
     this.loadCourses();
+
+    // Check if an ID is passed in route → Edit mode
+    this.studentId = this.route.snapshot.paramMap.get('id');
+    if (this.studentId) {
+      this.isEditMode = true;
+      this.loadUserById(this.studentId);
+    }
   }
   // Fetch available courses from backend
   loadCourses() {
@@ -60,6 +75,31 @@ export class SignupComponent {
         }
       });
     }
+  }
+
+
+  // ✅ Load existing user for update
+  private loadUserById(id: string): void {
+    this.authService.getUserById(id).subscribe({
+      next: (data) => {
+        this.name = data.name;
+        this.email = data.email;
+        this.role = data.role;  
+        if (this.role === 'STUDENT') {
+          this.batch = data.batch || '';
+          this.medium = data.medium || '';
+          this.subscription = data.subscription || '';
+          this.level = data.level || 'A1';
+          this.assignedTeacher = data.assignedTeacher || '';
+          this.elevenLabsWidgetLink = data.elevenLabsWidgetLink || '';
+          this.elevenLabsApiKey = data.elevenLabsApiKey || '';
+          this.loadTeachers(); // load teachers for selected level + medium
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load user for edit', err);
+      }
+    });
   }
 
   onSubmit() {
@@ -87,7 +127,6 @@ export class SignupComponent {
       name: this.name,
       email: this.email,
       role: this.role,
-      
     };
 
     if (this.role === 'STUDENT') {
@@ -96,28 +135,49 @@ export class SignupComponent {
       user.conversationId = this.conversationId;
       user.subscription = this.subscription;
       user.level = this.level;
-      user.assignedTeacher = this.assignedTeacher; // ✅ send selected teacher ID
+      user.assignedTeacher = this.assignedTeacher;
       user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
       user.elevenLabsApiKey = this.elevenLabsApiKey;
-    };
+    }
 
     if (this.role === 'TEACHER') {
       user.medium = this.medium;
-      user.assignedCourses = this.assignedCourses; // IDs from dropdown
+      user.assignedCourses = this.assignedCourses;
     }
 
-    console.log('Registering user:', user);
-    this.authService.signup(user).subscribe(
-      (response: any) => {
-        alert(user.role + ' Registered Successfully');
-        console.log('User registered', user);
-        this.router.navigate(['/admin-dashboard']);  // Redirect to login after signup
-      },
-      (error: any) => {
-        alert('Registration failed: ' + (error.error?.msg || 'Please try again later.'));
-        console.error('Register failed', error);
-      }
-    );
+    // ✅ Decide whether to create or update
+    if (this.isEditMode && this.studentId) {
+      // UPDATE existing user
+      this.authService.updateUser(this.studentId, user).subscribe({
+        next: (response: any) => {
+          alert('User updated successfully!');
+          console.log('User updated:', response);
+          if (this.role === 'STUDENT') {
+            this.router.navigate(['/admin-dashboard']);
+            return;
+          }
+          this.router.navigate(['/teachers']);
+        },
+        error: (error: any) => {
+          alert('Update failed: ' + (error.error?.message || 'Please try again later.'));
+          console.error('Update failed', error);
+        }
+      });
+    } else {
+      // CREATE new user
+      this.authService.signup(user).subscribe({
+        next: (response: any) => {
+          alert(user.role + ' registered successfully!');
+          console.log('User registered:', response);
+          this.router.navigate(['/admin-dashboard']);
+        },
+        error: (error: any) => {
+          alert('Registration failed: ' + (error.error?.message || 'Please try again later.'));
+          console.error('Register failed', error);
+        }
+      });
+    }
+
   }
   scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });

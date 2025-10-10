@@ -122,6 +122,22 @@ fetchTeachers(): void {
     });
   }
 
+  deleteUser(id: string): void {
+    if (confirm('Are you sure you want to delete this user?')) {
+      this.authService.deleteUser(id).subscribe({
+        next: (response) => {
+          alert('User deleted successfully!');
+          console.log('Deleted:', response);
+          this.fetchTeachers(); // Refresh your user list after deletion
+        },
+        error: (error) => {
+          alert('Failed to delete user: ' + (error.error?.message || 'Please try again.'));
+          console.error('Delete failed:', error);
+        }
+      });
+    }
+  }
+
 
   trackById(index: number, teacher: Teacher): string {
     return teacher._id;
