@@ -111,4 +111,40 @@ router.get('/apiKey', verifyToken, async (req, res) => {
     }
   });
 
+  // GET - Get ElevenLabs usage by API key (Teacher)
+  router.get('/teacher/usage/:apiKey', verifyToken, async (req, res) => {
+    try {
+      // Only allow TEACHER or ADMIN roles
+      if (req.user.role !== 'TEACHER' && req.user.role !== 'ADMIN') {
+        return res.status(403).json({ success: false, msg: 'Access denied' });
+      }
+
+      const apiKey = req.params.apiKey;
+      if (!apiKey) {
+        return res.status(400).json({ success: false, msg: 'API key is required' });
+      }
+
+      // Call ElevenLabs API using the provided API key
+      const response = await fetch('https://api.elevenlabs.io/v1/user', {
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return res.status(response.status).json({ success: false, msg: 'Error fetching usage', detail: text });
+      }
+
+      const data = await response.json();
+
+      res.json({ success: true, usage: data });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, msg: 'Server error', error: err.message });
+    }
+  });
+
+
 module.exports = router;

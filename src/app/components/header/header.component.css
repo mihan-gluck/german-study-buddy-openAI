@@ -1,3 +1,4 @@
+/* ========== Header Base ========== */
 header {
   background-color: #000e89;
   color: white;
@@ -5,6 +6,8 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  z-index: 100;
 }
 
 .logo-container {
@@ -13,18 +16,19 @@ header {
 }
 
 .company-logo {
-  height: 50px; /* adjust logo size */
+  height: 50px;
   width: auto;
-  margin-right: 10px; /* space between logo and text */
+  margin-right: 10px;
 }
 
 .logo-text {
-  color: white;          /* white text */
-  font-weight: bold;     /* bold text */
-  font-size: 22px;       /* adjust size if needed */
-  font-family: 'Brastika Bold'; /* custom font */
+  color: white;
+  font-weight: bold;
+  font-size: 22px;
+  font-family: 'Brastika Bold';
 }
 
+/* ========== Nav Menu (Desktop) ========== */
 nav ul {
   list-style-type: none;
   display: flex;
@@ -37,7 +41,7 @@ nav ul li {
   padding: 5px;
 }
 
-a{
+a {
   cursor: pointer;
 }
 
@@ -46,39 +50,115 @@ nav a {
   text-decoration: none;
   padding: 10px;
   font-weight: bold;
-  cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
 
 nav ul li a:hover:not(.logout-button) {
   background-color: #000e89;
   color: yellow;
-  font-weight: bold;
   border-radius: 5px;
 }
 
+/* Logout Button */
 .logout-button {
-  background-color: #ff4d4d; /* red background */
-  color: white;               /* white text */
-  padding: 8px 12px;         /* padding */
-  border: none;              /* no border */
-  border-radius: 5px;        /* rounded corners */
-  cursor: pointer;           /* pointer cursor on hover */
+  background-color: #ff4d4d;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
   font-weight: bold;
+  transition: background-color 0.3s;
 }
 
+.logout-button:hover {
+  background-color: #ff1a1a;
+}
+
+/* ========== Hamburger Menu ========== */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.bar {
+  width: 25px;
+  height: 3px;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* ========== Responsive Styles ========== */
 @media (max-width: 768px) {
+  /* Stack header elements */
   header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  nav {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background-color: #000e89;
+    display: none;
     flex-direction: column;
     align-items: center;
+    text-align: center;
+    border-top: 2px solid #ffffff33;
+  }
+
+  nav.active {
+    display: flex;
+    animation: slideDown 0.3s ease forwards;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   nav ul {
     flex-direction: column;
-    align-items: center;
+    width: 100%;
+    padding: 0;
   }
 
-  .logo-container {
-    margin-bottom: 10px;
+  nav ul li {
+    width: 100%;
+    border-bottom: 1px solid #ffffff22;
+  }
+
+  nav ul li a {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .logout-button {
+    width: 90%;
+    margin: 10px auto;
+    display: block;
+  }
+}
+
+/* ========== Tablet & Desktop Enhancements ========== */
+@media (min-width: 769px) {
+  nav {
+    display: flex !important;
   }
 }

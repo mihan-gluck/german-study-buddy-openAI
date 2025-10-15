@@ -2,74 +2,33 @@
 
 <header>
   <div class="logo-container">
-    <a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && userRole=== 'ADMIN'"><img src="assets/logo.avif" alt="Glück Global" class="company-logo">
-    <span class="logo-text">Glück Global</span></a>
+    <a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">
+      <img src="assets/logo.avif" alt="Glück Global" class="company-logo">
+      <span class="logo-text">Glück Global</span>
+    </a>
   </div>
-  <nav>
+
+  <!-- Hamburger Button -->
+  <div class="hamburger" (click)="toggleMenu()">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+  </div>
+
+  <nav [class.active]="menuOpen">
     <ul class="nav-links">
-      <!-- <li><a (click)="navigateTo('/home')" *ngIf="isLoggedIn() && userRole !== 'ADMIN'">Home</a></li> -->
-      <!-- <li><a (click)="navigateTo('/signup')" *ngIf="!isLoggedIn()">Sign Up</a></li> -->
-      <!-- <li><a (click)="navigateTo('/login')" *ngIf="!isLoggedIn()">Login</a></li> -->
-      <li><a (click)="navigateTo('/chat')" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Chat</a></li>
-      <li><a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Admin Dashboard</a></li>
-      <li><a (click)="navigateTo('/courses')" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Courses</a></li>
-      <li><a (click)="navigateTo('/teachers')" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>
-      <li><a (click)="openInternalReports()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
-      <li><a (click)="navigateTo(userRole === 'ADMIN' ? '/time-table-view-admin' : '/time-table-view-student')">Time Table</a></li>
-      <li><a (click)="openStudentReports()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
-      <li><a (click)="openStudentFeedback()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Feedback</a></li>
-      <li><a (click)="navigateTo('/teacher-dashboard')" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>
-      <li><a (click)="navigateTo('/student-dashboard')" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Student Dashboard</a></li>
-      <li><a (click)="navigateTo('/contact')" *ngIf="userRole === 'STUDENT'">Contact</a></li>
-      <li><a (click)="navigateTo('/profile')" *ngIf="isLoggedIn()">Profile</a></li>
-      <li><a class="logout-button" href="#" (click)="logOut()" *ngIf="isLoggedIn() && isAuthenticated">Logout</a></li>
+      <li><a (click)="navigateTo('/student-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Student Dashboard</a></li>
+      <li><a (click)="navigateTo('/admin-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Admin Dashboard</a></li>
+      <li><a (click)="navigateTo('/teacher-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>
+      <li><a (click)="navigateTo('/teachers'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>
+      <li><a (click)="navigateTo('/courses'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Courses</a></li>
+      <li><a (click)="openInternalReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
+      <li><a (click)="navigateTo(userRole === 'ADMIN' ? '/time-table-view-admin' : userRole === 'STUDENT' ? '/time-table-view-student' : '/time-table-view-teacher'); closeMenu()" *ngIf="userRole === 'ADMIN' || userRole === 'STUDENT' || userRole === 'TEACHER'">Time Table</a></li>
+      <li><a (click)="openStudentReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
+      <li><a (click)="navigateTo('/feedback-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Feedback</a></li>
+      <li><a (click)="navigateTo('/meeting-link-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Meeting Links</a></li>
+      <li><a (click)="navigateTo('/profile'); closeMenu()" *ngIf="isLoggedIn()">Profile</a></li>
+      <li><a class="logout-button" href="#" (click)="logOut(); closeMenu()" *ngIf="isLoggedIn() && isAuthenticated">Logout</a></li>
     </ul>
   </nav>
 </header>
-
-
-<!-- <header>
-  <nav>
-    <ul class="nav-links">
-      <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
-      <li *ngIf="!isLoggedIn()"><a routerLink="/signup" routerLinkActive="active">Sign Up</a></li>
-      <li *ngIf="!isLoggedIn()"><a routerLink="/login" routerLinkActive="active">Login</a></li>
-      <li *ngIf="isLoggedIn()"><a routerLink="/profile" routerLinkActive="active">Profile</a></li>
-      <li *ngIf="isLoggedIn()"><a routerLink="/chat" routerLinkActive="active">Chat</a></li>
-
-       Role-Based Dashboard Links 
-      <li *ngIf="isLoggedIn() && getUserRole() === 'admin'">
-        <a routerLink="/admin-dashboard" routerLinkActive="active">Admin Dashboard</a>
-      </li>
-      <li *ngIf="isLoggedIn() && getUserRole() === 'teacher'">
-        <a routerLink="/teacher-dashboard" routerLinkActive="active">Teacher Dashboard</a>
-      </li>
-      <li *ngIf="isLoggedIn() && getUserRole() === 'student'">
-        <a routerLink="/student-dashboard" routerLinkActive="active">Student Dashboard</a>
-      </li>
-
-       Logout Button --
-      <li *ngIf="isLoggedIn()">
-        <a href="#" (click)="logOut()">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</header> 
-
-
- <header>
-    <nav>
-      <ul class="nav-links">
-        <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
-        <li><a routerLink="/signup" routerLinkActive="active" *ngIf="!isLoggedIn()">Sign Up</a></li>
-        <li><a routerLink="/login" routerLinkActive="active" *ngIf="!isLoggedIn()">Login</a></li>
-        <li><a routerLink="/profile" routerLinkActive="active" *ngIf="isLoggedIn()">Profile</a></li>
-        <li><a routerLink="/chat" routerLinkActive="active" *ngIf="isLoggedIn()">Chat</a></li>
-        <li><a routerLink="/admin-dashboard" routerLinkActive="active" *ngIf="isLoggedIn() && authService.getUserRole() === 'admin'">Admin Dashboard</a></li>
-        <li><a routerLink="/teacher-dashboard" routerLinkActive="active" *ngIf="isLoggedIn() && authService.getUserRole() === 'teacher'">Teacher Dashboard</a></li>
-        <li><a routerLink="/student-dashboard" routerLinkActive="active" *ngIf="isLoggedIn() && authService.getUserRole() === 'student'">Student Dashboard</a></li>
-        <li><a href="#" (click)="logOut()" *ngIf="isLoggedIn()">Logout</a></li>
-      </ul>
-    </nav>
-  </header> 
-   -->

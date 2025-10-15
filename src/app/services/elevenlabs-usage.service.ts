@@ -49,4 +49,9 @@ export class ElevenLabsUsageService {
   logUsage$(data: ElevenLabsUsageData): Observable<any> {
     return this.http.post(`${this.apiUrl}/log`, data, { withCredentials: true });
   }
+
+  // Get ElevenLabs usage by API key (Teacher)
+  getUsageByApiKeyForTeacher(apiKey: string): Observable<any> {
+    return this.http.get(`/api/elevenlabs-usage/teacher/usage/${apiKey}`, { withCredentials: true });
+  }
 }

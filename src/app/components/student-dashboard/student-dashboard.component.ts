@@ -167,7 +167,7 @@ ngOnInit(): void {
     next: (user) => {
       this.basicUser = user;   // backend gives user info
       this.fetchCourses();
-      this.loadFeedback(user._id);   // pass studentId directly
+      //this.loadFeedback(user._id);   // pass studentId directly
       this.fetchUserProfile();
       this.loadElevenLabsCourses();
       this.loadElevenLabsUsage();
@@ -187,21 +187,21 @@ ngOnInit(): void {
 }
 
   
-loadFeedback(studentId: string): void {
-  this.feedbackLoading = true;
+// loadFeedback(studentId: string): void {
+//   this.feedbackLoading = true;
 
-  this.feedbackService.getStudentFeedback(studentId).subscribe({
-    next: (data: any) => {
-      this.feedbackList = data;
-      this.feedbackLoading = false;
-    },
-    error: (err) => {
-      this.feedbackError = 'Failed to load feedback';
-      console.error(err);
-      this.feedbackLoading = false;
-    }
-  });
-}
+//   this.feedbackService.getStudentFeedback(studentId).subscribe({
+//     next: (data: any) => {
+//       this.feedbackList = data;
+//       this.feedbackLoading = false;
+//     },
+//     error: (err) => {
+//       this.feedbackError = 'Failed to load feedback';
+//       console.error(err);
+//       this.feedbackLoading = false;
+//     }
+//   });
+// }
   
   fetchCourses(): void {
     this.loading = true;
@@ -386,10 +386,6 @@ loadFeedback(studentId: string): void {
  
     get currentVoiceAgent(): 'vapi' | 'elevenlabs' | null {
       return this.voiceAgentService.getActiveAgent();
-    }
-
-    openFeedbackForm(): void {
-      window.open('https://docs.google.com/forms/d/e/1FAIpQLSfkLNGgOGOk7eoBXlT2xv06lGbKvCubjiWlGyizl7tiXR6PZg/viewform?usp=header')
     }
 
     

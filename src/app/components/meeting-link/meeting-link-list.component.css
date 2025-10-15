@@ -1,0 +1,136 @@
+/* Container */
+.links-container {
+  width: 98%; /* almost full screen */
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow-x: auto; /* scroll if table overflows */
+}
+
+/* Heading */
+h2 {
+  text-align: center;
+  color: #000; /* black heading */
+  margin-bottom: 25px;
+  font-size: 2rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px; /* ensures table doesn't shrink too much */
+}
+
+/* Table Head */
+thead th {
+  background-color: #405980;
+  color: white;
+  padding: 12px 10px;
+  text-align: left;
+  position: sticky;
+  top: 0; /* sticky header */
+  z-index: 1;
+}
+
+/* Table Body */
+tbody td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+/* Alternate row colors */
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Hover effect */
+tbody tr:hover {
+  background-color: #e0e0ff;
+}
+
+/* Error messages */
+.error {
+  color: red;
+  text-align: center;
+  margin: 10px 0;
+}
+
+
+/* ====== Add link Section ====== */
+.add-link {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 0;
+}
+
+.add-link-btn {
+  background-color: #000e89;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  &:hover {
+    color: yellow;
+  }
+}
+
+/* Update button styling */
+td[data-label="Update"] {
+  text-align: right; /* Align the update button to the right */
+}
+
+@media (max-width: 768px) {
+  .add-link {
+    justify-content: center;
+  }
+}
+
+
+/* Responsive adjustments */
+@media screen and (max-width: 1400px) {
+  table {
+    font-size: 0.95rem;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  table {
+    font-size: 0.9rem;
+    min-width: 600px;
+  }
+  h2 {
+    font-size: 1.8rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  table {
+    font-size: 0.85rem;
+    min-width: 500px;
+  }
+  h2 {
+    font-size: 1.6rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  table {
+    font-size: 0.8rem;
+    min-width: 400px;
+  }
+  h2 {
+    font-size: 1.4rem;
+  }
+  tbody td {
+    padding: 8px 5px;
+  }
+}

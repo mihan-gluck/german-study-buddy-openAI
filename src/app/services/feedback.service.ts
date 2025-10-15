@@ -4,32 +4,45 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+// Define a feedback model interface for strong typing
+export interface Feedback {
+  feedback: string;
+  rating: number;
+  studentId?: string;
+  createdAt?: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class FeedbackService {
-  private BASE_URL = 'http://your-backend-domain/api/feedback';
+  private readonly BASE_URL = 'http://localhost:4000/api/feedback';
+  private readonly TEACHER_URL = 'http://localhost:4000/api/teacher';
 
   constructor(private http: HttpClient) {}
 
-  getStudentFeedback(studentId: string): Observable<any> {
-    return this.http.get(`/api/feedback/student/${studentId}`);
+  /**
+   * Submit a feedback (used by students)
+   */
+  submitFeedback(feedback: Feedback): Observable<any> {
+    return this.http.post(`${this.BASE_URL}`, feedback, { withCredentials: true });
   }
 
-  getFeedbackByStudentId(studentId: string): Observable<any> {
-    return this.http.get(`/api/feedback/student/${studentId}`);
+  /**
+   * Get feedback by student ID
+   */
+  getFeedbackByStudentId(studentId: string): Observable<Feedback[]> {
+    return this.http.get<Feedback[]>(`${this.BASE_URL}/student/${studentId}`, { withCredentials: true });
   }
 
-  submitFeedback(feedback: any): Observable<any> {
-    return this.http.post('/api/feedback', feedback);
-  }
-
+  /**
+   * Get all students (for teacher views, if needed)
+   */
   getAllStudents(): Observable<any[]> {
-    return this.http.get<any[]>('/api/teacher/students');
+    return this.http.get<any[]>(`${this.TEACHER_URL}/students`, { withCredentials: true });
   }
 
-
-
-
-  
+  getAllFeedback(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.BASE_URL}`, { withCredentials: true });
+  }
 }

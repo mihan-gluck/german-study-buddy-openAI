@@ -1,24 +1,28 @@
 // routes/feedback.js
-
 const express = require('express');
 const router = express.Router();
 const Feedback = require('../models/Feedback');
-const { verifyToken, checkRole } = require('../middleware/auth');
+const { checkRole } = require('../middleware/auth');
 
-// 1️⃣ Add feedback (TEACHER only)
-router.post('/', verifyToken, checkRole('teacher'), async (req, res) => {
+// Add feedback (STUDENT only)
+router.post('/', async (req, res) => {
   try {
-    const feedback = new Feedback(req.body);
+    const feedback = new Feedback({
+      studentId: req.body.studentId,
+      feedback: req.body.feedback,
+      rating: req.body.rating
+    });
+
     const saved = await feedback.save();
     res.status(201).json({ success: true, data: saved });
   } catch (err) {
-    console.error('Error adding feedback:', err);
-    res.status(500).json({ success: false, message: 'Failed to add feedback' });
+    console.error('Error adding feedback:', err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // 2️⃣ Get feedback for a student (STUDENT or TEACHER)
-router.get('/student/:id', verifyToken, async (req, res) => {
+router.get('/student/:id', async (req, res) => {
   try {
     // student can only access their own feedback
     if (req.user.role === 'student' && req.user.id !== req.params.id) {
@@ -32,18 +36,23 @@ router.get('/student/:id', verifyToken, async (req, res) => {
   }
 });
 
-// 3️⃣ Get all feedback (TEACHER only)
-router.get('/', verifyToken, checkRole('teacher'), async (req, res) => {
+// Get all feedback with student info
+router.get('/', async (req, res) => {
   try {
-    const allFeedback = await Feedback.find().sort({ createdAt: -1 });
+    const allFeedback = await Feedback.find()
+      .sort({ createdAt: -1 })
+      .populate('studentId', 'name batch subscription regNo'); 
+     
+
     res.json({ success: true, data: allFeedback });
   } catch (err) {
+    console.error('Error fetching feedback:', err.message);
     res.status(500).json({ success: false, message: 'Failed to fetch feedback' });
   }
 });
 
 // GET /feedback?level=B2&page=1&limit=10&startDate=2025-06-01&endDate=2025-06-08
-router.get('/', verifyToken, checkRole("teacher"), async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { level, page = 1, limit = 10, startDate, endDate } = req.query;
     const filter = {};
@@ -77,7 +86,7 @@ router.get('/', verifyToken, checkRole("teacher"), async (req, res) => {
 });
 
 // GET /feedback/student/:id?page=1&limit=10
-router.get('/student/:id', verifyToken, checkRole("student"), async (req, res) => {
+router.get('/student/:id', checkRole("student"), async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 

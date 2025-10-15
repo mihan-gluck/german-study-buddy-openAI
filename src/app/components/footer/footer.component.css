@@ -1,22 +1,67 @@
 footer {
   background-color: #333;
   color: white;
-  padding: 10px;
+  padding: 15px 0;
+  font-family: 'Comic Neue', sans-serif;
+  font-size: 0.85rem;
+}
+
+.footer-content {
+  max-width: 1000px;
+  margin: 0 auto;
   text-align: center;
-  width: 100%;
+}
+
+.footer-content p {
+  margin-bottom: 8px;
+}
+
+.footer-details {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.footer-item {
+  white-space: nowrap;
+}
+
+.divider {
+  color: #bbb;
 }
 
 footer a {
-  color: #aaa;
+  color: white;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
 
 footer a:hover {
-  color: white;
+  color: yellow;
 }
 
+/* ✅ Better mobile responsiveness */
 @media (max-width: 768px) {
+  .footer-details {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .divider {
+    display: none; /* hide the '|' symbols on small screens */
+  }
+
+  .footer-item {
+    text-align: center;
+    white-space: normal; /* allow wrapping for long address */
+    max-width: 90%;
+  }
+
   footer {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    padding: 12px 0;
   }
 }

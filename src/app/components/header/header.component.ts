@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 export class HeaderComponent implements OnInit {
   isAuthenticated = false;
   userRole: string | null = null;
+  menuOpen = false;
 
   constructor(
     private authService: AuthService,
@@ -58,6 +59,14 @@ export class HeaderComponent implements OnInit {
   // Navigation
   navigateTo(path: string) {
     this.router.navigate([path]);
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  closeMenu() {
+    this.menuOpen = false;
   }
 
   openInternalReports() {

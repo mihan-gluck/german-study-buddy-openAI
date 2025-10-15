@@ -31,6 +31,7 @@ interface UserProfile {
   batch?: string;
   medium?: string;
   subscription?: string;
+  _id?: string;
   [key: string]: any;
 }
 
@@ -69,7 +70,14 @@ export class TimeTableViewComponent implements OnInit {
           this.loadTimeTablesforStudent(profile.batch!, profile.medium!, profile.subscription!);
         } else if (this.userRole === 'ADMIN') {
           this.loadTimeTables();
+        } else if (this.userRole === 'TEACHER') {
+          if (profile._id) {
+            this.loadTimeTablesforTeacher(profile._id!); // new method
+          } else {
+            console.error('Teacher profile _id is undefined');
+          }
         }
+
       },
       error: (error) => {
         console.error('Error fetching profile:', error);
@@ -126,6 +134,31 @@ export class TimeTableViewComponent implements OnInit {
       (error) => console.error('Error fetching student timetable', error)
     );
   }
+  private loadTimeTablesforTeacher(teacherId: string): void {
+    this.timeTableService.getTimeTablesByTeacher(teacherId).subscribe({
+      next: (data: TimeTable[]) => {
+        console.log('Teacher timetable fetched:', data);
+
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        // ✅ Filter timetables for current month only
+        this.timeTables = data.filter((tt: any) => {
+          const startDate = new Date(tt.weekStartDate);
+          const endDate = new Date(tt.weekEndDate);
+          return (
+            (startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear) ||
+            (endDate.getMonth() === currentMonth && endDate.getFullYear() === currentYear)
+          );
+        });
+
+        this.preloadTeacherNames(this.timeTables); // ✅ also preload teacher names
+      },
+      error: (error) => console.error('Error fetching teacher timetable', error)
+    });
+  }
+
 
   // ✅ Preload teacher names (Option 2)
   private preloadTeacherNames(timeTables: TimeTable[]): void {

@@ -1,0 +1,64 @@
+<div class="meeting-link-container">
+  <!-- Heading changes dynamically -->
+  <h2>{{ editId ? 'Update Meeting Link' : 'Add Meeting Link' }}</h2>
+
+  <!-- Success & Error messages -->
+  <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+  <form [formGroup]="meetingLinkForm" (ngSubmit)="onSubmit()">
+
+    <!-- Batch -->
+    <div class="form-group">
+      <label for="batch">Batch</label>
+      <input
+        id="batch"
+        type="number"
+        formControlName="batch"
+        [class.invalid]="submitted && meetingLinkForm.controls['batch'].invalid"
+      />
+      <div class="error-message" *ngIf="submitted && meetingLinkForm.controls['batch'].invalid">
+        Batch is required.
+      </div>
+    </div>
+
+    <!-- Platform -->
+    <div class="form-group">
+      <label for="platform">Platform</label>
+      <select
+        id="platform"
+        formControlName="platform"
+        [class.invalid]="submitted && meetingLinkForm.get('platform')?.invalid"
+      >
+        <option value="" disabled>Select a platform</option>
+        <option value="Zoom">Zoom</option>
+        <option value="Google Meet">Google Meet</option>
+        <option value="Microsoft Teams">Microsoft Teams</option>
+        <option value="Other">Other</option>
+      </select>
+      <div class="error-message" *ngIf="submitted && meetingLinkForm.get('platform')?.invalid">
+        Platform is required.
+      </div>
+    </div>
+
+    <!-- Meeting Link -->
+    <div class="form-group">
+      <label for="link">Meeting Link</label>
+      <input
+        id="link"
+        type="text"
+        formControlName="link"
+        placeholder="Enter meeting link"
+        [class.invalid]="submitted && meetingLinkForm.controls['link'].invalid"
+      />
+      <div class="error-message" *ngIf="submitted && meetingLinkForm.controls['link'].invalid">
+        Meeting link is required and must be at least 5 characters.
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="submit-btn">
+      {{ editId ? 'Update Link' : 'Add Link' }}
+    </button>
+  </form>
+</div>

@@ -31,9 +31,11 @@ interface CourseProgress {
 
 interface Student {
   editingElevenLabs: boolean;
+
   elevenLabsLink: any;
   student: { fluency: number; grammar: number; accent: number; overallCFBR: number; currentLevel: string; };
   _id: string;
+  regNo?: string;
   name: string;
   email: string;
   batch?: string;
@@ -161,7 +163,7 @@ fetchStudents(): void {
       if (res.success) {
         this.students = res.data;
         this.students.forEach(student => {
-          this.loadFeedbackStats(student);
+          //this.loadFeedbackStats(student);
           this.loadCourseProgress(student);
           this.loadElevenLabsUsage(student); // <-- pass single student
           console.log('Student data:', student);
@@ -248,31 +250,31 @@ fetchStudents(): void {
     });
   }
 
-  loadFeedbackStats(student: Student): void {
-    this.feedbackService.getStudentFeedback(student._id).subscribe({
-      next: (feedbackList: FeedbackEntry[]) => {
-        const getAvg = (key: 'fluency' | 'grammar' | 'accent' | 'overallCfbr'): number => {
-          const scores = feedbackList
-            .map(f => parseFloat(f[key] as string))
-            .filter(n => !isNaN(n));
-          return scores.length ? +(scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : 0;
-        };
-        const latestLevel = feedbackList.length > 0
-          ? feedbackList.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0].currentLevel
-          : 'N/A';
-        student.feedbackStats = {
-          fluency: getAvg('fluency'),
-          grammar: getAvg('grammar'),
-          accent: getAvg('accent'),
-          overallCFBR: getAvg('overallCfbr'),
-          currentLevel: latestLevel
-        };
-      },
-      error: err => {
-        console.warn(`No feedback for student ${student.name}`, err);
-      }
-    });
-  }
+  // loadFeedbackStats(student: Student): void {
+  //   this.feedbackService.getStudentFeedback(student._id).subscribe({
+  //     next: (feedbackList: FeedbackEntry[]) => {
+  //       const getAvg = (key: 'fluency' | 'grammar' | 'accent' | 'overallCfbr'): number => {
+  //         const scores = feedbackList
+  //           .map(f => parseFloat(f[key] as string))
+  //           .filter(n => !isNaN(n));
+  //         return scores.length ? +(scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : 0;
+  //       };
+  //       const latestLevel = feedbackList.length > 0
+  //         ? feedbackList.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0].currentLevel
+  //         : 'N/A';
+  //       student.feedbackStats = {
+  //         fluency: getAvg('fluency'),
+  //         grammar: getAvg('grammar'),
+  //         accent: getAvg('accent'),
+  //         overallCFBR: getAvg('overallCfbr'),
+  //         currentLevel: latestLevel
+  //       };
+  //     },
+  //     error: err => {
+  //       console.warn(`No feedback for student ${student.name}`, err);
+  //     }
+  //   });
+  // }
 
   loadCourseProgress(student: Student): void {
     this.fetchCourseProgress(student._id);

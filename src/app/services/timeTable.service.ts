@@ -59,6 +59,12 @@ export class TimeTableService {
     return this.http.put(`${this.apiUrl}/${id}`, timeTable);
   }
 
+  // Fetch timetables for a specific teacher
+  getTimeTablesByTeacher(teacherId: string): Observable<TimeTable[]> {
+    const params = { teacherId };
+    return this.http.get<TimeTable[]>(`${this.apiUrl}/forTeacher`, { params, withCredentials: true });
+  }
+
 }
 
 

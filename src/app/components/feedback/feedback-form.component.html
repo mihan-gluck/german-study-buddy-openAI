@@ -1,0 +1,40 @@
+<div class="feedback-container">
+  <h2>Submit Your Feedback</h2>
+
+  <form [formGroup]="feedbackForm" (ngSubmit)="onSubmit()">
+    <!-- Feedback textarea -->
+    <div class="form-group">
+      <label for="feedback">Your Feedback</label>
+      <textarea
+        id="feedback"
+        formControlName="feedback"
+        rows="4"
+        placeholder="Write your feedback here..."
+      ></textarea>
+      <div class="error" *ngIf="submitted && feedbackForm.controls['feedback'].invalid">
+        Feedback is required (minimum 5 characters)
+      </div>
+    </div>
+
+    <!-- Star Rating -->
+    <div class="form-group">
+      <label>Rating</label>
+      <div class="star-rating">
+        <span 
+          *ngFor="let star of [1,2,3,4,5]" 
+          (click)="feedbackForm.controls['rating'].setValue(star)" 
+          [class.filled]="star <= feedbackForm.controls['rating'].value"
+          >&#9733;</span>
+      </div>
+      <div class="error" *ngIf="submitted && feedbackForm.controls['rating'].invalid">
+        Please select a rating
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit">Submit Feedback</button>
+  </form>
+
+  <div class="success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+</div>

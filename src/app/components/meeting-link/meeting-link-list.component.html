@@ -1,0 +1,35 @@
+<div class="links-container">
+
+    <div class="add-link">
+        <button class="add-link-btn" routerLink="/meeting-link">Add New Link</button>
+    </div>
+
+  <div *ngIf="loading">Loading links...</div>
+  <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <table *ngIf="meetingLinkList.length > 0">
+    <thead>
+      <tr>
+        <th>Batch</th>
+        <th>Medium</th>
+        <th>Platform</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let link of meetingLinkList">
+        <td>{{ link.batch }}</td>
+        <td>{{ link.medium }}</td>
+        <td>{{ link.platform }}</td>
+        <td><a href="{{ link.link }}" target="_blank">{{ link.link }}</a></td>
+        <td data-label="Update">
+          <button class="btn btn-outline-primary btn-sm" (click)="onUpdate(link._id)">
+            Update
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+

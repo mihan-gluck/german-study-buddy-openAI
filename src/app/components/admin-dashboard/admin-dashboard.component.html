@@ -32,6 +32,7 @@
     <thead>
       <tr>
         <!-- <th></th> -->
+        <th>Reg No</th>
         <th>Name</th>
         <th>Email</th>
         <th>Plan</th>
@@ -46,6 +47,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let student of filteredStudents; trackBy: trackById">
+        <td data-label="Reg No">{{ student.regNo || 'N/A' }}</td>
         <td data-label="Name">{{ student.name }}</td>
         <td data-label="Email">{{ student.email }}</td>
         <td data-label="Plan">{{student.subscription}}</td>
@@ -72,7 +74,7 @@
         <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes || 'N/A' }}</td>
         <td data-label="Remaining Days">{{ student.remainingDays || 'N/A' }}</td>
         <td data-label="Subscription Update Date">{{ student.planUpgradeDate || 'N/A' }}</td>
-        <td data-label="Actions">
+        <td data-label="Update">
           <button 
             class="btn btn-outline-primary btn-sm"
             [routerLink]="['/signup', student._id]"

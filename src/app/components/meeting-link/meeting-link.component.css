@@ -1,0 +1,175 @@
+/* ================================
+   Container Styling
+================================ */
+.meeting-link-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px 25px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+  font-family: 'Comic Neue', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.meeting-link-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.15);
+}
+
+/* ================================
+   Header
+================================ */
+h2 {
+  text-align: center;
+  color: black;
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 25px;
+  letter-spacing: 1px;
+}
+
+/* ================================
+   Alerts
+================================ */
+.alert {
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.alert.success {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.alert.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+/* ================================
+   Form
+================================ */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Form Group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+/* ================================
+   Input & Select
+================================ */
+input,
+select {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  background-color: #fff;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #000e89;
+  box-shadow: 0 0 6px rgba(0, 14, 137, 0.3);
+}
+
+.invalid {
+  border-color: #ff4d6d !important;
+  background-color: #fff5f6;
+}
+
+/* Error Message */
+.error-message {
+  color: #ff4d6d;
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+/* ================================
+   Submit Button (Smaller Version)
+================================ */
+.submit-btn {
+  align-self: center; /* aligns button to the right */
+  background-color: #000e89;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  width: auto; /* no full width */
+}
+
+.submit-btn:hover {
+  background-color: #0014cc;
+  color: yellow;
+}
+
+/* ================================
+   Responsiveness
+================================ */
+@media (max-width: 768px) {
+  .meeting-link-container {
+    margin: 25px;
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  input,
+  select {
+    font-size: 0.95rem;
+    padding: 9px 10px;
+  }
+
+  .submit-btn {
+    font-size: 0.95rem;
+    padding: 8px 16px;
+    align-self: center; /* center button on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .meeting-link-container {
+    padding: 18px;
+    margin: 15px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  label {
+    font-size: 0.95rem;
+  }
+
+  .teacher-info p {
+    font-size: 0.9rem;
+  }
+}
