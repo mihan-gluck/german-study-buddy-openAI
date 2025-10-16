@@ -46,7 +46,7 @@
         <mat-card-title><h3>Curriculum</h3></mat-card-title>
         <mat-card-content>
           <p>Access your learning materials and resources</p>
-          <button mat-raised-button color="primary">View Curriculum</button>
+          <button mat-raised-button color="primary" routerLink="/view-course-materials">View Curriculum</button>
         </mat-card-content>
       </mat-card>
 
@@ -61,7 +61,7 @@
 
     </section>
 
-    <!-- Course Progress -->
+    <!-- Course Progress
     <section *ngIf="userProfile?.assignedCourses?.length > 0" class="card-container">
       <h3>Course Progress</h3>
       <mat-card *ngFor="let course of userProfile.assignedCourses" class="course-progress-box">
@@ -76,7 +76,7 @@
         ></mat-progress-bar>
         <p>{{ course.progress }}%</p>
       </mat-card>
-    </section>
+    </section> -->
 
     <!-- ElevenLabs Widget -->
         <elevenlabs-convai 

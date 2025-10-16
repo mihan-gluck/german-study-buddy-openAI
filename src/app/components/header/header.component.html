@@ -2,10 +2,8 @@
 
 <header>
   <div class="logo-container">
-    <a (click)="navigateTo('/admin-dashboard')" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">
-      <img src="assets/logo.avif" alt="Glück Global" class="company-logo">
-      <span class="logo-text">Glück Global</span>
-    </a>
+    <img src="assets/logo.avif" alt="Glück Global" class="company-logo">
+    <span class="logo-text">Glück Global</span>
   </div>
 
   <!-- Hamburger Button -->
@@ -18,12 +16,13 @@
   <nav [class.active]="menuOpen">
     <ul class="nav-links">
       <li><a (click)="navigateTo('/student-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Student Dashboard</a></li>
-      <li><a (click)="navigateTo('/admin-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Admin Dashboard</a></li>
+      <li><a (click)="navigateTo('/admin-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Students</a></li>
       <li><a (click)="navigateTo('/teacher-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>
       <li><a (click)="navigateTo('/teachers'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>
       <li><a (click)="navigateTo('/courses'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Courses</a></li>
-      <li><a (click)="openInternalReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
+      <li><a (click)="navigateTo('/view-course-materials'); closeMenu()" *ngIf="isLoggedIn() && (userRole === 'ADMIN')">Course Materials</a></li>
       <li><a (click)="navigateTo(userRole === 'ADMIN' ? '/time-table-view-admin' : userRole === 'STUDENT' ? '/time-table-view-student' : '/time-table-view-teacher'); closeMenu()" *ngIf="userRole === 'ADMIN' || userRole === 'STUDENT' || userRole === 'TEACHER'">Time Table</a></li>
+      <li><a (click)="openInternalReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
       <li><a (click)="openStudentReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
       <li><a (click)="navigateTo('/feedback-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Feedback</a></li>
       <li><a (click)="navigateTo('/meeting-link-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Meeting Links</a></li>

@@ -39,4 +39,9 @@ export class MeetingLinkService {
     updateLink(id: string, data: Partial<MeetingLink>): Observable<any> {
         return this.http.put(`${this.BASE_URL}/${id}`, data, { withCredentials: true });
     }
+
+    // ✅ Delete meeting link by ID
+    deleteLink(id: string): Observable<any> {
+        return this.http.delete(`${this.BASE_URL}/${id}`, { withCredentials: true });
+    }
 }

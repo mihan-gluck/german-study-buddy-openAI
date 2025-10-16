@@ -1,0 +1,224 @@
+/* ===== Overall Container ===== */
+.container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.container:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== Heading ===== */
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* ===== Add New Materials Button ===== */
+.material-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.add-material-btn {
+  background: linear-gradient(135deg, #000e89, #1a27a0);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 14, 137, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-material-btn:hover {
+  background: linear-gradient(135deg, #1a27a0, #000e89);
+  color: #ffea00;
+  box-shadow: 0 6px 16px rgba(0, 14, 137, 0.5);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.add-material-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 8px rgba(0, 14, 137, 0.4);
+}
+
+.add-material-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 39, 160, 0.4);
+}
+
+.add-material-btn i {
+  margin-right: 8px;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.add-material-btn:hover i {
+  transform: rotate(15deg);
+}
+
+/* ===== Loading & Error Messages ===== */
+.text-center {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.text-danger {
+  color: #dc3545;
+}
+
+/* ===== Materials List ===== */
+.materials-list ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.material-card {
+  background-color: #fff;
+  padding: 18px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.material-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* ===== Course Title ===== */
+.course-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: black;
+  text-align: center;
+}
+
+/* ===== File Links ===== */
+.materials-list a {
+  display: inline-block;
+  text-decoration: none;
+  color: #1a27a0;
+  font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.materials-list a:hover {
+  color: #000e89;
+  text-decoration: underline;
+  transform: translateX(3px);
+}
+
+/* ===== File Item ===== */
+.materials-list li ul li {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+/* ===== Delete Button ===== */
+.delete-btn {
+  background-color: #dc3545; /* red */
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.delete-btn:hover {
+  background-color: #b71c1c;
+  transform: translateY(-1px);
+}
+
+.delete-btn:active {
+  transform: translateY(0);
+}
+
+/* ===== Flex alignment in file list ===== */
+.materials-list li ul li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ===== Responsive Adjustments ===== */
+
+/* Tablets */
+@media (max-width: 992px) {
+  .container {
+    padding: 15px;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  .material-card {
+    padding: 15px;
+  }
+
+  .course-title {
+    font-size: 1.15rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .container {
+    padding: 12px;
+    margin: 10px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .add-material-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+    margin-bottom: 15px;
+  }
+
+  .materials-list ul {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .material-card {
+    padding: 12px;
+  }
+
+  .course-title {
+    font-size: 1.1rem;
+  }
+
+  .materials-list a {
+    font-size: 0.95rem;
+  }
+}
+

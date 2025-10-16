@@ -41,6 +41,12 @@ h2, h3 {
   outline: none;
 }
 
+.teachers-table td .action-buttons {
+  display: flex;
+  gap: 8px;           /* space between buttons */
+  justify-content: flex-end; /* push buttons to right */
+}
+
 /* Responsive filters */
 @media (max-width: 768px) {
   .filters {

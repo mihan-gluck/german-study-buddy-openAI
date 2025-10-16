@@ -69,6 +69,7 @@ export const routes: Routes = [
   { path: 'teachers', loadComponent: () => import('./components/teachers/teachers.component').then(m => m.TeachersComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
   { path: 'courses', loadComponent: () => import('./components/courses/courses.component').then(m => m.CoursesComponent), canActivate: [AuthGuard] },
+  { path: 'update-course/:id', loadComponent: () => import('./components/courses/course-create.component').then(m => m.CreateCourseComponent), canActivate: [AuthGuard] },
   { path: 'create-course', loadComponent: () => import('./components/courses/course-create.component').then(m => m.CreateCourseComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
   { path: 'subscriptions', loadComponent: () => import('./components/subscriptions/subscriptions.component').then(m => m.SubscriptionsComponent), canActivate: [AuthGuard] },
   { path: 'ai-conversations', loadComponent: () => import('./components/ai-conversations/ai-conversations.component').then(m => m.AiConversationsComponent), canActivate: [AuthGuard] },
@@ -109,6 +110,9 @@ export const routes: Routes = [
 
   { path: 'meeting-link/:id', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'TEACHER' } },
   
+  { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: 'ADMIN'} },
+
+  { path: 'view-course-materials', loadComponent: () => import('./components/course-material/course-materials.component').then(m => m.CourseMaterialsComponent), canActivate: [AuthGuard] },
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }
 ];

@@ -31,6 +31,10 @@
   word-break: break-word;
 }
 
+.updateTD{
+  border: 0px !important;
+}
+
 .timetable th {
   background-color: #405980;
   color: white;

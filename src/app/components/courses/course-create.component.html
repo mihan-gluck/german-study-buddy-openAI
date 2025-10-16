@@ -1,6 +1,8 @@
 <div class="container form-wrapper">
   <div class="form-container">
-    <h2 class="text-center mb-4">Create a New Course</h2>
+    <h2 class="text-center mb-4">
+      {{ isEditMode ? 'Update Course' : 'Create a New Course' }}
+    </h2>
 
     <form (ngSubmit)="onSubmit()" #courseForm="ngForm">
       <div class="form-group mb-3">
@@ -25,11 +27,12 @@
           class="form-control"
           placeholder="Enter course description"
           required
+          (input)="autoResize($event)"
         ></textarea>
       </div>
 
       <button type="submit" [disabled]="!courseForm.form.valid">
-        Create Course
+        {{ isEditMode ? 'Update Course' : 'Create Course' }}
       </button>
     </form>
   </div>

@@ -5,8 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // Define a Course interface
-interface Course {
-  _id: string;
+export interface Course {
+  _id?: string;
   title: string;
   description: string;
 }
@@ -34,12 +34,19 @@ export class CoursesService {
     return this.http.post(`${this.apiUrl}/enroll`, { courseId });
   }
 
-  // Update course progress
-  updateCourseProgress(studentId: string, courseId: string, progress: number) {
-  return this.http.put(`/api/teacher/update-course-progress/${studentId}`, {
-    courseId,
-    progress
-  });
-}
+  // Fetch a specific course by ID
+  getCourseById(courseId: string): Observable<Course> {
+    return this.http.get<Course>(`${this.apiUrl}/${courseId}`);
+  }
+
+  // Update a course
+  updateCourse(courseId: string, course: Partial<Course>): Observable<Course> {
+    return this.http.put<Course>(`${this.apiUrl}/${courseId}`, course);
+  }
+
+  // Delete a course
+  deleteCourse(courseId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${courseId}`);
+  }
 
 }

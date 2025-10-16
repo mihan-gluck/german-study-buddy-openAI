@@ -9,6 +9,22 @@
         <li *ngFor="let course of courses">
           <p class="course-title">{{ course.title }}</p>
           <p class="course-description">{{ course.description }}</p>
+          <div class="course-actions">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              [routerLink]="['/update-course', course._id]"
+            >
+              Update
+            </button>
+
+            <button
+              *ngIf="course._id"
+              class="btn btn-outline-danger btn-sm"
+              (click)="deleteCourse(course._id)"
+            >
+              Delete
+            </button>
+          </div>
         </li>
       </ul>
     </div>

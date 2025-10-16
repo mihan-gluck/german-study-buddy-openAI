@@ -1,0 +1,37 @@
+<div class="container">
+  <h2>Course Materials</h2>
+
+  <!-- Add Material Button -->
+  <div class="material-btn-container" *ngIf="userRole === 'ADMIN'">
+    <a href="/course-materials" class="add-material-btn">Add New Materials</a>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="text-center my-4">Loading materials...</div>
+
+  <!-- Error state -->
+  <div *ngIf="error" class="text-center text-danger my-4">{{ error }}</div>
+
+  <!-- Materials list -->
+  <div class="materials-list" *ngIf="!loading && !error">
+    <ul>
+      <li *ngFor="let material of materials" class="material-card mb-3 p-3 border rounded shadow-sm">
+        <!-- Course Title -->
+        <h3 class="course-title mb-2">{{ material.courseTitle }}</h3>
+
+        <!-- Files -->
+        <ul class="list-unstyled">
+          <li *ngFor="let file of material.materials" class="mb-1 d-flex justify-content-between align-items-center">
+            <a [href]="'http://localhost:4000' + file.fileUrl" target="_blank">{{ file.fileName }}</a>
+            <button
+              *ngIf="userRole === 'ADMIN'"
+              class="delete-btn btn btn-danger btn-sm"
+              (click)="deleteFile(material._id!, file._id!)">
+              Delete
+            </button>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>

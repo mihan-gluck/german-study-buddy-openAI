@@ -29,6 +29,7 @@ const elevenlabsUsageRoutes = require('./routes/elevenlabsusage');
 const profilePicUploadRoutes = require('./routes/profile');
 const timeTableRoutes = require('./routes/timeTable');
 const meetingLinkRoutes = require('./routes/meetingLink');
+const courseMaterialRoutes = require('./routes/courseMaterial');
 
 
 const app = express();
@@ -85,6 +86,7 @@ app.use('/api/vapiUsage', vapiUsageRoutes);
 app.use('/api/elevenlabs-usage', elevenlabsUsageRoutes);
 app.use('/api/timeTable', timeTableRoutes);
 app.use('/api/meetingLink', meetingLinkRoutes);
+app.use('/api/courseMaterial', courseMaterialRoutes);
 
 
 

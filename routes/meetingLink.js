@@ -78,6 +78,21 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ✅ Delete meeting link by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedLink = await MeetingLink.findByIdAndDelete(id);
 
+    if (!deletedLink) {
+      return res.status(404).json({ success: false, message: 'Meeting link not found' });
+    }
+
+    res.status(200).json({ success: true, data: deletedLink });
+  } catch (err) {
+    console.error('Error deleting meeting link:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 module.exports = router;

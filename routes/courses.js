@@ -54,5 +54,48 @@ router.get("/enrolled/:studentId", async (req, res) => {
   }
 });
 
+// Update course details
+router.put("/:courseId", async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const course = await Course.findByIdAndUpdate(
+      req.params.courseId,
+      { title, description },
+      { new: true }
+    );
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    res.status(200).json(course);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+//Get a specific course by ID
+router.get("/:courseId", async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    res.status(200).json(course);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete a course
+router.delete("/:courseId", async (req, res) => {
+  try {
+    const course = await Course.findByIdAndDelete(req.params.courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = router;

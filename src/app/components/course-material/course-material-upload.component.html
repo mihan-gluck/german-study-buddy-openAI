@@ -1,0 +1,44 @@
+<div class="upload-container">
+  <h2>Upload Course Materials</h2>
+
+  <!-- Course Selection -->
+  <div class="form-group">
+    <select id="course" [(ngModel)]="courseMaterial.course" required>
+      <option value="" disabled selected>Select a Course</option>
+      <option *ngFor="let course of courses" [value]="course._id">
+        {{ course.title }}
+      </option>
+    </select>
+  </div>
+
+  <!-- File Selection -->
+  <div class="form-group">
+    <label for="files">Select Materials:</label>
+    <input
+      type="file"
+      id="files"
+      (change)="onFilesSelected($event)"
+      multiple
+      accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip"
+    />
+  </div>
+
+  <!-- Selected files list -->
+  <div class="selected-files" *ngIf="selectedFiles.length > 0">
+    <h4>Selected Files:</h4>
+    <ul>
+      <li *ngFor="let file of selectedFiles; let i = index">
+        {{ file.name }}
+        <button type="button" (click)="selectedFiles.splice(i, 1)">Remove</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Error message -->
+  <div class="error" *ngIf="uploadError">{{ uploadError }}</div>
+
+  <!-- Upload button -->
+  <button class="upload-btn" [disabled]="uploading" (click)="uploadMaterials($event)">
+    {{ uploading ? 'Uploading...' : 'Upload Materials' }}
+  </button>
+</div>

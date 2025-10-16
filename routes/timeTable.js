@@ -5,6 +5,7 @@ const { verifyToken, isAdmin } = require('../middleware/auth');
 const cron = require("node-cron");
 const User = require("../models/User");
 const transporter = require("../config/emailConfig");
+const MeetingLink = require('../models/MeetingLink');
 
 // ==========================
 // ✅ CREATE TIMETABLE
@@ -237,6 +238,7 @@ cron.schedule('*/1 * * * *', async () => {
     const todayWeekday = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
     for (const student of students) {
+      // ✅ Find the most recent timetable for the student
       const latestTT = await TimeTable.findOne({
         batch: student.batch,
         medium: student.medium,
@@ -251,24 +253,70 @@ cron.schedule('*/1 * * * *', async () => {
       for (const slot of todaySlots) {
         const [hour, minute] = slot.start.split(':').map(Number);
         const classDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
-        const reminderTime = new Date(classDate.getTime() - 60 * 60 * 1000);
+        const reminderTime = new Date(classDate.getTime() - 60 * 60 * 1000); // 1 hour before
 
         const diffMinutes = (now.getTime() - reminderTime.getTime()) / (1000 * 60);
         if (diffMinutes >= 0 && diffMinutes < 1) {
+          // ✅ Find meeting link based on student's details
+          const meetingLink = await findMeetingLink(
+            student.batch,
+            student.medium,
+            slot.teacherId || student.assignedTeacher
+          );
+
           console.log(`📩 Sending reminder to ${student.email} for class at ${slot.start}`);
-          const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: student.email,
-            subject: '⏰ Class Reminder - Glück Global',
-            html: `
-              <div style="font-family: Arial, sans-serif; text-align:center;">
-                <h2>Glück Global - Class Reminder</h2>
-                <p>Hello <strong>${student.name}</strong>, this is a reminder for your upcoming class:</p>
-                <p><strong>Day:</strong> ${todayWeekday}</p>
-                <p><strong>Time:</strong> ${slot.start} - ${slot.end}</p>
-              </div>
-            `,
-          };
+
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: student.email,
+          subject: '⏰ Class Reminder - Glück Global',
+          html: `
+                  <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
+                    <div style="max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                      
+                      <div style="max-width:600px; margin:2px; background:#000e89; border-radius:8px;">
+                        <h2 style="color:white; margin:0; padding:10px 10px;">Glück Global - Class Reminder</h2>
+                      </div>
+
+                      <p>Hello <strong>${student.name}</strong>,</p>
+                      <p>This is a reminder for your upcoming class:</p>
+
+                      <ul style="list-style:none; padding:0; font-size:15px; text-align:center;">
+                        <li><strong>Day:</strong> ${todayWeekday}</li>
+                        <li><strong>Time:</strong> ${slot.start} - ${slot.end}</li>
+                      </ul>
+
+                      ${
+                        meetingLink
+                          ? `
+                            <p style="margin-top: 20px; font-size:15px;">
+                              Please use the following link to join your upcoming class:
+                              <br />
+                              <a href="${meetingLink.link}" target="_blank" 
+                                style="display:inline-block; margin-top:10px; background-color:#000e89; color:#fff; 
+                                        text-decoration:none; padding:10px 20px; border-radius:6px;">
+                                Join Class
+                              </a>
+                            </p>
+                          `
+                          : `
+                            <p style="margin-top: 20px; color:#999; font-size:14px;">
+                              No meeting link is currently available for this class.
+                            </p>
+                          `
+                      }
+
+                      <p style="margin-top:20px;">Please be prepared and join on time.</p>
+
+                      <p style="font-size:13px; color:#888;">
+                        Best regards,<br>
+                        <strong>Glück Global Pvt Ltd</strong>
+                      </p>
+                    </div>
+                  </div>
+                `,
+        };
+
           await transporter.sendMail(mailOptions);
           console.log(`✅ Reminder sent to ${student.email}`);
         }
@@ -278,5 +326,19 @@ cron.schedule('*/1 * * * *', async () => {
     console.error('❌ Error in reminder cron job:', err);
   }
 });
+
+
+// ==========================
+// ✅ FIND MEETING LINK BY BATCH, MEDIUM, & ASSIGNED TEACHER
+// ==========================
+async function findMeetingLink(batch, medium, teacherId) {
+  try {
+    const link = await MeetingLink.findOne({ batch, medium, teacherId });
+    return link;
+  } catch (err) {
+    console.error('Error finding meeting link:', err.message);
+    throw err;
+  }
+}
 
 module.exports = router;

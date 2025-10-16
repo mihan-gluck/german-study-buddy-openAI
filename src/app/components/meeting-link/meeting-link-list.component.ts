@@ -77,4 +77,20 @@ export class MeetingLinkListComponent implements OnInit {
   onUpdate(linkId: string): void {
     this.router.navigate(['/meeting-link', linkId]);
   }
+
+  deleteLink(id: string): void {
+    if (confirm('Are you sure you want to delete this link?')) {
+      this.meetingLinkService.deleteLink(id).subscribe({
+        next: (response) => {
+          window.alert('Link deleted successfully!');
+          console.log('Deleted:', response);
+          this.fetchMeetingLinks(); // Refresh your link list after deletion
+        },
+        error: (error) => {
+          window.alert('Failed to delete link: ' + (error.error?.message || 'Please try again.'));
+          console.error('Delete failed:', error);
+        }
+      });
+    }
+  }
 }
