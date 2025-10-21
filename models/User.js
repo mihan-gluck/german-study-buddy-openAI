@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema({
   elevenLabsApiKey: { type: String, default: ""},
 
   assignedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: function() { return this.role === "TEACHER"; } }], // Courses assigned to the user
+  assignedBatches: [{ type: String, required: function() { return this.role === "TEACHER"; } }], // Batches assigned to the teacher
   assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: function() { return this.role === "STUDENT"; } }, // Teacher assigned to the student
   isActive: { type: Boolean, default: true },
   profilePic: { type: String, default: "" },

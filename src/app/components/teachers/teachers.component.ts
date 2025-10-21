@@ -26,6 +26,7 @@ interface Teacher {
   regNo: string;
   email: string;
   assignedCourses: Course[];
+  assignedBatches: string[];
   medium: string;
 }
 

@@ -13,6 +13,10 @@ export class TeacherService {
 
   constructor(private http: HttpClient) {}
 
+  getAllTeachers(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/`, { withCredentials: true });
+  }
+
   // Get logged-in teacher profile
   getTeacherProfile(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/profile`);
@@ -30,5 +34,7 @@ export class TeacherService {
   getTeacherById(teacherId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${teacherId}`, { withCredentials: true });
   }
+
+
 
 }

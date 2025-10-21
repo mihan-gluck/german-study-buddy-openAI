@@ -115,7 +115,16 @@ router.get('/:teacherId', verifyToken, async (req, res) => {
   }
 });
 
-
+//get all teachers
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const teachers = await User.find({ role: 'TEACHER' }).select('-password');
+    res.json({ success: true, data: teachers });
+  } catch (err) {
+    console.error('Error fetching teachers:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch teachers', error: err.message });
+  }
+});
 
 module.exports = router;
 

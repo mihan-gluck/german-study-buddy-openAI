@@ -28,6 +28,11 @@
       />
     </div>
 
+    <!-- Error message -->
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
     <button type="submit" class="btn btn-primary w-100 py-2">Login</button>
 
   </form>

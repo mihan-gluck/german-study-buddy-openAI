@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AssignElevenlabsDialogComponent } from '../../assign-elevenlabs-dialog/assign-elevenlabs-dialog.component';
 import { HttpHeaders } from '@angular/common/http';
 import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
+import {TeacherService} from '../../services/teacher.service';
 
 
 
@@ -106,9 +107,10 @@ export class AdminDashboardComponent implements OnInit {
 
   loading = false;
   error = '';
-  filters = { level: '', plan: '', batch: '' };
+  filters = { level: '', plan: '', batch: '', assignedTeacher: '' };
   plan: string[] = ['PLATINUM', 'SILVER'];
   level: string[] = ['A1', 'A2', 'B1', 'B2'];
+  teachers: any[] = [];
 
   feedbackMap: Record<string, any[]> = {};
   selectedStudentName?: string;
@@ -131,7 +133,8 @@ export class AdminDashboardComponent implements OnInit {
     private http: HttpClient,
     private feedbackService: FeedbackService,
     private dialog: MatDialog,
-    private elevenLabsService: ElevenLabsUsageService
+    private elevenLabsService: ElevenLabsUsageService,
+    private teacherService: TeacherService,
   ) {}
 
   ngOnInit(): void {
@@ -143,6 +146,7 @@ export class AdminDashboardComponent implements OnInit {
           return;
         }
         this.fetchStudents();
+        this.fetchTeachers();
       },
       error: (err) => {
         console.error('Not authenticated:', err);
@@ -182,37 +186,39 @@ fetchStudents(): void {
   });
   }
 
+  // ✅ Fetch all registered teachers
+  fetchTeachers(): void {
+    this.teacherService.getAllTeachers()
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.teachers = res.data;
+          } else {
+            console.error('Failed to load teachers');
+          }
+        },
+        error: (err) => {
+          console.error('Error fetching teachers:', err);
+        }
+      });
+  }
 
-  // fetchStudents(): void {
-  // this.loading = true;
-  // this.http.get<{ success: boolean; data: Student[] }>('/api/admin/students').subscribe({
-  //   next: res => {
-  //     this.students = res.data;   // ✅ use res.data instead of res
-  //     this.students.forEach(student => {
-  //       this.loadFeedbackStats(student);
-  //       this.loadCourseProgress(student);
-  //     });
-  //     this.filteredStudents = [...this.students];
-  //     this.loading = false;
-  //   },
-  //   error: err => {
-  //     console.error('Error fetching students:', err);
-  //     this.error = 'Failed to load students';
-  //     this.loading = false;
-  //   }
-  // });
-  // }
 
   applyFilters() {
     this.filteredStudents = this.students.filter(student => {
       const course = student.courseAssigned ? student.courseAssigned.toLowerCase() : '';
       const plan   = student.subscription ? student.subscription.toUpperCase() : '';
       const status = student.vapiAccess?.status ? student.vapiAccess.status.toLowerCase() : '';
+      const assignedTeacherName =
+      typeof student.assignedTeacher === 'object'
+        ? student.assignedTeacher.name?.toLowerCase()
+        : student.assignedTeacher?.toLowerCase() || '';
 
       return (
         (!this.filters.level || student.level === this.filters.level) &&
         (!this.filters.plan   || plan === this.filters.plan.toUpperCase()) &&
-        (!this.filters.batch || student.batch === this.filters.batch.toString())
+        (!this.filters.batch || student.batch === this.filters.batch.toString()) &&
+        (!this.filters.assignedTeacher || assignedTeacherName === this.filters.assignedTeacher.toLowerCase())
       );
     });
   }

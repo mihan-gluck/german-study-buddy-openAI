@@ -30,17 +30,18 @@
     <thead>
       <tr>
         <!-- <th></th> -->
-        <th>Name</th>
         <th>Registration No</th>
+        <th>Name</th>
         <th>Email</th>
         <th>Assigned Courses</th>
+        <th>Assigned Batches</th>
         <th>Medium</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let teacher of filteredTeachers; trackBy: trackById">
-        <td data-label="Name">{{ teacher.name }}</td>
         <td data-label="Registration No">{{ teacher.regNo }}</td>
+        <td data-label="Name">{{ teacher.name }}</td>
         <td data-label="Email">{{ teacher.email }}</td>
 
         <td data-label="Assigned Courses">
@@ -50,6 +51,15 @@
             </span>
           </ng-container>
           <ng-template #noCourses>N/A</ng-template>
+        </td>
+
+        <td data-label="Assigned Batches">
+          <ng-container *ngIf="teacher.assignedBatches?.length; else noBatches">
+            <span *ngFor="let b of teacher.assignedBatches; let last = last">
+              {{ b }}<span *ngIf="!last">, </span>
+            </span>
+          </ng-container>
+          <ng-template #noBatches>N/A</ng-template>
         </td>
 
         <td data-label="Medium">{{ teacher.medium || 'N/A' }}</td>

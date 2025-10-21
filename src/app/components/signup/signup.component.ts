@@ -33,6 +33,7 @@ export class SignupComponent {
 
    // Teacher fields
   assignedCourses: string[] = []; // selected course IDs
+  assignedBatches: string[] = []; // selected batches
   courses: any[] = []; // list fetched from backend
 
   isEditMode = false; // ✅ flag to track update mode
@@ -116,8 +117,8 @@ export class SignupComponent {
     }
 
     if (this.role === 'TEACHER') {
-      if (!this.medium || this.assignedCourses.length === 0) {
-        alert("Medium and at least one course are required for teachers!");
+      if (!this.medium || this.assignedCourses.length === 0 || !this.assignedBatches.length) {
+        alert("Medium, and at least one course are required for teachers!");
         return;
       }
     }
@@ -143,6 +144,7 @@ export class SignupComponent {
     if (this.role === 'TEACHER') {
       user.medium = this.medium;
       user.assignedCourses = this.assignedCourses;
+      user.assignedBatches = this.assignedBatches;
     }
 
     // ✅ Decide whether to create or update
@@ -169,6 +171,11 @@ export class SignupComponent {
         next: (response: any) => {
           alert(user.role + ' registered successfully!');
           console.log('User registered:', response);
+
+          if (this.role === 'TEACHER') {
+            this.router.navigate(['/teachers']);
+            return;
+          }
           this.router.navigate(['/admin-dashboard']);
         },
         error: (error: any) => {
@@ -180,19 +187,23 @@ export class SignupComponent {
 
   }
   scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-scrollToBottom() {
-  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
-
-onCourseChange(event: any, courseId: string) {
-  if (event.target.checked) {
-    this.assignedCourses.push(courseId);
-  } else {
-    this.assignedCourses = this.assignedCourses.filter(id => id !== courseId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-}
+
+  scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  onCourseChange(event: any, courseId: string) {
+    if (event.target.checked) {
+      this.assignedCourses.push(courseId);
+    } else {
+      this.assignedCourses = this.assignedCourses.filter(id => id !== courseId);
+    }
+  }
+
+  onAssignedBatchesChange(value: string) {
+    this.assignedBatches = value.split(',').map(batch => batch.trim());
+  }
 
 }

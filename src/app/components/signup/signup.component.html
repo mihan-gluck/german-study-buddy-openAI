@@ -83,6 +83,20 @@
         <small class="text-muted">Select one or more courses</small>
       </div>
 
+      <!-- Assigned Batches -->
+      <div class="mb-3" *ngIf="role === 'TEACHER'">
+        <label for="assignedBatches" class="form-label">Assigned Batches (comma separated)</label>
+        <input
+          type="text"
+          id="assignedBatches"
+          name="assignedBatches"
+          [(ngModel)]="assignedBatches"
+          (ngModelChange)="onAssignedBatchesChange($event)"
+          required
+          placeholder="e.g., 1, 2, 5"
+          class="form-control"
+        />
+      </div>
 
       <!-- Medium -->
       <div class="mb-3" *ngIf="role === 'STUDENT' || role === 'TEACHER'">

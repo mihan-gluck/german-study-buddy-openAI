@@ -84,4 +84,19 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
+  deleteAccount(userId: string) {
+    if (confirm('Are you sure you want to delete this account? This action cannot be undone.')) {
+      this.authService.deleteUser(userId).subscribe({
+        next: () => {
+          alert('Account deleted successfully.');
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          console.error('Error deleting account:', err);
+          alert('Failed to delete account. Please try again.');
+        }
+      });
+    }
+  }
 }

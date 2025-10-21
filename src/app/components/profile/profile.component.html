@@ -34,7 +34,12 @@
         <input type="file" (change)="onFileSelected($event)" accept="image/*" />
         Choose Photo
       </label>
-      <button type="submit" [disabled]="uploading">Upload</button>
+      <button class="upload" type="submit" [disabled]="uploading">Upload</button>
+      <div class="actions" *ngIf="userProfile.role === 'ADMIN'">
+        <button class="btn btn-danger" (click)="deleteAccount(userProfile._id)">
+          Delete
+        </button>
+      </div>
     </form>
     <div *ngIf="uploadError" class="text-danger mt-2">{{ uploadError }}</div>
   </div>

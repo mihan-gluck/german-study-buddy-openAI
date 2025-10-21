@@ -20,6 +20,12 @@
 
   <input type="number" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
 
+  <select [(ngModel)]="filters.assignedTeacher" (change)="applyFilters()">
+    <option value="">Filter by Teacher</option>
+    <option *ngFor="let teacher of teachers" [value]="teacher.name">
+      {{ teacher.name }}
+    </option>
+  </select>
   </div>
 
 

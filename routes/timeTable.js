@@ -247,6 +247,16 @@ cron.schedule('*/1 * * * *', async () => {
 
       if (!latestTT) continue;
 
+      // ✅ Convert weekStartDate and weekEndDate to Date objects
+      const weekStart = new Date(latestTT.weekStartDate);
+      const weekEnd = new Date(latestTT.weekEndDate);
+
+      // ✅ Check if today is within the timetable’s valid week range
+      if (now < weekStart || now > weekEnd) {
+        console.log(`📅 Skipping ${student.name}: today's date is outside the timetable range (${weekStart.toDateString()} - ${weekEnd.toDateString()}).`);
+        continue;
+      }
+
       const todaySlots = latestTT[todayWeekday];
       if (!todaySlots?.length) continue;
 
