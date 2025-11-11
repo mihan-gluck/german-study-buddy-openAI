@@ -3,6 +3,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Define a feedback model interface for strong typing
 export interface Feedback {
@@ -16,8 +17,8 @@ export interface Feedback {
   providedIn: 'root'
 })
 export class FeedbackService {
-  private readonly BASE_URL = 'http://localhost:4000/api/feedback';
-  private readonly TEACHER_URL = 'http://localhost:4000/api/teacher';
+  private readonly BASE_URL = `${environment.apiUrl}/feedback`;
+  private readonly TEACHER_URL = `${environment.apiUrl}/teacher`;
 
   constructor(private http: HttpClient) {}
 

@@ -3,6 +3,9 @@ import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { environment } from '../../../environments/environment.prod';
+
+const apiUrl = environment.apiUrl;  // Base API URL
 
 @Component({
   selector: 'app-profile',
@@ -30,7 +33,15 @@ export class ProfileComponent implements OnInit {
   loadUserProfile() {
     this.authService.getUserProfile().subscribe({
       next: (response: any) => {
-        this.userProfile = response.user || response; // adapt to API
+        // Convert relative profilePic path to full HTTPS URL
+        if (response.profilePic) {
+          this.userProfile = {
+            ...response,
+            profilePhoto: this.getFullPhotoUrl(response.profilePic)
+          };
+        } else {
+          this.userProfile = response;
+        }
       },
       error: (error: any) => {
         console.error('Error loading profile:', error);
@@ -40,6 +51,7 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
 
   // Called when user selects a file
   onFileSelected(event: Event) {
@@ -68,12 +80,10 @@ export class ProfileComponent implements OnInit {
         alert('Profile photo uploaded successfully!');
 
         if (res.profilePhoto) {
-          if (res.profilePhoto.startsWith('/uploads')) {
-            this.userProfile.profilePhoto = `http://localhost:4000${res.profilePhoto}`;
-          } else {
-            this.userProfile.profilePhoto = res.profilePhoto;
-          }
+          this.userProfile.profilePhoto = this.getFullPhotoUrl(res.profilePhoto);
         }
+
+        window.location.reload();
 
         this.selectedFile = null;
       },
@@ -83,6 +93,19 @@ export class ProfileComponent implements OnInit {
         this.uploadError = 'Failed to upload photo. Please try again.';
       }
     });
+  }
+
+  // Utility function to convert any path to HTTPS relative URL
+  getFullPhotoUrl(relativePath: string): string {
+    if (!relativePath) return 'https://via.placeholder.com/150';
+
+    // ✅ If the backend already returned a full URL, just use it
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
+
+    // Otherwise, build a full URL with your domain
+    return `https://gluckstudentsportal.com${relativePath}`;
   }
 
   deleteAccount(userId: string) {

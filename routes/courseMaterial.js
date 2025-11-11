@@ -4,6 +4,8 @@ const express = require("express");
 const router = express.Router();
 const CourseMaterial = require("../models/CourseMaterial");
 const upload = require("../middleware/upload"); // your multer setup
+const path = require('path'); 
+const fs = require('fs');    
 
 // POST /api/courseMaterial
 // Upload files and save course material
@@ -72,8 +74,34 @@ router.delete("/:materialId/file", async (req, res) => {
       return res.status(404).json({ message: "Material not found." });
     }
 
-    // Remove the file from the materials array
-    material.materials = material.materials.filter(file => file._id.toString() !== fileId);
+    // Find the file to delete
+    const fileToDelete = material.materials.find(f => f.fileUrl.includes(fileId) || f.fileName === fileId);
+    if (!fileToDelete) {
+      return res.status(404).json({ message: "File not found in material." });
+    }
+
+    // Delete the actual file from disk
+    const filePath = path.join(process.cwd(), fileToDelete.fileUrl);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log("🗑️ Deleted file from disk:", filePath);
+    }
+
+    // Remove the file from the array
+    material.materials = material.materials.filter(
+      (f) => f.fileUrl !== fileToDelete.fileUrl
+    );
+
+    // ✅ If no materials left, delete the whole document
+    if (material.materials.length === 0) {
+      await CourseMaterial.findByIdAndDelete(materialId);
+      console.log(`🧹 Course material ${materialId} deleted because it became empty.`);
+      return res.status(200).json({
+        message: "File deleted and course material removed (no files left).",
+      });
+    }
+
+    // Otherwise, save the updated material
     await material.save();
 
     res.status(200).json({

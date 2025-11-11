@@ -22,11 +22,11 @@
         <!-- Files -->
         <ul class="list-unstyled">
           <li *ngFor="let file of material.materials" class="mb-1 d-flex justify-content-between align-items-center">
-            <a [href]="'http://localhost:4000' + file.fileUrl" target="_blank">{{ file.fileName }}</a>
+            <a [href]="apiBaseUrl + file.fileUrl" target="_blank">{{ file.fileName }}</a>
             <button
               *ngIf="userRole === 'ADMIN'"
               class="delete-btn btn btn-danger btn-sm"
-              (click)="deleteFile(material._id!, file._id!)">
+              (click)="deleteFile(material._id!, file)">
               Delete
             </button>
           </li>

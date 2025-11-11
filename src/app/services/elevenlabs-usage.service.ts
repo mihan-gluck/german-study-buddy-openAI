@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface ElevenLabsUsageData {
   course: string;
@@ -16,7 +17,7 @@ export interface ElevenLabsUsageData {
   providedIn: 'root'
 })
 export class ElevenLabsUsageService {
-  private apiUrl = 'http://localhost:4000/api/elevenlabs-usage'; // base endpoint
+  private apiUrl = `${environment.apiUrl}/elevenlabs-usage`; // base endpoint
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -42,7 +43,7 @@ export class ElevenLabsUsageService {
 
   // Get ElevenLabs usage by API key (Admin)
   getUsageByApiKey(apiKey: string): Observable<any> {
-    return this.http.get(`/api/elevenlabs-usage/admin/usage/${apiKey}`, { withCredentials: true });
+    return this.http.get(`${this.apiUrl}/admin/usage/${apiKey}`, { withCredentials: true });
   }
 
   // Optional: Observable-based logging
@@ -52,6 +53,6 @@ export class ElevenLabsUsageService {
 
   // Get ElevenLabs usage by API key (Teacher)
   getUsageByApiKeyForTeacher(apiKey: string): Observable<any> {
-    return this.http.get(`/api/elevenlabs-usage/teacher/usage/${apiKey}`, { withCredentials: true });
+    return this.http.get(`${this.apiUrl}/teacher/usage/${apiKey}`, { withCredentials: true });
   }
 }

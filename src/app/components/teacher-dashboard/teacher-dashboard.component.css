@@ -305,6 +305,13 @@ h2, h3 {
   }
 }
 
+/* Add extra bottom spacing for mobile so buttons are not hidden */
+@media (max-width: 768px) {
+  .students-table-container {
+    margin-bottom: 80px; /* adjust depending on footer height */
+  }
+}
+
 /* ====== Angular Material Overrides ====== */
 .mat-form-field {
   background: white;

@@ -8,7 +8,7 @@ const cors = require("cors");
 const auth = require("./middleware/auth");
 //const { verifyToken, isAdmin} = require('./middleware/auth');
 
-const allowedOrigins = ['http://localhost:4200']; // frontend origin
+const allowedOrigins =  ['http://localhost:4200', 'http://13.50.4.119', 'http://51.21.238.184', 'https://51.21.238.184', 'https://gluckstudentsportal.com']; // frontend origin
 
 
 
@@ -35,6 +35,7 @@ const courseMaterialRoutes = require('./routes/courseMaterial');
 const app = express();
 const cookieParser = require('cookie-parser');
 
+app.set('trust proxy', true); // trust first proxy (if behind a proxy like Nginx or Heroku)
 
 // Middleware
 app.use(express.json());
@@ -66,6 +67,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch((err) => {
   console.error("❌ Error connecting to MongoDB Atlas:", err);
 }); */
+
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -141,6 +143,7 @@ app.use('/api/feedback', feedbackRoutes);
 // Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); 
+
 
 
 /*require("dotenv").config();

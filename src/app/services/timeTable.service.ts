@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Define time range type
 interface TimeRange {
@@ -31,7 +32,7 @@ export interface TimeTable {
   providedIn: 'root'
 })
 export class TimeTableService {
-  private apiUrl = 'http://localhost:4000/api/timeTable'; // Base path
+  private apiUrl = `${environment.apiUrl}/timeTable`; // Base path
 
   constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface MeetingLink {
   teacherId: string;
@@ -15,7 +16,7 @@ export interface MeetingLink {
   providedIn: 'root'
 })
 export class MeetingLinkService {
-    private readonly BASE_URL = 'http://localhost:4000/api/meetingLink';
+    private readonly BASE_URL = `${environment.apiUrl}/meetingLink`;
 
     constructor(private http: HttpClient) {}
 

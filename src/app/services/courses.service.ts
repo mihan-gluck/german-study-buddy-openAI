@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Define a Course interface
 export interface Course {
@@ -15,7 +16,7 @@ export interface Course {
   providedIn: 'root'
 })
 export class CoursesService {
-  private apiUrl = 'http://localhost:4000/api/courses'; // Adjust this to match your backend API
+  private apiUrl = `${environment.apiUrl}/courses`; // Adjust this to match your backend API
 
   constructor(private http: HttpClient) {}
 

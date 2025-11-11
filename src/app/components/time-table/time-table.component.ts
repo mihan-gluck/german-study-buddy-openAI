@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TimeTableService } from '../../services/timeTable.service';
 import { AuthService } from '../../services/auth.service';
 
+
 interface Teacher {
   _id: string;
   name: string;
@@ -14,6 +15,8 @@ export interface TimeRange {
   start: string;
   end: string;
 }
+
+
 
 export interface TimeTable {
   _id?: string;
@@ -53,8 +56,8 @@ export class TimeTableComponent implements OnInit {
     batch: '',
     medium: '',
     plan: '',
-    weekStartDate: new Date(),
-    weekEndDate: new Date(),
+    weekStartDate: this.formatDate(new Date()) as unknown as Date,
+    weekEndDate: this.formatDate(new Date()) as unknown as Date,
     assignedTeacher: '',
     monday: [],
     tuesday: [],
@@ -166,5 +169,15 @@ export class TimeTableComponent implements OnInit {
         }
       });
     }
+  }
+
+  private formatDate(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

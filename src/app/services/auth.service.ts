@@ -5,6 +5,7 @@ import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../environments/environment.prod';
 
 interface DecodeToken {
   name: string;
@@ -35,7 +36,7 @@ interface User {
 })
 export class AuthService {
   // Change backend API URL to your EC2 URL or keep localhost for development
-  private apiUrl = 'http://localhost:4000/api';  // Base API URL
+  private apiUrl = environment.apiUrl;  // Base API URL
   //getUserId: any;
 
   // ✅ Holds logged-in user state
@@ -161,15 +162,23 @@ export class AuthService {
     return this.http.get<any[]>(`${this.apiUrl}/student/vapi-courses`);
   }
 
-  // Upload profile photo
+  // Upload profile photo with validation
   uploadProfilePhoto(file: File): Observable<any> {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+
+    // ✅ Validate file type before sending to backend
+    if (!allowedTypes.includes(file.type)) {
+      return new Observable((observer) => {
+        observer.error({ message: 'Invalid file type! Only JPG/PNG files are allowed.' });
+      });
+    }
 
     const formData = new FormData();
     formData.append('profilePhoto', file);
 
-    // Backend endpoint for photo upload — adjust if needed
     return this.http.post(`${this.apiUrl}/profile/upload-photo`, formData, { withCredentials: true });
-  } 
+  }
+
 
   getUserById(id: string) {
     return this.http.get<User>(`${this.apiUrl}/auth/${id}`, { withCredentials: true });
@@ -182,7 +191,6 @@ export class AuthService {
   deleteUser(id: string) {
     return this.http.delete(`${this.apiUrl}/auth/${id}`, { withCredentials: true });
   }
-
 
 
 

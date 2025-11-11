@@ -13,7 +13,9 @@ import { NgChartsModule } from 'ng2-charts';
 import { MaterialModule } from '../../shared/material.module';
 import { MatDialog } from '@angular/material/dialog';
 import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
+import { environment } from '../../../environments/environment';
 
+const apiUrl = environment.apiUrl;  // Base API URL
 
 interface Course {
   _id: string;
@@ -88,7 +90,7 @@ export class TeachersComponent implements OnInit {
 fetchTeachers(): void {
   this.loading = true;
 
-  this.http.get<{ success: boolean; data: Teacher[] }>('/api/admin/teachers', { withCredentials: true }).subscribe({
+  this.http.get<{ success: boolean; data: Teacher[] }>(`${apiUrl}/admin/teachers`, { withCredentials: true }).subscribe({
     next: res => {
       if (res.success) {
         this.teachers = res.data;

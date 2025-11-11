@@ -4,13 +4,13 @@
       <img
         *ngIf="userProfile.profilePhoto; else defaultPhoto"
         [src]="userProfile.profilePhoto"
-        alt="Profile Photo"
+        alt="Profile Picture"
         class="profile-pic"
       />
       <ng-template #defaultPhoto>
         <img
-          [src]="userProfile?.profilePic ? userProfile.profilePic : 'https://via.placeholder.com/150' "
-          alt="Profile Photo"
+          src="https://via.placeholder.com/150"
+          alt="Profile Picture"
           class="profile-pic"
         />
       </ng-template>
@@ -34,10 +34,10 @@
         <input type="file" (change)="onFileSelected($event)" accept="image/*" />
         Choose Photo
       </label>
-      <button class="upload" type="submit" [disabled]="uploading">Upload</button>
+      <button class="upload" type="submit" [disabled]="uploading">Upload Photo</button>
       <div class="actions" *ngIf="userProfile.role === 'ADMIN'">
         <button class="btn btn-danger" (click)="deleteAccount(userProfile._id)">
-          Delete
+          Delete Account
         </button>
       </div>
     </form>

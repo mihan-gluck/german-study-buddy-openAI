@@ -5,7 +5,7 @@ const router = express.Router();
 const User = require('../models/User');
 const { verifyToken } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
-const upload = require('../middleware/upload');
+const uploadProfile = require('../middleware/profileUpload');
 const { Subscription } = require('rxjs');
 const fs = require('fs');
 const path = require('path');
@@ -112,8 +112,12 @@ router.put('/update-password', verifyToken, async (req, res) => {
   }
 });
 
+// Serve uploads folder publicly
+router.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+
 // POST /api/profile/upload-photo - Upload profile photo
-router.post('/upload-photo', verifyToken, upload.single('profilePhoto'), async (req, res) => {
+router.post('/upload-photo', verifyToken, uploadProfile.single('profilePhoto'), async (req, res) => {
   try {
     console.log("[UPLOAD PHOTO] req.user:", req.user);
 
@@ -123,7 +127,8 @@ router.post('/upload-photo', verifyToken, upload.single('profilePhoto'), async (
     }
 
     const photoPath = `/uploads/profile-photos/${req.file.filename}`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${photoPath}`;
+    const protocol = req.get('x-forwarded-proto') || req.protocol;
+    const fullUrl = `${protocol}://${req.get('host')}${photoPath}`;
     console.log("[UPLOAD PHOTO] File uploaded:", fullUrl);
 
     const user = await User.findById(req.user.id);
@@ -142,16 +147,14 @@ router.post('/upload-photo', verifyToken, upload.single('profilePhoto'), async (
       }
     }
 
-    // ✅ Update photo only (skip required field validation)
-    await User.findByIdAndUpdate(
-      req.user.id,
-      { profilePic: fullUrl, updatedAt: new Date() },
-      { new: true, runValidators: false }
-    );
-
-    console.log("[UPLOAD PHOTO] Profile photo updated in DB for user:", user.name);
+    // Update DB with new photo URL
+    user.profilePic = photoPath;
+    user.updatedAt = new Date();
+    await user.save();
+    
 
     res.json({ msg: 'Profile photo uploaded successfully', profilePhoto: fullUrl });
+    
   } catch (err) {
     console.error('[UPLOAD PHOTO] Error uploading photo:', err);
     res.status(500).json({ msg: 'Error uploading photo', error: err.message });

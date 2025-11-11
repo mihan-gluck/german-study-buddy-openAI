@@ -18,8 +18,9 @@ import { AssignElevenlabsDialogComponent } from '../../assign-elevenlabs-dialog/
 import { HttpHeaders } from '@angular/common/http';
 import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
 import {TeacherService} from '../../services/teacher.service';
+import { environment } from '../../../environments/environment';
 
-
+const apiUrl = environment.apiUrl;  // Base API URL
 
 type VapiStatus = 'active' | 'paused' | 'finished';
 
@@ -157,12 +158,8 @@ export class AdminDashboardComponent implements OnInit {
 
 fetchStudents(): void {
   this.loading = true;
-  // const token = this.authService.getToken();
-  // const headers = token
-  //   ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-  //   : new HttpHeaders();
 
-  this.http.get<{ success: boolean; data: Student[] }>('/api/admin/students', { withCredentials: true }).subscribe({
+  this.http.get<{ success: boolean; data: Student[] }>(`${apiUrl}/admin/students`, { withCredentials: true }).subscribe({
     next: res => {
       if (res.success) {
         this.students = res.data;

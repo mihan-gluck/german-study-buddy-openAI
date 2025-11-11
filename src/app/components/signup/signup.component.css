@@ -113,7 +113,7 @@ select:focus {
 
 /* ========== Buttons ========== */
 button[type="submit"] {
-  background-color: #405980;
+  background-color: #000e89;
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
@@ -125,7 +125,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-  background-color: #314466;
+  background-color: #0012b3;
   transform: translateY(-2px);
 }
 
@@ -159,6 +159,7 @@ button[type="submit"]:disabled {
   .signup-container {
     max-width: 90%;
     padding: 1.5rem;
+    margin-bottom: 150px;
   }
 
   h2 {

@@ -4,12 +4,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeacherService {
-  private baseUrl = '/api/teacher'; // Adjust if your route prefix is different
+  private baseUrl = `${environment.apiUrl}/teacher`; // Adjust if your route prefix is different
 
   constructor(private http: HttpClient) {}
 

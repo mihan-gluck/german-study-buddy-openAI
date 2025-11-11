@@ -213,3 +213,10 @@ h2, h3 {
     text-align: right;
   }
 }
+
+/* Add extra bottom spacing for mobile so buttons are not hidden */
+@media (max-width: 768px) {
+  .students-table-container {
+    margin-bottom: 150px; /* adjust depending on footer height */
+  }
+}

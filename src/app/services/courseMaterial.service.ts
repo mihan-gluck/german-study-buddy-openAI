@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Define the CourseMaterial interface
 export interface CourseMaterial {
@@ -21,7 +22,7 @@ export interface CourseMaterial {
   providedIn: 'root'
 })
 export class CourseMaterialService {
-  private apiUrl = 'http://localhost:4000/api/courseMaterial';
+  private apiUrl = `${environment.apiUrl}/courseMaterial`;
 
   constructor(private http: HttpClient) {}
 
@@ -46,6 +47,10 @@ export class CourseMaterialService {
       params: { fileId },
       withCredentials: true 
     });
+  }
+
+  deleteMaterial(materialId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${materialId}`, { withCredentials: true });
   }
 
 }

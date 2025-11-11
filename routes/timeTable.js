@@ -189,31 +189,96 @@ cron.schedule("0 17 * * 0", async () => {
   try {
     const students = await User.find({ role: "STUDENT" });
 
+    // 🗓️ Determine upcoming week range (Monday → Sunday)
+    const now = new Date();
+    const nextMonday = new Date(now);
+    nextMonday.setDate(now.getDate() + ((1 + 7 - now.getDay()) % 7)); // Next Monday
+    nextMonday.setHours(0, 0, 0, 0);
+
+    const nextSunday = new Date(nextMonday);
+    nextSunday.setDate(nextMonday.getDate() + 6);
+    nextSunday.setHours(23, 59, 59, 999);
+
+    console.log(`📅 Upcoming week: ${nextMonday.toDateString()} → ${nextSunday.toDateString()}`);
+
+
     for (const student of students) {
       const latestTT = await TimeTable.findOne({
         batch: student.batch,
         medium: student.medium,
         plan: student.subscription,
-      })
-        .sort({ weekStartDate: -1 })
-        .lean();
+        weekStartDate: { $gte: nextMonday },
+        weekEndDate: { $lte: nextSunday },
+      }).lean();
 
       if (!latestTT) {
         console.log(`⚠️ No timetable found for ${student.email}`);
         continue;
       }
 
+      // ✅ Check if student has at least one class during that week
+      const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+      const hasClasses = days.some(
+        (day) => Array.isArray(latestTT[day]) && latestTT[day].length > 0
+      );
+
+      if (!hasClasses) {
+        console.log(`📭 ${student.email} has no classes this upcoming week, skipping.`);
+        continue;
+      }
+
+      // ✅ Send timetable email to student
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: student.email,
         subject: "📅 Your Upcoming Timetable - Glück Global",
         html: `
-          <div style="font-family: Arial, sans-serif; color: #333; text-align:center;">
-            <h2>Glück Global Student Portal</h2>
-            <p>Hello <strong>${student.name}</strong>, here is your timetable for the week:</p>
-            <h3>${new Date(latestTT.weekStartDate).toDateString()} - ${new Date(latestTT.weekEndDate).toDateString()}</h3>
-          </div>
-        `,
+              <div style="font-family: Arial, sans-serif; color: #333; text-align:center;">
+                <h2>Glück Global Student Portal</h2>
+                <p>Hello <strong>${student.name}</strong>, here is your timetable for the week:</p>
+                <h3>${new Date(latestTT.weekStartDate).toDateString()} - ${new Date(latestTT.weekEndDate).toDateString()}</h3>
+
+                <table style="width:80%; margin:20px auto; border-collapse:collapse; text-align:center;">
+                  <thead>
+                    <tr style="background-color:#000e89; color:white;">
+                      <th style="border:1px solid #ddd; padding:8px;">Day</th>
+                      <th style="border:1px solid #ddd; padding:8px;">Schedule</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${(() => {
+                      const days = [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday",
+                      ];
+                      return days.map(day => {
+                        const slots = latestTT[day];
+                        let schedule =
+                          Array.isArray(slots) && slots.length > 0
+                            ? slots.map(s => `${s.start} - ${s.end}`).join("<br>")
+                            : "-";
+                        return `
+                          <tr>
+                            <td style="border:1px solid #ddd; padding:8px;">${day.charAt(0).toUpperCase() + day.slice(1)}</td>
+                            <td style="border:1px solid #ddd; padding:8px;">${schedule}</td>
+                          </tr>
+                        `;
+                      }).join("");
+                    })()}
+                  </tbody>
+                </table>
+
+                <p style="font-size:13px; color:#888; margin-top:20px;">
+                  Best regards,<br>
+                  <strong>Glück Global Pvt Ltd</strong>
+                </p>
+              </div>
+            `,
       };
 
       await transporter.sendMail(mailOptions);
@@ -222,7 +287,7 @@ cron.schedule("0 17 * * 0", async () => {
   } catch (err) {
     console.error("❌ Error in timetable cron job:", err);
   }
-});
+}, { timezone: "Asia/Colombo" });
 
 // ==========================
 // ✅ CLASS REMINDER CRON (EVERY MINUTE)
@@ -236,6 +301,7 @@ cron.schedule('*/1 * * * *', async () => {
 
     const now = new Date();
     const todayWeekday = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const todayDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     for (const student of students) {
       // ✅ Find the most recent timetable for the student
@@ -243,6 +309,8 @@ cron.schedule('*/1 * * * *', async () => {
         batch: student.batch,
         medium: student.medium,
         plan: student.subscription,
+        weekStartDate: { $lte: todayDateOnly },
+        weekEndDate: { $gte: todayDateOnly },
       }).sort({ weekStartDate: -1 }).lean();
 
       if (!latestTT) continue;
@@ -251,9 +319,13 @@ cron.schedule('*/1 * * * *', async () => {
       const weekStart = new Date(latestTT.weekStartDate);
       const weekEnd = new Date(latestTT.weekEndDate);
 
-      // ✅ Check if today is within the timetable’s valid week range
-      if (now < weekStart || now > weekEnd) {
-        console.log(`📅 Skipping ${student.name}: today's date is outside the timetable range (${weekStart.toDateString()} - ${weekEnd.toDateString()}).`);
+      // Normalize dates to ignore time
+      const weekStartDateOnly = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+      const weekEndDateOnly = new Date(weekEnd.getFullYear(), weekEnd.getMonth(), weekEnd.getDate());
+
+      // Check if today is within the timetable’s valid week range
+      if (todayDateOnly < weekStartDateOnly || todayDateOnly > weekEndDateOnly) {
+        console.log(`📅 Skipping ${student.name}: today's date is outside the timetable range (${weekStartDateOnly.toDateString()} - ${weekEndDateOnly.toDateString()}).`);
         continue;
       }
 
