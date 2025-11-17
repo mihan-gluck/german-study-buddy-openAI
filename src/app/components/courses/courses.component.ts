@@ -45,7 +45,7 @@ export class CoursesComponent implements OnInit {
           alert('Course deleted successfully.');
         },
         error: (error) => {
-          console.error('Error deleting course', error);
+          //console.error('Error deleting course', error);
           alert('Failed to delete the course. Please try again.');
         }
       });

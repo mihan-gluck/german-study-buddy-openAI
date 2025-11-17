@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
       }),
       catchError(err => {
         // ❌ Not authenticated → redirect to login
-        console.error('AuthGuard: Not authenticated', err);
+        //console.error('AuthGuard: Not authenticated', err);
         return of(this.router.createUrlTree(['/login']));
       })
     );

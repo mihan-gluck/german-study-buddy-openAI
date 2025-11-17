@@ -65,7 +65,7 @@ export class CourseMaterialsComponent implements OnInit {
                 this.loading = false;
             },
             error: (err) => {
-                console.error('Error fetching materials or courses', err);
+                //console.error('Error fetching materials or courses', err);
                 this.error = 'Failed to load course materials.';
                 this.loading = false;
             }
@@ -75,18 +75,18 @@ export class CourseMaterialsComponent implements OnInit {
     loadProfile(): void {
         this.authService.getUserProfile().subscribe({
             next: (data) => {
-                console.log('User profile', data);
+                //console.log('User profile', data);
                 this.userRole = data.role;  // Assuming the role is part of the user profile
             },
             error: (err) => {
-                console.error('Error fetching user profile', err);
+                //console.error('Error fetching user profile', err);
             }
         });
     }
 
     deleteFile(materialId: string, file: any) {
         if (!confirm('Are you sure you want to delete this file?')) return;
-        console.log('Attempting to delete file', materialId, file);
+        //console.log('Attempting to delete file', materialId, file);
 
         // ✅ Find the correct material document that contains this file
         const targetMaterial = this.materials.find(m =>
@@ -94,7 +94,7 @@ export class CourseMaterialsComponent implements OnInit {
         );
 
         if (!targetMaterial || !targetMaterial._id) {
-            console.error('❌ Material not found or invalid ID for file', file.fileName);
+            //console.error('❌ Material not found or invalid ID for file', file.fileName);
             return;
         }
 
@@ -103,7 +103,7 @@ export class CourseMaterialsComponent implements OnInit {
 
         this.materialService.deleteMaterialFile(targetMaterialId, file.fileName).subscribe({
             next: (res) => {
-            console.log('✅ File deleted successfully:', file.fileName);
+            //console.log('✅ File deleted successfully:', file.fileName);
             alert('File deleted successfully');
             window.location.reload();
 

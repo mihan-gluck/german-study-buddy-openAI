@@ -150,7 +150,7 @@ export class AdminDashboardComponent implements OnInit {
         this.fetchTeachers();
       },
       error: (err) => {
-        console.error('Not authenticated:', err);
+        //console.error('Not authenticated:', err);
         this.router.navigate(['/auth/login']);
       }
     });
@@ -167,7 +167,7 @@ fetchStudents(): void {
           //this.loadFeedbackStats(student);
           this.loadCourseProgress(student);
           this.loadElevenLabsUsage(student); // <-- pass single student
-          console.log('Student data:', student);
+          //console.log('Student data:', student);
         });
         this.filteredStudents = [...this.students];
       } else {
@@ -176,7 +176,7 @@ fetchStudents(): void {
       this.loading = false;
     },
     error: err => {
-      console.error('Error fetching students:', err);
+      //console.error('Error fetching students:', err);
       this.error = err.error?.msg || 'Failed to load students';
       this.loading = false;
     }
@@ -191,11 +191,11 @@ fetchStudents(): void {
           if (res.success) {
             this.teachers = res.data;
           } else {
-            console.error('Failed to load teachers');
+            alert('Failed to load teachers');
           }
         },
         error: (err) => {
-          console.error('Error fetching teachers:', err);
+          //console.error('Error fetching teachers:', err);
         }
       });
   }
@@ -247,7 +247,7 @@ fetchStudents(): void {
         this.fetchStudents();
       },
       error: err => {
-        console.error('Bulk assignment failed', err);
+        //console.error('Bulk assignment failed', err);
         alert('Bulk assignment failed');
       }
     });
@@ -296,7 +296,7 @@ fetchStudents(): void {
         this.fetchStudents();
       },
       error: err => {
-        console.error('Failed to assign course', err);
+        //console.error('Failed to assign course', err);
         alert('Failed to assign course');
       }
     });
@@ -308,7 +308,7 @@ fetchStudents(): void {
         this.fetchStudents();
       },
       error: err => {
-        console.error('Failed to update VAPI status', err);
+        //console.error('Failed to update VAPI status', err);
       }
     });
   }
@@ -333,7 +333,7 @@ fetchStudents(): void {
         this.feedbackLoading = false;
       },
       error: (err) => {
-        console.error('Failed to load feedback:', err);
+        //console.error('Failed to load feedback:', err);
         this.feedbackError = 'Failed to load feedback';
         this.feedbackLoading = false;
       }
@@ -386,7 +386,7 @@ fetchStudents(): void {
         }
       },
       error: err => {
-        console.error('Failed to fetch course progress', err);
+        //console.error('Failed to fetch course progress', err);
       }
     });
   }
@@ -399,7 +399,7 @@ fetchStudents(): void {
         this.fetchStudents();
       },
       error: err => {
-        console.error('Reset failed', err);
+        //console.error('Reset failed', err);
         alert('Failed to reset usage.');
       }
     });
@@ -417,7 +417,7 @@ fetchStudents(): void {
               student.elevenLabsLink = link;
             },
             error: err => {
-              console.error(err);
+              //console.error(err);
               alert('Failed to save link');
             }
           });
@@ -463,7 +463,7 @@ fetchStudents(): void {
         }
       },
       error: (err) => {
-        console.error(`❌ Failed to fetch ElevenLabs usage for ${student.name}:`, err);
+        //console.error(`❌ Failed to fetch ElevenLabs usage for ${student.name}:`, err);
         student.remainingMinutes = 0;
         student.planUpgradeDate = undefined;
       }
@@ -475,12 +475,12 @@ fetchStudents(): void {
       this.authService.deleteUser(id).subscribe({
         next: (response) => {
           alert('User deleted successfully!');
-          console.log('Deleted:', response);
+          //console.log('Deleted:', response);
           this.fetchStudents(); // Refresh your user list after deletion
         },
         error: (error) => {
           alert('Failed to delete user: ' + (error.error?.message || 'Please try again.'));
-          console.error('Delete failed:', error);
+          //console.error('Delete failed:', error);
         }
       });
     }

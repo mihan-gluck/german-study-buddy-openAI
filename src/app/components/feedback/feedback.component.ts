@@ -32,7 +32,7 @@ export class FeedbackListComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error fetching feedback:', err);
+        //console.error('Error fetching feedback:', err);
         this.errorMessage = 'Failed to load feedback';
         this.loading = false;
       }

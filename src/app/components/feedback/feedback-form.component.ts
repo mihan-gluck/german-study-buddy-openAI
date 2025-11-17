@@ -50,7 +50,7 @@ export class FeedbackFormComponent implements OnInit {
   private loadStudentProfile(): void {
     this.authService.getUserProfile().subscribe({
       next: (profile: any) => {
-        console.log('Student profile loaded:', profile);
+        //console.log('Student profile loaded:', profile);
         this.studentId = profile._id;
       },
       error: (err) => {
@@ -60,7 +60,7 @@ export class FeedbackFormComponent implements OnInit {
   }
   
     onSubmit(): void {
-    console.log('Submitting feedback:', this.feedbackForm.value);
+    //console.log('Submitting feedback:', this.feedbackForm.value);
     this.submitted = true;
     this.successMessage = '';
     this.errorMessage = '';
@@ -79,7 +79,7 @@ export class FeedbackFormComponent implements OnInit {
       rating: Number(this.feedbackForm.value.rating)
     };
 
-    console.log('Payload sent to backend:', feedbackData);
+    //console.log('Payload sent to backend:', feedbackData);
 
     this.feedbackService.submitFeedback(feedbackData).subscribe({
       next: (response) => {
@@ -93,7 +93,7 @@ export class FeedbackFormComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error submitting feedback:', error);
+        //console.error('Error submitting feedback:', error);
         this.errorMessage = 'Failed to submit feedback. Please try again later.';
       }
     });

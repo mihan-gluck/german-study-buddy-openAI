@@ -17,7 +17,7 @@ import { RouterModule } from '@angular/router';
 
 export class HomeComponent {
   constructor() {
-    console.log('HomeComponent Loaded!');
+    //console.log('HomeComponent Loaded!');
   }
 
 }

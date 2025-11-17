@@ -215,6 +215,8 @@ router.post("/signup", async (req, res) => {
 
           <p>Please keep this information safe and do not share it with anyone.</p>
 
+          <p>You can access the Portal at: <a href="https://gluckstudentsportal.com" target="_blank">https://gluckstudentsportal.com</a></p>
+
           <p>Best regards,<br>
           <strong>Glück Global Pvt Ltd</strong></p>
         </div>

@@ -49,7 +49,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   loadCourse(courseId: string): void {
     this.coursesService.getCourseById(courseId).subscribe({
       next: (data) => {
-        console.log('Loaded course', data);
+        //console.log('Loaded course', data);
         // defensive: ensure object has title/description
         this.course = {
           _id: data._id,
@@ -66,7 +66,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
         }, 0);
       },
       error: (err) => {
-        console.error('Error loading course:', err);
+        //console.error('Error loading course:', err);
         alert('Failed to load course details.');
         // optionally navigate back
         // this.router.navigate(['/courses']);
@@ -82,7 +82,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
         this.router.navigate(['/courses']);
       },
       error: (error) => {
-        console.error('Error creating course', error);
+        //console.error('Error creating course', error);
         alert('Failed to create course. Please try again.');
       }
     });
@@ -90,7 +90,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
 
   updateCourse(): void {
     if (!this.course._id) {
-      console.error('No _id present for update');
+      //console.error('No _id present for update');
       return;
     }
 
@@ -103,7 +103,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
         this.router.navigate(['/courses']);
       },
       error: (error) => {
-        console.error('Error updating course', error);
+        //console.error('Error updating course', error);
         alert('Failed to update course. Please try again.');
       }
     });

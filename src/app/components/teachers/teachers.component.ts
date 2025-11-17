@@ -95,7 +95,7 @@ fetchTeachers(): void {
       if (res.success) {
         this.teachers = res.data;
         this.teachers.forEach(teacher => {
-          console.log('Teacher data:', teacher);
+          //console.log('Teacher data:', teacher);
         });
         this.filteredTeachers = [...this.teachers];
       } else {
@@ -130,12 +130,12 @@ fetchTeachers(): void {
       this.authService.deleteUser(id).subscribe({
         next: (response) => {
           alert('User deleted successfully!');
-          console.log('Deleted:', response);
+          //console.log('Deleted:', response);
           this.fetchTeachers(); // Refresh your user list after deletion
         },
         error: (error) => {
           alert('Failed to delete user: ' + (error.error?.message || 'Please try again.'));
-          console.error('Delete failed:', error);
+          //console.error('Delete failed:', error);
         }
       });
     }

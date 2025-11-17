@@ -113,7 +113,7 @@ export class TimeTableViewComponent implements OnInit {
   private loadTimeTablesforStudent(batch: string, medium: string, plan: string): void {
     this.timeTableService.getTimeTablesbyBatchMediumPlan(batch, medium, plan).subscribe(
       (data: TimeTable[]) => {
-        console.log('Student timetable fetched:', data);
+        //console.log('Student timetable fetched:', data);
 
         const currentDate = new Date();
         const currentMonth = currentDate.getMonth();
@@ -137,7 +137,7 @@ export class TimeTableViewComponent implements OnInit {
   private loadTimeTablesforTeacher(teacherId: string): void {
     this.timeTableService.getTimeTablesByTeacher(teacherId).subscribe({
       next: (data: TimeTable[]) => {
-        console.log('Teacher timetable fetched:', data);
+        //console.log('Teacher timetable fetched:', data);
 
         const currentDate = new Date();
         const currentMonth = currentDate.getMonth();

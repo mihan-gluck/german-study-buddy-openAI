@@ -153,7 +153,6 @@ export class SignupComponent {
       this.authService.updateUser(this.studentId, user).subscribe({
         next: (response: any) => {
           alert('User updated successfully!');
-          console.log('User updated:', response);
           if (this.role === 'STUDENT') {
             this.router.navigate(['/admin-dashboard']);
             return;
@@ -170,7 +169,6 @@ export class SignupComponent {
       this.authService.signup(user).subscribe({
         next: (response: any) => {
           alert(user.role + ' registered successfully!');
-          console.log('User registered:', response);
 
           if (this.role === 'TEACHER') {
             this.router.navigate(['/teachers']);

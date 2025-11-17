@@ -172,15 +172,12 @@ ngOnInit(): void {
       this.loadElevenLabsCourses();
       this.loadElevenLabsUsage();
 
-      console.log('Basic User Info from Token:', this.basicUser);
-
       this.elevenLabsUsageService.getUsage().subscribe({
-        next: (res) => console.log('✅ Usage Response:', res),
-        error: (err) => console.error('❌ Usage Error:', err),
+        next: (res) => this.usage = res,
+        error: (err) => this.error = err,
       });
     },
     error: (err) => {
-      console.error('❌ Failed to load user:', err);
       this.router.navigate(['/login']); // if not logged in
     }
   });

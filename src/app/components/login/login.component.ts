@@ -30,7 +30,6 @@ export class LoginComponent {
 
     this.authService.login(user).subscribe({
       next: (response) => {
-        console.log('Full login response:', response);
         this.loading = false;
 
         const role = response.user?.role || response.role; 

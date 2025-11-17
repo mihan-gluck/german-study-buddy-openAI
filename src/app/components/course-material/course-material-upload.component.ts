@@ -96,7 +96,7 @@ export class UploadCourseMaterialComponent implements OnInit {
         },
         error: (err) => {
             this.uploading = false;
-            console.error('Error uploading files:', err);
+            //console.error('Error uploading files:', err);
             this.uploadError = 'Failed to upload files. Please try again.';
         }
         });
