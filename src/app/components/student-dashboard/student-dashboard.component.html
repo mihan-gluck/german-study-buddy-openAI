@@ -25,13 +25,13 @@
     <!-- </section> -->
 
     <!-- ElevenLabs Courses -->
-    <mat-card class="course-card">
+    <mat-card class="course-card" *ngIf="userProfile.subscription === 'PLATINUM'">
     <mat-card-title><h3>Start Learning</h3></mat-card-title>
       <mat-card-content>
         <p>Jump straight into your German conversation practice.</p>
         <p>
           You have 
-          <strong [ngClass]="{ 'warning': remainingMinutes > 125 && remainingDays < 7 }">
+          <strong [ngClass]="{ 'warning': remainingMinutes > 20 && remainingDays < 7 }">
             {{ remainingMinutes }}
           </strong> minutes of practice time, and 
           <strong>{{ remainingDays }}</strong> 
@@ -46,7 +46,7 @@
         <mat-card-title><h3>Curriculum</h3></mat-card-title>
         <mat-card-content>
           <p>Access your learning materials and resources</p>
-          <button mat-raised-button color="primary" routerLink="/view-course-materials">View Curriculum</button>
+          <button class="cardButton" routerLink="/view-course-materials">View Curriculum</button>
         </mat-card-content>
       </mat-card>
 
@@ -55,7 +55,7 @@
         <mat-card-title><h3>Feedback</h3></mat-card-title>
         <mat-card-content>
           <p>Share your learning experience and help us improve</p>
-          <button mat-raised-button color="primary" routerLink="/feedback">Student Feedback Form</button>
+          <button class="cardButton" routerLink="/feedback">Student Feedback Form</button>
         </mat-card-content>
       </mat-card>
 

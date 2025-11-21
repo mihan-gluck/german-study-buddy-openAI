@@ -158,8 +158,26 @@
 .mat-stroked-button {
   font-weight: 600;
   text-transform: none;
+  background-color: #000e89;
   border-radius: 6px;
   transition: background-color 0.3s ease;
+  button hover {
+    background-color: yellow;
+  }
+}
+
+.cardButton {
+  font-weight: 600;
+  text-transform: none;
+  background-color: #000e89;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.cardButton:hover {
+  background-color: #0012b3;
+  transform: translateY(-2px);
+  color: yellow;
 }
 
 /* Responsive tweaks */

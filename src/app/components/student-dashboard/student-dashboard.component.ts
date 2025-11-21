@@ -405,7 +405,7 @@ ngOnInit(): void {
 
             const remaining = this.characterLimit - this.characterCount;
             this.remainingMinutes = this.characterLimit
-              ? Math.floor((remaining / this.characterLimit) * 250)
+              ? Math.floor((remaining / this.characterLimit) * 60)
               : 0;
 
           }
