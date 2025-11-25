@@ -93,6 +93,7 @@ export class SignupComponent {
           this.level = data.level || 'A1';
           this.assignedTeacher = data.assignedTeacher || '';
           this.elevenLabsWidgetLink = data.elevenLabsWidgetLink || '';
+          this.conversationId = data.conversationId || '';
           this.elevenLabsApiKey = data.elevenLabsApiKey || '';
           this.loadTeachers(); // load teachers for selected level + medium
         }
@@ -168,7 +169,7 @@ export class SignupComponent {
       // CREATE new user
       this.authService.signup(user).subscribe({
         next: (response: any) => {
-          alert(user.role + ' registered successfully!');
+          alert(user.role + ' Registered Successfully!');
 
           if (this.role === 'TEACHER') {
             this.router.navigate(['/teachers']);

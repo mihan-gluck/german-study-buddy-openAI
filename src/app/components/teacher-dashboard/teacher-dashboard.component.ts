@@ -81,7 +81,7 @@ export class TeacherDashboardComponent implements OnInit {
           const limit = sub.character_limit || 0;
           const remaining = limit - used;
 
-          student.remainingMinutes = limit ? Math.floor((remaining / limit) * 250) : 0;
+          student.remainingMinutes = limit ? Math.floor((remaining / limit) * 60) : 0;
 
           student.planUpgradeDate = sub.next_character_count_reset_unix
             ? new Date(sub.next_character_count_reset_unix * 1000).toISOString().slice(0, 10)

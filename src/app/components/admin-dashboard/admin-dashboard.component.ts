@@ -443,7 +443,7 @@ fetchStudents(): void {
           const remaining = characterLimit - characterCount;
 
           student.remainingMinutes = characterLimit
-            ? Math.floor((remaining / characterLimit) * 250)
+            ? Math.floor((remaining / characterLimit) * 60)
             : 0;
 
           student.planUpgradeDate = subscription.next_character_count_reset_unix
