@@ -231,6 +231,7 @@ cron.schedule("0 17 * * 0", async () => {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: student.email,
+        bcc: "communitybuilder@gluckglobal.com",
         subject: "📅 Your Upcoming Timetable - Glück Global",
         html: `
               <div style="font-family: Arial, sans-serif; color: #333; text-align:center;">
@@ -373,6 +374,7 @@ cron.schedule('*/1 * * * *', async () => {
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: student.email,
+          bcc: "communitybuilder@gluckglobal.com",
           subject: '⏰ Class Reminder - Glück Global',
           html: `
                   <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
@@ -487,6 +489,7 @@ cron.schedule("0 6 * * *", async () => {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: student.email,
+        bcc: "communitybuilder@gluckglobal.com",
         subject: `🎓 Class Reminder - You have class today!`,
         html: `
           <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
@@ -544,13 +547,13 @@ cron.schedule("0 6 * * *", async () => {
 
 
 // ==========================
-// ✅ FIND MEETING LINK BY BATCH, MEDIUM, & ASSIGNED TEACHER
+// ✅ FIND MEETING LINK BY BATCH & MEDIUM
 // ==========================
 async function findMeetingLink(batch, subscriptionPlan) {
   try {
     const link = await MeetingLink.findOne({ 
       batch, 
-      subsubscriptionPlan: { $regex: new RegExp(`^${subscriptionPlan}$`, "i") }
+      subscriptionPlan: { $regex: new RegExp(`^${subscriptionPlan}$`, "i") }
     }).lean();
     
     return link;
