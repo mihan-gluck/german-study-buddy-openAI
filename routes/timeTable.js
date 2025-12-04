@@ -185,7 +185,6 @@ router.put("/:id", async (req, res) => {
 // ✅ WEEKLY EMAIL CRON (SUNDAY 5PM)
 // ==========================
 cron.schedule("0 17 * * 0", async () => {
-  console.log("⏰ Running Sunday 5PM timetable email job...");
   try {
     const students = await User.find({ role: "STUDENT" });
 
@@ -198,8 +197,6 @@ cron.schedule("0 17 * * 0", async () => {
     const nextSunday = new Date(nextMonday);
     nextSunday.setDate(nextMonday.getDate() + 6);
     nextSunday.setHours(23, 59, 59, 999);
-
-    console.log(`📅 Upcoming week: ${nextMonday.toDateString()} → ${nextSunday.toDateString()}`);
 
 
     for (const student of students) {
@@ -223,7 +220,6 @@ cron.schedule("0 17 * * 0", async () => {
       );
 
       if (!hasClasses) {
-        console.log(`📭 ${student.email} has no classes this upcoming week, skipping.`);
         continue;
       }
 
@@ -231,7 +227,6 @@ cron.schedule("0 17 * * 0", async () => {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: student.email,
-        bcc: "communitybuilder@gluckglobal.com",
         subject: "📅 Your Upcoming Timetable - Glück Global",
         html: `
               <div style="font-family: Arial, sans-serif; color: #333; text-align:center;">
@@ -283,7 +278,6 @@ cron.schedule("0 17 * * 0", async () => {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`✅ Sent timetable to ${student.email}`);
     }
   } catch (err) {
     console.error("❌ Error in timetable cron job:", err);
@@ -299,7 +293,6 @@ function getSriLankaTime(date = new Date()) {
 // ✅ CLASS REMINDER CRON (EVERY MINUTE)
 // ==========================
 cron.schedule('*/1 * * * *', async () => {
-  console.log('⏰ Checking for upcoming class reminders...');
 
   try {
     const students = await User.find({ role: 'STUDENT' });
@@ -341,7 +334,6 @@ cron.schedule('*/1 * * * *', async () => {
 
       // Check if today is within the timetable’s valid week range
       if (todayDateOnly < weekStartDateOnly || todayDateOnly > weekEndDateOnly) {
-        console.log(`📅 Skipping ${student.name}: today's date is outside the timetable range (${weekStartDateOnly.toDateString()} - ${weekEndDateOnly.toDateString()}).`);
         continue;
       }
 
@@ -369,12 +361,9 @@ cron.schedule('*/1 * * * *', async () => {
             student.subscription
           );
 
-          console.log(`📩 Sending reminder to ${student.email} for class at ${slot.start}`);
-
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: student.email,
-          bcc: "communitybuilder@gluckglobal.com",
           subject: '⏰ Class Reminder - Glück Global',
           html: `
                   <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
@@ -424,7 +413,6 @@ cron.schedule('*/1 * * * *', async () => {
         };
 
           await transporter.sendMail(mailOptions);
-          console.log(`✅ Reminder sent to ${student.email}`);
         }
       }
     }
@@ -470,7 +458,6 @@ cron.schedule("0 6 * * *", async () => {
 
       const todaySlots = latestTT[todayWeekday];
       if (!todaySlots?.length) {
-        console.log(`📭 No classes today for ${student.email}`);
         continue;
       }
 
@@ -489,7 +476,6 @@ cron.schedule("0 6 * * *", async () => {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: student.email,
-        bcc: "communitybuilder@gluckglobal.com",
         subject: `🎓 Class Reminder - You have class today!`,
         html: `
           <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
@@ -537,7 +523,7 @@ cron.schedule("0 6 * * *", async () => {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`🌅 Morning reminder sent to ${student.email}`);
+    
     }
   } catch (err) {
     console.error("❌ Error in 6 AM morning reminders:", err);
