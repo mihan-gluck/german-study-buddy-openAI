@@ -8,9 +8,8 @@ const { checkRole } = require('../middleware/auth');
 router.post('/', async (req, res) => {
   try {
     const meetingLink = new MeetingLink({
-        teacherId: req.body.teacherId,
         batch: req.body.batch,
-        medium: req.body.medium,
+        subscriptionPlan: req.body.subscriptionPlan,
         platform: req.body.platform,
         link: req.body.link
     });
@@ -24,14 +23,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Get all meeting links for a specific teacher
-router.get('/teacher/:teacherId', async (req, res) => {
+// ✅ Get all meeting links
+router.get('/', async (req, res) => {
   try {
-    const { teacherId } = req.params;
-    const links = await MeetingLink.find({ teacherId }).sort({ createdAt: -1 });
+    const links = await MeetingLink.find().sort({ createdAt: -1 });
 
     if (!links || links.length === 0) {
-      return res.status(404).json({ success: false, message: 'No meeting links found for this teacher' });
+      return res.status(404).json({ success: false, message: 'No meeting links found' });
     }
 
     res.status(200).json({ success: true, data: links });
@@ -45,11 +43,11 @@ router.get('/teacher/:teacherId', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { batch, medium, platform, link } = req.body;
+    const { batch, subscriptionPlan, platform, link } = req.body;
 
     const updatedLink = await MeetingLink.findByIdAndUpdate(
       id,
-      { batch, medium, platform, link },
+      { batch, subscriptionPlan, platform, link },
       { new: true } // returns updated document
     );
 

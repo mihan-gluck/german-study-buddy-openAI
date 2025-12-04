@@ -11,9 +11,9 @@
     <thead>
       <tr>
         <th>Week Period</th>
-        <th *ngIf="userRole === 'ADMIN'">Batch</th>
-        <th *ngIf="userRole === 'ADMIN'">Medium</th>
-        <th *ngIf="userRole === 'ADMIN'">Plan</th>
+        <th *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">Batch</th>
+        <th *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">Medium</th>
+        <th *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">Plan</th>
         <th *ngIf="userRole === 'ADMIN'">Assigned Teacher</th>
         <th *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']">
           {{ day | titlecase }}
@@ -28,10 +28,9 @@
             <td *ngIf="i === 0" [attr.rowspan]="weekGroup.items.length" data-label="Week Period">
               <span>{{ tt.weekStartDate | date:'M/d/yy' }} - {{ tt.weekEndDate | date:'M/d/yy' }}</span>
             </td>
-
-            <td *ngIf="userRole === 'ADMIN'" data-label="Batch"><span>{{ tt.batch }}</span></td>
-            <td *ngIf="userRole === 'ADMIN'" data-label="Medium"><span>{{ tt.medium }}</span></td>
-            <td *ngIf="userRole === 'ADMIN'" data-label="Plan"><span>{{ tt.plan }}</span></td>
+            <td *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'" data-label="Batch"><span>{{ tt.batch }}</span></td>
+            <td *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'" data-label="Medium"><span>{{ tt.medium }}</span></td>
+            <td *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'" data-label="Plan"><span>{{ tt.plan }}</span></td>
 
             <td *ngIf="userRole === 'ADMIN'" data-label="Assigned Teacher">
               <span>{{ teachersCache[tt.assignedTeacher] || 'Loading...' }}</span>

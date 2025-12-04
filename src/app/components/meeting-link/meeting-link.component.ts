@@ -23,21 +23,18 @@ export class MeetingLinkComponent implements OnInit {
   submitted = false;
   successMessage = '';
   errorMessage = '';
-  teacherId: string = '';
-  medium: string = '';
+  subscriptionPlan: string = '';
   editId: string | null = null; // store ID for editing
 
   constructor(
     private fb: FormBuilder,
     private meetingLinkService: MeetingLinkService,
-    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
-    this.loadTeacherProfile();
 
     // ✅ Detect route parameter for edit mode
     this.route.paramMap.subscribe(params => {
@@ -52,26 +49,12 @@ export class MeetingLinkComponent implements OnInit {
   private initializeForm(): void {
     this.meetingLinkForm = this.fb.group({
       batch: ['', [Validators.required]],
+      subscriptionPlan: ['', [Validators.required]],
       platform: ['', [Validators.required]],
       link: ['', [Validators.required, Validators.minLength(5)]]
     });
   }
 
-  private loadTeacherProfile(): void {
-    this.authService.getUserProfile().subscribe({
-      next: (profile: any) => {
-        this.teacherId = profile._id;
-        this.medium = profile.medium;
-
-        // If creating new, auto-fill medium
-        if (!this.editId) this.meetingLinkForm.patchValue({ medium: this.medium });
-      },
-      error: (err) => {
-        console.error('Failed to load profile:', err);
-        this.errorMessage = 'Failed to load teacher profile.';
-      }
-    });
-  }
 
   // ✅ Load existing link for editing
   private loadMeetingLink(id: string): void {
@@ -81,6 +64,7 @@ export class MeetingLinkComponent implements OnInit {
           const data = res.data;
           this.meetingLinkForm.patchValue({
             batch: data.batch,
+            subscriptionPlan: data.subscriptionPlan,
             platform: data.platform,
             link: data.link
           });
@@ -89,7 +73,6 @@ export class MeetingLinkComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error loading link:', err);
         this.errorMessage = 'Failed to load meeting link.';
       }
     });
@@ -101,15 +84,9 @@ export class MeetingLinkComponent implements OnInit {
     this.errorMessage = '';
 
     if (this.meetingLinkForm.invalid) return;
-    if (!this.teacherId || !this.medium) {
-      this.errorMessage = 'Teacher information not loaded.';
-      return;
-    }
 
     const payload = {
       ...this.meetingLinkForm.value,
-      teacherId: this.teacherId,
-      medium: this.medium
     };
 
     if (this.editId) {
@@ -129,6 +106,7 @@ export class MeetingLinkComponent implements OnInit {
         }
       });
     } else {
+
       // ✅ Add new link
       this.meetingLinkService.saveLink(payload).subscribe({
         next: (res: any) => {

@@ -289,6 +289,11 @@ cron.schedule("0 17 * * 0", async () => {
   }
 }, { timezone: "Asia/Colombo" });
 
+
+function getSriLankaTime(date = new Date()) {
+  return new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+}
+
 // ==========================
 // ✅ CLASS REMINDER CRON (EVERY MINUTE)
 // ==========================
@@ -299,9 +304,19 @@ cron.schedule('*/1 * * * *', async () => {
     const students = await User.find({ role: 'STUDENT' });
     if (!students?.length) return;
 
-    const now = new Date();
-    const todayWeekday = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const todayDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const now = getSriLankaTime();
+
+    const todayWeekday = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      timeZone: 'Asia/Colombo'
+    }).toLowerCase();
+
+    const todayDateOnly = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
 
     for (const student of students) {
       // ✅ Find the most recent timetable for the student
@@ -334,7 +349,15 @@ cron.schedule('*/1 * * * *', async () => {
 
       for (const slot of todaySlots) {
         const [hour, minute] = slot.start.split(':').map(Number);
-        const classDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
+        const classDate = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          hour,
+          minute,
+          0
+        );
+
         const reminderTime = new Date(classDate.getTime() - 60 * 60 * 1000); // 1 hour before
 
         const diffMinutes = (now.getTime() - reminderTime.getTime()) / (1000 * 60);
@@ -342,8 +365,7 @@ cron.schedule('*/1 * * * *', async () => {
           // ✅ Find meeting link based on student's details
           const meetingLink = await findMeetingLink(
             student.batch,
-            student.medium,
-            slot.teacherId || student.assignedTeacher
+            student.subscription
           );
 
           console.log(`📩 Sending reminder to ${student.email} for class at ${slot.start}`);
@@ -411,12 +433,128 @@ cron.schedule('*/1 * * * *', async () => {
 
 
 // ==========================
+// 🌅 DAILY 6 AM MORNING REMINDER
+// ==========================
+cron.schedule("0 6 * * *", async () => {
+
+  try {
+    const students = await User.find({ role: "STUDENT" });
+    if (!students?.length) return;
+
+    const now = getSriLankaTime();
+
+    const todayWeekday = now.toLocaleDateString("en-US", {
+      weekday: "long",
+      timeZone: "Asia/Colombo",
+    }).toLowerCase();
+
+    const todayDateOnly = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    for (const student of students) {
+      // find today's valid timetable
+      const latestTT = await TimeTable.findOne({
+        batch: student.batch,
+        medium: student.medium,
+        plan: student.subscription,
+        weekStartDate: { $lte: todayDateOnly },
+        weekEndDate: { $gte: todayDateOnly },
+      }).sort({ weekStartDate: -1 }).lean();
+
+      if (!latestTT) continue;
+
+      const todaySlots = latestTT[todayWeekday];
+      if (!todaySlots?.length) {
+        console.log(`📭 No classes today for ${student.email}`);
+        continue;
+      }
+
+      // format class list for email
+      const classListHTML = todaySlots
+        .map(s => `<li>${s.start} - ${s.end}</li>`)
+        .join("");
+
+      // find meeting link
+      const meetingLink = await findMeetingLink(
+        student.batch,
+        student.subscription
+      );
+
+      // send morning reminder
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: student.email,
+        subject: `🎓 Class Reminder - You have class today!`,
+        html: `
+          <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
+            <div style="max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+              
+              <div style="background:#000e89; border-radius:8px;">
+                <h2 style="color:white; margin:0; padding:10px;">Glück Global - Today's Classes</h2>
+              </div>
+
+              <p>Hello <strong>${student.name}</strong>,</p>
+              <p>Hope you're having a great day! This is a friendly reminder that you have class today:</p>
+
+              <ul style="list-style:none; padding:0; font-size:15px;">
+                ${classListHTML}  
+              </ul>
+
+              ${
+                meetingLink
+                  ? `
+                    <p style="margin-top:20px;">
+                      <a href="${meetingLink.link}" target="_blank"
+                        style="display:inline-block; background-color:#000e89; color:#fff;
+                              text-decoration:none; padding:10px 20px; border-radius:6px;">
+                        Join Class
+                      </a>
+                    </p>
+                    `
+                  : `
+                    <p style="margin-top:20px; color:#999;">
+                      No meeting link is available for your batch.
+                    </p>
+                    `
+              }
+
+              <p style="margin-top:20px;">Make sure to join your sessions on time.</p>
+
+              <p style="font-size:13px; color:#888;">
+                Best regards,<br>
+                <strong>Glück Global Pvt Ltd</strong>
+              </p>
+            </div>
+          </div>
+        `,
+
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`🌅 Morning reminder sent to ${student.email}`);
+    }
+  } catch (err) {
+    console.error("❌ Error in 6 AM morning reminders:", err);
+  }
+}, { timezone: "Asia/Colombo" });
+
+
+
+// ==========================
 // ✅ FIND MEETING LINK BY BATCH, MEDIUM, & ASSIGNED TEACHER
 // ==========================
-async function findMeetingLink(batch, medium, teacherId) {
+async function findMeetingLink(batch, subscriptionPlan) {
   try {
-    const link = await MeetingLink.findOne({ batch, medium, teacherId });
+    const link = await MeetingLink.findOne({ 
+      batch, 
+      subsubscriptionPlan: { $regex: new RegExp(`^${subscriptionPlan}$`, "i") }
+    }).lean();
+    
     return link;
+
   } catch (err) {
     console.error('Error finding meeting link:', err.message);
     throw err;

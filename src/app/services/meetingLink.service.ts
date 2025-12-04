@@ -4,9 +4,8 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface MeetingLink {
-  teacherId: string;
   batch: string;
-  medium: string;
+  subscriptionPlan: string;
   platform: string;
   link: string;
   createdAt?: Date;
@@ -25,9 +24,9 @@ export class MeetingLinkService {
         return this.http.post(`${this.BASE_URL}`, meetingLink, { withCredentials: true });
     }
 
-    // get links by teacher ID
-    getLinksByTeacherId(teacherId: string): Observable<any> {
-        return this.http.get(`${this.BASE_URL}/teacher/${teacherId}`, { withCredentials: true });
+    // get all links
+    getAllLinks(): Observable<any> {
+        return this.http.get(`${this.BASE_URL}`, { withCredentials: true });
     }
 
     

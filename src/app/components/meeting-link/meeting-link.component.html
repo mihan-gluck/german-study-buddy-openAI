@@ -22,6 +22,23 @@
       </div>
     </div>
 
+    <!-- Subscription Plan -->
+    <div class="form-group">
+      <label for="subscriptionPlan">Subscription Plan</label>
+      <select
+        id="subscriptionPlan"
+        formControlName="subscriptionPlan"
+        [class.invalid]="submitted && meetingLinkForm.get('subscriptionPlan')?.invalid"
+      >
+        <option value="" disabled>Select a Subscription Plan</option>
+        <option value="Platinum">Platinum</option>
+        <option value="Silver">Silver</option>
+      </select>
+      <div class="error-message" *ngIf="submitted && meetingLinkForm.get('subscriptionPlan')?.invalid">
+        Subscription Plan is required.
+      </div>
+    </div>
+
     <!-- Platform -->
     <div class="form-group">
       <label for="platform">Platform</label>
@@ -30,7 +47,7 @@
         formControlName="platform"
         [class.invalid]="submitted && meetingLinkForm.get('platform')?.invalid"
       >
-        <option value="" disabled>Select a platform</option>
+        <option value="" disabled>Select a Platform</option>
         <option value="Zoom">Zoom</option>
         <option value="Google Meet">Google Meet</option>
         <option value="Microsoft Teams">Microsoft Teams</option>

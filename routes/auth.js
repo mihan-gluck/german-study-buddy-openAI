@@ -86,7 +86,7 @@ router.get("/teachers", async (req, res) => {
     // 2️⃣ Find teachers who teach this course & match medium
     const teachers = await User.find({
       role: "TEACHER",
-      medium: medium,
+      medium: { $in: [medium] },
       assignedCourses: course._id
     }).select("name email regNo medium assignedCourses");
 
@@ -112,7 +112,7 @@ router.get("/teachersByMedium", async (req, res) => {
 
     const teachers = await User.find({
       role: "TEACHER",
-      medium: medium
+      medium: { $in: [medium] }
     }).select("name email regNo medium assignedCourses");
 
     if (!teachers || teachers.length === 0) {
@@ -167,7 +167,7 @@ router.post("/signup", async (req, res) => {
 
         const teacher = await User.findOne({
           role: "TEACHER",
-          medium: medium,
+          medium: { $in: [medium] },
           assignedCourses: course._id
         });
 

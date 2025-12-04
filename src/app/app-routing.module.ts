@@ -104,11 +104,11 @@ export const routes: Routes = [
 
   { path: 'feedback-list', loadComponent: () => import('./components/feedback/feedback.component').then(m => m.FeedbackListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
-  { path: 'meeting-link', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'TEACHER' } },
+  { path: 'meeting-link', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
-  { path: 'meeting-link-list', loadComponent: () => import('./components/meeting-link/meeting-link-list.component').then(m => m.MeetingLinkListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'TEACHER' } },
+  { path: 'meeting-link-list', loadComponent: () => import('./components/meeting-link/meeting-link-list.component').then(m => m.MeetingLinkListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
-  { path: 'meeting-link/:id', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'TEACHER' } },
+  { path: 'meeting-link/:id', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
   
   { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: 'ADMIN'} },
 

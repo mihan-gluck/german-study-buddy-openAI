@@ -15,48 +15,21 @@ export class MeetingLinkListComponent implements OnInit {
   meetingLinkList: any[] = [];
   loading = false;
   errorMessage = '';
-  teacherId = ''; // ✅ store teacher ID from profile
 
   constructor(
     private meetingLinkService: MeetingLinkService,
-    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadProfile();
-  }
-
-  // ✅ Load profile to get teacherId first
-  loadProfile(): void {
-    this.loading = true;
-    this.authService.getUserProfile().subscribe({
-      next: (profile: any) => {
-        if (profile && profile._id) {
-          this.teacherId = profile._id;
-          this.fetchMeetingLinks();
-        } else {
-          this.errorMessage = 'Unable to load teacher profile.';
-          this.loading = false;
-        }
-      },
-      error: (err) => {
-        console.error('❌ Error loading profile:', err);
-        this.errorMessage = 'Failed to load teacher profile.';
-        this.loading = false;
-      }
-    });
+    this.fetchMeetingLinks();
   }
 
   // ✅ Fetch meeting links using the teacherId from the profile
   fetchMeetingLinks(): void {
-    if (!this.teacherId) {
-      this.errorMessage = 'Teacher ID not found.';
-      this.loading = false;
-      return;
-    }
+    this.loading = true;
 
-    this.meetingLinkService.getLinksByTeacherId(this.teacherId).subscribe({
+    this.meetingLinkService.getAllLinks().subscribe({
       next: (res: any) => {
         if (res && (res.success || Array.isArray(res))) {
           this.meetingLinkList = res.data || res;
@@ -66,7 +39,6 @@ export class MeetingLinkListComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('❌ Error fetching meeting links:', err);
         this.errorMessage = err.error?.message || 'Failed to load meeting links.';
         this.loading = false;
       }
@@ -83,12 +55,10 @@ export class MeetingLinkListComponent implements OnInit {
       this.meetingLinkService.deleteLink(id).subscribe({
         next: (response) => {
           window.alert('Link deleted successfully!');
-          console.log('Deleted:', response);
-          this.fetchMeetingLinks(); // Refresh your link list after deletion
+          window.location.reload();
         },
         error: (error) => {
           window.alert('Failed to delete link: ' + (error.error?.message || 'Please try again.'));
-          console.error('Delete failed:', error);
         }
       });
     }

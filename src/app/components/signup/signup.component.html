@@ -98,8 +98,8 @@
         />
       </div>
 
-      <!-- Medium -->
-      <div class="mb-3" *ngIf="role === 'STUDENT' || role === 'TEACHER'">
+      <!-- Medium for STUDENT (single select) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
         <label for="medium" class="form-label">Medium</label>
         <select
           id="medium"
@@ -113,8 +113,26 @@
           <option value="Sinhala">Sinhala</option>
           <option value="Malayalam">Malayalam</option>
         </select>
-
       </div>
+
+      <!-- Medium for TEACHER (multi-select) -->
+      <div class="mb-3" *ngIf="role === 'TEACHER'">
+        <label for="medium" class="form-label">Medium (Select Multiple)</label>
+        <select
+          id="medium"
+          name="medium"
+          [(ngModel)]="medium"
+          required
+          class="form-select"
+          multiple
+        >
+          <option value="Tamil">Tamil</option>
+          <option value="Sinhala">Sinhala</option>
+          <option value="Malayalam">Malayalam</option>
+        </select>
+        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple</small>
+      </div>
+
 
       <!-- Subscription -->
       <div class="mb-3" *ngIf="role === 'STUDENT'">

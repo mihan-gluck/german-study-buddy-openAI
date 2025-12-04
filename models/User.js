@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema({
   subscription: { type: String, enum: ["SILVER", "PLATINUM"], required: function() { return this.role === "STUDENT"; } },
   level: { type: String, enum: ["A1", "A2", "B1", "B2", "C1", "C2"], required: function() { return this.role === "STUDENT"; }},
   batch: { type: String, required: function() { return this.role === "STUDENT"; }},
-  medium: { type: String, required: function() { return this.role === "STUDENT" || this.role === "TEACHER"; }},
+  medium: { type: [String], required: function() { return this.role === "STUDENT" || this.role === "TEACHER"; }},
   conversationId: { type: String, default: "" },
   elevenLabsWidgetLink: { type: String, default: ""},
   elevenLabsApiKey: { type: String, default: ""},

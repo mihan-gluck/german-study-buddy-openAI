@@ -20,7 +20,7 @@ export class SignupComponent {
   email: string = '';
   role: string = 'STUDENT'; // default role
   batch: string = '';
-  medium: string = '';
+  medium: string | string[]  = '';
   conversationId: string = '';
   subscription: string = '';
   level: string = 'A1'; // default level
@@ -118,7 +118,9 @@ export class SignupComponent {
     }
 
     if (this.role === 'TEACHER') {
-      if (!this.medium || this.assignedCourses.length === 0 || !this.assignedBatches.length) {
+      if (!this.medium || (Array.isArray(this.medium) && this.medium.length === 0) 
+          || this.assignedCourses.length === 0 
+          || !this.assignedBatches.length) {
         alert("Medium, and at least one course are required for teachers!");
         return;
       }

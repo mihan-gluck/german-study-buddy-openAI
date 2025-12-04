@@ -72,7 +72,7 @@ export class AuthService {
   // }
 
   // ✅ Get teachers for a specific level and medium
-  getTeachers(level: string, medium: string): Observable<any[]> {
+  getTeachers(level: string, medium: string | string[]): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/auth/teachers`, {
       params: { level, medium }, withCredentials: true
     });
@@ -80,7 +80,7 @@ export class AuthService {
 
 
   // ✅ Get teachers for a specific level and medium
-  getTeachersByMedium(medium: string): Observable<any[]> {
+  getTeachersByMedium(medium: string | string[]): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/auth/teachersByMedium`, {
       params: { medium }, withCredentials: true
     });
