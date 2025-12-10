@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
       thursday = [],
       friday = [],
       saturday = [],
-      sunday = []
+      sunday = [],
     } = req.body;
 
     const newTimeTable = new TimeTable({
@@ -41,11 +41,10 @@ router.post("/", async (req, res) => {
       thursday,
       friday,
       saturday,
-      sunday
+      sunday,
     });
 
     await newTimeTable.save();
-    console.log('✅ Timetable saved:', newTimeTable);
 
     res.status(201).json({ message: 'Time table created successfully.', data: newTimeTable });
   } catch (error) {
@@ -94,8 +93,6 @@ router.get("/forTeacher", async (req, res) => {
     if (!teacherId) {
       return res.status(400).json({ message: "teacherId is required" });
     }
-
-    console.log("📩 Received teacherId:", teacherId);
 
     const timeTables = await TimeTable.find({ assignedTeacher: teacherId });
 
@@ -146,7 +143,8 @@ router.put("/:id", async (req, res) => {
       thursday = [],
       friday = [],
       saturday = [],
-      sunday = []
+      sunday = [],
+      classStatus = "Scheduled"
     } = req.body;
 
     const updatedTimeTable = await TimeTable.findByIdAndUpdate(
@@ -164,7 +162,8 @@ router.put("/:id", async (req, res) => {
         thursday,
         friday,
         saturday,
-        sunday
+        sunday,
+        classStatus
       },
       { new: true }
     );
@@ -209,7 +208,6 @@ cron.schedule("0 17 * * 0", async () => {
       }).lean();
 
       if (!latestTT) {
-        console.log(`⚠️ No timetable found for ${student.email}`);
         continue;
       }
 
@@ -341,6 +339,10 @@ cron.schedule('*/1 * * * *', async () => {
       if (!todaySlots?.length) continue;
 
       for (const slot of todaySlots) {
+        if (slot.classStatus === 'Cancelled') {
+          continue; // Skip cancelled classes
+        }
+
         const [hour, minute] = slot.start.split(':').map(Number);
         const classDate = new Date(
           now.getFullYear(),
@@ -361,7 +363,7 @@ cron.schedule('*/1 * * * *', async () => {
             student.subscription
           );
 
-        const mailOptions = {
+        const oneHourReminder = {
           from: process.env.EMAIL_USER,
           to: student.email,
           subject: '⏰ Class Reminder - Glück Global',
@@ -412,7 +414,7 @@ cron.schedule('*/1 * * * *', async () => {
                 `,
         };
 
-          await transporter.sendMail(mailOptions);
+          await transporter.sendMail(oneHourReminder);
         }
       }
     }
@@ -420,6 +422,111 @@ cron.schedule('*/1 * * * *', async () => {
     console.error('❌ Error in reminder cron job:', err);
   }
 });
+
+
+// ==================================================
+// ✅ CLASS CANCELLATION REMINDER (2 HOURS BEFORE)
+// ==================================================
+cron.schedule('*/1 * * * *', async () => {
+
+  try {
+    const students = await User.find({ role: 'STUDENT' });
+    if (!students?.length) return;
+
+    const todayWeekday = nowSL.toLocaleDateString('en-US', {
+      weekday: 'long',
+      timeZone: 'Asia/Colombo'
+    }).toLowerCase();
+
+    const todayDateOnly = new Date(
+      nowSL.getFullYear(),
+      nowSL.getMonth(),
+      nowSL.getDate()
+    );
+
+
+    for (const student of students) {
+      // ✅ Find the most recent timetable for the student
+      const latestTT = await TimeTable.findOne({
+        batch: student.batch,
+        medium: student.medium,
+        plan: student.subscription,
+        weekStartDate: { $lte: todayDateOnly },
+        weekEndDate: { $gte: todayDateOnly },
+      }).sort({ weekStartDate: -1 }).lean();
+
+      if (!latestTT) continue;
+
+      // ✅ Convert weekStartDate and weekEndDate to Date objects
+      const weekStart = new Date(latestTT.weekStartDate);
+      const weekEnd = new Date(latestTT.weekEndDate);
+
+      // Normalize dates to ignore time
+      const weekStartDateOnly = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+      const weekEndDateOnly = new Date(weekEnd.getFullYear(), weekEnd.getMonth(), weekEnd.getDate());
+
+      // Check if today is within the timetable’s valid week range
+      if (todayDateOnly < weekStartDateOnly || todayDateOnly > weekEndDateOnly) {
+        continue;
+      }
+
+      const todaySlots = latestTT[todayWeekday];
+      if (!todaySlots?.length) continue;
+
+      for (const slot of todaySlots) {
+
+        if (slot.classStatus === 'Scheduled') {
+          continue; // Skip scheduled classes
+        }
+
+        const [hour, minute] = slot.start.split(':').map(Number);
+        const classDateSL = new Date(
+          nowSL.getFullYear(),
+          nowSL.getMonth(),
+          nowSL.getDate(),
+          hour,
+          minute,
+          0
+        );
+
+        // ⏰ 2 hours before class
+        const reminderTime = new Date(classDateSL.getTime() - 2 * 60 * 60 * 1000);
+
+        const diffMinutes = (nowSL.getTime() - reminderTime.getTime()) / (1000 * 60);
+
+        // Run exactly at the minute window
+        if (diffMinutes >= 0 && diffMinutes < 1) {
+
+          const teacher = await User.findById(latestTT.assignedTeacher).lean();
+          const teacherName = teacher ? teacher.name : "Assigned Tutor";
+
+          const cancellationMail = {
+            from: process.env.EMAIL_USER,
+            to: student.email,
+            subject: '❗ Class Cancellation Notice - Glück Global',
+            html: `
+              <p>Dear ${student.name},</p>
+              <p>Please note that the Batch <strong>${student.batch}</strong> class scheduled on <strong>${todayWeekday}</strong> at <strong>${slot.start}</strong> with Tutor <strong>${teacherName}</strong> has been cancelled due to unforeseen circumstances.</p>
+              
+              <p>We sincerely apologize for the inconvenience. Regular sessions will continue as per the normal schedule.</p>
+              
+              <p>Thank you for your patience and cooperation.</p>
+              
+              <p>Best regards,<br>
+              Glück Global Pvt Ltd</p>
+            `,
+          };
+
+          await transporter.sendMail(cancellationMail);
+        }
+      }
+    }
+
+  } catch (err) {
+    console.error('❌ Error in cancellation reminder cron job:', err);
+  }
+});
+
 
 
 // ==========================

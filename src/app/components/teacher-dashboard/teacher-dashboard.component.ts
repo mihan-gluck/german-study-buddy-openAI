@@ -66,19 +66,13 @@ export class TeacherDashboardComponent implements OnInit {
   }
 
   loadElevenLabsUsage(student: any): void {
-    if (!student.elevenLabsApiKey) {
-      student.remainingMinutes = 0;
-      student.planUpgradeDate = undefined;
-      student.remainingDays = undefined;
-      return;
-    }
 
-    this.elevenLabsService.getUsageByApiKeyForTeacher(student.elevenLabsApiKey).subscribe({
+    this.elevenLabsService.getUsageByApiKeyForTeacher(student._id).subscribe({
       next: (res) => {
         if (res?.usage?.subscription) {
           const sub = res.usage.subscription;
           const used = sub.character_count || 0;
-          const limit = sub.character_limit || 0;
+          const limit = sub.character_limit || 30000;
           const remaining = limit - used;
 
           student.remainingMinutes = limit ? Math.floor((remaining / limit) * 60) : 0;

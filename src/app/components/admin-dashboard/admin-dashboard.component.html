@@ -2,6 +2,9 @@
 
 <div class="admin-dashboard">
 
+<!-- Filter Count -->
+<div class="filtered-count">Student Count: {{ filteredStudentCount || totalStudentsCount() }}</div>
+
 <!-- Filters -->
 <div class="filters">
   <select [(ngModel)]="filters.level" (change)="applyFilters()">
@@ -77,9 +80,9 @@
         <td>{{ student.feedbackStats?.accent || 'N/A' }}</td>
         <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td> -->
         <!-- <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td> -->
-        <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes || 'N/A' }}</td>
-        <td data-label="Remaining Days">{{ student.remainingDays || 'N/A' }}</td>
-        <td data-label="Subscription Update Date">{{ student.planUpgradeDate || 'N/A' }}</td>
+        <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes }}</td>
+        <td data-label="Remaining Days">{{ student.remainingDays}}</td>
+        <td data-label="Subscription Update Date">{{ student.planUpgradeDate}}</td>
         <td data-label="Update">
           <button 
             class="btn btn-outline-primary btn-sm"

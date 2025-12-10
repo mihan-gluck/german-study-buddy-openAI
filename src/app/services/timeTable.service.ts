@@ -26,6 +26,7 @@ export interface TimeTable {
   friday?: TimeRange[];
   saturday?: TimeRange[];
   sunday?: TimeRange[];
+  classStatus?: 'Scheduled' | 'Cancelled';
 }
 
 @Injectable({

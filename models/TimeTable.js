@@ -2,7 +2,12 @@ const mongoose = require("mongoose");
 
 const timeRangeSchema = new mongoose.Schema({
   start: { type: String, required: true }, // e.g. "09:00"
-  end: { type: String, required: true }    // e.g. "11:00"
+  end: { type: String, required: true },    // e.g. "11:00"
+  classStatus: { 
+    type: String, 
+    enum: ["Scheduled", "Cancelled"], 
+    default: "Scheduled" 
+  }
 }, { _id: false }); // _id not needed for subdocuments
 
 const TimeTableSchema = new mongoose.Schema({

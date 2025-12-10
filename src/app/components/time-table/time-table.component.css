@@ -172,11 +172,23 @@ button {
   transform: scale(1.05);
 }
 
+/* Fix alignment when start, end, status, and delete button are in the same row */
+.d-flex.mb-2 > * {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Delete button should not stretch */
+.d-flex.mb-2 .btn-danger {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+}
+
 /* ====== Responsive Adjustments ====== */
 @media (max-width: 768px) {
   .container {
-    padding: 15px;
-    align-items: flex-start;
+    align-items: flex-start !important;
+    padding-bottom: 200px; /* extra safe space */
   }
 
   .card {
@@ -209,6 +221,10 @@ button {
 @media (max-width: 480px) {
   .card {
     padding: 15px;
+  }
+
+  .container {
+    padding-bottom: 200px;
   }
 
   h2 {

@@ -14,6 +14,7 @@ interface Teacher {
 export interface TimeRange {
   start: string;
   end: string;
+  classStatus?: 'Scheduled' | 'Cancelled';
 }
 
 
@@ -33,6 +34,7 @@ export interface TimeTable {
   friday?: TimeRange[];
   saturday?: TimeRange[];
   sunday?: TimeRange[];
+  classStatus?: 'Scheduled' | 'Cancelled';
   [key: string]: any;
 }
 
@@ -65,7 +67,8 @@ export class TimeTableComponent implements OnInit {
     thursday: [],
     friday: [],
     saturday: [],
-    sunday: []
+    sunday: [],
+    classStatus: 'Scheduled'
   };
 
   isLoading = false;
@@ -124,7 +127,7 @@ export class TimeTableComponent implements OnInit {
     if (!this.timeTable[day]) {
       this.timeTable[day] = [];
     }
-    (this.timeTable[day] as TimeRange[]).push({ start: '', end: '' });
+    (this.timeTable[day] as TimeRange[]).push({ start: '', end: '', classStatus: 'Scheduled' });
   }
 
   removeTimeSlot(day: keyof TimeTable, index: number): void {

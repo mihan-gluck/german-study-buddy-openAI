@@ -23,6 +23,7 @@ interface TimeTable {
   friday?: { start: string; end: string }[];
   saturday?: { start: string; end: string }[];
   sunday?: { start: string; end: string }[];
+  classStatus?: 'Scheduled' | 'Cancelled';
   [key: string]: any;
 }
 

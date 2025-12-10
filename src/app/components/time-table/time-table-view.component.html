@@ -42,6 +42,15 @@
                 <ng-container *ngIf="tt[day] && tt[day].length > 0; else noSlot">
                   <div *ngFor="let slot of tt[day]">
                     {{ slot.start }} - {{ slot.end }}
+                      <div 
+                        class="slot-status" 
+                        [ngClass]="{
+                          'scheduled': slot.classStatus === 'Scheduled',
+                          'cancelled': slot.classStatus === 'Cancelled'
+                        }"
+                      >
+                        ({{ slot.classStatus }})
+                      </div>
                   </div>
                 </ng-container>
                 <ng-template #noSlot>-</ng-template>

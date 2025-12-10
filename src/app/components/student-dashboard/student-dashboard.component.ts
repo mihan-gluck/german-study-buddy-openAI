@@ -394,6 +394,7 @@ ngOnInit(): void {
           if (res && res.voices && res.voices.subscription) {
             const subscription = res.voices.subscription;
             this.characterCount = subscription.character_count || 0;
+            this.characterLimit = subscription.character_limit || 30000;
 
             this.planUpgradeDate = subscription.next_character_count_reset_unix
             ? new Date(subscription.next_character_count_reset_unix * 1000)
@@ -404,6 +405,7 @@ ngOnInit(): void {
             this.remainingDays = this.planUpgradeDate ? Math.ceil((new Date(this.planUpgradeDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0; 
 
             const remaining = this.characterLimit - this.characterCount;
+
             this.remainingMinutes = this.characterLimit
               ? Math.floor((remaining / this.characterLimit) * 60)
               : 0;

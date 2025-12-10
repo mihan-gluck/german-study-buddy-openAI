@@ -156,50 +156,55 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-fetchStudents(): void {
-  this.loading = true;
-
-  this.http.get<{ success: boolean; data: Student[] }>(`${apiUrl}/admin/students`, { withCredentials: true }).subscribe({
-    next: res => {
-      if (res.success) {
-        this.students = res.data;
-        this.students.forEach(student => {
-          //this.loadFeedbackStats(student);
-          this.loadCourseProgress(student);
-          this.loadElevenLabsUsage(student); // <-- pass single student
-          //console.log('Student data:', student);
-        });
-        this.filteredStudents = [...this.students];
-      } else {
-        this.error = 'Failed to load students';
-      }
-      this.loading = false;
-    },
-    error: err => {
-      //console.error('Error fetching students:', err);
-      this.error = err.error?.msg || 'Failed to load students';
-      this.loading = false;
-    }
-  });
+  totalStudentsCount(): number {
+    return this.students.length;
   }
+  
+  fetchStudents(): void {
+    this.loading = true;
 
-  // ✅ Fetch all registered teachers
-  fetchTeachers(): void {
-    this.teacherService.getAllTeachers()
-      .subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.teachers = res.data;
-          } else {
-            alert('Failed to load teachers');
-          }
-        },
-        error: (err) => {
-          //console.error('Error fetching teachers:', err);
+    this.http.get<{ success: boolean; data: Student[] }>(`${apiUrl}/admin/students`, { withCredentials: true }).subscribe({
+      next: res => {
+        if (res.success) {
+          this.students = res.data;
+          this.students.forEach(student => {
+            //this.loadFeedbackStats(student);
+            this.loadCourseProgress(student);
+            this.loadElevenLabsUsage(student); // <-- pass single student
+            //console.log('Student data:', student);
+          });
+          this.filteredStudents = [...this.students];
+        } else {
+          this.error = 'Failed to load students';
         }
-      });
-  }
+        this.loading = false;
+      },
+      error: err => {
+        //console.error('Error fetching students:', err);
+        this.error = err.error?.msg || 'Failed to load students';
+        this.loading = false;
+      }
+    });
+    }
 
+    // ✅ Fetch all registered teachers
+    fetchTeachers(): void {
+      this.teacherService.getAllTeachers()
+        .subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.teachers = res.data;
+            } else {
+              alert('Failed to load teachers');
+            }
+          },
+          error: (err) => {
+            //console.error('Error fetching teachers:', err);
+          }
+        });
+    }
+
+  filteredStudentCount: number = 0;
 
   applyFilters() {
     this.filteredStudents = this.students.filter(student => {
@@ -218,6 +223,8 @@ fetchStudents(): void {
         (!this.filters.assignedTeacher || assignedTeacherName === this.filters.assignedTeacher.toLowerCase())
       );
     });
+
+    this.filteredStudentCount = this.filteredStudents.length;
   }
 
   toggleStudentSelection(studentId: string): void {
@@ -283,7 +290,7 @@ fetchStudents(): void {
     this.fetchCourseProgress(student._id);
   }
 
-  assignCourseToStudent(student: Student): void {
+  assignCourseToStudent(student: Student): void {    
     const body = {
       studentId: student._id,
       courseName: student.courseAssigned,
@@ -426,15 +433,9 @@ fetchStudents(): void {
   }
 
   loadElevenLabsUsage(student: Student): void {
-    if (!student.elevenLabsApiKey) {
-      student.remainingMinutes = 0;
-      student.planUpgradeDate = undefined;
-      return;
-    }
 
-    this.elevenLabsService.getUsageByApiKey(student.elevenLabsApiKey).subscribe({
+    this.elevenLabsService.getUsageByApiKey(student._id).subscribe({
       next: (res) => {
-        console.log(`🔹 API response for ${student.name}:`, res);
 
         if (res && res.usage && res.usage.subscription) {
           const subscription = res.usage.subscription;
@@ -455,11 +456,6 @@ fetchStudents(): void {
           student.remainingDays = student.planUpgradeDate
             ? Math.ceil((new Date(student.planUpgradeDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
             : undefined;
-
-          console.log(`✅ Processed usage for ${student.name}:`, {
-            remainingMinutes: student.remainingMinutes,
-            planUpgradeDate: student.planUpgradeDate
-          });
         }
       },
       error: (err) => {

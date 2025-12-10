@@ -16,6 +16,15 @@ h2, h3 {
   font-size: 1.5rem;
 }
 
+/* ====== Filtered Students Count ====== */
+.filtered-count {
+  font-weight: 600;
+  color: #405980;
+  margin-bottom: 12px;
+  text-align: left;
+  font-size: 16px;
+}
+
 /* ====== Filters Section ====== */
 .filters {
   display: flex;
@@ -43,6 +52,9 @@ h2, h3 {
 
 /* Responsive filters */
 @media (max-width: 768px) {
+  .filtered-count {
+    font-size: 14px;
+  }
   .filters {
     justify-content: flex-start;
   }

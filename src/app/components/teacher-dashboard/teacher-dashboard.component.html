@@ -31,7 +31,6 @@
         <th>Plan</th>
         <th>Batch</th>
         <th>Level</th>
-        <th>Assigned Teacher</th>
         <th>Bot Remaining Minutes</th>
         <th>Subscription Update Date</th>
   
@@ -45,7 +44,6 @@
         <td data-label="Plan">{{student.subscription}}</td>
         <td data-label="Batch">{{ student.batch || 'N/A' }}</td>
         <td data-label="Level">{{ student.level || 'N/A' }}</td>
-        <td data-label="Assigned Teacher">{{ student.assignedTeacher?.name || 'N/A' }}</td>
         <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes ?? 'N/A' }}</td>
         <td data-label="Subscription Update Date">{{ student.planUpgradeDate ?? 'N/A' }}</td>
       </tr>

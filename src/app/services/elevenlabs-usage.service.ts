@@ -42,8 +42,8 @@ export class ElevenLabsUsageService {
 
 
   // Get ElevenLabs usage by API key (Admin)
-  getUsageByApiKey(apiKey: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/admin/usage/${apiKey}`, { withCredentials: true });
+  getUsageByApiKey(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/usage/${id}`, { withCredentials: true });
   }
 
   // Optional: Observable-based logging
@@ -52,7 +52,7 @@ export class ElevenLabsUsageService {
   }
 
   // Get ElevenLabs usage by API key (Teacher)
-  getUsageByApiKeyForTeacher(apiKey: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/teacher/usage/${apiKey}`, { withCredentials: true });
+  getUsageByApiKeyForTeacher(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/teacher/usage/${id}`, { withCredentials: true });
   }
 }

@@ -3,8 +3,9 @@
   padding: 20px;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: auto; /* always allow horizontal scroll if needed */
-  padding-bottom: 15%;
+  overflow-x: auto;
+  overflow-y: auto;         /* enable vertical scrolling */
+  padding-bottom: 200px;  
 }
 
 /* ====== Table for all screens ====== */
@@ -68,6 +69,34 @@
   background-color: #3f51b5;
   color: yellow;
 }
+
+/* Slot wrapper */
+.slot-item {
+  margin-bottom: 4px;
+}
+
+/* Time text */
+.slot-time {
+  font-weight: 500;
+}
+
+/* Default status style */
+.slot-status {
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+/* Scheduled in blue */
+.slot-status.scheduled {
+  color: #007bff;
+}
+
+/* Cancelled in red + bold */
+.slot-status.cancelled {
+  color: red;
+  font-weight: 600;
+}
+
 
 /* ====== Mobile Table ====== */
 @media (max-width: 768px) {

@@ -1,5 +1,5 @@
 <!-- time-table.component.html -->
-<div class="container min-vh-100 d-flex justify-content-center align-items-center px-4">
+<div class="container min-vh-100 d-flex justify-content-center align-items-start px-4">
   <div class="card shadow-lg p-4 w-100" style="max-width: 600px;">
     <h2 class="text-center mb-4">Create Time Table</h2>
 
@@ -115,6 +115,17 @@
             required
             class="form-control me-2"
           />
+          <select
+            [(ngModel)]="slot.classStatus"
+            [name]="day + '_status_' + i"
+            required
+            class="form-select me-2"
+          >
+            <option value="" disabled>Select Status</option>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+
           <button
             type="button"
             class="btn btn-danger"

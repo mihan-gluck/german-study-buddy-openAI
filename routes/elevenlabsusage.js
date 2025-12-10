@@ -6,6 +6,9 @@ const ElevenLabsUsage = require('../models/ElevenLabsUsage');
 const User = require('../models/User');
 const { verifyToken, checkRole } = require('../middleware/auth');
 
+const elevenLabsKeys = JSON.parse(process.env.ELEVENLABS_API_KEYS);
+
+
 // POST /api/elevenlabs-usage/log
 router.post('/log', verifyToken, checkRole('student'), async (req, res) => {
   const { course, assistantID, duration } = req.body;
@@ -46,23 +49,37 @@ router.post('/log', verifyToken, checkRole('student'), async (req, res) => {
 });
 
 
+function getApiKeyForUser(userId) {
+  return elevenLabsKeys.find(k => k.id === userId)?.key || null;
+}
+
+function getApiKeyById(id) {
+  return elevenLabsKeys.find(k => k.id === id)?.key || null;
+}
+
+
 // GET - Get student elevenlabs usage via ElevenLabs API
 router.get('/apiKey', verifyToken, async (req, res) => {
   try {
-
     const userId = req.params.id || req.user.id;
 
+    const apiKey = getApiKeyForUser(userId);
 
-    const user = await User.findById(userId);
-
-    if (!user || !user.elevenLabsApiKey) {
-      return res.status(404).json({ success: false, msg: 'API key not found' });
+    if (!apiKey) {
+      return res.status(404).json({ success: false, msg: 'API key not found for this user' });
     }
 
+    // const user = await User.findById(userId);
+
+    // if (!user || !user.elevenLabsApiKey) {
+    //   return res.status(404).json({ success: false, msg: 'API key not found' });
+    // }
+
     // Call ElevenLabs API using user's key
+
     const response = await fetch('https://api.elevenlabs.io/v1/user', {
       headers: {
-        'xi-api-key': user.elevenLabsApiKey,
+        'xi-api-key': apiKey,
         'Content-Type': 'application/json'
       }
     });
@@ -77,15 +94,23 @@ router.get('/apiKey', verifyToken, async (req, res) => {
 
 
   // GET - Get ElevenLabs usage by API key (Admin)
-  router.get('/admin/usage/:apiKey', verifyToken, async (req, res) => {
+  router.get('/admin/usage/:id', verifyToken, async (req, res) => {
     try {
       if (req.user.role !== 'ADMIN') {
         return res.status(403).json({ success: false, msg: 'Access denied' });
       }
 
-      const apiKey = req.params.apiKey;
+      const keyId = req.params.id;
+
+      if (!keyId) {
+        return res.status(400).json({ success: false, msg: 'API key ID is required' });
+      }
+
+      // Retrieve the real API key using the ID
+      const apiKey = getApiKeyById(keyId);
+
       if (!apiKey) {
-        return res.status(400).json({ success: false, msg: 'API key is required' });
+        return res.status(404).json({ success: false, msg: 'API key not found for this ID' });
       }
 
       // Call ElevenLabs API using the provided API key
@@ -112,16 +137,24 @@ router.get('/apiKey', verifyToken, async (req, res) => {
   });
 
   // GET - Get ElevenLabs usage by API key (Teacher)
-  router.get('/teacher/usage/:apiKey', verifyToken, async (req, res) => {
+  router.get('/teacher/usage/:id', verifyToken, async (req, res) => {
     try {
       // Only allow TEACHER or ADMIN roles
       if (req.user.role !== 'TEACHER' && req.user.role !== 'ADMIN') {
         return res.status(403).json({ success: false, msg: 'Access denied' });
       }
 
-      const apiKey = req.params.apiKey;
+      const keyId = req.params.id;
+
+      if (!keyId) {
+        return res.status(400).json({ success: false, msg: 'API key ID is required' });
+      }
+
+      // Retrieve the real API key using the ID
+      const apiKey = getApiKeyById(keyId);
+
       if (!apiKey) {
-        return res.status(400).json({ success: false, msg: 'API key is required' });
+        return res.status(404).json({ success: false, msg: 'API key not found for this ID' });
       }
 
       // Call ElevenLabs API using the provided API key
