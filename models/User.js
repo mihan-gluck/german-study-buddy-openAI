@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   registeredAt: { type: Date, default: Date.now },
+  studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "DROPPED"], required: function() { return this.role === "STUDENT"; } },
 
   vapiAccess: {
     assistantId: String,

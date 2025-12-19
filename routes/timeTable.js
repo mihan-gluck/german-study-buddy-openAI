@@ -47,8 +47,8 @@ router.post("/", async (req, res) => {
     await newTimeTable.save();
 
     res.status(201).json({ message: 'Time table created successfully.', data: newTimeTable });
-  } catch (error) {
-    console.error('❌ Error creating time table:', error);
+  } 
+  catch (error) {
     res.status(500).json({ message: 'Internal server error.' });
   }
 });
@@ -95,8 +95,6 @@ router.get("/forTeacher", async (req, res) => {
     }
 
     const timeTables = await TimeTable.find({ assignedTeacher: teacherId });
-
-    console.log(`📊 Found ${timeTables.length} timetables for teacher ${teacherId}`);
 
     if (!timeTables || timeTables.length === 0) {
       return res.status(404).json({ message: "No timetables found for this teacher." });
@@ -171,13 +169,12 @@ router.put("/:id", async (req, res) => {
     if (!updatedTimeTable) {
       return res.status(404).json({ message: "Time table not found." });
     }
-
-    console.log("✅ Timetable updated:", updatedTimeTable);
     res.status(200).json({ message: "Time table updated successfully.", data: updatedTimeTable });
-  } catch (error) {
-    console.error("❌ Error updating timetable:", error);
+  } 
+  catch (error) {
     res.status(500).json({ message: "Internal server error." });
   }
+
 });
 
 // ==========================
@@ -283,9 +280,6 @@ cron.schedule("0 17 * * 0", async () => {
 }, { timezone: "Asia/Colombo" });
 
 
-function getSriLankaTime(date = new Date()) {
-  return new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-}
 
 // ==========================
 // ✅ CLASS REMINDER CRON (EVERY MINUTE)
@@ -296,12 +290,16 @@ cron.schedule('*/1 * * * *', async () => {
     const students = await User.find({ role: 'STUDENT' });
     if (!students?.length) return;
 
-    const now = getSriLankaTime();
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
+    );
 
-    const todayWeekday = now.toLocaleDateString('en-US', {
+    const todayWeekday = now
+    .toLocaleDateString('en-US', {
       weekday: 'long',
       timeZone: 'Asia/Colombo'
-    }).toLowerCase();
+    })
+    .toLowerCase();
 
     const todayDateOnly = new Date(
       now.getFullYear(),
@@ -318,20 +316,39 @@ cron.schedule('*/1 * * * *', async () => {
         plan: student.subscription,
         weekStartDate: { $lte: todayDateOnly },
         weekEndDate: { $gte: todayDateOnly },
-      }).sort({ weekStartDate: -1 }).lean();
+      })
+      .sort({ weekStartDate: -1 })
+      .lean();
 
       if (!latestTT) continue;
 
-      // ✅ Convert weekStartDate and weekEndDate to Date objects
-      const weekStart = new Date(latestTT.weekStartDate);
-      const weekEnd = new Date(latestTT.weekEndDate);
+      // Convert UTC to SL DATE ONLY
+      const weekStartSL = new Date(
+        latestTT.weekStartDate.toLocaleString("en-US", {
+          timeZone: "Asia/Colombo",
+        })
+      );
 
-      // Normalize dates to ignore time
-      const weekStartDateOnly = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
-      const weekEndDateOnly = new Date(weekEnd.getFullYear(), weekEnd.getMonth(), weekEnd.getDate());
+      const weekEndSL = new Date(
+        latestTT.weekEndDate.toLocaleString("en-US", {
+          timeZone: "Asia/Colombo",
+        })
+      );
+
+      const startOnly = new Date(
+        weekStartSL.getFullYear(),
+        weekStartSL.getMonth(),
+        weekStartSL.getDate()
+      );
+
+      const endOnly = new Date(
+        weekEndSL.getFullYear(),
+        weekEndSL.getMonth(),
+        weekEndSL.getDate()
+      );
 
       // Check if today is within the timetable’s valid week range
-      if (todayDateOnly < weekStartDateOnly || todayDateOnly > weekEndDateOnly) {
+      if (todayDateOnly < startOnly || todayDateOnly > endOnly) {
         continue;
       }
 
@@ -344,6 +361,7 @@ cron.schedule('*/1 * * * *', async () => {
         }
 
         const [hour, minute] = slot.start.split(':').map(Number);
+
         const classDate = new Date(
           now.getFullYear(),
           now.getMonth(),
@@ -353,10 +371,18 @@ cron.schedule('*/1 * * * *', async () => {
           0
         );
 
+        // Only trigger for TODAY'S slot
+        if (
+          classDate.toDateString() !== todayDateOnly.toDateString()
+        ) {
+          continue;
+        }
+
         const reminderTime = new Date(classDate.getTime() - 60 * 60 * 1000); // 1 hour before
 
         const diffMinutes = (now.getTime() - reminderTime.getTime()) / (1000 * 60);
         if (diffMinutes >= 0 && diffMinutes < 1) {
+
           // ✅ Find meeting link based on student's details
           const meetingLink = await findMeetingLink(
             student.batch,
@@ -433,17 +459,21 @@ cron.schedule('*/1 * * * *', async () => {
     const students = await User.find({ role: 'STUDENT' });
     if (!students?.length) return;
 
-    const todayWeekday = nowSL.toLocaleDateString('en-US', {
-      weekday: 'long',
-      timeZone: 'Asia/Colombo'
-    }).toLowerCase();
-
-    const todayDateOnly = new Date(
-      nowSL.getFullYear(),
-      nowSL.getMonth(),
-      nowSL.getDate()
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
     );
 
+    const todayWeekday = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      timeZone: 'Asia/Colombo'
+    })
+    .toLowerCase();
+
+    const todayDateOnly = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
 
     for (const student of students) {
       // ✅ Find the most recent timetable for the student
@@ -453,20 +483,41 @@ cron.schedule('*/1 * * * *', async () => {
         plan: student.subscription,
         weekStartDate: { $lte: todayDateOnly },
         weekEndDate: { $gte: todayDateOnly },
-      }).sort({ weekStartDate: -1 }).lean();
+      })
+      .sort({ weekStartDate: -1 })
+      .lean();
 
+    
       if (!latestTT) continue;
 
-      // ✅ Convert weekStartDate and weekEndDate to Date objects
-      const weekStart = new Date(latestTT.weekStartDate);
-      const weekEnd = new Date(latestTT.weekEndDate);
+      // Convert UTC to SL DATE ONLY
+      const weekStartSL = new Date(
+        latestTT.weekStartDate.toLocaleString("en-US", {
+          timeZone: "Asia/Colombo",
+        })
+      );
 
-      // Normalize dates to ignore time
-      const weekStartDateOnly = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
-      const weekEndDateOnly = new Date(weekEnd.getFullYear(), weekEnd.getMonth(), weekEnd.getDate());
+      const weekEndSL = new Date(
+        latestTT.weekEndDate.toLocaleString("en-US", {
+          timeZone: "Asia/Colombo",
+        })
+      );
+
+      const startOnly = new Date(
+        weekStartSL.getFullYear(),
+        weekStartSL.getMonth(),
+        weekStartSL.getDate()
+      );
+
+      const endOnly = new Date(
+        weekEndSL.getFullYear(),
+        weekEndSL.getMonth(),
+        weekEndSL.getDate()
+      );
+
 
       // Check if today is within the timetable’s valid week range
-      if (todayDateOnly < weekStartDateOnly || todayDateOnly > weekEndDateOnly) {
+      if (todayDateOnly < startOnly || todayDateOnly > endOnly) {
         continue;
       }
 
@@ -480,19 +531,27 @@ cron.schedule('*/1 * * * *', async () => {
         }
 
         const [hour, minute] = slot.start.split(':').map(Number);
-        const classDateSL = new Date(
-          nowSL.getFullYear(),
-          nowSL.getMonth(),
-          nowSL.getDate(),
+
+        const classDate = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
           hour,
           minute,
           0
         );
 
-        // ⏰ 2 hours before class
-        const reminderTime = new Date(classDateSL.getTime() - 2 * 60 * 60 * 1000);
+        // Only trigger for TODAY'S slot
+        if (
+          classDate.toDateString() !== todayDateOnly.toDateString()
+        ) {
+          continue;
+        }
 
-        const diffMinutes = (nowSL.getTime() - reminderTime.getTime()) / (1000 * 60);
+        // ⏰ 2 hours before class
+        const reminderTime = new Date(classDate.getTime() - 2 * 60 * 60 * 1000);
+
+        const diffMinutes = (now.getTime() - reminderTime.getTime()) / (1000 * 60);
 
         // Run exactly at the minute window
         if (diffMinutes >= 0 && diffMinutes < 1) {
@@ -538,12 +597,16 @@ cron.schedule("0 6 * * *", async () => {
     const students = await User.find({ role: "STUDENT" });
     if (!students?.length) return;
 
-    const now = getSriLankaTime();
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
+    );
 
-    const todayWeekday = now.toLocaleDateString("en-US", {
+    const todayWeekday = now
+    .toLocaleDateString("en-US", {
       weekday: "long",
       timeZone: "Asia/Colombo",
-    }).toLowerCase();
+    })
+    .toLowerCase();
 
     const todayDateOnly = new Date(
       now.getFullYear(),
@@ -559,7 +622,9 @@ cron.schedule("0 6 * * *", async () => {
         plan: student.subscription,
         weekStartDate: { $lte: todayDateOnly },
         weekEndDate: { $gte: todayDateOnly },
-      }).sort({ weekStartDate: -1 }).lean();
+      })
+      .sort({ weekStartDate: -1 })
+      .lean();
 
       if (!latestTT) continue;
 

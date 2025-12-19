@@ -98,6 +98,23 @@
         />
       </div>
 
+      <!-- Status for STUDENT (single select) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="studentStatus" class="form-label">Status</label>
+        <select
+          id="studentStatus"
+          name="studentStatus"
+          [(ngModel)]="studentStatus"
+          required
+          class="form-select"
+        >
+          <option value="UNCERTAIN">Uncertain</option>
+          <option value="ONGOING">Ongoing</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="DROPPED">Dropped</option>
+        </select>
+      </div>
+
       <!-- Medium for STUDENT (single select) -->
       <div class="mb-3" *ngIf="role === 'STUDENT'">
         <label for="medium" class="form-label">Medium</label>
@@ -201,18 +218,6 @@
           id="elevenLabsWidgetLink"
           name="elevenLabsWidgetLink"
           [(ngModel)]="elevenLabsWidgetLink"
-          class="form-control"
-        />
-      </div>
-
-      <!-- ElevenLabs API Key -->
-      <div class="mb-3" *ngIf="role === 'STUDENT' && subscription === 'PLATINUM'">
-        <label for="elevenLabsApiKey" class="form-label">ElevenLabs API Key</label>
-        <input
-          type="text"
-          id="elevenLabsApiKey"
-          name="elevenLabsApiKey"
-          [(ngModel)]="elevenLabsApiKey"
           class="form-control"
         />
       </div>

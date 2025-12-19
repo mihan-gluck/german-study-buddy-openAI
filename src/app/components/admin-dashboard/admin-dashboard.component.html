@@ -21,6 +21,14 @@
     <option value="SILVER">SILVER</option>
   </select>
 
+  <select [(ngModel)]="filters.studentStatus" (change)="applyFilters()">
+    <option value="">Filter by Status</option>
+    <option value="UNCERTAIN">UNCERTAIN</option>
+    <option value="ONGOING">ONGOING</option>
+    <option value="COMPLETED">COMPLETED</option>
+    <option value="DROPPED">DROPPED</option>
+  </select>
+
   <input type="number" [(ngModel)]="filters.batch" placeholder="Filter by Batch" (input)="applyFilters()">
 
   <select [(ngModel)]="filters.assignedTeacher" (change)="applyFilters()">
@@ -48,10 +56,12 @@
         <th>Medium</th>
         <th>Batch</th>
         <th>Level</th>
+        <th>Status</th>
         <th>Assigned Teacher</th>
         <th>Bot Remaining Minutes</th>
         <th>Remaining Days</th>
         <th>Subscription Update Date</th>
+        <th colspan="2" style="text-align: center;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -63,6 +73,7 @@
         <td data-label="Medium">{{ student.medium || 'N/A' }}</td>
         <td data-label="Batch">{{ student.batch || 'N/A' }}</td>
         <td data-label="Level">{{ student.level || 'N/A' }}</td>
+        <td data-label="Status">{{ student.studentStatus || 'N/A' }}</td>
         <td data-label="Assigned Teacher">{{ student.assignedTeacher?.name || 'N/A' }}</td>
         <!-- <td>
           <input type="text" [(ngModel)]="student.courseAssigned">

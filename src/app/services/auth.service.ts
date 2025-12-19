@@ -28,6 +28,7 @@ interface User {
   assignedCourses?: string[];   // for TEACHER
   assignedTeacher?: string;      // for STUDENT (teacher _id)
   profilePhotoUrl?: string;      // URL to profile photo
+  studentStatus?: string;        // for STUDENT (UNCERTAIN, ONGOING, COMPLETED, DROPPED)
   [key: string]: any;            // Allow additional properties
 }
 
@@ -100,6 +101,7 @@ export class AuthService {
     elevenLabsApiKey?: string 
     assignedCourses?: string[],   // for TEACHER
     assignedTeacher?: string      // for STUDENT (teacher _id)
+    studentStatus?: string      // for STUDENT (UNCERTAIN, ONGOING, COMPLETED, DROPPED)
   }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user, { withCredentials: true });
   }

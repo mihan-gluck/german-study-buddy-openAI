@@ -153,6 +153,7 @@ router.post("/signup", async (req, res) => {
       user.level = level;
       user.batch = batch;
       user.medium = medium;
+      user.studentStatus = "UNCERTAIN";
       
       // 🔍 Teacher assignment
       if (assignedTeacher) {
@@ -346,7 +347,8 @@ router.put("/:id", async (req, res) => {
       elevenLabsWidgetLink,
       elevenLabsApiKey,
       assignedCourses,
-      assignedTeacher
+      assignedTeacher,
+      studentStatus
     } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -364,7 +366,8 @@ router.put("/:id", async (req, res) => {
         elevenLabsWidgetLink,
         elevenLabsApiKey,
         assignedCourses,
-        assignedTeacher
+        assignedTeacher,
+        studentStatus
       },
       { new: true } // Return updated document
     );

@@ -26,6 +26,7 @@ export class SignupComponent {
   level: string = 'A1'; // default level
   elevenLabsWidgetLink: string = '';
   elevenLabsApiKey: string = '';
+  studentStatus: string = 'UNCERTAIN'; // default status
   
   // Teacher assignment
   assignedTeacher: string = '';   // ✅ selected teacher ID
@@ -95,6 +96,7 @@ export class SignupComponent {
           this.elevenLabsWidgetLink = data.elevenLabsWidgetLink || '';
           this.conversationId = data.conversationId || '';
           this.elevenLabsApiKey = data.elevenLabsApiKey || '';
+          this.studentStatus = data.studentStatus || 'UNCERTAIN';
           this.loadTeachers(); // load teachers for selected level + medium
         }
       },
@@ -142,6 +144,7 @@ export class SignupComponent {
       user.assignedTeacher = this.assignedTeacher;
       user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
       user.elevenLabsApiKey = this.elevenLabsApiKey;
+      user.studentStatus = this.studentStatus;
     }
 
     if (this.role === 'TEACHER') {

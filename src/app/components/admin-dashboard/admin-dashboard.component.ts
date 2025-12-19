@@ -47,6 +47,7 @@ interface Student {
   elevenLabsApiKey?: string;
   subscription: string;
   level: string;
+  studentStatus: string;
 
   vapiAccess: {
     assistantId: any;
@@ -108,7 +109,7 @@ export class AdminDashboardComponent implements OnInit {
 
   loading = false;
   error = '';
-  filters = { level: '', plan: '', batch: '', assignedTeacher: '' };
+  filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '' };
   plan: string[] = ['PLATINUM', 'SILVER'];
   level: string[] = ['A1', 'A2', 'B1', 'B2'];
   teachers: any[] = [];
@@ -210,7 +211,7 @@ export class AdminDashboardComponent implements OnInit {
     this.filteredStudents = this.students.filter(student => {
       const course = student.courseAssigned ? student.courseAssigned.toLowerCase() : '';
       const plan   = student.subscription ? student.subscription.toUpperCase() : '';
-      const status = student.vapiAccess?.status ? student.vapiAccess.status.toLowerCase() : '';
+      const status = student.studentStatus ? student.studentStatus.toLowerCase() : '';
       const assignedTeacherName =
       typeof student.assignedTeacher === 'object'
         ? student.assignedTeacher.name?.toLowerCase()
@@ -220,7 +221,8 @@ export class AdminDashboardComponent implements OnInit {
         (!this.filters.level || student.level === this.filters.level) &&
         (!this.filters.plan   || plan === this.filters.plan.toUpperCase()) &&
         (!this.filters.batch || student.batch === this.filters.batch.toString()) &&
-        (!this.filters.assignedTeacher || assignedTeacherName === this.filters.assignedTeacher.toLowerCase())
+        (!this.filters.assignedTeacher || assignedTeacherName === this.filters.assignedTeacher.toLowerCase()) &&
+        (!this.filters.studentStatus || status === this.filters.studentStatus.toLowerCase())
       );
     });
 

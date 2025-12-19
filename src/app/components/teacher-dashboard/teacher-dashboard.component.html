@@ -27,7 +27,6 @@
         <!-- <th></th> -->
          <th>Registration No</th>
         <th>Name</th>
-        <th>Email</th>
         <th>Plan</th>
         <th>Batch</th>
         <th>Level</th>
@@ -40,7 +39,6 @@
       <tr *ngFor="let student of filteredStudents; trackBy: trackById">
         <td data-label="Registration No">{{ student.regNo || 'N/A' }}</td>
         <td data-label="Name">{{ student.name }}</td>
-        <td data-label="Email">{{ student.email }}</td>
         <td data-label="Plan">{{student.subscription}}</td>
         <td data-label="Batch">{{ student.batch || 'N/A' }}</td>
         <td data-label="Level">{{ student.level || 'N/A' }}</td>
