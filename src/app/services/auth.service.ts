@@ -23,8 +23,6 @@ interface User {
   subscription?: string;
   level?: string;
   conversationId?: string;
-  elevenLabsWidgetLink?: string;
-  elevenLabsApiKey?: string;
   assignedCourses?: string[];   // for TEACHER
   assignedTeacher?: string;      // for STUDENT (teacher _id)
   profilePhotoUrl?: string;      // URL to profile photo

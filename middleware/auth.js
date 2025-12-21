@@ -31,9 +31,16 @@ function isAdmin(req, res, next) {
 }
 
 // General role-based access control middleware
-const checkRole = (role) => {
+const checkRole = (roles) => {
   return (req, res, next) => {
-    if (req.user && req.user.role === role) {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required.' });
+    }
+    
+    // Handle both single role and array of roles
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+    
+    if (allowedRoles.includes(req.user.role)) {
       next();
     } else {
       return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });

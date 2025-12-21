@@ -2,6 +2,24 @@
 
 <div class="admin-dashboard">
 
+<!-- Admin Navigation -->
+<div class="admin-nav mb-4">
+  <div class="d-flex gap-2 flex-wrap">
+    <button class="btn btn-outline-primary" routerLink="/admin-dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <i class="fas fa-users"></i> Students
+    </button>
+    <button class="btn btn-outline-primary" routerLink="/admin-modules">
+      <i class="fas fa-book"></i> Module Management
+    </button>
+    <button class="btn btn-outline-primary" routerLink="/teachers">
+      <i class="fas fa-chalkboard-teacher"></i> Teachers
+    </button>
+    <button class="btn btn-outline-primary" routerLink="/feedback-list">
+      <i class="fas fa-comments"></i> Feedback
+    </button>
+  </div>
+</div>
+
 <!-- Filter Count -->
 <div class="filtered-count">Student Count: {{ filteredStudentCount || totalStudentsCount() }}</div>
 

@@ -7,7 +7,6 @@ import { LoginComponent } from './components/login/login.component';
 import { SignupComponent } from './components/signup/signup.component';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { HomeComponent } from './components/home/home.component';
-import { AiChatComponent } from './components/ai-chat/ai-chat.component';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { ProfileComponent } from './components/profile/profile.component';
@@ -21,17 +20,11 @@ export const routes: Routes = [
   // Home route
   { path: 'home', loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent) },
 
-  // Chat route with AuthGuard to ensure the user is logged in
-  { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent), canActivate: [AuthGuard] }, 
-
   // Login and Signup routes
   { path: 'login', loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./components/signup/signup.component').then(m => m.SignupComponent) },
 
   { path: 'signup/:id', loadComponent: () => import('./components/signup/signup.component').then(m => m.SignupComponent) },
-
-  // AI Chat route (standalone, no guard)
-  { path: 'ai-chat', loadComponent: () => import('./components/ai-chat/ai-chat.component').then(m => m.AiChatComponent) },
 
   // Profile route for user profile (standalone)
   { path: 'profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent) },
@@ -48,8 +41,8 @@ export const routes: Routes = [
   // Student dashboard route with RoleGuard
   { 
     path: 'student-dashboard', 
-    loadChildren: () => import('./components/student-dashboard/student-dashboard.module')
-      .then(m => m.StudentDashboardModule),
+    loadComponent: () => import('./components/student-ai-dashboard/student-ai-dashboard.component')
+      .then(m => m.StudentAiDashboardComponent),
     canActivate: [AuthGuard, RoleGuard], 
     data: { role: 'STUDENT' } 
   },
@@ -59,6 +52,15 @@ export const routes: Routes = [
     path: 'admin-dashboard', 
     loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component')
       .then(m => m.AdminDashboardComponent),
+    canActivate: [AuthGuard, RoleGuard], 
+    data: { role: 'ADMIN' } 
+  },
+
+  // Admin module management route
+  { 
+    path: 'admin-modules', 
+    loadComponent: () => import('./components/admin-dashboard/module-management.component')
+      .then(m => m.ModuleManagementComponent),
     canActivate: [AuthGuard, RoleGuard], 
     data: { role: 'ADMIN' } 
   },
@@ -113,6 +115,22 @@ export const routes: Routes = [
   { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: 'ADMIN'} },
 
   { path: 'view-course-materials', loadComponent: () => import('./components/course-material/course-materials.component').then(m => m.CourseMaterialsComponent), canActivate: [AuthGuard] },
+
+  // New AI Tutoring System Routes
+  { path: 'learning-modules', loadComponent: () => import('./components/learning-modules/learning-modules.component').then(m => m.LearningModulesComponent), canActivate: [AuthGuard] },
+  
+  // Module creation/editing routes (Teachers and Admins)
+  { path: 'create-module', loadComponent: () => import('./components/teacher-dashboard/module-form.component').then(m => m.ModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  { path: 'create-roleplay-module', loadComponent: () => import('./components/teacher-dashboard/roleplay-module-form.component').then(m => m.RoleplayModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  { path: 'edit-module/:id', loadComponent: () => import('./components/teacher-dashboard/module-form.component').then(m => m.ModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  
+  { path: 'student-progress', loadComponent: () => import('./components/student-progress/student-progress.component').then(m => m.StudentProgressComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+  
+  { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+
+  // Audio Test Route (for students to test microphone and speakers)
+  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }
 ];

@@ -14,9 +14,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 import { MaterialModule } from '../../shared/material.module';
 import { MatDialog } from '@angular/material/dialog';
-import { AssignElevenlabsDialogComponent } from '../../assign-elevenlabs-dialog/assign-elevenlabs-dialog.component';
 import { HttpHeaders } from '@angular/common/http';
-import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
 import {TeacherService} from '../../services/teacher.service';
 import { environment } from '../../../environments/environment';
 
@@ -32,9 +30,6 @@ interface CourseProgress {
 }
 
 interface Student {
-  editingElevenLabs: boolean;
-
-  elevenLabsLink: any;
   student: { fluency: number; grammar: number; accent: number; overallCFBR: number; currentLevel: string; };
   _id: string;
   regNo?: string;
@@ -44,18 +39,9 @@ interface Student {
   medium?: string;
   courseAssigned: string;
   registeredAt: string;
-  elevenLabsApiKey?: string;
   subscription: string;
   level: string;
   studentStatus: string;
-
-  vapiAccess: {
-    assistantId: any;
-    status: VapiStatus;
-    totalMonthlyUsage: number;
-    apiKey?: string;
-    assistantID?: string;
-  };
   feedbackStats?: {
     currentLevel: string;
     fluency: number;
@@ -135,7 +121,6 @@ export class AdminDashboardComponent implements OnInit {
     private http: HttpClient,
     private feedbackService: FeedbackService,
     private dialog: MatDialog,
-    private elevenLabsService: ElevenLabsUsageService,
     private teacherService: TeacherService,
   ) {}
 
@@ -171,7 +156,6 @@ export class AdminDashboardComponent implements OnInit {
           this.students.forEach(student => {
             //this.loadFeedbackStats(student);
             this.loadCourseProgress(student);
-            this.loadElevenLabsUsage(student); // <-- pass single student
             //console.log('Student data:', student);
           });
           this.filteredStudents = [...this.students];
@@ -295,9 +279,7 @@ export class AdminDashboardComponent implements OnInit {
   assignCourseToStudent(student: Student): void {    
     const body = {
       studentId: student._id,
-      courseName: student.courseAssigned,
-      assistantId: student.vapiAccess.assistantId,
-      apiKey: student.vapiAccess.apiKey
+      courseName: student.courseAssigned
     };
     this.http.post('/api/admin/assign-course', body).subscribe({
       next: () => {
@@ -414,60 +396,6 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  openLinkDialog(student: any): void {
-    const dialogRef = this.dialog.open(AssignElevenlabsDialogComponent, {
-      data: { link: student.elevenLabsLink || '' }
-    });
-    dialogRef.afterClosed().subscribe(link => {
-      if (link !== undefined) {
-        this.http.put(`/api/admin/students/${student._id}/elevenlabs-link`, { elevenLabsLink: link })
-          .subscribe({
-            next: () => {
-              student.elevenLabsLink = link;
-            },
-            error: err => {
-              //console.error(err);
-              alert('Failed to save link');
-            }
-          });
-      }
-    });
-  }
-
-  loadElevenLabsUsage(student: Student): void {
-
-    this.elevenLabsService.getUsageByApiKey(student._id).subscribe({
-      next: (res) => {
-
-        if (res && res.usage && res.usage.subscription) {
-          const subscription = res.usage.subscription;
-          const characterCount = subscription.character_count || 0;
-          const characterLimit = subscription.character_limit || 0;
-          const remaining = characterLimit - characterCount;
-
-          student.remainingMinutes = characterLimit
-            ? Math.floor((remaining / characterLimit) * 60)
-            : 0;
-
-          student.planUpgradeDate = subscription.next_character_count_reset_unix
-            ? new Date(subscription.next_character_count_reset_unix * 1000)
-            .toISOString()
-            .slice(0, 10)  // take only YYYY-MM-DD
-          : undefined;
-
-          student.remainingDays = student.planUpgradeDate
-            ? Math.ceil((new Date(student.planUpgradeDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-            : undefined;
-        }
-      },
-      error: (err) => {
-        //console.error(`❌ Failed to fetch ElevenLabs usage for ${student.name}:`, err);
-        student.remainingMinutes = 0;
-        student.planUpgradeDate = undefined;
-      }
-    });
-  }
-
   deleteUser(id: string): void {
     if (confirm('Are you sure you want to delete this user?')) {
       this.authService.deleteUser(id).subscribe({
@@ -482,22 +410,5 @@ export class AdminDashboardComponent implements OnInit {
         }
       });
     }
-  }
-
-
-  saveElevenLabsLink(student: any): void {
-    this.http.put(`/api/admin/students/${student._id}/elevenlabs-link`, {
-      elevenLabsLink: student.elevenLabsLink
-    }).subscribe({
-      next: () => {
-        alert('ElevenLabs link saved!');
-        student.editingElevenLabs = false;
-      },
-      error: (err) => alert('Failed to save link: ' + err.message)
-    });
-  }
-
-  cancelEditElevenLabs(student: any): void {
-    student.editingElevenLabs = false;
   }
 }

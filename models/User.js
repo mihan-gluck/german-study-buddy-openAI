@@ -11,9 +11,6 @@ const UserSchema = new mongoose.Schema({
   batch: { type: String, required: function() { return this.role === "STUDENT"; }},
   medium: { type: [String], required: function() { return this.role === "STUDENT" || this.role === "TEACHER"; }},
   conversationId: { type: String, default: "" },
-  elevenLabsWidgetLink: { type: String, default: ""},
-  elevenLabsApiKey: { type: String, default: ""},
-
   assignedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: function() { return this.role === "TEACHER"; } }], // Courses assigned to the user
   assignedBatches: [{ type: String, required: function() { return this.role === "TEACHER"; } }], // Batches assigned to the teacher
   assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: function() { return this.role === "STUDENT"; } }, // Teacher assigned to the student
@@ -25,22 +22,6 @@ const UserSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
   registeredAt: { type: Date, default: Date.now },
   studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "DROPPED"], required: function() { return this.role === "STUDENT"; } },
-
-  vapiAccess: {
-    assistantId: String,
-    apiKey: String,
-    status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
-    totalMonthlyUsage: { type: Number, default: 0 }
-  },
-
-  elevenLabsAccess: {
-    agentId: { type: String },
-    apiKey: { type: String },
-    status: { type: String, enum: ['active', 'paused', 'finished'], default: 'active' },
-    totalMonthlyUsage: { type: Number, default: 0 }
-  },
-
-  elevenLabsLink: { type: String, default: '' },
 
   // ✅ move these inside schema
   courseProgress: [{

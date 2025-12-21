@@ -24,12 +24,14 @@ const profileRoutes = require('./routes/profile');
 const teacherRoutes = require('./routes/teacher');
 const roleProtectedRoutes = require('./routes/roleProtected');
 const feedbackRoutes = require('./routes/feedback');
-const vapiUsageRoutes = require('./routes/vapiUsage');
-const elevenlabsUsageRoutes = require('./routes/elevenlabsusage');
+
 const profilePicUploadRoutes = require('./routes/profile');
 const timeTableRoutes = require('./routes/timeTable');
 const meetingLinkRoutes = require('./routes/meetingLink');
 const courseMaterialRoutes = require('./routes/courseMaterial');
+const learningModulesRoutes = require('./routes/learningModules');
+const aiTutorRoutes = require('./routes/aiTutor');
+const studentProgressRoutes = require('./routes/studentProgress');
 
 
 const app = express();
@@ -84,11 +86,13 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/protected', roleProtectedRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/vapiUsage', vapiUsageRoutes);
-app.use('/api/elevenlabs-usage', elevenlabsUsageRoutes);
+
 app.use('/api/timeTable', timeTableRoutes);
 app.use('/api/meetingLink', meetingLinkRoutes);
 app.use('/api/courseMaterial', courseMaterialRoutes);
+app.use('/api/learning-modules', learningModulesRoutes);
+app.use('/api/ai-tutor', aiTutorRoutes);
+app.use('/api/student-progress', studentProgressRoutes);
 
 
 
@@ -123,18 +127,7 @@ app.get("*", (req, res) => {
   //res.sendFile(path.join(frontendPath, "dist/angular-germanbuddy/index.html"));
 });
 
-// server.js or routes/vapi.js
-app.post('/api/vapi-usage', (req, res) => {
-  /* const { course, assistantID, duration, timestamp } = req.body;
 
-  // Store in DB or log
-  console.log(`VAPI USAGE LOG:`, { course, assistantID, duration, timestamp });
-
-  res.status(200).send({ message: 'Usage logged successfully' }); */
-});
-
-// Route for routes/vapuUsage.js
-app.use('/api/vapi-usage', vapiUsageRoutes);
 
 // Student feedback route
 app.use('/api/feedback', feedbackRoutes);

@@ -24,8 +24,6 @@ export class SignupComponent {
   conversationId: string = '';
   subscription: string = '';
   level: string = 'A1'; // default level
-  elevenLabsWidgetLink: string = '';
-  elevenLabsApiKey: string = '';
   studentStatus: string = 'UNCERTAIN'; // default status
   
   // Teacher assignment
@@ -93,9 +91,7 @@ export class SignupComponent {
           this.subscription = data.subscription || '';
           this.level = data.level || 'A1';
           this.assignedTeacher = data.assignedTeacher || '';
-          this.elevenLabsWidgetLink = data.elevenLabsWidgetLink || '';
           this.conversationId = data.conversationId || '';
-          this.elevenLabsApiKey = data.elevenLabsApiKey || '';
           this.studentStatus = data.studentStatus || 'UNCERTAIN';
           this.loadTeachers(); // load teachers for selected level + medium
         }
@@ -142,8 +138,6 @@ export class SignupComponent {
       user.subscription = this.subscription;
       user.level = this.level;
       user.assignedTeacher = this.assignedTeacher;
-      user.elevenLabsWidgetLink = this.elevenLabsWidgetLink;
-      user.elevenLabsApiKey = this.elevenLabsApiKey;
       user.studentStatus = this.studentStatus;
     }
 

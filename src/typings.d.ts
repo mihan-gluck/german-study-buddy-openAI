@@ -1,5 +1,3 @@
 // typings.d.ts
-interface Window {
-    vapiSDK: any;
-  }
+// Global type declarations
   

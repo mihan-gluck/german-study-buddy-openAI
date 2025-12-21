@@ -12,7 +12,6 @@ import { MatCardModule } from '@angular/material/card';
 import { NgChartsModule } from 'ng2-charts';
 import { MaterialModule } from '../../shared/material.module';
 import { MatDialog } from '@angular/material/dialog';
-import { ElevenLabsUsageService } from '../../services/elevenlabs-usage.service';
 import { environment } from '../../../environments/environment';
 
 const apiUrl = environment.apiUrl;  // Base API URL

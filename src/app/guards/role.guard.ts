@@ -17,9 +17,16 @@ export class RoleGuard implements CanActivate {
       map(user => {
         //console.log("RoleGuard received user:", user, "expected:", expectedRole);
 
-        // ✅ allow if role matches
-        if (user?.role === expectedRole) {
-          return true;
+        // Handle array of roles
+        if (Array.isArray(expectedRole)) {
+          if (expectedRole.includes(user?.role)) {
+            return true;
+          }
+        } else {
+          // ✅ allow if role matches
+          if (user?.role === expectedRole) {
+            return true;
+          }
         }
 
         // ❌ wrong role → redirect them to their correct dashboard

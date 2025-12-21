@@ -16,7 +16,6 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [TeacherDashboardComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -25,6 +24,7 @@ const routes: Routes = [
     MaterialModule,
     NgChartsModule,
     MatProgressSpinnerModule,
+    TeacherDashboardComponent
   ]
 })
 export class TeacherDashboardModule {}

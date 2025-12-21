@@ -1,0 +1,388 @@
+<!-- src/app/components/learning-modules/learning-modules.component.html -->
+
+<div class="learning-modules-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1>Learning Modules</h1>
+        <p class="subtitle">Discover and practice German with AI-powered tutoring</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-outline-secondary" (click)="testAudio()">
+          <i class="fas fa-microphone-alt"></i> Audio Test
+        </button>
+        
+        <button class="btn btn-primary" (click)="createNewModule()" *ngIf="isTeacherOrAdmin()">
+          <i class="fas fa-plus"></i> Create Module
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="row g-3">
+        <!-- Search -->
+        <div class="col-md-3">
+          <div class="form-group">
+            <label class="form-label">Search</label>
+            <input 
+              type="text" 
+              class="form-control"
+              [(ngModel)]="filters.search"
+              placeholder="Search modules..."
+              (keyup.enter)="applyFilters()">
+          </div>
+        </div>
+        
+        <!-- Target Language Filter -->
+        <div class="col-md-2">
+          <div class="form-group">
+            <label class="form-label">Target Language</label>
+            <select class="form-select" [(ngModel)]="filters.targetLanguage" (change)="applyFilters()">
+              <option value="">All Languages</option>
+              <option *ngFor="let language of targetLanguages" [value]="language">{{ language }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Native Language Filter -->
+        <div class="col-md-2">
+          <div class="form-group">
+            <label class="form-label">Native Language</label>
+            <select class="form-select" [(ngModel)]="filters.nativeLanguage" (change)="applyFilters()">
+              <option value="">All Languages</option>
+              <option *ngFor="let language of nativeLanguages" [value]="language">{{ language }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Level Filter -->
+        <div class="col-md-2">
+          <div class="form-group">
+            <label class="form-label">Level</label>
+            <select class="form-select" [(ngModel)]="filters.level" (change)="applyFilters()">
+              <option value="">All Levels</option>
+              <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="col-md-2">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" [(ngModel)]="filters.category" (change)="applyFilters()">
+              <option value="">All Categories</option>
+              <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Difficulty Filter -->
+        <div class="col-md-2">
+          <div class="form-group">
+            <label class="form-label">Difficulty</label>
+            <select class="form-select" [(ngModel)]="filters.difficulty" (change)="applyFilters()">
+              <option value="">All</option>
+              <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{ difficulty }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="col-md-1">
+          <div class="form-group">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-secondary btn-sm" (click)="clearFilters()" title="Clear Filters">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Toggle -->
+  <div class="view-controls">
+    <div class="view-toggle">
+      <button 
+        class="btn btn-sm"
+        [class.btn-primary]="viewMode === 'grid'"
+        [class.btn-outline-primary]="viewMode !== 'grid'"
+        (click)="viewMode = 'grid'">
+        <i class="fas fa-th"></i> Grid
+      </button>
+      <button 
+        class="btn btn-sm"
+        [class.btn-primary]="viewMode === 'list'"
+        [class.btn-outline-primary]="viewMode !== 'list'"
+        (click)="viewMode = 'list'">
+        <i class="fas fa-list"></i> List
+      </button>
+    </div>
+    
+    <div class="results-info">
+      Showing {{ modules.length }} of {{ pagination.total }} modules
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3">Loading modules...</p>
+    </div>
+  </div>
+
+  <!-- Modules Grid -->
+  <div class="modules-grid" *ngIf="!isLoading && viewMode === 'grid'">
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6" *ngFor="let module of filteredModules">
+        <div class="module-card">
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="module-meta">
+              <span class="badge" [class]="'badge-' + getLevelColor(module.level)">
+                {{ module.level }}
+              </span>
+              <span class="category-icon">{{ getCategoryIcon(module.category) }}</span>
+            </div>
+            
+            <div class="module-status">
+              <span class="badge" [class]="getStatusBadgeClass(module)">
+                {{ getStatusText(module) }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Card Body -->
+          <div class="card-body">
+            <h5 class="module-title">{{ module.title }}</h5>
+            <p class="module-description">{{ module.description }}</p>
+            
+            <div class="module-details">
+              <div class="detail-item">
+                <i class="fas fa-tag"></i>
+                <span>{{ module.category }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-clock"></i>
+                <span>{{ formatDuration(module.estimatedDuration) }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-signal"></i>
+                <span>{{ module.difficulty }}</span>
+              </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-section" *ngIf="module.studentProgress">
+              <div class="progress-label">
+                Progress: {{ getProgressPercentage(module) }}%
+              </div>
+              <div class="progress">
+                <div 
+                  class="progress-bar"
+                  [class]="'bg-' + getProgressColor(getProgressPercentage(module))"
+                  [style.width.%]="getProgressPercentage(module)">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <div class="module-actions">
+              <!-- Student Actions -->
+              <ng-container *ngIf="currentUser?.role === 'STUDENT'">
+                <button 
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="viewModuleDetails(module)">
+                  View Details
+                </button>
+                
+                <button 
+                  class="btn btn-primary btn-sm"
+                  *ngIf="canEnroll(module)"
+                  (click)="enrollInModule(module)">
+                  Enroll
+                </button>
+                
+                <div class="btn-group" *ngIf="canStartTutoring(module)">
+                  <button 
+                    class="btn btn-success btn-sm"
+                    (click)="startTutoring(module, 'practice')">
+                    Start Practice
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" (click)="startTutoring(module, 'conversation')">Conversation</a></li>
+                    <li><a class="dropdown-item" (click)="startTutoring(module, 'assessment')">Assessment</a></li>
+                    <li><a class="dropdown-item" (click)="startTutoring(module, 'help')">Get Help</a></li>
+                    <li><a class="dropdown-item" (click)="startTutoring(module, 'review')">Review</a></li>
+                  </ul>
+                </div>
+              </ng-container>
+              
+              <!-- Teacher/Admin Actions -->
+              <ng-container *ngIf="isTeacherOrAdmin()">
+                <button 
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="viewModuleDetails(module)">
+                  View Details
+                </button>
+                <button 
+                  class="btn btn-outline-secondary btn-sm"
+                  (click)="editModule(module)">
+                  Edit
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modules List -->
+  <div class="modules-list" *ngIf="!isLoading && viewMode === 'list'">
+    <div class="list-item" *ngFor="let module of filteredModules">
+      <div class="list-content">
+        <div class="list-header">
+          <div class="module-info">
+            <h5 class="module-title">{{ module.title }}</h5>
+            <div class="module-meta">
+              <span class="badge" [class]="'badge-' + getLevelColor(module.level)">{{ module.level }}</span>
+              <span class="category">{{ getCategoryIcon(module.category) }} {{ module.category }}</span>
+              <span class="duration">{{ formatDuration(module.estimatedDuration) }}</span>
+              <span class="difficulty">{{ module.difficulty }}</span>
+            </div>
+          </div>
+          
+          <div class="module-status">
+            <span class="badge" [class]="getStatusBadgeClass(module)">
+              {{ getStatusText(module) }}
+            </span>
+          </div>
+        </div>
+        
+        <p class="module-description">{{ module.description }}</p>
+        
+        <!-- Progress Bar -->
+        <div class="progress-section" *ngIf="module.studentProgress">
+          <div class="progress-info">
+            <span>Progress: {{ getProgressPercentage(module) }}%</span>
+            <span>Time Spent: {{ formatDuration(module.studentProgress.timeSpent || 0) }}</span>
+          </div>
+          <div class="progress">
+            <div 
+              class="progress-bar"
+              [class]="'bg-' + getProgressColor(getProgressPercentage(module))"
+              [style.width.%]="getProgressPercentage(module)">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="list-actions">
+        <!-- Student Actions -->
+        <ng-container *ngIf="currentUser?.role === 'STUDENT'">
+          <button 
+            class="btn btn-outline-primary btn-sm"
+            (click)="viewModuleDetails(module)">
+            Details
+          </button>
+          
+          <button 
+            class="btn btn-primary btn-sm"
+            *ngIf="canEnroll(module)"
+            (click)="enrollInModule(module)">
+            Enroll
+          </button>
+          
+          <button 
+            class="btn btn-success btn-sm"
+            *ngIf="canStartTutoring(module)"
+            (click)="startTutoring(module, 'practice')">
+            Start Tutoring
+          </button>
+        </ng-container>
+        
+        <!-- Teacher/Admin Actions -->
+        <ng-container *ngIf="isTeacherOrAdmin()">
+          <button 
+            class="btn btn-outline-primary btn-sm"
+            (click)="viewModuleDetails(module)">
+            Details
+          </button>
+          <button 
+            class="btn btn-outline-secondary btn-sm"
+            (click)="editModule(module)">
+            Edit
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredModules.length === 0">
+    <div class="text-center">
+      <i class="fas fa-search fa-3x text-muted mb-3"></i>
+      <h4>No modules found</h4>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-primary" (click)="clearFilters()">Clear Filters</button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section" *ngIf="!isLoading && pagination.pages > 1">
+    <nav>
+      <ul class="pagination justify-content-center">
+        <li class="page-item" [class.disabled]="pagination.current === 1">
+          <a class="page-link" (click)="onPageChange(pagination.current - 1)">Previous</a>
+        </li>
+        
+        <li class="page-item" *ngIf="pagination.current > 3">
+          <a class="page-link" (click)="onPageChange(1)">1</a>
+        </li>
+        
+        <li class="page-item disabled" *ngIf="pagination.current > 4">
+          <span class="page-link">...</span>
+        </li>
+        
+        <li 
+          class="page-item"
+          *ngFor="let page of getPaginationArray()"
+          [class.active]="page === pagination.current">
+          <a class="page-link" (click)="onPageChange(page)">{{ page }}</a>
+        </li>
+        
+        <li class="page-item disabled" *ngIf="pagination.current < pagination.pages - 3">
+          <span class="page-link">...</span>
+        </li>
+        
+        <li class="page-item" *ngIf="pagination.current < pagination.pages - 2">
+          <a class="page-link" (click)="onPageChange(pagination.pages)">{{ pagination.pages }}</a>
+        </li>
+        
+        <li class="page-item" [class.disabled]="pagination.current === pagination.pages">
+          <a class="page-link" (click)="onPageChange(pagination.current + 1)">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>

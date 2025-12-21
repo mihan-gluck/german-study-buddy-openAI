@@ -1,6 +1,34 @@
 <div class="dashboard-container">
   <div class="scrollable-content dashboard">
 
+  <!-- Teacher Navigation -->
+  <div class="teacher-nav mb-4">
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-outline-primary" routerLink="/teacher-dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <i class="fas fa-users"></i> My Students
+      </button>
+      <button class="btn btn-outline-primary" routerLink="/learning-modules">
+        <i class="fas fa-book"></i> Learning Modules
+      </button>
+      <div class="btn-group">
+        <button class="btn btn-outline-success" routerLink="/create-module">
+          <i class="fas fa-plus"></i> Create Module
+        </button>
+        <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+          <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" routerLink="/create-module">
+            <i class="fas fa-book"></i> Standard Module
+          </a></li>
+          <li><a class="dropdown-item" routerLink="/create-roleplay-module">
+            <i class="fas fa-theater-masks"></i> Role-Play Module
+          </a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <div class="filters">
   <select [(ngModel)]="filters.level" (change)="applyFilters()">
     <option value="">Filter by Level</option>
