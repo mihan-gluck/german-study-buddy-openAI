@@ -6,6 +6,7 @@ const AiTutorSession = require('../models/AiTutorSession');
 const LearningModule = require('../models/LearningModule');
 const StudentProgress = require('../models/StudentProgress');
 const { verifyToken, checkRole } = require('../middleware/auth');
+const { requirePlatinum } = require('../middleware/subscriptionCheck');
 const { v4: uuidv4 } = require('uuid');
 const OpenAIService = require('../services/openaiService');
 
@@ -200,8 +201,8 @@ class AiTutorService {
   }
 }
 
-// POST /api/ai-tutor/start-session - Start new tutoring session
-router.post('/start-session', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// POST /api/ai-tutor/start-session - Start new tutoring session (PLATINUM ONLY)
+router.post('/start-session', verifyToken, checkRole(['STUDENT']), requirePlatinum, async (req, res) => {
   try {
     const { moduleId, sessionType = 'practice' } = req.body;
     const studentId = req.user.id;
@@ -312,8 +313,8 @@ router.post('/start-session', verifyToken, checkRole(['STUDENT']), async (req, r
   }
 });
 
-// POST /api/ai-tutor/send-message - Send message to AI tutor
-router.post('/send-message', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// POST /api/ai-tutor/send-message - Send message to AI tutor (PLATINUM ONLY)
+router.post('/send-message', verifyToken, checkRole(['STUDENT']), requirePlatinum, async (req, res) => {
   try {
     const { sessionId, message, messageType = 'text', exerciseAnswer } = req.body;
     const studentId = req.user.id;
@@ -481,8 +482,8 @@ Feel free to try this scenario again or explore other modules. Keep up the excel
   }
 });
 
-// POST /api/ai-tutor/end-session - End tutoring session
-router.post('/end-session', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// POST /api/ai-tutor/end-session - End tutoring session (PLATINUM ONLY)
+router.post('/end-session', verifyToken, checkRole(['STUDENT']), requirePlatinum, async (req, res) => {
   try {
     const { sessionId } = req.body;
     const studentId = req.user.id;
@@ -541,8 +542,8 @@ router.post('/end-session', verifyToken, checkRole(['STUDENT']), async (req, res
   }
 });
 
-// GET /api/ai-tutor/sessions - Get student's tutoring sessions
-router.get('/sessions', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// GET /api/ai-tutor/sessions - Get student's tutoring sessions (PLATINUM ONLY)
+router.get('/sessions', verifyToken, checkRole(['STUDENT']), requirePlatinum, async (req, res) => {
   try {
     const { moduleId, page = 1, limit = 10 } = req.query;
     const studentId = req.user.id;
@@ -574,8 +575,8 @@ router.get('/sessions', verifyToken, checkRole(['STUDENT']), async (req, res) =>
   }
 });
 
-// GET /api/ai-tutor/sessions/:sessionId - Get specific session details
-router.get('/sessions/:sessionId', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// GET /api/ai-tutor/sessions/:sessionId - Get specific session details (PLATINUM ONLY)
+router.get('/sessions/:sessionId', verifyToken, checkRole(['STUDENT']), requirePlatinum, async (req, res) => {
   try {
     const { sessionId } = req.params;
     const studentId = req.user.id;

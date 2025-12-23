@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LearningModulesService, LearningModule, ModuleFilters } from '../../services/learning-modules.service';
 import { AuthService } from '../../services/auth.service';
+import { SubscriptionGuardService, SubscriptionStatus } from '../../services/subscription-guard.service';
 
 @Component({
   selector: 'app-learning-modules',
@@ -52,6 +53,7 @@ export class LearningModulesComponent implements OnInit {
   constructor(
     private learningModulesService: LearningModulesService,
     private authService: AuthService,
+    private subscriptionGuard: SubscriptionGuardService,
     private router: Router
   ) {}
 
@@ -140,19 +142,62 @@ export class LearningModulesComponent implements OnInit {
   startTutoring(module: LearningModule, sessionType: string = 'practice'): void {
     if (!module._id) return;
     
-    // Check if enrolled
-    if (!module.studentProgress) {
-      this.enrollInModule(module);
-      return;
-    }
-    
-    // Navigate to AI tutor chat
-    this.router.navigate(['/ai-tutor-chat'], {
-      queryParams: {
-        moduleId: module._id,
-        sessionType: sessionType
+    // Check if user has PLATINUM subscription for AI tutoring
+    this.subscriptionGuard.checkPlatinumAccess().subscribe((status: SubscriptionStatus) => {
+      if (status.hasAccess) {
+        // Check if enrolled
+        if (!module.studentProgress) {
+          this.enrollInModule(module);
+          return;
+        }
+        
+        // User has PLATINUM access, proceed to AI tutoring
+        this.router.navigate(['/ai-tutor-chat'], {
+          queryParams: {
+            moduleId: module._id,
+            sessionType: sessionType
+          }
+        });
+      } else {
+        // User doesn't have PLATINUM access, show upgrade message
+        this.showSubscriptionUpgradeDialog(status);
       }
     });
+  }
+
+  private showSubscriptionUpgradeDialog(status: SubscriptionStatus): void {
+    const upgradeMessage = `🤖 AI Tutoring - Premium Feature\n\n` +
+      `${status.message}\n\n` +
+      `AI Tutoring Features:\n` +
+      `• Voice conversation with AI tutor\n` +
+      `• Real-time dialogue bubbles\n` +
+      `• Personalized learning experience\n` +
+      `• Role-play scenarios\n` +
+      `• Engagement scoring\n\n` +
+      `Current: ${status.currentSubscription || 'No subscription'}\n` +
+      `Required: ${status.requiredSubscription}\n\n` +
+      `Would you like to upgrade to PLATINUM?`;
+
+    if (confirm(upgradeMessage)) {
+      // Redirect to subscription upgrade page
+      this.router.navigate(['/subscriptions']);
+    }
+  }
+
+  // Check if user can access AI tutoring
+  canAccessAiTutoring(): boolean {
+    return this.subscriptionGuard.isPlatinum() || this.currentUser?.role !== 'STUDENT';
+  }
+
+  // Get subscription badge text
+  getSubscriptionBadge(): string {
+    const subscription = this.subscriptionGuard.getCurrentSubscription();
+    return subscription || 'No Subscription';
+  }
+
+  // Check if user is student
+  isStudent(): boolean {
+    return this.currentUser?.role === 'STUDENT';
   }
 
   viewModuleDetails(module: LearningModule): void {

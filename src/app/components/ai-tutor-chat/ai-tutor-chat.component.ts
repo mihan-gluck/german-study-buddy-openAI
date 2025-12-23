@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AiTutorService, TutorMessage } from '../../services/ai-tutor.service';
 import { LearningModulesService } from '../../services/learning-modules.service';
+import { SubscriptionGuardService } from '../../services/subscription-guard.service';
 import { Subscription } from 'rxjs';
 
 // Speech Recognition interface
@@ -51,7 +52,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     totalMessages: 0,
     correctAnswers: 0,
     incorrectAnswers: 0,
-    sessionScore: 0
+    sessionScore: 0,
+    conversationScore: 0, // New: Points for conversation participation
+    totalScore: 0 // New: Combined score
   };
   
   // Role-play UI state
@@ -75,6 +78,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     public router: Router, // Make router public for template access
     private aiTutorService: AiTutorService,
     private learningModulesService: LearningModulesService,
+    private subscriptionGuard: SubscriptionGuardService,
     private cdr: ChangeDetectorRef // Add ChangeDetectorRef for manual change detection
   ) {
     // Initialize speech synthesis
@@ -85,6 +89,21 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // First check subscription access
+    this.subscriptionGuard.checkPlatinumAccess().subscribe(status => {
+      if (!status.hasAccess) {
+        // User doesn't have PLATINUM access, redirect with message
+        alert(`🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nRedirecting to learning modules...`);
+        this.router.navigate(['/learning-modules']);
+        return;
+      }
+      
+      // User has access, proceed with initialization
+      this.initializeComponent();
+    });
+  }
+
+  private initializeComponent(): void {
     // Get module ID from route
     this.route.queryParams.subscribe(params => {
       this.moduleId = params['moduleId'];
@@ -475,8 +494,16 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   useSuggestion(suggestion: string): void {
+    // Since we don't have a text input anymore, directly send the suggestion as a message
+    if (!this.sessionActive || this.isSending || this.isProcessingSpeech) {
+      return;
+    }
+    
+    console.log('📤 Sending suggestion as message:', suggestion);
+    
+    // Set the suggestion as current message and send it
     this.currentMessage = suggestion;
-    this.sendMessage();
+    this.sendMessage(false); // false indicates it's not from speech
   }
 
   endSession(navigate: boolean = true): void {
@@ -490,8 +517,18 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         
         if (navigate) {
-          // Show session summary
-          alert(`Session completed!\n\nDuration: ${response.sessionSummary.duration} minutes\nScore: ${response.sessionSummary.sessionScore}\nCorrect: ${response.sessionSummary.correctAnswers}\nIncorrect: ${response.sessionSummary.incorrectAnswers}`);
+          // Show session summary with improved scoring
+          const totalEngagement = this.getTotalEngagementScore();
+          const conversationScore = this.getConversationScore();
+          const exerciseScore = response.sessionSummary.sessionScore || 0;
+          
+          alert(`Session completed! 🎉\n\n` +
+                `Duration: ${response.sessionSummary.duration} minutes\n` +
+                `Total Engagement: ${totalEngagement} points\n` +
+                `• Conversation: ${conversationScore} points\n` +
+                `• Exercises: ${exerciseScore} points\n` +
+                `Messages: ${this.getStudentMessageCount()} (${this.getSpeechMessageCount()} spoken)\n` +
+                `${response.sessionSummary.correctAnswers > 0 ? `Accuracy: ${this.getScorePercentage()}%` : 'Great conversation practice!'}`);
           
           // Navigate back to learning modules list
           this.router.navigate(['/learning-modules']);
@@ -524,20 +561,24 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         this.aiTutorService.clearCurrentSession();
         this.isLoading = false;
         
-        // Calculate session duration
+        // Calculate session duration and scores
         const duration = response.sessionSummary?.duration || 0;
         const totalMessages = this.sessionStats.totalMessages || 0;
-        const score = this.sessionStats.sessionScore || 0;
+        const exerciseScore = this.sessionStats.sessionScore || 0;
+        const conversationScore = this.getConversationScore();
+        const totalEngagement = conversationScore + exerciseScore;
         
         // Show silent completion message (no AI speech)
         const completionMessage: TutorMessage = {
           role: 'tutor',
-          content: `Session ended by your request.
+          content: `Session ended by your request. 🎯
 
 📊 Session Summary:
 • Duration: ${duration} minutes
+• Total Engagement: ${totalEngagement} points
 • Messages exchanged: ${totalMessages}
-• Session score: ${score}
+• Conversation score: ${conversationScore} points
+• Exercise score: ${exerciseScore} points
 • Practice completed successfully!
 
 Thank you for practicing! You can start a new session anytime.`,
@@ -642,6 +683,23 @@ Thank you for practicing! You can start a new session anytime.`,
     );
   }
 
+  // Calculate conversation participation score
+  getConversationScore(): number {
+    const studentMessages = this.getStudentMessageCount();
+    const speechMessages = this.getSpeechMessageCount();
+    
+    // Base points for participation: 2 points per message, 3 points for speech
+    const conversationPoints = (studentMessages * 2) + (speechMessages * 1); // Extra point for speech
+    return conversationPoints;
+  }
+
+  // Get total engagement score
+  getTotalEngagementScore(): number {
+    const exerciseScore = this.sessionStats.sessionScore || 0;
+    const conversationScore = this.getConversationScore();
+    return exerciseScore + conversationScore;
+  }
+
   // Helper method for template to convert index to letter (A, B, C, etc.)
   getOptionLetter(index: number): string {
     return String.fromCharCode(65 + index);
@@ -689,7 +747,7 @@ Thank you for practicing! You can start a new session anytime.`,
         const confidence = event.results[0][0].confidence;
         console.log('🎤 Speech captured:', transcript, 'Confidence:', confidence);
         
-        // Set the transcript in the input field so user can see what was captured
+        // Set the transcript in the currentMessage for processing
         this.currentMessage = transcript;
         this.isListening = false;
         this.isProcessingSpeech = true;
@@ -703,9 +761,12 @@ Thank you for practicing! You can start a new session anytime.`,
             // Mark this message as coming from speech recognition
             this.sendMessage(true); // Pass true to indicate speech input
             this.isProcessingSpeech = false;
+            // Clear the message since we don't have a visible input field
+            this.currentMessage = '';
           }, 800); // Slightly longer delay so user can see what was captured
         } else {
           this.isProcessingSpeech = false;
+          this.currentMessage = '';
         }
       };
       

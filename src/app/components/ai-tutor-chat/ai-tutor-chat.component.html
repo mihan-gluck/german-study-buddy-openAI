@@ -56,8 +56,8 @@
           <span class="stat-value">{{ sessionStats.totalMessages }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">Score:</span>
-          <span class="stat-value">{{ sessionStats.sessionScore }}</span>
+          <span class="stat-label" title="Points for conversation participation and exercises">Engagement:</span>
+          <span class="stat-value">{{ getTotalEngagementScore() }} pts</span>
         </div>
         <div class="stat-item" *ngIf="sessionStats.correctAnswers + sessionStats.incorrectAnswers > 0">
           <span class="stat-label">Accuracy:</span>
@@ -330,14 +330,14 @@
     </div>
   </div>
 
-  <!-- Message Input -->
-  <div class="message-input-container" *ngIf="!currentExercise && sessionActive">
+  <!-- Voice Input Only -->
+  <div class="voice-input-container" *ngIf="!currentExercise && sessionActive">
     <!-- Speech Processing Feedback -->
     <div class="speech-feedback" *ngIf="isProcessingSpeech">
       <div class="alert alert-info">
         <i class="fas fa-microphone fa-spin"></i>
         <strong>Processing your speech...</strong>
-        <small>Your words will appear below and be sent automatically</small>
+        <small>Your words will be sent automatically</small>
       </div>
     </div>
     
@@ -354,51 +354,30 @@
       </div>
     </div>
     
-    <!-- Message Input -->
-    <div class="input-group">
-      <!-- Voice Controls -->
-      <div class="voice-controls" *ngIf="voiceEnabled">
-        <button 
-          class="btn btn-outline-primary btn-sm voice-btn"
-          [class.btn-danger]="isListening"
-          (click)="isListening ? stopListening() : startListening()"
-          [disabled]="isSending || isProcessingSpeech"
-          title="Voice Input">
-          <i class="fas" [class.fa-microphone]="!isListening" [class.fa-stop]="isListening"></i>
-          {{ isListening ? 'Stop' : 'Speak' }}
-        </button>
-        
-        <button 
-          class="btn btn-outline-secondary btn-sm voice-btn"
-          (click)="stopSpeaking()"
-          [disabled]="!isSpeaking"
-          title="Stop Speaking">
-          <i class="fas fa-volume-mute"></i>
-        </button>
-        
-        <button 
-          class="btn btn-outline-info btn-sm voice-btn"
-          (click)="toggleVoice()"
-          title="Toggle Voice">
-          <i class="fas" [class.fa-volume-up]="voiceEnabled" [class.fa-volume-mute]="!voiceEnabled"></i>
-        </button>
-      </div>
-      
-      <input 
-        type="text"
-        class="form-control"
-        [(ngModel)]="currentMessage"
-        placeholder="Type your message or use voice input..."
-        (keyup.enter)="sendMessage()"
-        [disabled]="isSending || isProcessingSpeech"
-        [class.speech-captured]="isProcessingSpeech">
-      
+    <!-- Centered Round Microphone Button -->
+    <div class="mic-button-container">
       <button 
-        class="btn btn-primary"
-        (click)="sendMessage()"
-        [disabled]="!currentMessage.trim() || isSending || isProcessingSpeech">
-        {{ isProcessingSpeech ? 'Processing...' : 'Send' }}
+        class="mic-button"
+        [class.listening]="isListening"
+        [class.processing]="isProcessingSpeech"
+        [class.disabled]="!voiceEnabled"
+        (click)="isListening ? stopListening() : startListening()"
+        [disabled]="isSending || isProcessingSpeech || !voiceEnabled"
+        title="{{ isListening ? 'Stop Listening' : 'Start Speaking' }}">
+        <i class="fas" 
+           [class.fa-microphone]="!isListening && !isProcessingSpeech" 
+           [class.fa-stop]="isListening"
+           [class.fa-spinner]="isProcessingSpeech"
+           [class.fa-spin]="isProcessingSpeech"></i>
       </button>
+      
+      <!-- Status Text -->
+      <div class="mic-status-text">
+        <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled">Tap to speak</span>
+        <span *ngIf="isListening">Listening...</span>
+        <span *ngIf="isProcessingSpeech">Processing...</span>
+        <span *ngIf="!voiceEnabled">Voice disabled</span>
+      </div>
     </div>
   </div>
 
