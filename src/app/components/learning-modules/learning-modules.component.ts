@@ -297,7 +297,7 @@ export class LearningModulesComponent implements OnInit {
   }
 
   createNewModule(): void {
-    this.router.navigate(['/create-module']);
+    this.router.navigate(['/module-creation-choice']);
   }
 
   testAudio(): void {
@@ -307,6 +307,105 @@ export class LearningModulesComponent implements OnInit {
   editModule(module: LearningModule): void {
     if (!module._id) return;
     this.router.navigate(['/edit-module', module._id]);
+  }
+
+  testModule(module: LearningModule): void {
+    if (!module._id) return;
+    
+    // Debug logging
+    console.log('🔍 Testing module:', { 
+      id: module._id, 
+      title: module.title,
+      idType: typeof module._id,
+      idLength: module._id?.toString().length 
+    });
+    
+    // Show confirmation dialog
+    const confirmTest = confirm(
+      `🧪 Test Module: "${module.title}"\n\n` +
+      `Module ID: ${module._id}\n\n` +
+      `This will start the AI tutoring session for this module, allowing you to experience it as a student would.\n\n` +
+      `Continue with testing?`
+    );
+    
+    if (confirmTest) {
+      console.log('🚀 Navigating to AI tutor with params:', {
+        moduleId: module._id,
+        sessionType: 'teacher-test',
+        testMode: 'true'
+      });
+      
+      // Navigate to AI tutor with test mode
+      this.router.navigate(['/ai-tutor-chat'], {
+        queryParams: {
+          moduleId: module._id,
+          sessionType: 'teacher-test',
+          testMode: 'true'
+        }
+      });
+    }
+  }
+
+  deleteModule(module: LearningModule): void {
+    if (!module._id) return;
+    
+    // Show confirmation dialog
+    const confirmDelete = confirm(
+      `🗑️ Delete Module: "${module.title}"\n\n` +
+      `Are you sure you want to delete this module?\n\n` +
+      `This action cannot be undone. The module will be permanently removed from the system.\n\n` +
+      `Click OK to confirm deletion.`
+    );
+    
+    if (confirmDelete) {
+      console.log('🗑️ Deleting module:', { 
+        id: module._id, 
+        title: module.title 
+      });
+      
+      this.learningModulesService.deleteModule(module._id).subscribe({
+        next: (response) => {
+          console.log('✅ Module deleted successfully:', response);
+          
+          // Show success message
+          alert(`✅ Module "${module.title}" has been deleted successfully.`);
+          
+          // Refresh the modules list
+          this.loadModules();
+        },
+        error: (error) => {
+          console.error('❌ Error deleting module:', error);
+          
+          let errorMessage = 'Failed to delete module.';
+          if (error.status === 403) {
+            errorMessage = 'You can only delete modules you created.';
+          } else if (error.status === 404) {
+            errorMessage = 'Module not found.';
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          }
+          
+          alert(`❌ Error: ${errorMessage}`);
+        }
+      });
+    }
+  }
+
+  canDeleteModule(module: LearningModule): boolean {
+    if (!this.currentUser) return false;
+    
+    // Admins can delete any module
+    if (this.currentUser.role === 'ADMIN') return true;
+    
+    // Teachers can delete modules they created
+    if (this.currentUser.role === 'TEACHER') {
+      // Check if the current user created this module
+      return module.createdBy === this.currentUser.id || 
+             module.createdBy?.toString() === this.currentUser.id?.toString();
+    }
+    
+    // Students cannot delete modules
+    return false;
   }
 
   getPaginationArray(): number[] {

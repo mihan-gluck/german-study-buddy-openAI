@@ -24,7 +24,7 @@ const AiTutorSessionSchema = new mongoose.Schema({
   // Session metadata
   sessionType: {
     type: String,
-    enum: ['practice', 'assessment', 'help', 'conversation', 'review'],
+    enum: ['practice', 'assessment', 'help', 'conversation', 'review', 'teacher-test'],
     required: true
   },
   
@@ -32,6 +32,12 @@ const AiTutorSessionSchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'completed', 'paused', 'abandoned'],
     default: 'active'
+  },
+  
+  // Test session flag
+  isTestSession: {
+    type: Boolean,
+    default: false
   },
   
   // Conversation data

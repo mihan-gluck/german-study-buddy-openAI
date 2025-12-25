@@ -100,8 +100,11 @@ router.get('/:id', verifyToken, async (req, res) => {
 // POST /api/learning-modules - Create new module (Teachers/Admins only)
 router.post('/', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res) => {
   try {
+    // Validate and fix module data before creating
+    const fixedData = fixModuleValidationIssues(req.body);
+    
     const moduleData = {
-      ...req.body,
+      ...fixedData,
       createdBy: req.user.id
     };
     
@@ -113,6 +116,21 @@ router.post('/', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res) 
     res.status(201).json(module);
   } catch (error) {
     console.error('Error creating module:', error);
+    
+    // Handle validation errors specifically
+    if (error.name === 'ValidationError') {
+      const validationErrors = {};
+      Object.keys(error.errors).forEach(key => {
+        validationErrors[key] = error.errors[key].message;
+      });
+      
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: validationErrors,
+        details: error.message
+      });
+    }
+    
     res.status(500).json({ message: 'Error creating learning module' });
   }
 });
@@ -131,6 +149,9 @@ router.put('/:id', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res
       return res.status(403).json({ message: 'Not authorized to edit this module' });
     }
     
+    // Validate and fix module data before updating
+    const updatedData = fixModuleValidationIssues(req.body);
+    
     // Set update context for tracking
     module._updateContext = {
       userId: req.user.id,
@@ -138,7 +159,7 @@ router.put('/:id', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res
     };
     
     // Update module fields
-    Object.assign(module, req.body);
+    Object.assign(module, updatedData);
     await module.save();
     
     await module.populate('createdBy', 'name email');
@@ -147,12 +168,27 @@ router.put('/:id', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res
     res.json(module);
   } catch (error) {
     console.error('Error updating module:', error);
+    
+    // Handle validation errors specifically
+    if (error.name === 'ValidationError') {
+      const validationErrors = {};
+      Object.keys(error.errors).forEach(key => {
+        validationErrors[key] = error.errors[key].message;
+      });
+      
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: validationErrors,
+        details: error.message
+      });
+    }
+    
     res.status(500).json({ message: 'Error updating module' });
   }
 });
 
-// DELETE /api/learning-modules/:id - Delete module (Admins only)
-router.delete('/:id', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+// DELETE /api/learning-modules/:id - Delete module (Admins can delete any, Teachers can delete their own)
+router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, res) => {
   try {
     const module = await LearningModule.findById(req.params.id);
     
@@ -160,11 +196,28 @@ router.delete('/:id', verifyToken, checkRole(['ADMIN']), async (req, res) => {
       return res.status(404).json({ message: 'Module not found' });
     }
     
+    // Check permissions: Admins can delete any module, Teachers can only delete their own
+    if (req.user.role === 'TEACHER' && module.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You can only delete modules you created' });
+    }
+    
+    console.log('🗑️ Deleting module:', {
+      moduleId: req.params.id,
+      title: module.title,
+      deletedBy: req.user.role,
+      userId: req.user.id,
+      createdBy: module.createdBy.toString()
+    });
+    
     // Soft delete by setting isActive to false
     module.isActive = false;
+    module.lastUpdatedBy = req.user.id;
     await module.save();
     
-    res.json({ message: 'Module deleted successfully' });
+    res.json({ 
+      message: 'Module deleted successfully',
+      moduleTitle: module.title
+    });
   } catch (error) {
     console.error('Error deleting module:', error);
     res.status(500).json({ message: 'Error deleting module' });
@@ -177,9 +230,28 @@ router.post('/:id/enroll', verifyToken, checkRole(['STUDENT']), async (req, res)
     const moduleId = req.params.id;
     const studentId = req.user.id; // Changed from req.user.userId to req.user.id
     
+    console.log('📚 Enrollment attempt:', {
+      moduleId,
+      moduleIdType: typeof moduleId,
+      moduleIdLength: moduleId?.length,
+      studentId,
+      studentRole: req.user.role
+    });
+    
     // Check if module exists
     const module = await LearningModule.findById(moduleId);
+    console.log('🔍 Module lookup result:', {
+      found: !!module,
+      isActive: module?.isActive,
+      title: module?.title
+    });
+    
     if (!module || !module.isActive) {
+      console.log('❌ Module not found or inactive:', {
+        moduleExists: !!module,
+        isActive: module?.isActive,
+        moduleId
+      });
       return res.status(404).json({ message: 'Module not found or inactive' });
     }
     
@@ -461,6 +533,63 @@ async function getUserIdsByRole(role) {
   const User = require('../models/User');
   const users = await User.find({ role }, '_id').lean();
   return users.map(user => user._id);
+}
+
+// Fix common validation issues in modules (same as in AI generator)
+function fixModuleValidationIssues(module) {
+  const allowedExerciseTypes = ['multiple-choice', 'fill-blank', 'translation', 'conversation', 'essay', 'role-play'];
+  const exerciseTypeMapping = {
+    'sentence-formation': 'fill-blank',
+    'word-order': 'fill-blank',
+    'matching': 'multiple-choice',
+    'true-false': 'multiple-choice',
+    'listening': 'conversation',
+    'speaking': 'conversation',
+    'comprehension': 'translation'
+  };
+
+  // Create a copy to avoid modifying the original
+  const fixedModule = JSON.parse(JSON.stringify(module));
+
+  // Fix title length
+  if (fixedModule.title && fixedModule.title.length > 60) {
+    fixedModule.title = fixedModule.title.substring(0, 57) + '...';
+    console.log('🔧 Fixed title length');
+  }
+
+  // Fix exercise types
+  if (fixedModule.content && fixedModule.content.exercises) {
+    fixedModule.content.exercises = fixedModule.content.exercises.map(exercise => {
+      if (!allowedExerciseTypes.includes(exercise.type)) {
+        const mappedType = exerciseTypeMapping[exercise.type] || 'multiple-choice';
+        console.log(`🔧 Fixed exercise type: ${exercise.type} → ${mappedType}`);
+        exercise.type = mappedType;
+      }
+      
+      // Ensure multiple choice has 4 options
+      if (exercise.type === 'multiple-choice') {
+        if (!exercise.options || exercise.options.length < 4) {
+          exercise.options = exercise.options || [];
+          while (exercise.options.length < 4) {
+            exercise.options.push(`Option ${exercise.options.length + 1}`);
+          }
+        }
+        if (exercise.options.length > 4) {
+          exercise.options = exercise.options.slice(0, 4);
+        }
+      }
+      
+      // Ensure required fields
+      exercise.question = exercise.question || 'Sample question';
+      exercise.correctAnswer = exercise.correctAnswer || (exercise.options ? exercise.options[0] : 'Sample answer');
+      exercise.explanation = exercise.explanation || 'Explanation for the correct answer';
+      exercise.points = exercise.points || 1;
+      
+      return exercise;
+    });
+  }
+
+  return fixedModule;
 }
 
 module.exports = router;

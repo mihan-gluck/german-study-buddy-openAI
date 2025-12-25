@@ -31,6 +31,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   module: any = null;
   sessionId: string = '';
   sessionType: string = 'practice';
+  isTeacherTestMode: boolean = false; // New: Track if this is a teacher testing session
   
   // Auto-refresh mechanism
   private autoRefreshInterval: any;
@@ -56,10 +57,6 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     conversationScore: 0, // New: Points for conversation participation
     totalScore: 0 // New: Combined score
   };
-  
-  // Role-play UI state
-  showRolePlayDetails: boolean = false;
-  rolePlayDetails: any = null;
   
   // Speech processing state
   isProcessingSpeech: boolean = false;
@@ -93,17 +90,38 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // First check subscription access
-    this.subscriptionGuard.checkPlatinumAccess().subscribe(status => {
-      if (!status.hasAccess) {
-        // User doesn't have PLATINUM access, redirect with message
-        alert(`🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nRedirecting to learning modules...`);
-        this.router.navigate(['/learning-modules']);
-        return;
-      }
+    // Get route parameters first to check for test mode
+    this.route.queryParams.subscribe(params => {
+      this.isTeacherTestMode = params['testMode'] === 'true';
+      this.moduleId = params['moduleId'];
+      this.sessionType = params['sessionType'] || 'practice';
       
-      // User has access, proceed with initialization
-      this.initializeComponent();
+      console.log('🔍 Route params detected:', {
+        testMode: params['testMode'],
+        isTeacherTestMode: this.isTeacherTestMode,
+        moduleId: this.moduleId,
+        sessionType: this.sessionType
+      });
+      
+      // Check subscription access (skip for teacher test mode)
+      if (!this.isTeacherTestMode) {
+        console.log('👤 Regular mode - checking subscription access...');
+        this.subscriptionGuard.checkPlatinumAccess().subscribe(status => {
+          if (!status.hasAccess) {
+            // User doesn't have PLATINUM access, redirect with message
+            alert(`🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nRedirecting to learning modules...`);
+            this.router.navigate(['/learning-modules']);
+            return;
+          }
+          
+          // User has access, proceed with initialization
+          this.initializeComponent();
+        });
+      } else {
+        // Teacher test mode - skip subscription check
+        console.log('🧪 Teacher test mode activated - skipping subscription check');
+        this.initializeComponent();
+      }
     });
   }
 
@@ -111,20 +129,19 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     // Load transcript preferences
     this.loadTranscriptPreferences();
     
-    // Get module ID from route
-    this.route.queryParams.subscribe(params => {
-      this.moduleId = params['moduleId'];
-      this.sessionType = params['sessionType'] || 'practice';
-      
-      console.log('🚀 AI Tutor Chat initialized:', { moduleId: this.moduleId, sessionType: this.sessionType });
-      
-      if (this.moduleId) {
-        this.loadModule();
-        this.startNewSession();
-      } else {
-        this.router.navigate(['/student-dashboard']);
-      }
+    // Module ID should already be set from ngOnInit
+    console.log('🚀 AI Tutor Chat initialized:', { 
+      moduleId: this.moduleId, 
+      sessionType: this.sessionType,
+      isTeacherTestMode: this.isTeacherTestMode 
     });
+    
+    if (this.moduleId) {
+      this.loadModule();
+      this.startNewSession();
+    } else {
+      this.router.navigate(['/learning-modules']);
+    }
     
     // Subscribe to messages with enhanced handling and automatic refresh
     const messagesSub = this.aiTutorService.messages$.subscribe(messages => {
@@ -214,7 +231,13 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         console.error('Error loading module:', error);
         this.isLoading = false;
         alert('Failed to load module');
-        this.router.navigate(['/student-dashboard']);
+        
+        // Redirect based on user role and test mode
+        if (this.isTeacherTestMode) {
+          this.router.navigate(['/learning-modules']);
+        } else {
+          this.router.navigate(['/learning-modules']);
+        }
       }
     });
   }
@@ -239,6 +262,12 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   startNewSession(): void {
     this.isLoading = true;
     
+    console.log('🔄 Starting new session with params:', {
+      moduleId: this.moduleId,
+      sessionType: this.sessionType,
+      isTeacherTestMode: this.isTeacherTestMode
+    });
+    
     // Clear previous session data
     this.aiTutorService.clearCurrentSession();
     this.localMessages = [];
@@ -249,13 +278,21 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     console.log('🔄 Starting new session, cleared previous messages');
     console.log('📊 Messages after clear - Local:', this.localMessages.length, 'Component:', this.messages.length);
     
-    this.aiTutorService.startSession(this.moduleId, this.sessionType).subscribe({
+    // Use teacher test mode if applicable
+    console.log('📞 Calling startSession with:', {
+      moduleId: this.moduleId,
+      sessionType: this.sessionType,
+      isTeacherTest: this.isTeacherTestMode
+    });
+    
+    this.aiTutorService.startSession(this.moduleId, this.sessionType, this.isTeacherTestMode).subscribe({
       next: (response) => {
+        console.log('✅ Session creation response:', response);
         this.sessionId = response.sessionId;
         this.sessionActive = true;
         this.suggestions = response.suggestions || [];
         
-        console.log('✅ New session started:', this.sessionId);
+        console.log('✅ New session started:', this.sessionId, this.isTeacherTestMode ? '(Teacher Test Mode)' : '');
         
         // Add welcome message
         if (response.welcomeMessage) {
@@ -270,10 +307,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
           
           console.log('📊 Messages after welcome - Local:', this.localMessages.length, 'Component:', this.messages.length);
           
-          // Extract role-play details if available
-          if (response.welcomeMessage.metadata?.rolePlayDetails) {
-            this.rolePlayDetails = response.welcomeMessage.metadata.rolePlayDetails;
-          }
+          // Role-play details removed - using simplified interface
           
           // Speak the welcome message if voice is enabled
           if (this.voiceEnabled && response.welcomeMessage.content) {
@@ -286,9 +320,30 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error starting session:', error);
+        console.error('❌ Error starting session:', error);
+        console.error('📋 Error details:', {
+          status: error.status,
+          message: error.message,
+          error: error.error,
+          isTeacherTestMode: this.isTeacherTestMode,
+          moduleId: this.moduleId,
+          sessionType: this.sessionType
+        });
+        
         this.isLoading = false;
-        alert('Failed to start tutoring session');
+        
+        let errorMessage = 'Failed to start tutoring session';
+        if (error.status === 403) {
+          errorMessage = 'Permission denied. Please check your access rights.';
+        } else if (error.status === 404) {
+          errorMessage = 'Module not found or inactive.';
+        } else if (error.status === 401) {
+          errorMessage = 'Authentication required. Please login again.';
+        } else if (error.error?.message) {
+          errorMessage = `Failed to start session: ${error.error.message}`;
+        }
+        
+        alert(errorMessage);
       }
     });
   }

@@ -5,7 +5,7 @@ import { CourseMaterialService, CourseMaterial } from '../../services/courseMate
 import { CoursesService } from '../../services/courses.service';
 import { AuthService } from '../../services/auth.service';
 import { RouterModule } from '@angular/router';
-import { environment } from '../../../environments/environment.prod';
+import { environment } from '../../../environments/environment';
 
 interface Course {
   _id: string;

@@ -650,245 +650,8 @@
   }
 }
 
-/* Role-Play Details Panel Styles */
-.roleplay-details-panel {
-  background: #ffffff;
-  border-bottom: 1px solid #e9ecef;
-  max-height: 400px;
-  overflow-y: auto;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    max-height: 0;
-    opacity: 0;
-  }
-  to {
-    max-height: 400px;
-    opacity: 1;
-  }
-}
-
-.details-container {
-  padding: 1.5rem;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.detail-card {
-  background: #f8f9fa;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  border-left: 4px solid #007bff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.detail-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.detail-card h4 {
-  margin: 0 0 0.75rem 0;
-  color: #495057;
-  font-size: 1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-card h4 i {
-  color: #007bff;
-}
-
-/* Scenario Card */
-.scenario-card {
-  border-left-color: #28a745;
-}
-
-.scenario-card h4 i {
-  color: #28a745;
-}
-
-/* Roles Card */
-.roles-card {
-  border-left-color: #ffc107;
-}
-
-.roles-card h4 i {
-  color: #ffc107;
-}
-
-.role-assignment {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.role-item {
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  background: white;
-}
-
-.student-role {
-  border-left: 3px solid #007bff;
-}
-
-.ai-role {
-  border-left: 3px solid #6f42c1;
-}
-
-/* Vocabulary Card */
-.vocabulary-card {
-  border-left-color: #17a2b8;
-}
-
-.vocabulary-card h4 i {
-  color: #17a2b8;
-}
-
-.vocabulary-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.vocab-tag {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: help;
-  transition: background-color 0.2s ease;
-}
-
-.vocab-tag:hover {
-  background: #bbdefb;
-}
-
-.more-indicator {
-  color: #6c757d;
-  font-style: italic;
-  font-size: 0.8rem;
-  align-self: center;
-}
-
-/* Grammar Card */
-.grammar-card {
-  border-left-color: #dc3545;
-}
-
-.grammar-card h4 i {
-  color: #dc3545;
-}
-
-.grammar-item {
-  margin-bottom: 0.75rem;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 0.5rem;
-}
-
-.grammar-item:last-child {
-  margin-bottom: 0;
-}
-
-.grammar-examples {
-  margin-top: 0.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.grammar-examples small {
-  color: #6c757d;
-  font-style: italic;
-}
-
-/* Flow Card */
-.flow-card {
-  border-left-color: #6f42c1;
-}
-
-.flow-card h4 i {
-  color: #6f42c1;
-}
-
-.flow-stages {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.stage-item {
-  padding: 0.5rem;
-  background: white;
-  border-radius: 0.5rem;
-  border-left: 3px solid #6f42c1;
-}
-
-.stage-title {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.25rem;
-}
-
-.stage-phrases {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.stage-phrases small {
-  color: #6c757d;
-  font-style: italic;
-}
-
-/* Instructions Card */
-.instructions-card {
-  border-left-color: #fd7e14;
-  grid-column: 1 / -1; /* Full width */
-}
-
-.instructions-card h4 i {
-  color: #fd7e14;
-}
-
-.instructions-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 0.75rem;
-}
-
-.instruction-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 0.5rem;
-  border: 1px solid #e9ecef;
-}
-
-.instruction-item i {
-  color: #fd7e14;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.instruction-item span {
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
+/* Role-Play Details Panel Styles - REMOVED */
+/* Simplified interface without detailed role-play panel */
 
 /* Info Toggle Button */
 .info-toggle-btn {
@@ -925,13 +688,7 @@
     grid-template-columns: 1fr;
   }
   
-  .details-container {
-    padding: 1rem;
-  }
-  
-  .roleplay-details-panel {
-    max-height: 300px;
-  }
+  /* Responsive rules for role-play details panel removed */
 }
 
 /* Input Method Indicator */
@@ -2102,4 +1859,31 @@
     font-size: 0.75rem;
     padding: 0.4rem 0.8rem;
   }
+}
+
+/* Test Mode Indicator */
+.test-mode-indicator {
+  margin: 1rem 0;
+}
+
+.test-mode-indicator .alert {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border: 2px solid #2196f3;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 0;
+  color: #1565c0;
+  font-size: 0.9rem;
+}
+
+.test-mode-indicator .alert i {
+  color: #2196f3;
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.test-mode-indicator .alert small {
+  color: #1976d2;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
 }

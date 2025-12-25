@@ -5,7 +5,7 @@ import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 
 interface DecodeToken {
   name: string;

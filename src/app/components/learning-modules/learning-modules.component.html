@@ -288,6 +288,19 @@
                   (click)="editModule(module)">
                   Edit
                 </button>
+                <button 
+                  class="btn btn-success btn-sm"
+                  (click)="testModule(module)"
+                  title="Test this module as a student would experience it">
+                  <i class="fas fa-play"></i> Test Module
+                </button>
+                <button 
+                  class="btn btn-outline-danger btn-sm"
+                  (click)="deleteModule(module)"
+                  *ngIf="canDeleteModule(module)"
+                  title="Delete this module">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
               </ng-container>
             </div>
           </div>
@@ -381,6 +394,19 @@
             class="btn btn-outline-secondary btn-sm"
             (click)="editModule(module)">
             Edit
+          </button>
+          <button 
+            class="btn btn-success btn-sm"
+            (click)="testModule(module)"
+            title="Test this module as a student would experience it">
+            <i class="fas fa-play"></i> Test
+          </button>
+          <button 
+            class="btn btn-outline-danger btn-sm"
+            (click)="deleteModule(module)"
+            *ngIf="canDeleteModule(module)"
+            title="Delete this module">
+            <i class="fas fa-trash"></i> Delete
           </button>
         </ng-container>
       </div>

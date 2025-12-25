@@ -3,7 +3,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { environment } from '../../environments/environment.prod';
+import { tap, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface TutorMessage {
   role: 'student' | 'tutor';
@@ -70,11 +71,44 @@ export class AiTutorService {
   constructor(private http: HttpClient) {}
 
   // Start new tutoring session
-  startSession(moduleId: string, sessionType: string = 'practice'): Observable<any> {
-    return this.http.post(`${this.apiUrl}/start-session`, {
+  startSession(moduleId: string, sessionType: string = 'practice', isTeacherTest: boolean = false): Observable<any> {
+    const endpoint = isTeacherTest ? '/start-teacher-test' : '/start-session';
+    const fullUrl = `${this.apiUrl}${endpoint}`;
+    
+    console.log('🔗 AI Tutor Service - Starting session:', {
+      moduleId,
+      sessionType,
+      isTeacherTest,
+      endpoint,
+      fullUrl,
+      apiUrl: this.apiUrl,
+      environment: environment
+    });
+    
+    const requestBody = {
       moduleId,
       sessionType
-    }, { withCredentials: true });
+    };
+    
+    console.log('📤 Request body:', requestBody);
+    console.log('🌐 Making HTTP request to:', fullUrl);
+    
+    return this.http.post(fullUrl, requestBody, { withCredentials: true }).pipe(
+      tap(response => {
+        console.log('✅ Session start response:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Session start error:', error);
+        console.error('❌ Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url,
+          message: error.message,
+          error: error.error
+        });
+        throw error;
+      })
+    );
   }
 
   // Send message to AI tutor

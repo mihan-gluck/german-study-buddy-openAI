@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 
 export interface LearningModule {
   _id?: string;
@@ -29,7 +29,7 @@ export interface LearningModule {
       explanation: string;
     }>;
     exercises: Array<{
-      type: 'multiple-choice' | 'fill-blank' | 'translation' | 'conversation' | 'essay';
+      type: 'multiple-choice' | 'fill-blank' | 'translation' | 'conversation' | 'essay' | 'role-play';
       question: string;
       options?: string[];
       correctAnswer: string;
@@ -174,7 +174,7 @@ export class LearningModulesService {
 
   // Get exercise types
   getExerciseTypes(): string[] {
-    return ['multiple-choice', 'fill-blank', 'translation', 'conversation', 'essay'];
+    return ['multiple-choice', 'fill-blank', 'translation', 'conversation', 'essay', 'role-play'];
   }
 
   // Get available languages

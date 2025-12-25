@@ -10,20 +10,20 @@
         <h2>{{ getSessionTypeLabel() }}</h2>
         <p *ngIf="module">{{ module.title }} - {{ module.level }}</p>
         
+        <!-- Teacher Test Mode Indicator -->
+        <div class="test-mode-indicator" *ngIf="isTeacherTestMode">
+          <div class="alert alert-info">
+            <i class="fas fa-flask"></i>
+            <strong>Teacher Test Mode</strong> - You are testing this module as a student would experience it.
+            <small class="d-block">This session won't affect student progress data.</small>
+          </div>
+        </div>
+        
         <!-- Role-Play Information -->
         <div class="roleplay-info" *ngIf="isRolePlayModule()">
           <div class="roleplay-badge">🎭 Role-Play Session</div>
-          <div class="roles-display">
-            <span class="role-item">
-              <strong>You:</strong> {{ getRolePlayInfo()?.studentRole }}
-            </span>
-            <span class="role-separator">vs</span>
-            <span class="role-item">
-              <strong>AI:</strong> {{ getRolePlayInfo()?.aiRole }}
-            </span>
-          </div>
           <div class="scenario-info">
-            <small>📍 {{ getRolePlayInfo()?.situation }}</small>
+            <small>📍 {{ getRolePlayInfo()?.situation || 'Interactive conversation practice' }}</small>
           </div>
           
           <!-- Conversation Statistics -->
@@ -41,12 +41,6 @@
               <span>{{ getSpeechMessageCount() }} spoken</span>
             </div>
           </div>
-          
-          <!-- Toggle button for detailed info -->
-          <button class="info-toggle-btn" (click)="showRolePlayDetails = !showRolePlayDetails">
-            {{ showRolePlayDetails ? 'Hide Details' : 'Show Details' }}
-            <i class="fas" [class.fa-chevron-up]="showRolePlayDetails" [class.fa-chevron-down]="!showRolePlayDetails"></i>
-          </button>
         </div>
       </div>
       
@@ -159,102 +153,7 @@
     </div>
   </div>
 
-  <!-- Detailed Role-Play Information Panel -->
-  <div class="roleplay-details-panel" *ngIf="isRolePlayModule() && showRolePlayDetails && rolePlayDetails">
-    <div class="details-container">
-      <div class="details-grid">
-        <!-- Scenario Information -->
-        <div class="detail-card scenario-card">
-          <h4><i class="fas fa-map-marker-alt"></i> Scenario</h4>
-          <p><strong>Situation:</strong> {{ rolePlayDetails.scenario }}</p>
-          <p><strong>Setting:</strong> {{ rolePlayDetails.setting }}</p>
-          <p><strong>Objective:</strong> {{ rolePlayDetails.objective }}</p>
-        </div>
 
-        <!-- Roles Information -->
-        <div class="detail-card roles-card">
-          <h4><i class="fas fa-users"></i> Roles</h4>
-          <div class="role-assignment">
-            <div class="role-item student-role">
-              <strong>Your Role:</strong> {{ rolePlayDetails.studentRole }}
-            </div>
-            <div class="role-item ai-role">
-              <strong>AI Role:</strong> {{ rolePlayDetails.aiRole }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Vocabulary Constraints -->
-        <div class="detail-card vocabulary-card">
-          <h4><i class="fas fa-book"></i> Allowed Vocabulary</h4>
-          <div class="vocabulary-list">
-            <span 
-              *ngFor="let vocab of rolePlayDetails.allowedVocabulary.slice(0, 12)" 
-              class="vocab-tag"
-              [title]="vocab.translation">
-              {{ vocab.word }}
-            </span>
-            <span *ngIf="rolePlayDetails.allowedVocabulary.length > 12" class="more-indicator">
-              +{{ rolePlayDetails.allowedVocabulary.length - 12 }} more...
-            </span>
-          </div>
-        </div>
-
-        <!-- Grammar Constraints -->
-        <div class="detail-card grammar-card">
-          <h4><i class="fas fa-language"></i> Grammar Focus</h4>
-          <div class="grammar-list">
-            <div *ngFor="let grammar of rolePlayDetails.allowedGrammar" class="grammar-item">
-              <strong>{{ grammar.structure }}</strong>
-              <div class="grammar-examples">
-                <small *ngFor="let example of grammar.examples.slice(0, 2)">
-                  "{{ example }}"
-                </small>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Conversation Flow -->
-        <div class="detail-card flow-card" *ngIf="rolePlayDetails.conversationFlow && rolePlayDetails.conversationFlow.length > 0">
-          <h4><i class="fas fa-route"></i> Conversation Flow</h4>
-          <div class="flow-stages">
-            <div *ngFor="let stage of rolePlayDetails.conversationFlow.slice(0, 4)" class="stage-item">
-              <div class="stage-title">{{ stage.stage | titlecase }}</div>
-              <div class="stage-phrases">
-                <small *ngFor="let phrase of stage.helpfulPhrases?.slice(0, 2)">
-                  "{{ phrase }}"
-                </small>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Instructions -->
-        <div class="detail-card instructions-card">
-          <h4><i class="fas fa-info-circle"></i> How to Play</h4>
-          <div class="instructions-list">
-            <div class="instruction-item">
-              <i class="fas fa-play-circle"></i>
-              <span>Say <strong>"Let's start"</strong> or <strong>"Begin"</strong> to start the role-play</span>
-            </div>
-            <div class="instruction-item">
-              <i class="fas fa-stop-circle"></i>
-              <span>Say <strong>"stop"</strong> or <strong>"end"</strong> to finish anytime</span>
-            </div>
-            <div class="instruction-item">
-              <i class="fas fa-comments"></i>
-              <span>Stay in character and use only the allowed vocabulary</span>
-            </div>
-            <div class="instruction-item">
-              <i class="fas fa-microphone"></i>
-              <span>Use voice or text to communicate with the AI</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Voice-Only Mode Placeholder -->
   <div class="voice-only-placeholder" *ngIf="!showTranscript || transcriptMode === 'hidden'">
