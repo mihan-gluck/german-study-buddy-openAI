@@ -61,6 +61,15 @@ export class LearningModulesComponent implements OnInit {
     this.initializeFilterOptions();
     this.loadCurrentUser();
     this.loadModules();
+    
+    // Refresh modules when user returns from AI tutor
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Page became visible again, refresh modules to show updated status
+        console.log('🔄 Page visible again, refreshing modules...');
+        this.loadModules();
+      }
+    });
   }
 
   initializeFilterOptions(): void {

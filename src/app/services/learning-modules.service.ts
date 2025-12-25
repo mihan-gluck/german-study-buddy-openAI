@@ -186,4 +186,18 @@ export class LearningModulesService {
   getAvailableNativeLanguages(): string[] {
     return ['English', 'Tamil', 'Sinhala'];
   }
+
+  // Mark module as completed
+  markModuleCompleted(moduleId: string, sessionData?: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${moduleId}/complete`, sessionData || {}, { 
+      withCredentials: true 
+    });
+  }
+
+  // Update module progress
+  updateModuleProgress(moduleId: string, progressData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${moduleId}/progress`, progressData, { 
+      withCredentials: true 
+    });
+  }
 }

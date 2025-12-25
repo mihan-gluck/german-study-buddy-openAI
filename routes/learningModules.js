@@ -337,6 +337,125 @@ router.get('/:id/history', verifyToken, checkRole(['ADMIN']), async (req, res) =
   }
 });
 
+// POST /api/learning-modules/:id/complete - Mark module as completed
+router.post('/:id/complete', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+  try {
+    const moduleId = req.params.id;
+    const studentId = req.user.id;
+    const { sessionData } = req.body;
+    
+    // Check if module exists
+    const module = await LearningModule.findById(moduleId);
+    if (!module || !module.isActive) {
+      return res.status(404).json({ message: 'Module not found or inactive' });
+    }
+    
+    // Find or create progress record
+    let progress = await StudentProgress.findOne({
+      studentId,
+      moduleId
+    });
+    
+    if (!progress) {
+      // Create new progress record if doesn't exist
+      progress = new StudentProgress({
+        studentId,
+        moduleId,
+        status: 'completed',
+        startedAt: new Date(),
+        completedAt: new Date(),
+        progressPercentage: 100,
+        maxPossibleScore: module.content.exercises.reduce((sum, ex) => sum + ex.points, 0)
+      });
+    } else {
+      // Update existing progress
+      progress.status = 'completed';
+      progress.completedAt = new Date();
+      progress.progressPercentage = 100;
+    }
+    
+    // Add session data if provided
+    if (sessionData) {
+      progress.sessionData = sessionData;
+      if (sessionData.totalScore) {
+        progress.currentScore = sessionData.totalScore;
+      }
+    }
+    
+    await progress.save();
+    
+    res.json({ 
+      message: 'Module marked as completed successfully', 
+      progress,
+      status: 'completed'
+    });
+  } catch (error) {
+    console.error('Error marking module as completed:', error);
+    res.status(500).json({ message: 'Error marking module as completed' });
+  }
+});
+
+// POST /api/learning-modules/:id/progress - Update module progress
+router.post('/:id/progress', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+  try {
+    const moduleId = req.params.id;
+    const studentId = req.user.id;
+    const { progress: progressPercent, score, sessionData } = req.body;
+    
+    // Check if module exists
+    const module = await LearningModule.findById(moduleId);
+    if (!module || !module.isActive) {
+      return res.status(404).json({ message: 'Module not found or inactive' });
+    }
+    
+    // Find or create progress record
+    let progress = await StudentProgress.findOne({
+      studentId,
+      moduleId
+    });
+    
+    if (!progress) {
+      // Create new progress record
+      progress = new StudentProgress({
+        studentId,
+        moduleId,
+        status: 'in-progress',
+        startedAt: new Date(),
+        progressPercentage: progressPercent || 0,
+        maxPossibleScore: module.content.exercises.reduce((sum, ex) => sum + ex.points, 0)
+      });
+    } else {
+      // Update existing progress
+      progress.progressPercentage = progressPercent || progress.progressPercentage;
+      progress.status = progressPercent >= 100 ? 'completed' : 'in-progress';
+      if (progressPercent >= 100) {
+        progress.completedAt = new Date();
+      }
+    }
+    
+    // Update score if provided
+    if (score !== undefined) {
+      progress.currentScore = score;
+    }
+    
+    // Add session data if provided
+    if (sessionData) {
+      progress.sessionData = sessionData;
+    }
+    
+    await progress.save();
+    
+    res.json({ 
+      message: 'Progress updated successfully', 
+      progress,
+      status: progress.status
+    });
+  } catch (error) {
+    console.error('Error updating module progress:', error);
+    res.status(500).json({ message: 'Error updating module progress' });
+  }
+});
+
 // Helper function to get user IDs by role
 async function getUserIdsByRole(role) {
   const User = require('../models/User');

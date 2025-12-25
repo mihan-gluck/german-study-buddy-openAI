@@ -78,9 +78,73 @@
       </div>
       
       <div class="header-actions">
+        <!-- Transcript Controls -->
+        <div class="transcript-controls" *ngIf="sessionActive">
+          <div class="btn-group" dropdown>
+            <button 
+              class="btn btn-outline-light btn-sm"
+              [class.btn-success]="showTranscript"
+              [class.btn-secondary]="!showTranscript"
+              (click)="toggleTranscript()"
+              title="Toggle conversation transcript">
+              <i class="fas" [class.fa-eye]="showTranscript" [class.fa-eye-slash]="!showTranscript"></i>
+              {{ showTranscript ? 'Hide' : 'Show' }} Transcript
+            </button>
+            
+            <button 
+              type="button" 
+              class="btn btn-outline-light btn-sm dropdown-toggle dropdown-toggle-split" 
+              data-bs-toggle="dropdown"
+              title="Transcript display options">
+              <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            
+            <ul class="dropdown-menu">
+              <li>
+                <h6 class="dropdown-header">
+                  <i class="fas fa-cog"></i> Transcript Mode
+                </h6>
+              </li>
+              <li>
+                <a class="dropdown-item" 
+                   [class.active]="transcriptMode === 'full'"
+                   (click)="setTranscriptMode('full')">
+                  <i class="fas fa-list"></i> Full Transcript
+                  <small class="text-muted d-block">Show all messages with details</small>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" 
+                   [class.active]="transcriptMode === 'minimal'"
+                   (click)="setTranscriptMode('minimal')">
+                  <i class="fas fa-compress-alt"></i> Minimal View
+                  <small class="text-muted d-block">Show messages without avatars</small>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" 
+                   [class.active]="transcriptMode === 'hidden'"
+                   (click)="setTranscriptMode('hidden')">
+                  <i class="fas fa-eye-slash"></i> Hidden
+                  <small class="text-muted d-block">Voice-only mode</small>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <span class="dropdown-item-text">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    Current: {{ getTranscriptModeLabel() }}
+                  </small>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
         <button 
           class="btn btn-outline-secondary btn-sm"
-          (click)="router.navigate(['/learning-modules', moduleId])"
+          (click)="router.navigate(['/learning-modules'])"
           title="Back to Module">
           ← Back
         </button>
@@ -192,8 +256,37 @@
     </div>
   </div>
 
+  <!-- Voice-Only Mode Placeholder -->
+  <div class="voice-only-placeholder" *ngIf="!showTranscript || transcriptMode === 'hidden'">
+    <div class="placeholder-content">
+      <div class="voice-icon">
+        <i class="fas fa-microphone-alt"></i>
+      </div>
+      <h3>Voice-Only Mode</h3>
+      <p>Conversation transcript is hidden. Focus on listening and speaking practice.</p>
+      <div class="voice-stats" *ngIf="sessionActive">
+        <div class="voice-stat">
+          <i class="fas fa-comments"></i>
+          <span>{{ getStudentMessageCount() }} messages exchanged</span>
+        </div>
+        <div class="voice-stat">
+          <i class="fas fa-microphone"></i>
+          <span>{{ getSpeechMessageCount() }} spoken messages</span>
+        </div>
+        <div class="voice-stat">
+          <i class="fas fa-star"></i>
+          <span>{{ getTotalEngagementScore() }} engagement points</span>
+        </div>
+      </div>
+      <small class="text-muted">Use the transcript controls above to show conversation history</small>
+    </div>
+  </div>
+
   <!-- Messages Container -->
-  <div class="messages-container" #messagesContainer>
+  <div class="messages-container" 
+       #messagesContainer
+       *ngIf="showTranscript && transcriptMode !== 'hidden'"
+       [class.minimal-mode]="transcriptMode === 'minimal'">
     <!-- Speech Processing Indicator -->
     <div class="speech-processing-indicator" *ngIf="isProcessingSpeech">
       <i class="fas fa-microphone fa-spin"></i>
@@ -218,13 +311,13 @@
         class="message-wrapper"
         [ngClass]="getMessageClass(message)">
         
-        <!-- Message Avatar -->
-        <div class="message-avatar">
+        <!-- Message Avatar (hidden in minimal mode) -->
+        <div class="message-avatar" *ngIf="transcriptMode !== 'minimal'">
           <i class="fas" [class.fa-user]="message.role === 'student'" [class.fa-robot]="message.role === 'tutor'"></i>
         </div>
         
-        <div class="message-bubble">
-          <div class="message-header" *ngIf="message.messageType !== 'text' || message.metadata?.inputMethod">
+        <div class="message-bubble" [class.minimal-bubble]="transcriptMode === 'minimal'">
+          <div class="message-header" *ngIf="(message.messageType !== 'text' || message.metadata?.inputMethod) && transcriptMode !== 'minimal'">
             <span class="message-type-icon">{{ getMessageTypeIcon(message.messageType) }}</span>
             <span class="message-type">{{ message.messageType | titlecase }}</span>
             <!-- Input method indicator for student messages -->
@@ -238,12 +331,12 @@
           </div>
           
           <div class="message-content">
-            <!-- Add speaker indicator for AI messages -->
-            <div class="speaker-label" *ngIf="message.role === 'tutor'">
+            <!-- Add speaker indicator for AI messages (hidden in minimal mode) -->
+            <div class="speaker-label" *ngIf="message.role === 'tutor' && transcriptMode !== 'minimal'">
               <i class="fas fa-robot"></i> 
               <span>AI {{ module?.content?.rolePlayScenario?.aiRole || 'Tutor' }}</span>
             </div>
-            <div class="speaker-label" *ngIf="message.role === 'student'">
+            <div class="speaker-label" *ngIf="message.role === 'student' && transcriptMode !== 'minimal'">
               <i class="fas fa-user"></i> 
               <span>You {{ module?.content?.rolePlayScenario ? '(' + module.content.rolePlayScenario.studentRole + ')' : '' }}</span>
             </div>
@@ -251,8 +344,8 @@
               {{ message.content }}
             </div>
             
-            <!-- Message Status -->
-            <div class="message-status" *ngIf="message.role === 'student'">
+            <!-- Message Status (hidden in minimal mode) -->
+            <div class="message-status" *ngIf="message.role === 'student' && transcriptMode !== 'minimal'">
               <i class="fas fa-check-circle" *ngIf="message.timestamp"></i>
               <span>Sent</span>
             </div>
@@ -356,24 +449,38 @@
     
     <!-- Centered Round Microphone Button -->
     <div class="mic-button-container">
-      <button 
-        class="mic-button"
-        [class.listening]="isListening"
-        [class.processing]="isProcessingSpeech"
-        [class.disabled]="!voiceEnabled"
-        (click)="isListening ? stopListening() : startListening()"
-        [disabled]="isSending || isProcessingSpeech || !voiceEnabled"
-        title="{{ isListening ? 'Stop Listening' : 'Start Speaking' }}">
-        <i class="fas" 
-           [class.fa-microphone]="!isListening && !isProcessingSpeech" 
-           [class.fa-stop]="isListening"
-           [class.fa-spinner]="isProcessingSpeech"
-           [class.fa-spin]="isProcessingSpeech"></i>
-      </button>
+      <div class="mic-button-wrapper" style="position: relative;">
+        <button 
+          class="mic-button"
+          [class.listening]="isListening"
+          [class.processing]="isProcessingSpeech"
+          [class.disabled]="!voiceEnabled"
+          [class.session-completed]="isSessionCompleted()"
+          (click)="isListening ? stopListening() : startListening()"
+          [disabled]="isSending || isProcessingSpeech || !voiceEnabled"
+          title="{{ isListening ? 'Stop Listening' : 'Start Speaking' }}">
+          <i class="fas" 
+             [class.fa-microphone]="!isListening && !isProcessingSpeech" 
+             [class.fa-stop]="isListening"
+             [class.fa-spinner]="isProcessingSpeech"
+             [class.fa-spin]="isProcessingSpeech"></i>
+        </button>
+        
+        <!-- Completion Indicator -->
+        <div class="session-completion-indicator" *ngIf="isSessionCompleted()">
+          ✓
+        </div>
+        
+        <!-- Auto-Mic Disabled Notice -->
+        <div class="auto-mic-disabled-notice" *ngIf="isSessionCompleted()">
+          Auto-mic disabled - Session completed
+        </div>
+      </div>
       
       <!-- Status Text -->
       <div class="mic-status-text">
-        <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled">Tap to speak</span>
+        <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled && !isSessionCompleted()">Tap to speak</span>
+        <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled && isSessionCompleted()">Session completed - Tap to speak</span>
         <span *ngIf="isListening">Listening...</span>
         <span *ngIf="isProcessingSpeech">Processing...</span>
         <span *ngIf="!voiceEnabled">Voice disabled</span>
@@ -393,7 +500,7 @@
       </button>
       <button 
         class="btn btn-outline-secondary"
-        (click)="router.navigate(['/learning-modules', moduleId])">
+        (click)="router.navigate(['/learning-modules'])">
         Back to Module
       </button>
     </div>

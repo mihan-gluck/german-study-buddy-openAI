@@ -64,6 +64,10 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   // Speech processing state
   isProcessingSpeech: boolean = false;
   
+  // Transcript visibility control
+  showTranscript: boolean = true;
+  transcriptMode: 'full' | 'minimal' | 'hidden' = 'full';
+  
   // Speech functionality
   speechSynthesis: SpeechSynthesis;
   speechRecognition: any;
@@ -104,6 +108,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   private initializeComponent(): void {
+    // Load transcript preferences
+    this.loadTranscriptPreferences();
+    
     // Get module ID from route
     this.route.queryParams.subscribe(params => {
       this.moduleId = params['moduleId'];
@@ -382,13 +389,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
           // Check if role-play session is complete
           if (response.response.metadata?.sessionState === 'completed' || 
               response.response.metadata?.sessionEnded === true) {
-            // Session completed - show completion message
-            setTimeout(() => {
-              const confirmEnd = confirm('Role-play session completed! Would you like to end the session now?');
-              if (confirmEnd) {
-                this.endSession(true);
-              }
-            }, 2000); // Give time to read the completion message
+            // Session completed - mark module as completed
+            console.log('🎭 Role-play session completed - marking module as completed');
+            this.markModuleAsCompleted();
           }
           
           // Speak the AI response if voice is enabled
@@ -588,17 +591,7 @@ Thank you for practicing! You can start a new session anytime.`,
         
         this.aiTutorService.addMessageToCurrentSession(completionMessage);
         
-        // Show navigation options after a brief delay
-        setTimeout(() => {
-          const continueChoice = confirm('Would you like to try another session or return to learning modules?');
-          if (continueChoice) {
-            // Stay on current page for another session
-            this.router.navigate(['/learning-modules']);
-          } else {
-            // Go back to modules
-            this.router.navigate(['/learning-modules']);
-          }
-        }, 2000);
+        // No popup - let user use the buttons in the session-inactive section
       },
       error: (error) => {
         console.error('Error ending session:', error);
@@ -893,7 +886,12 @@ Thank you for practicing! You can start a new session anytime.`,
       this.isSpeaking = false;
       
       // Auto-enable microphone after AI finishes speaking (for role-play intro)
-      if (this.isRolePlayModule() && this.voiceEnabled && !this.isListening) {
+      // BUT NOT when session is completed or ending
+      if (this.isRolePlayModule() && 
+          this.voiceEnabled && 
+          !this.isListening && 
+          this.sessionActive && 
+          !this.isSessionCompleted()) {
         // Small delay to ensure speech has fully ended
         setTimeout(() => {
           this.startListening();
@@ -942,5 +940,171 @@ Thank you for practicing! You can start a new session anytime.`,
     return this.messages.filter(m => 
       m.role === 'student' && m.metadata?.inputMethod === 'text'
     ).length;
+  }
+
+  // Transcript control methods
+  toggleTranscript(): void {
+    this.showTranscript = !this.showTranscript;
+    
+    // Save preference to localStorage
+    localStorage.setItem('transcriptVisible', this.showTranscript.toString());
+    
+    console.log('📝 Transcript visibility toggled:', this.showTranscript);
+  }
+
+  setTranscriptMode(mode: 'full' | 'minimal' | 'hidden'): void {
+    this.transcriptMode = mode;
+    this.showTranscript = mode !== 'hidden';
+    
+    // Save preference to localStorage
+    localStorage.setItem('transcriptMode', mode);
+    localStorage.setItem('transcriptVisible', this.showTranscript.toString());
+    
+    console.log('📝 Transcript mode changed to:', mode);
+  }
+
+  getTranscriptModeLabel(): string {
+    switch (this.transcriptMode) {
+      case 'full': return 'Full Transcript';
+      case 'minimal': return 'Minimal View';
+      case 'hidden': return 'Hidden';
+      default: return 'Full Transcript';
+    }
+  }
+
+  // Load transcript preferences from localStorage
+  private loadTranscriptPreferences(): void {
+    const savedVisible = localStorage.getItem('transcriptVisible');
+    const savedMode = localStorage.getItem('transcriptMode') as 'full' | 'minimal' | 'hidden';
+    
+    if (savedVisible !== null) {
+      this.showTranscript = savedVisible === 'true';
+    }
+    
+    if (savedMode) {
+      this.transcriptMode = savedMode;
+      this.showTranscript = savedMode !== 'hidden';
+    }
+    
+    console.log('📝 Loaded transcript preferences:', { 
+      visible: this.showTranscript, 
+      mode: this.transcriptMode 
+    });
+  }
+
+  // Mark module as completed when role-play session ends
+  private markModuleAsCompleted(): void {
+    if (!this.moduleId) {
+      console.warn('⚠️ Cannot mark module as completed: No module ID');
+      return;
+    }
+
+    const sessionData = {
+      totalScore: this.getTotalEngagementScore(),
+      conversationScore: this.getConversationScore(),
+      exerciseScore: this.sessionStats.sessionScore || 0,
+      messagesExchanged: this.getStudentMessageCount(),
+      speechMessages: this.getSpeechMessageCount(),
+      sessionType: this.sessionType,
+      completedAt: new Date()
+    };
+
+    console.log('📋 Marking module as completed with session data:', sessionData);
+
+    this.learningModulesService.markModuleCompleted(this.moduleId, { sessionData }).subscribe({
+      next: (response) => {
+        console.log('✅ Module marked as completed successfully:', response);
+        
+        // Show success message
+        const completionMessage: TutorMessage = {
+          role: 'tutor',
+          content: `🎉 Congratulations! You have successfully completed this module!
+
+📊 Final Results:
+• Total Engagement: ${sessionData.totalScore} points
+• Messages Exchanged: ${sessionData.messagesExchanged}
+• Speech Practice: ${sessionData.speechMessages} spoken messages
+• Module Status: ✅ COMPLETED
+
+Great job on completing your language learning session! 🌟`,
+          messageType: 'text',
+          timestamp: new Date()
+        };
+
+        // Add completion message to chat
+        this.aiTutorService.addMessageToCurrentSession(completionMessage);
+        
+        // Update local messages
+        this.localMessages.push(completionMessage);
+        this.messages = [...this.localMessages];
+        this.cdr.detectChanges();
+        
+        // Scroll to show completion message
+        setTimeout(() => this.scrollToBottom(), 100);
+      },
+      error: (error) => {
+        console.error('❌ Error marking module as completed:', error);
+        
+        // Still show a completion message even if backend fails
+        const fallbackMessage: TutorMessage = {
+          role: 'tutor',
+          content: `🎉 Role-play session completed successfully!
+
+You've done great work in this session. Keep up the excellent progress! 🌟`,
+          messageType: 'text',
+          timestamp: new Date()
+        };
+
+        this.aiTutorService.addMessageToCurrentSession(fallbackMessage);
+        this.localMessages.push(fallbackMessage);
+        this.messages = [...this.localMessages];
+        this.cdr.detectChanges();
+        setTimeout(() => this.scrollToBottom(), 100);
+      }
+    });
+  }
+
+  // Check if session is completed or ending (to prevent auto-microphone activation)
+  isSessionCompleted(): boolean {
+    // Check if session is no longer active
+    if (!this.sessionActive) {
+      return true;
+    }
+    
+    // Check if the last AI message indicates completion
+    const lastAIMessage = this.messages
+      .filter(m => m.role === 'tutor')
+      .pop();
+    
+    if (lastAIMessage) {
+      const completionKeywords = [
+        'congratulations',
+        'completed',
+        'finished',
+        'well done',
+        'great job',
+        'session ended',
+        'module completed',
+        'successfully completed',
+        'final results'
+      ];
+      
+      const messageContent = lastAIMessage.content.toLowerCase();
+      const hasCompletionKeyword = completionKeywords.some(keyword => 
+        messageContent.includes(keyword)
+      );
+      
+      // Also check for completion emojis
+      const hasCompletionEmoji = messageContent.includes('🎉') || 
+                                 messageContent.includes('✅') || 
+                                 messageContent.includes('🌟');
+      
+      if (hasCompletionKeyword || hasCompletionEmoji) {
+        console.log('🎯 Session completion detected - preventing auto-microphone activation');
+        return true;
+      }
+    }
+    
+    return false;
   }
 }
