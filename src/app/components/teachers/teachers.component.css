@@ -1,0 +1,194 @@
+/* General layout */
+:host {
+  display: block;
+  background-color: #f4f4f4;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+  color: #000;
+  padding-bottom: 60px;
+}
+
+/* ====== Headings ====== */
+h2, h3 {
+  color: #405980;
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+/* ====== Filters Section ====== */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+.filters input,
+.filters select {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  background: #fff;
+  font-size: 14px;
+  min-width: 180px;
+  flex: 1; /* allow shrinking */
+  max-width: 250px;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.teachers-table td .action-buttons {
+  display: flex;
+  gap: 8px;           /* space between buttons */
+  justify-content: flex-end; /* push buttons to right */
+}
+
+/* Responsive filters */
+@media (max-width: 768px) {
+  .filters {
+    justify-content: flex-start;
+  }
+  .filters input,
+  .filters select {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* ====== Add User Section ====== */
+.add-user {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 0;
+}
+
+.add-user-btn {
+  background-color: #000e89;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  &:hover {
+    color: yellow;
+  }
+}
+@media (max-width: 768px) {
+  .add-user {
+    justify-content: center;
+  }
+}
+
+/* ====== Students Table ====== */
+.teachers-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.teachers-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.teachers-table th,
+.teachers-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  font-size: 14px;
+}
+
+.teachers-table th {
+  background-color: #405980;
+  color: white;
+  font-weight: 500;
+}
+
+.teachers-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* ====== Responsive Breakpoints ====== */
+@media (max-width: 1024px) {
+  h2, h3 {
+    font-size: 1.3rem;
+  }
+  .teachers-table td, .teachers-table th {
+    font-size: 13px;
+    padding: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  h2, h3 {
+    font-size: 1.1rem;
+  }
+  .bulk-assign,
+  .reset-usage {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ====== Mobile Friendly Table ====== */
+@media (max-width: 768px) {
+  .teachers-table,
+  .teachers-table thead,
+  .teachers-table tbody,
+  .teachers-table th,
+  .teachers-table td,
+  .teachers-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .teachers-table thead {
+    display: none; /* hide table headers */
+  }
+
+  .teachers-table tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .teachers-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border: none;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
+
+  .teachers-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Show column name before value */
+  .teachers-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #405980;
+    flex: 1;
+    text-align: left;
+    padding-right: 10px;
+  }
+
+  .teachers-table td span {
+    flex: 2;
+    text-align: right;
+  }
+}

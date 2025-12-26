@@ -1,0 +1,297 @@
+<!-- signup.component.html -->
+
+<div class="container min-vh-100 d-flex justify-content-center align-items-center px-4">
+  <div class="card shadow-lg p-4 w-100" style="max-width: 450px;">
+    <h2 class="text-center text-primary mb-4">Create an Account</h2>
+
+    <form (ngSubmit)="onSubmit()" #signupForm="ngForm">
+
+      <!-- Role Selection -->
+      <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select
+          id="role"
+          name="role"
+          [(ngModel)]="role"
+          required
+          class="form-select"
+        >
+          <option value="STUDENT">STUDENT</option>
+          <option value="TEACHER">TEACHER</option>
+          <option value="ADMIN">ADMIN</option>
+        </select>
+      </div>
+
+      <!-- Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          [(ngModel)]="name"
+          required
+          placeholder="Enter your full name"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label">
+          {{ role === 'ADMIN' || role === 'TEACHER' ? 'Email Address' : 'Email' }}
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          placeholder="you@example.com"
+          class="form-control"
+        />
+      </div>
+
+      
+      <!-- Batch -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="batch" class="form-label">Batch</label>
+        <input
+          type="text"
+          id="batch"
+          name="batch"
+          [(ngModel)]="batch"
+          required
+          class="form-control"
+        />
+      </div>
+
+      <!-- Assign Courses for Teacher -->
+      <div *ngIf="role === 'TEACHER'" class="assign-courses-section">
+        <label class="form-label mb-2">Assign Courses</label>
+        <div class="course-list">
+          <div class="course-item" *ngFor="let course of courses">
+            <input 
+              type="checkbox"
+              [value]="course._id"
+              (change)="onCourseChange($event, course._id)"
+              id="{{course._id}}"
+            />
+            <label [for]="course._id">{{ course.title }}</label>
+          </div>
+        </div>
+        <small class="text-muted">Select one or more courses</small>
+      </div>
+
+      <!-- Assigned Batches -->
+      <div class="mb-3" *ngIf="role === 'TEACHER'">
+        <label for="assignedBatches" class="form-label">Assigned Batches (comma separated)</label>
+        <input
+          type="text"
+          id="assignedBatches"
+          name="assignedBatches"
+          [(ngModel)]="assignedBatches"
+          (ngModelChange)="onAssignedBatchesChange($event)"
+          required
+          placeholder="e.g., 1, 2, 5"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Status for STUDENT (single select) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="studentStatus" class="form-label">Status</label>
+        <select
+          id="studentStatus"
+          name="studentStatus"
+          [(ngModel)]="studentStatus"
+          required
+          class="form-select"
+        >
+          <option value="UNCERTAIN">Uncertain</option>
+          <option value="ONGOING">Ongoing</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="DROPPED">Dropped</option>
+        </select>
+      </div>
+
+      <!-- Medium for STUDENT (single select) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="medium" class="form-label">Medium</label>
+        <select
+          id="medium"
+          name="medium"
+          [(ngModel)]="medium"
+          (change)="loadTeachers()"
+          required
+          class="form-select"
+        >
+          <option value="Tamil">Tamil</option>
+          <option value="Sinhala">Sinhala</option>
+          <option value="Malayalam">Malayalam</option>
+        </select>
+      </div>
+
+      <!-- Medium for TEACHER (multi-select) -->
+      <div class="mb-3" *ngIf="role === 'TEACHER'">
+        <label for="medium" class="form-label">Medium (Select Multiple)</label>
+        <select
+          id="medium"
+          name="medium"
+          [(ngModel)]="medium"
+          required
+          class="form-select"
+          multiple
+        >
+          <option value="Tamil">Tamil</option>
+          <option value="Sinhala">Sinhala</option>
+          <option value="Malayalam">Malayalam</option>
+        </select>
+        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple</small>
+      </div>
+
+
+      <!-- Subscription -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="subscription" class="form-label">Subscription Plan</label>
+        <select
+          id="subscription"
+          name="subscription"
+          [(ngModel)]="subscription"
+          required
+          class="form-select"
+        >
+          <option value="SILVER">Silver</option>
+          <option value="PLATINUM">Platinum</option>
+        </select>
+
+      </div>
+
+      <!-- Level -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="level" class="form-label">CEFR Level</label>
+        <select
+          id="level"
+          name="level"
+          [(ngModel)]="level"
+          (change)="loadTeachers()"
+          required
+          class="form-select"
+        >
+          <option value="A1">A1</option>
+          <option value="A2">A2</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
+          <option value="C1">C1</option>
+          <option value="C2">C2</option>
+        </select>
+      </div>
+
+
+      <!-- Select Teacher (only for Students) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="teacher" class="form-label">Assign Teacher</label>
+        <select id="assignedTeacher" [(ngModel)]="assignedTeacher" name="assignedTeacher" required class="form-select">
+          <option *ngFor="let teacher of teachers" [value]="teacher._id">
+            {{ teacher.name }} ({{ teacher.regNo }})
+          </option>
+        </select>
+      </div>
+
+      <!-- Conversation ID -->
+      <div class="mb-3" *ngIf="role === 'STUDENT' && subscription === 'PLATINUM'">
+        <label for="conversationId" class="form-label">Conversation ID</label>
+        <input
+          type="text"
+          id="conversationId"
+          name="conversationId"
+          [(ngModel)]="conversationId"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        [disabled]="!signupForm.form.valid"
+        class="btn btn-primary w-100 py-2"
+      >
+        {{ isEditMode ? 'Update' : 'Register' }}
+      </button>
+    </form>
+  </div>
+</div>
+
+
+
+<!--<div class="signup-container">
+  <h2>Sign Up</h2>
+  <form>
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="Enter your full name" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Create a password" required />
+
+      <label for="role">Role</label>
+      <select id="role" required>
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+      </select>
+
+      <button type="submit">Sign Up</button>
+
+      <div class="form-footer">
+          <a href="/login">Already have an account? Login here.</a>
+      </div>
+  </form>
+</div>-->
+
+<!-- Scroll Buttons 
+<div class="fixed bottom-4 right-4 flex flex-col space-y-2 z-50">
+  <button (click)="scrollToTop()" class="bg-[#405980] text-white p-2 rounded-full shadow-md hover:bg-[#314466]">
+    ↑
+  </button>
+  <button (click)="scrollToBottom()" class="bg-[#405980] text-white p-2 rounded-full shadow-md hover:bg-[#314466]">
+    ↓
+  </button>
+</div>-->
+
+
+
+
+<!-- 
+ <div class="signup-container">
+  <h2>Signup</h2>
+  <form (ngSubmit)="onSubmit()">
+    <div>
+      <label for="name">Name:</label>
+      <input type="text" id="name" [(ngModel)]="name" name="name" required>
+    </div>
+
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" [(ngModel)]="email" name="email" required>
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" [(ngModel)]="password" name="password" required>
+    </div>
+
+    <div>
+      <label for="role">Role:</label>
+      <select [(ngModel)]="role" name="role">
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+    <button type="submit">Sign Up</button>
+  </form>
+</div>
+-->

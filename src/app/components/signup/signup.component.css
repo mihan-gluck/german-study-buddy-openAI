@@ -1,0 +1,236 @@
+/* ========== General Page Styling ========== */
+body {
+  background: linear-gradient(135deg, #e0e7ff, #f0f4ff);
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========== Signup Card Container ========== */
+.signup-container,
+.container .card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  max-width: 450px;
+  margin: 3rem auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.signup-container:hover,
+.container .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ========== Heading ========== */
+.signup-container h2,
+.container .card h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #405980;
+  margin-bottom: 1.5rem;
+}
+
+/* ========== Form ========== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ========== Labels ========== */
+label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ========== Inputs & Selects ========== */
+input,
+select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: #405980;
+  box-shadow: 0 0 0 3px rgba(64, 89, 128, 0.15);
+  outline: none;
+}
+
+/* ========== Assign Courses Section (Teacher Only) ========== */
+.assign-courses-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.course-item:hover {
+  background-color: #eef2ff;
+}
+
+/* Checkbox alignment */
+.course-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #405980;
+  cursor: pointer;
+}
+
+.course-item label {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
+
+/* ========== Buttons ========== */
+button[type="submit"] {
+  background-color: #000e89;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: #0012b3;
+  transform: translateY(-2px);
+}
+
+button[type="submit"]:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ========== Form Footer Links ========== */
+.form-footer {
+  text-align: center;
+  margin-top: 1.2rem;
+}
+
+.form-footer a {
+  color: #405980;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.form-footer a:hover {
+  color: #314466;
+}
+
+/* ========== Responsive Design ========== */
+
+/* ----- Mobile (up to 576px) ----- */
+@media (max-width: 576px) {
+  .container .card,
+  .signup-container {
+    max-width: 90%;
+    padding: 1.5rem;
+    margin-bottom: 150px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  input,
+  select,
+  button {
+    font-size: 0.9rem;
+    padding: 0.65rem;
+  }
+
+  label {
+    font-size: 0.85rem;
+  }
+
+  /* Courses section */
+  .course-list {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .course-item {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .course-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .course-item label {
+    font-size: 0.9rem;
+  }
+}
+
+/* ----- Tablets (577px - 992px) ----- */
+@media (min-width: 577px) and (max-width: 992px) {
+  .container .card,
+  .signup-container {
+    max-width: 500px;
+    padding: 2rem;
+  }
+
+  h2 {
+    font-size: 1.7rem;
+  }
+
+  .course-list {
+    flex-wrap: wrap;
+  }
+
+  .course-item {
+    flex: 1 1 48%; /* Two items per row */
+  }
+}
+
+/* ----- Large Screens (993px and above) ----- */
+@media (min-width: 993px) {
+  .container .card {
+    max-width: 500px;
+  }
+
+  .course-list {
+    flex-wrap: wrap;
+  }
+
+  .course-item {
+    flex: 1 1 45%; /* Nice grid layout */
+  }
+}

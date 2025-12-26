@@ -1,0 +1,128 @@
+<div class="student-dashboard-container">
+  <div class="scrollable-content">
+    <h2>Guten Tag, {{ basicUser?.name}} !</h2>
+    <h6>Ready to practice your German today?</h6>
+
+    <!-- Profile Section -->
+    <section class="card-container">
+      <!-- <mat-card class="profile-box" *ngIf="basicUser && userProfile">
+        <mat-card-header>
+          <mat-card-title>{{ userProfile.name || basicUser.name }}</mat-card-title>
+          <mat-card-subtitle>{{ userProfile.email || basicUser.email }}</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <p><strong>Level:</strong> {{ userProfile.level || basicUser.level || 'Not Set' }}</p>
+          <p><strong>Plan:</strong> {{ userProfile.subscription}}</p>
+        </mat-card-content>
+      </mat-card> -->
+
+      <!-- Active Call -->
+      <!-- <mat-card *ngIf="currentVoiceAgent" class="call-status">
+        <p>🟢 <strong>Active Call:</strong> {{ currentVoiceAgent | titlecase }}</p>
+        <button mat-raised-button color="warn" (click)="stopAnyCall()">End Call</button>
+      </mat-card> -->
+    <!-- </section> -->
+
+    <!-- ElevenLabs Courses -->
+    <mat-card class="course-card">
+    <mat-card-title><h3>Start Learning</h3></mat-card-title>
+      <mat-card-content>
+        <p>Jump straight into your German conversation practice.</p>
+        <p>
+          You have 
+          <strong [ngClass]="{ 'warning': remainingMinutes > 20 && remainingDays < 7 }">
+            {{ remainingMinutes }}
+          </strong> minutes of practice time, and 
+          <strong>{{ remainingDays }}</strong> 
+          {{ remainingDays > 1 ? 'days' : 'day' }} remaining. 
+          Please use them before <strong>{{ planUpgradeDate }}</strong>.
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+
+      <mat-card class="curriculum-card">
+        <mat-card-title><h3>Curriculum</h3></mat-card-title>
+        <mat-card-content>
+          <p>Access your learning materials and resources</p>
+          <button class="cardButton" routerLink="/view-course-materials">View Curriculum</button>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Feedback -->
+      <mat-card class="feedback-card">
+        <mat-card-title><h3>Feedback</h3></mat-card-title>
+        <mat-card-content>
+          <p>Share your learning experience and help us improve</p>
+          <button class="cardButton" routerLink="/feedback">Student Feedback Form</button>
+        </mat-card-content>
+      </mat-card>
+
+    </section>
+
+    <!-- Course Progress
+    <section *ngIf="userProfile?.assignedCourses?.length > 0" class="card-container">
+      <h3>Course Progress</h3>
+      <mat-card *ngFor="let course of userProfile.assignedCourses" class="course-progress-box">
+        <p><strong>{{ course.courseId?.name }} ({{ course.courseId?.language }})</strong></p>
+        <mat-progress-bar
+          [value]="course.progress"
+          [color]="
+            course.progress < 50 ? 'warn' :
+            course.progress < 80 ? 'accent' :
+            'primary'
+          "
+        ></mat-progress-bar>
+        <p>{{ course.progress }}%</p>
+      </mat-card>
+    </section> -->
+
+    <!-- ElevenLabs Widget -->
+        <elevenlabs-convai 
+          [attr.agent-id]="basicUser?.elevenLabsWidgetLink" 
+        >
+        </elevenlabs-convai>
+
+    <!-- Feedback Table -->
+    <section *ngIf="feedbackList.length > 0" class="feedback-table-section">
+      <h3>Feedback</h3>
+      <button mat-stroked-button color="primary" (click)="exportToCSV()">Export to CSV</button>
+      <table mat-table [dataSource]="paginatedFeedbackList" class="mat-elevation-z2">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef (click)="sortFeedback('date')">Date</th>
+          <td mat-cell *matCellDef="let f">{{ f.date | date }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="fluency">
+          <th mat-header-cell *matHeaderCellDef (click)="sortFeedback('fluency')">Fluency</th>
+          <td mat-cell *matCellDef="let f">{{ f.fluency }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="grammar">
+          <th mat-header-cell *matHeaderCellDef (click)="sortFeedback('grammar')">Grammar</th>
+          <td mat-cell *matCellDef="let f">{{ f.grammar }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="pronunciation">
+          <th mat-header-cell *matHeaderCellDef (click)="sortFeedback('pronunciation')">Pronunciation</th>
+          <td mat-cell *matCellDef="let f">{{ f.pronunciation }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="comments">
+          <th mat-header-cell *matHeaderCellDef>Comments</th>
+          <td mat-cell *matCellDef="let f">{{ f.comments }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['date', 'fluency', 'grammar', 'pronunciation', 'comments']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['date', 'fluency', 'grammar', 'pronunciation', 'comments']"></tr>
+      </table>
+
+      <div class="pagination-controls">
+        <button mat-stroked-button (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
+        <span>Page {{ currentPage }}</span>
+        <button mat-stroked-button (click)="nextPage()" [disabled]="currentPage * itemsPerPage >= feedbackList.length">Next</button>
+      </div>
+    </section>
+  </div>
+</div>

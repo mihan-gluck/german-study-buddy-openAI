@@ -1,0 +1,147 @@
+/* Container */
+.feedback-container {
+  width: 98%;
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow-x: auto; /* fallback scroll for small devices */
+}
+
+/* Heading */
+h2 {
+  text-align: center;
+  color: #000;
+  margin-bottom: 25px;
+  font-size: 2rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  word-wrap: break-word;
+}
+
+/* Table Head */
+thead th {
+  background-color: #405980;
+  color: white;
+  padding: 12px 10px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Table Body */
+tbody td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+/* Star rating */
+.filled {
+  color: #FFD700;
+  font-size: 1.2rem;
+}
+
+/* Alternate row colors */
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Hover effect */
+tbody tr:hover {
+  background-color: #e0e0ff;
+}
+
+/* Error messages */
+.error {
+  color: red;
+  text-align: center;
+  margin: 10px 0;
+}
+
+/* -------- Responsive Design -------- */
+
+/* Medium screens */
+@media screen and (max-width: 1024px) {
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+}
+
+/* Tablets and smaller devices */
+@media screen and (max-width: 768px) {
+  .feedback-container{
+    margin-bottom: 100px;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+
+  thead {
+    display: none; /* hide table head for mobile view */
+  }
+
+  tbody tr {
+    display: block;
+    background-color: #fff;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    text-transform: capitalize;
+    flex: 1;
+    color: #405980;
+  }
+
+  tbody td:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Small screens */
+@media screen and (max-width: 480px) {
+  .feedback-container{
+    margin-bottom: 100px;
+  }
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  tbody td {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+
+  .filled {
+    font-size: 1rem;
+  }
+}

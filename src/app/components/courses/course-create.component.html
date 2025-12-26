@@ -1,0 +1,39 @@
+<div class="container form-wrapper">
+  <div class="form-container">
+    <h2 class="text-center mb-4">
+      {{ isEditMode ? 'Update Course' : 'Create a New Course' }}
+    </h2>
+
+    <form (ngSubmit)="onSubmit()" #courseForm="ngForm">
+      <div class="form-group mb-3">
+        <label for="courseTitle">Course Title</label>
+        <input
+          type="text"
+          id="courseTitle"
+          name="title"
+          [(ngModel)]="course.title"
+          class="form-control"
+          placeholder="Enter course title"
+          required
+        />
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="courseDescription">Course Description</label>
+        <textarea
+          id="courseDescription"
+          name="description"
+          [(ngModel)]="course.description"
+          class="form-control"
+          placeholder="Enter course description"
+          required
+          (input)="autoResize($event)"
+        ></textarea>
+      </div>
+
+      <button type="submit" [disabled]="!courseForm.form.valid">
+        {{ isEditMode ? 'Update Course' : 'Create Course' }}
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,329 @@
+/* =============================
+   Admin Dashboard Styling
+============================= */
+
+:host {
+  display: block;
+  background-color: #f4f4f4;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+  color: #000;
+  box-sizing: border-box;
+}
+
+/* ====== Headings ====== */
+h2, h3 {
+  color: #405980;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* ====== Filters Section ====== */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.filters input,
+.filters select {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  background: #fff;
+  font-size: 14px;
+  min-width: 150px;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.filters input:hover,
+.filters select:hover,
+.filters input:focus,
+.filters select:focus {
+  border-color: #7b5fff;
+  box-shadow: 0 0 6px rgba(123, 95, 255, 0.3);
+  background-color: #f9f9ff;
+}
+
+.filters input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* ====== Add User Section ====== */
+.add-user {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+
+.add-user button {
+  background-color: #405980;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
+  margin-top: 5px;
+}
+
+.add-user button:hover {
+  background-color: #2f4362;
+}
+
+/* ====== Bulk Assignment & Reset Buttons ====== */
+.bulk-assign,
+.reset-usage {
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bulk-assign input {
+  margin-right: 5px;
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.bulk-assign button,
+.reset-usage button {
+  background-color: #405980;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.bulk-assign button:hover,
+.reset-usage button:hover {
+  background-color: #2f4362;
+}
+
+/* ====== Students Table ====== */
+.students-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.students-table th {
+  background-color: #405980;
+  color: white;
+  padding: 10px;
+  text-align: left;
+  font-weight: 500;
+}
+
+.students-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.students-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.students-table td button {
+  background-color: #405980;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.students-table td button:hover {
+  background-color: #2f4362;
+}
+
+.students-table input[type="text"] {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* ====== Progress Bar ====== */
+.progress-bar-container {
+  background-color: #f4f4f4;
+  border-radius: 4px;
+  height: 8px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  background-color: #405980;
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+}
+
+/* ====== Feedback Section ====== */
+.feedback-section {
+  margin-top: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  overflow-x: auto;
+}
+
+.feedback-section table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.feedback-section th {
+  background-color: #405980;
+  color: white;
+  padding: 8px;
+}
+
+.feedback-section td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* ====== Responsive Adjustments ====== */
+@media (max-width: 1024px) {
+  .filters, .add-user, .bulk-assign, .reset-usage {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .filters input,
+  .filters select,
+  .bulk-assign input {
+    min-width: 100px;
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: 10px;
+  }
+
+  .filters, .add-user, .bulk-assign, .reset-usage {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .students-table-container, .feedback-section {
+    overflow-x: auto;
+  }
+
+  .students-table,
+  .students-table thead,
+  .students-table tbody,
+  .students-table th,
+  .students-table td,
+  .students-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .students-table thead {
+    display: none;
+  }
+
+  .students-table tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .students-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border: none;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
+
+  .students-table td:last-child {
+    border-bottom: none;
+  }
+
+  .students-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #405980;
+    flex: 1;
+    text-align: left;
+    padding-right: 10px;
+  }
+
+  .students-table td span {
+    flex: 2;
+    text-align: right;
+  }
+}
+
+@media (max-width: 480px) {
+  h2, h3 {
+    font-size: 16px;
+  }
+
+  .filters input, .filters select, .bulk-assign input {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .add-user button,
+  .bulk-assign button,
+  .reset-usage button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .students-table td {
+    font-size: 12px;
+  }
+}
+
+/* Add extra bottom spacing for mobile so buttons are not hidden */
+@media (max-width: 768px) {
+  .students-table-container {
+    margin-bottom: 80px; /* adjust depending on footer height */
+  }
+}
+
+/* ====== Angular Material Overrides ====== */
+.mat-form-field {
+  background: white;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.mat-raised-button {
+  background-color: #405980 !important;
+  color: white !important;
+}
+
+.mat-raised-button:hover {
+  background-color: #2f4362 !important;
+}

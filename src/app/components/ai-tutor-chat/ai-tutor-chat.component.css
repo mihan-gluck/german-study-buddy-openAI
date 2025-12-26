@@ -1,0 +1,1889 @@
+/* src/app/components/ai-tutor-chat/ai-tutor-chat.component.css */
+
+.ai-tutor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* Header Styles */
+.chat-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.module-info h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.module-info p {
+  margin: 0.25rem 0 0 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+/* Role-Play Information Styles */
+.roleplay-info {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  border-left: 4px solid #ffd700;
+}
+
+.roleplay-badge {
+  display: inline-block;
+  background: #ffd700;
+  color: #333;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.roles-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+.role-item {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.role-item strong {
+  margin-right: 0.25rem;
+}
+
+.role-separator {
+  font-weight: bold;
+  opacity: 0.7;
+}
+
+.scenario-info {
+  margin-top: 0.5rem;
+  opacity: 0.9;
+}
+
+.scenario-info small {
+  font-size: 0.85rem;
+}
+
+.session-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.voice-status .stat-value {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.voice-status i {
+  font-size: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Messages Container - Enhanced with proper footer spacing */
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 400px; /* Ensure minimum height */
+  max-height: calc(100vh - 200px); /* Leave space for header and footer */
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-list {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Message Layout */
+.message-wrapper {
+  margin-bottom: 1rem;
+  display: flex;
+}
+
+.message-student {
+  justify-content: flex-end;
+}
+
+.message-tutor {
+  justify-content: flex-start;
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.message-type-icon {
+  font-size: 1rem;
+}
+
+.message-content {
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.message-timestamp {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* Exercise Styles */
+.exercise-content {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0,0,0,0.05);
+  border-radius: 0.5rem;
+  border-left: 4px solid #007bff;
+}
+
+.exercise-question {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.exercise-options {
+  margin: 1rem 0;
+}
+
+.option-item {
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  background: rgba(255,255,255,0.7);
+  border-radius: 0.25rem;
+  border-left: 3px solid #007bff;
+}
+
+.exercise-points {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+/* Feedback Styles */
+.feedback-content {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.feedback-result {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.feedback-result.correct {
+  color: #28a745;
+  background: rgba(40, 167, 69, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.feedback-result.incorrect {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+/* Voice Input Only Container - Fixed Footer Positioning */
+.voice-input-container {
+  background: white;
+  padding: 2rem 1rem;
+  border-top: 1px solid #e9ecef;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  margin-top: auto; /* Push to bottom */
+}
+
+/* Centered Round Microphone Button */
+.mic-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mic-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.mic-button:hover:not(.disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+}
+
+.mic-button:active:not(.disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Listening State */
+.mic-button.listening {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  animation: pulseListening 1.5s infinite;
+  box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+}
+
+@keyframes pulseListening {
+  0% { 
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+  }
+  50% { 
+    transform: scale(1.1);
+    box-shadow: 0 8px 40px rgba(220, 53, 69, 0.6);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+  }
+}
+
+/* Processing State */
+.mic-button.processing {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+}
+
+.mic-button.processing i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Disabled State */
+.mic-button.disabled {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: 0 2px 10px rgba(108, 117, 125, 0.2);
+}
+
+.mic-button.disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 10px rgba(108, 117, 125, 0.2);
+}
+
+/* Ripple Effect */
+.mic-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.mic-button:active:not(.disabled)::before {
+  width: 100px;
+  height: 100px;
+}
+
+/* Status Text */
+.mic-status-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  min-height: 1.2rem;
+}
+
+.mic-button.listening + .mic-status-text {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.mic-button.processing + .mic-status-text {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+/* Suggestions styling for voice-only mode */
+.voice-input-container .suggestions-container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.voice-input-container .suggestions-list {
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.voice-input-container .suggestion-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 1.5rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.voice-input-container .suggestion-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+}
+
+/* Speech Feedback for voice-only mode */
+.voice-input-container .speech-feedback {
+  width: 100%;
+  max-width: 500px;
+}
+
+.voice-input-container .speech-feedback .alert {
+  border-radius: 1.5rem;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Responsive Design for Voice Input - Fixed Footer */
+@media (max-width: 768px) {
+  .mic-button {
+    width: 70px;
+    height: 70px;
+    font-size: 1.8rem;
+  }
+  
+  .voice-input-container {
+    padding: 1.5rem 1rem;
+    position: sticky;
+    bottom: 0;
+  }
+  
+  .exercise-input-container {
+    padding: 1rem 0.75rem;
+    position: sticky;
+    bottom: 0;
+  }
+  
+  .messages-container {
+    max-height: calc(100vh - 180px); /* Adjust for mobile header/footer */
+    padding: 1rem 0.5rem;
+  }
+  
+  .mic-status-text {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mic-button {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+  
+  .voice-input-container {
+    padding: 1rem 0.5rem;
+    position: sticky;
+    bottom: 0;
+  }
+  
+  .exercise-input-container {
+    padding: 0.75rem 0.5rem;
+    position: sticky;
+    bottom: 0;
+  }
+  
+  .messages-container {
+    max-height: calc(100vh - 160px); /* Adjust for small mobile screens */
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .voice-input-container .suggestions-list {
+    gap: 0.5rem;
+  }
+  
+  .voice-input-container .suggestion-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .exercise-input-container .input-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .exercise-input-container .btn {
+    width: 100%;
+  }
+}
+
+/* Exercise Input Container - Fixed Footer Positioning */
+.exercise-input-container {
+  background: white;
+  padding: 1rem;
+  border-top: 1px solid #e9ecef;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  margin-top: auto; /* Push to bottom */
+}
+
+/* Input group for exercises */
+.exercise-input-container .input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.exercise-input-container .form-control {
+  flex: 1;
+  border-radius: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9ecef;
+  transition: border-color 0.3s ease;
+}
+
+.exercise-input-container .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.exercise-input-container .btn {
+  border-radius: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.exercise-prompt {
+  margin-bottom: 1rem;
+}
+
+.exercise-prompt h4 {
+  color: #007bff;
+  margin-bottom: 0.5rem;
+}
+
+.exercise-prompt p {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Suggestions */
+.suggestions-container {
+  margin-bottom: 1rem;
+}
+
+.suggestions-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.suggestion-btn {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+}
+
+.suggestion-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Legacy input group styles - removed for voice-only interface */
+
+/* Session Inactive */
+.session-inactive {
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Loading States */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6c757d;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .session-stats {
+    justify-content: center;
+  }
+  
+  .suggestions-list {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .messages-container {
+    padding: 0.5rem;
+  }
+}
+
+/* Role-Play Details Panel Styles - REMOVED */
+/* Simplified interface without detailed role-play panel */
+
+/* Info Toggle Button */
+.info-toggle-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.info-toggle-btn i {
+  font-size: 0.7rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .instructions-list {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Responsive rules for role-play details panel removed */
+}
+
+/* Input Method Indicator */
+.input-method-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  margin-left: auto;
+}
+
+.message-student .input-method-indicator {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.message-tutor .input-method-indicator {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.input-method-indicator i {
+  font-size: 0.7rem;
+}
+
+/* Speaker Labels for Clear Conversation Flow */
+.speaker-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.message-student .speaker-label {
+  color: rgba(255, 255, 255, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+.message-tutor .speaker-label {
+  color: #1976d2;
+  border-bottom-color: rgba(25, 118, 210, 0.2);
+}
+
+.speaker-label i {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  padding: 0.25rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.message-student .speaker-label i {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.message-tutor .speaker-label i {
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+}
+
+.message-text {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* MAIN MESSAGE BUBBLE STYLES - COMPLETE TEXT DISPLAY */
+.message-bubble {
+  max-width: 90%; /* Increased to 90% for maximum space utilization */
+  width: auto; /* Allow natural width expansion */
+  min-width: 250px; /* Increased minimum width for better text display */
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  position: relative;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  line-height: 1.8; /* Increased line height for better readability */
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap; /* Preserve line breaks and spaces */
+  overflow-wrap: break-word;
+  hyphens: auto; /* Allow hyphenation for long words */
+  animation: messageAppear 0.4s ease-out;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  display: block;
+  box-sizing: border-box; /* Include padding in width calculation */
+  overflow: visible; /* Ensure no text is hidden */
+  text-overflow: clip; /* Don't use ellipsis that could hide text */
+}
+
+.message-bubble:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Student Message Bubbles */
+.message-student .message-bubble {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border-bottom-right-radius: 0.5rem;
+  margin-left: auto;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+}
+
+.message-student .message-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-top-color: #45a049;
+  border-left-color: #45a049;
+  border-bottom: none;
+  border-right: none;
+}
+
+/* AI Tutor Message Bubbles */
+.message-tutor .message-bubble {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  color: #2c3e50;
+  border: 2px solid #e3f2fd;
+  border-bottom-left-radius: 0.5rem;
+  margin-right: auto;
+  box-shadow: 0 4px 20px rgba(33, 150, 243, 0.15);
+}
+
+.message-tutor .message-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-top-color: #f8f9fa;
+  border-right-color: #f8f9fa;
+  border-bottom: none;
+  border-left: none;
+}
+
+/* Speech Recognition Visual Feedback */
+.speech-processing-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 1000;
+  animation: fadeInOut 0.3s ease;
+}
+
+@keyframes fadeInOut {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.speech-processing-indicator i {
+  font-size: 1.5rem;
+  animation: pulse 1s infinite;
+}
+
+/* Conversation Statistics in Header */
+.conversation-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+.conversation-stats .stat {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.conversation-stats i {
+  font-size: 0.8rem;
+}
+
+/* Legacy voice controls - removed for voice-only interface */
+
+/* Message Flow Improvements */
+.messages-list {
+  max-width: 1000px; /* Increased from 900px for more space */
+  margin: 0 auto;
+  padding: 1rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.message-wrapper {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.message-student {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-tutor {
+  justify-content: flex-start;
+}
+
+/* Avatar indicators for better conversation flow */
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border: 3px solid white;
+}
+
+.message-student .message-avatar {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.message-tutor .message-avatar {
+  background: linear-gradient(135deg, #2196F3 0%, #1976d2 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+/* Speech Feedback Styles */
+.speech-feedback {
+  margin-bottom: 1rem;
+}
+
+.speech-feedback .alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border: 1px solid #bbdefb;
+  color: #1565c0;
+  margin: 0;
+}
+
+.speech-feedback .alert i {
+  font-size: 1.25rem;
+  color: #1976d2;
+}
+
+.speech-feedback .alert strong {
+  margin-right: 0.5rem;
+}
+
+.speech-feedback .alert small {
+  display: block;
+  opacity: 0.8;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* Speech Captured Input Styling */
+.form-control.speech-captured {
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
+  border-color: #4caf50;
+  color: #2e7d32;
+  font-weight: 500;
+  animation: speechGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes speechGlow {
+  from {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+  }
+}
+
+/* Enhanced Message Display */
+.message-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-top: 0.25rem;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Conversation Flow Enhancements */
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+  position: relative;
+}
+
+/* Better Message Spacing and Layout - Enhanced for Full Text Display */
+.message-wrapper {
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  animation: messageSlideIn 0.5s ease-out;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  transition: background-color 0.3s ease;
+  width: 100%; /* Ensure full width */
+  max-width: 100%; /* No width constraints */
+  box-sizing: border-box;
+}
+
+.message-wrapper:hover {
+  background-color: rgba(0,0,0,0.02);
+}
+
+/* Student messages align to the right */
+.message-student {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+/* AI messages align to the left */
+.message-tutor {
+  justify-content: flex-start;
+  flex-direction: row;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced Input Method Indicators */
+.input-method-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  margin-left: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.message-student .input-method-indicator {
+  background: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.message-tutor .input-method-indicator {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.input-method-indicator i {
+  font-size: 0.65rem;
+}
+
+/* Speech Input Specific Styling */
+.input-method-indicator[title*="Spoken"] {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+
+.message-student .input-method-indicator[title*="Spoken"] {
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Message Text Styling - Enhanced for Complete Display */
+.message-text {
+  font-size: 1.1rem;
+  line-height: 1.8; /* Increased line height */
+  margin-top: 0.5rem;
+  font-weight: 500;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap; /* Preserve formatting */
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%; /* Ensure full width usage */
+  overflow: visible; /* Prevent any text hiding */
+  text-overflow: clip; /* No ellipsis */
+}
+
+/* Typing Animation for AI Messages - Fixed to not truncate text */
+.message-tutor .message-text {
+  /* Removed typewriter animation that was causing text truncation */
+  /* animation: typeWriter 0.8s steps(40, end); */
+  /* overflow: hidden; */
+  /* white-space: nowrap; */
+  /* border-right: 2px solid #1976d2; */
+  /* animation-fill-mode: forwards; */
+  
+  /* Instead, use a subtle fade-in animation that doesn't hide text */
+  animation: fadeInText 0.6s ease-out;
+  overflow: visible;
+  white-space: pre-wrap; /* Allow text wrapping */
+  border-right: none;
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Removed typewriter animation that was causing text truncation */
+
+/* Message Status Indicators */
+.message-status {
+  position: absolute;
+  bottom: -20px;
+  right: 10px;
+  font-size: 0.7rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.message-student .message-status {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Enhanced Input Method Badges */
+.input-method-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #495057;
+  padding: 0.3rem 0.6rem;
+  border-radius: 1rem;
+  margin-left: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.message-student .input-method-indicator {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2e7d32;
+}
+
+.message-tutor .input-method-indicator {
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+  border-color: rgba(25, 118, 210, 0.2);
+}
+
+/* Speech Input Special Styling */
+.input-method-indicator[title*="Spoken"] {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border-color: #4CAF50;
+  animation: speechPulse 2s ease-in-out infinite;
+}
+
+@keyframes speechPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Message Timestamp Enhancement */
+.message-timestamp {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin-top: 0.75rem;
+  text-align: right;
+  font-style: italic;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.message-student .message-timestamp {
+  border-top-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Conversation Flow Indicators */
+.conversation-indicator {
+  text-align: center;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.conversation-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #ddd, transparent);
+}
+
+.conversation-indicator span {
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+  position: relative;
+  z-index: 1;
+}
+
+/* Enhanced Exercise Display */
+.exercise-content {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-radius: 1rem;
+  border-left: 5px solid #2196F3;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+}
+
+.exercise-question {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.option-item {
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  background: white;
+  border-radius: 0.75rem;
+  border-left: 4px solid #2196F3;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.option-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+}
+
+/* Enhanced Feedback Display */
+.feedback-content {
+  margin-top: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.feedback-result.correct {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+}
+
+.feedback-result.incorrect {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+}
+
+/* Role-Play Mode Enhancements */
+.roleplay-mode .message-student .speaker-label::before {
+  content: '🎭 ';
+  margin-right: 0.5rem;
+}
+
+.roleplay-mode .message-tutor .speaker-label::before {
+  content: '🤖 ';
+  margin-right: 0.5rem;
+}
+
+/* Responsive Enhancements - Improved Text Display */
+@media (max-width: 768px) {
+  .message-bubble {
+    max-width: 95%; /* Increased for mobile */
+    min-width: 180px; /* Adjusted for mobile */
+    padding: 1.25rem;
+    font-size: 1rem;
+  }
+  
+  .message-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+  
+  .speaker-label {
+    font-size: 0.85rem;
+  }
+  
+  .message-text {
+    font-size: 1rem;
+    line-height: 1.7; /* Maintain good readability */
+  }
+  
+  .messages-list {
+    max-width: 100%; /* Full width on mobile */
+    padding: 0.5rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-bubble {
+    max-width: 98%; /* Almost full width on small screens */
+    min-width: 150px;
+    padding: 1rem;
+  }
+  
+  .messages-container {
+    padding: 1rem 0.25rem; /* Reduced padding for more space */
+  }
+  
+  .message-wrapper {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.25rem; /* Reduced padding */
+  }
+  
+  .messages-list {
+    padding: 0.25rem 0;
+  }
+}
+
+/* Transcript Controls Styling */
+.transcript-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.transcript-controls .btn-group {
+  display: flex;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.transcript-controls .btn {
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.transcript-controls .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.transcript-controls .btn-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.transcript-controls .btn-secondary {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.transcript-controls .dropdown-menu {
+  border: none;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0;
+  min-width: 280px;
+  background: white;
+  backdrop-filter: blur(10px);
+}
+
+.transcript-controls .dropdown-header {
+  color: #495057;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 0.5rem;
+}
+
+.transcript-controls .dropdown-item {
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.transcript-controls .dropdown-item:hover {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  color: #495057;
+  transform: translateX(3px);
+}
+
+.transcript-controls .dropdown-item.active {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+}
+
+.transcript-controls .dropdown-item.active:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  color: white;
+}
+
+.transcript-controls .dropdown-item i {
+  font-size: 1rem;
+  width: 16px;
+  text-align: center;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.transcript-controls .dropdown-item small {
+  display: block;
+  margin-top: 0.25rem;
+  opacity: 0.8;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.transcript-controls .dropdown-divider {
+  margin: 0.5rem 0;
+  border-color: #e9ecef;
+}
+
+.transcript-controls .dropdown-item-text {
+  padding: 0.5rem 1rem;
+}
+
+.transcript-controls .dropdown-item-text small {
+  color: #6c757d;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Voice-Only Mode Placeholder */
+.voice-only-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.placeholder-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 2rem;
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  border: 2px solid #e3f2fd;
+}
+
+.voice-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+  animation: voicePulse 2s ease-in-out infinite;
+}
+
+@keyframes voicePulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
+  }
+}
+
+.placeholder-content h3 {
+  color: #495057;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.placeholder-content p {
+  color: #6c757d;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.voice-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 1rem;
+  border-left: 4px solid #667eea;
+}
+
+.voice-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.voice-stat i {
+  width: 20px;
+  text-align: center;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.placeholder-content small {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Minimal Mode Styling */
+.messages-container.minimal-mode .message-avatar {
+  display: none;
+}
+
+.messages-container.minimal-mode .message-wrapper {
+  gap: 0;
+  margin-bottom: 1rem;
+}
+
+.messages-container.minimal-mode .message-bubble {
+  max-width: 100%;
+  margin: 0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.messages-container.minimal-mode .message-bubble.minimal-bubble {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid #e9ecef;
+}
+
+.messages-container.minimal-mode .speaker-label {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.messages-container.minimal-mode .message-header {
+  display: none;
+}
+
+.messages-container.minimal-mode .input-method-indicator {
+  font-size: 0.6rem;
+  padding: 0.15rem 0.4rem;
+}
+
+/* Responsive Design for Transcript Controls */
+@media (max-width: 768px) {
+  .transcript-controls .btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .transcript-controls .dropdown-menu {
+    min-width: 250px;
+  }
+  
+  .voice-only-placeholder {
+    min-height: 300px;
+    padding: 1rem;
+  }
+  
+  .placeholder-content {
+    padding: 1.5rem;
+  }
+  
+  .voice-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .placeholder-content h3 {
+    font-size: 1.25rem;
+  }
+  
+  .placeholder-content p {
+    font-size: 1rem;
+  }
+  
+  .voice-stats {
+    padding: 1rem;
+  }
+  
+  .voice-stat {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transcript-controls {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: stretch;
+  }
+  
+  .transcript-controls .btn-group {
+    width: 100%;
+  }
+  
+  .transcript-controls .btn {
+    justify-content: center;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.6rem;
+  }
+  
+  .voice-only-placeholder {
+    min-height: 250px;
+    padding: 0.5rem;
+  }
+  
+  .placeholder-content {
+    padding: 1rem;
+  }
+  
+  .voice-stats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+/* Header Actions Responsive Layout */
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+  
+  .header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Enhanced Dropdown Animation */
+.transcript-controls .dropdown-menu {
+  animation: dropdownSlide 0.3s ease-out;
+  transform-origin: top;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Focus States for Accessibility */
+.transcript-controls .btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.transcript-controls .dropdown-item:focus {
+  background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+  outline: none;
+}
+
+/* Loading State for Transcript Toggle */
+.transcript-controls .btn.loading {
+  position: relative;
+  color: transparent;
+}
+
+.transcript-controls .btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+/* Session Completed Microphone State */
+.mic-button.session-completed {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  box-shadow: 0 4px 20px rgba(108, 117, 125, 0.3);
+  border: 2px solid #ffc107;
+}
+
+.mic-button.session-completed:hover:not(.disabled) {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 25px rgba(108, 117, 125, 0.4);
+}
+
+.mic-button.session-completed + .mic-status-text {
+  color: #6c757d;
+  font-weight: 600;
+}
+
+/* Completion Status Indicator */
+.session-completion-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  animation: completionPulse 2s ease-in-out infinite;
+}
+
+@keyframes completionPulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Auto-Mic Disabled Notification */
+.auto-mic-disabled-notice {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  animation: fadeInNotice 0.3s ease-out forwards;
+}
+
+@keyframes fadeInNotice {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.auto-mic-disabled-notice::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive adjustments for completion states */
+@media (max-width: 768px) {
+  .session-completion-indicator {
+    width: 20px;
+    height: 20px;
+    font-size: 0.6rem;
+    top: -6px;
+    right: -6px;
+  }
+  
+  .auto-mic-disabled-notice {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* Test Mode Indicator */
+.test-mode-indicator {
+  margin: 1rem 0;
+}
+
+.test-mode-indicator .alert {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border: 2px solid #2196f3;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 0;
+  color: #1565c0;
+  font-size: 0.9rem;
+}
+
+.test-mode-indicator .alert i {
+  color: #2196f3;
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.test-mode-indicator .alert small {
+  color: #1976d2;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}

@@ -1,0 +1,262 @@
+<!-- src/app/components/audio-test/audio-test.component.html -->
+
+<div class="audio-test-container">
+  <!-- Header -->
+  <div class="test-header">
+    <div class="header-content">
+      <h1><i class="fas fa-microphone-alt"></i> Audio Setup Test</h1>
+      <p>Test your microphone and speakers to ensure the best voice learning experience</p>
+      
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+        </div>
+        <span class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Language Selection -->
+  <div class="language-selection" *ngIf="currentStep === 1">
+    <h3><i class="fas fa-globe"></i> Select Test Language</h3>
+    <div class="language-options">
+      <label *ngFor="let lang of availableLanguages" class="language-option">
+        <input 
+          type="radio" 
+          [value]="lang.code" 
+          [(ngModel)]="selectedLanguage"
+          (change)="updateTestPhrase()">
+        <span class="language-label">
+          <strong>{{ lang.name }}</strong>
+          <small>{{ lang.testPhrase }}</small>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Test Steps -->
+  <div class="test-steps">
+    
+    <!-- Step 1: Speaker Test -->
+    <div class="test-step" [class.active]="currentStep === 1" [class.completed]="speakerTestPassed">
+      <div class="step-header">
+        <div class="step-number">
+          <i class="fas fa-volume-up" *ngIf="!speakerTestPassed"></i>
+          <i class="fas fa-check" *ngIf="speakerTestPassed"></i>
+        </div>
+        <div class="step-info">
+          <h3>Speaker Test</h3>
+          <p>Test if you can hear audio from your speakers or headphones</p>
+        </div>
+      </div>
+      
+      <div class="step-content" *ngIf="currentStep === 1">
+        <div class="test-actions">
+          <button 
+            class="btn btn-primary btn-lg"
+            (click)="testSpeakers()"
+            [disabled]="isSpeaking">
+            <i class="fas fa-play" *ngIf="!isSpeaking"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="isSpeaking"></i>
+            {{ isSpeaking ? 'Playing Audio...' : 'Test Speakers' }}
+          </button>
+        </div>
+        
+        <div class="confirmation-buttons" *ngIf="!speakerTestPassed">
+          <p><strong>Did you hear the test message clearly?</strong></p>
+          <div class="button-group">
+            <button class="btn btn-success" (click)="confirmSpeakerTest(true)">
+              <i class="fas fa-thumbs-up"></i> Yes, I heard it clearly
+            </button>
+            <button class="btn btn-warning" (click)="confirmSpeakerTest(false)">
+              <i class="fas fa-thumbs-down"></i> No, I didn't hear it
+            </button>
+          </div>
+          
+          <div class="skip-option" *ngIf="isSpeaking">
+            <p><small>Audio still playing? You can still respond above, or:</small></p>
+            <button class="btn btn-outline-secondary btn-sm" (click)="skipSpeakerTest()">
+              <i class="fas fa-forward"></i> Skip Audio Test
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Microphone Permissions -->
+    <div class="test-step" [class.active]="currentStep === 2" [class.completed]="microphoneTestPassed">
+      <div class="step-header">
+        <div class="step-number">
+          <i class="fas fa-microphone" *ngIf="!microphoneTestPassed"></i>
+          <i class="fas fa-check" *ngIf="microphoneTestPassed"></i>
+        </div>
+        <div class="step-info">
+          <h3>Microphone Permissions</h3>
+          <p>Grant permission for the website to access your microphone</p>
+        </div>
+      </div>
+      
+      <div class="step-content" *ngIf="currentStep === 2">
+        <div class="test-actions">
+          <button 
+            class="btn btn-primary btn-lg"
+            (click)="testMicrophonePermissions()"
+            [disabled]="microphoneTestPassed">
+            <i class="fas fa-microphone"></i>
+            {{ microphoneTestPassed ? 'Permission Granted' : 'Grant Microphone Permission' }}
+          </button>
+        </div>
+        
+        <div class="permission-help" *ngIf="!microphoneTestPassed">
+          <div class="help-box">
+            <h4><i class="fas fa-info-circle"></i> How to grant permission:</h4>
+            <ol>
+              <li>Click the "Grant Microphone Permission" button</li>
+              <li>Your browser will show a permission dialog</li>
+              <li>Click "Allow" to grant microphone access</li>
+              <li>If blocked, click the microphone icon in your address bar</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Speech Recognition Test -->
+    <div class="test-step" [class.active]="currentStep === 3" [class.completed]="speechRecognitionTestPassed">
+      <div class="step-header">
+        <div class="step-number">
+          <i class="fas fa-comments" *ngIf="!speechRecognitionTestPassed"></i>
+          <i class="fas fa-check" *ngIf="speechRecognitionTestPassed"></i>
+        </div>
+        <div class="step-info">
+          <h3>Speech Recognition Test</h3>
+          <p>Test if the system can understand your voice clearly</p>
+        </div>
+      </div>
+      
+      <div class="step-content" *ngIf="currentStep === 3">
+        <div class="speech-test-area">
+          <div class="test-phrase">
+            <h4>Please say this phrase clearly:</h4>
+            <div class="phrase-box">
+              "{{ testPhrase }}"
+            </div>
+          </div>
+          
+          <div class="test-actions">
+            <button 
+              class="btn btn-primary btn-lg"
+              (click)="testSpeechRecognition()"
+              [disabled]="isListening || isProcessing">
+              <i class="fas fa-microphone" *ngIf="!isListening && !isProcessing"></i>
+              <i class="fas fa-microphone microphone-active" *ngIf="isListening"></i>
+              <i class="fas fa-spinner fa-spin" *ngIf="isProcessing"></i>
+              {{ isListening ? 'Listening...' : isProcessing ? 'Processing...' : 'Start Speech Test' }}
+            </button>
+          </div>
+          
+          <div class="captured-speech" *ngIf="capturedSpeech">
+            <h4>What I heard:</h4>
+            <div class="speech-result">
+              "{{ capturedSpeech }}"
+            </div>
+          </div>
+          
+          <!-- Speech Recognition Fallback Options -->
+          <div class="speech-fallback" *ngIf="currentStep === 3 && !speechRecognitionTestPassed && !isListening && !isProcessing">
+            <div class="fallback-section">
+              <h4>Having trouble with speech recognition?</h4>
+              <p>Try these options:</p>
+              
+              <div class="fallback-buttons">
+                <button class="btn btn-primary" (click)="retrySpeechRecognition()">
+                  <i class="fas fa-redo"></i> Try Again
+                </button>
+                
+                <button class="btn btn-success" (click)="confirmSpeechRecognition(true)">
+                  <i class="fas fa-thumbs-up"></i> It's Working
+                </button>
+                
+                <button class="btn btn-warning" (click)="confirmSpeechRecognition(false)">
+                  <i class="fas fa-thumbs-down"></i> Not Working
+                </button>
+                
+                <button class="btn btn-outline-secondary" (click)="skipSpeechRecognition()">
+                  <i class="fas fa-forward"></i> Skip Test
+                </button>
+              </div>
+              
+              <div class="help-text">
+                <small>
+                  <strong>Tips:</strong> Speak clearly, ensure microphone permissions are granted, 
+                  try a different browser, or check if another app is using your microphone.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: All Tests Complete -->
+    <div class="test-step" [class.active]="currentStep === 4" [class.completed]="allTestsPassed">
+      <div class="step-header">
+        <div class="step-number">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="step-info">
+          <h3>Setup Complete!</h3>
+          <p>Your audio setup is working perfectly</p>
+        </div>
+      </div>
+      
+      <div class="step-content" *ngIf="currentStep === 4">
+        <div class="success-message">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>🎉 Excellent! Your audio setup is ready!</h3>
+          <p>You can now enjoy voice-enabled language learning with confidence.</p>
+          
+          <div class="final-actions">
+            <button class="btn btn-success btn-lg" (click)="goToLearningModules()">
+              <i class="fas fa-graduation-cap"></i>
+              Start Learning
+            </button>
+            <button class="btn btn-outline-secondary" (click)="resetTests()">
+              <i class="fas fa-redo"></i>
+              Test Again
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Log -->
+  <div class="test-log" *ngIf="testMessages.length > 0">
+    <h4><i class="fas fa-list"></i> Test Log</h4>
+    <div class="log-messages">
+      <div *ngFor="let message of testMessages" class="log-message">
+        {{ message }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="navigation-actions">
+    <button class="btn btn-outline-secondary" (click)="goToDashboard()">
+      <i class="fas fa-arrow-left"></i>
+      Back to Dashboard
+    </button>
+    
+    <button 
+      class="btn btn-outline-danger" 
+      (click)="resetTests()"
+      *ngIf="currentStep > 1">
+      <i class="fas fa-redo"></i>
+      Reset Tests
+    </button>
+  </div>
+</div>

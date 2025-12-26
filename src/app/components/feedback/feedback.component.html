@@ -1,0 +1,34 @@
+<div class="feedback-container">
+
+  <div *ngIf="loading">Loading feedback...</div>
+  <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <table *ngIf="feedbackList.length > 0">
+    <thead>
+      <tr>
+        <th>Reg. No</th>
+        <th>Student Name</th>
+        <th>Batch</th>
+        <th>Plan</th>
+        <th>Feedback</th>
+        <th>Rating</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let fb of feedbackList">
+        <td data-label="Reg. No">{{ fb.studentId?.regNo || 'N/A' }}</td>
+        <td data-label="Student Name">{{ fb.studentId?.name }}</td>
+        <td data-label="Batch">{{ fb.studentId?.batch }}</td>
+        <td data-label="Plan">{{ fb.studentId?.subscription }}</td>
+        <td data-label="Feedback">{{ fb.feedback }}</td>
+        <td data-label="Rating">
+          <span *ngFor="let star of [1,2,3,4,5]">
+            <span [class.filled]="star <= fb.rating">&#9733;</span>
+          </span>
+        </td>
+        <td data-label="Date">{{ fb.createdAt | date:'short' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

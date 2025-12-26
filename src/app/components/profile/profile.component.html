@@ -1,0 +1,56 @@
+<div class="profile-wrapper" *ngIf="userProfile; else loading">
+  <div class="profile-card shadow">
+    <div class="profile-header">
+      <img
+        *ngIf="userProfile.profilePhoto; else defaultPhoto"
+        [src]="userProfile.profilePhoto"
+        alt="Profile Picture"
+        class="profile-pic"
+      />
+      <ng-template #defaultPhoto>
+        <img
+          src="https://via.placeholder.com/150"
+          alt="Profile Picture"
+          class="profile-pic"
+        />
+      </ng-template>
+      <h2>{{ userProfile.name }}</h2>
+      <p class="role-tag">{{ userProfile.role }}</p>
+    </div>
+
+    <div class="profile-info">
+      <p>{{ userProfile.regNo }}</p>
+      <p>{{ userProfile.email }}</p>
+      <p *ngIf="userProfile.role === 'STUDENT'">
+        <strong>Subscription Plan:</strong> {{ userProfile.subscription }}
+      </p>
+      <p *ngIf="userProfile.role === 'STUDENT' && userProfile.subscription === 'PLATINUM'">
+        <strong>BOT Conversation ID:</strong> {{ userProfile.conversationId }}
+      </p>
+      <p *ngIf="userProfile.role === 'STUDENT'">
+        <strong>Teacher Name:</strong> {{ userProfile.assignedTeacher?.name }}
+      </p>
+    </div>
+
+    <form (submit)="uploadPhoto($event)" class="upload-form">
+      <label class="file-upload">
+        <input type="file" (change)="onFileSelected($event)" accept="image/*" />
+        Choose Photo
+      </label>
+      <button class="upload" type="submit" [disabled]="uploading">Upload Photo</button>
+      <div class="actions" *ngIf="userProfile.role === 'ADMIN'">
+        <button class="btn btn-danger" (click)="deleteAccount(userProfile._id)">
+          Delete Account
+        </button>
+      </div>
+    </form>
+    <div *ngIf="uploadError" class="text-danger mt-2">{{ uploadError }}</div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Loading user profile...</p>
+  </div>
+</ng-template>

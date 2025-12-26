@@ -1,0 +1,17 @@
+<!-- student.card.component.html -->
+
+<p>student-card works!</p>
+
+<mat-card class="student-card">
+  <mat-card-header>
+    <div mat-card-avatar class="avatar" [style.background-image]="'url(' + student.photo + ')'"></div>
+    <mat-card-title>{{ student.name }}</mat-card-title>
+    <mat-card-subtitle>{{ student.email }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p><strong>Fluency:</strong> {{ student.averageFluency }} / 10</p>
+    <p><strong>Grammar:</strong> {{ student.averageGrammar }} / 10</p>
+    <mat-progress-bar mode="determinate" [value]="student.progress"></mat-progress-bar>
+  </mat-card-content>
+</mat-card>

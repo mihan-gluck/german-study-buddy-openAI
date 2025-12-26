@@ -1,0 +1,260 @@
+/* ====== Outer container ====== */
+.container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  background-color: #f5f5f5;
+  box-sizing: border-box;
+}
+
+/* ====== Card ====== */
+.card {
+  width: 100%;
+  max-width: 600px;
+  padding: 30px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ====== Headings ====== */
+h2 {
+  text-align: center;
+  color: black;
+  margin-bottom: 25px;
+  font-size: 2rem;
+}
+
+/* ====== Form styling ====== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Labels */
+label.form-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Inputs & Selects */
+input.form-control,
+select.form-select,
+input[type="date"],
+input[type="time"] {
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input.form-control:focus,
+select.form-select:focus,
+input[type="date"]:focus,
+input[type="time"]:focus {
+  border-color: #000e89;
+  box-shadow: 0 0 5px rgba(0,14,137,0.3);
+  outline: none;
+}
+
+/* ====== Time Slot row ====== */
+.d-flex.mb-2 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap; /* allows wrapping on small screens */
+}
+
+.d-flex.mb-2 input {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* ====== Buttons ====== */
+button {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+/* Add Slot button */
+.btn-outline-primary {
+  border-radius: 6px;
+  font-size: 13px;
+  padding: 5px 10px;
+  flex-shrink: 0;
+}
+
+/* Remove Slot button */
+.btn-danger {
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Submit Button */
+.btn-primary.w-100 {
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  background-color: #000e89;
+  border: none;
+  color: white;
+  width: 100%;
+}
+
+.btn-primary.w-100:hover {
+  background-color: #000070;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 6px;
+  padding: 10px 15px;
+  font-size: 14px;
+}
+
+/* Success and error messages */
+.alert-success {
+  background-color: #e6f4ea;
+  color: #2e7d32;
+}
+
+.alert-danger {
+  background-color: #fce8e6;
+  color: #c62828;
+}
+
+/* Day label and button row */
+.mb-3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.mb-3 .form-label {
+  font-weight: 600;
+  margin-right: 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.mb-3 .btn-outline-primary {
+  font-size: 14px;
+  padding: 4px 10px;
+  transition: all 0.2s ease-in-out;
+}
+
+.mb-3 .btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Remove button adjustments */
+.d-flex.mb-2 .btn-danger:hover {
+  background-color: #dc3545;
+  transform: scale(1.05);
+}
+
+/* Fix alignment when start, end, status, and delete button are in the same row */
+.d-flex.mb-2 > * {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Delete button should not stretch */
+.d-flex.mb-2 .btn-danger {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+}
+
+/* ====== Responsive Adjustments ====== */
+@media (max-width: 768px) {
+  .container {
+    align-items: flex-start !important;
+    padding-bottom: 200px; /* extra safe space */
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  input.form-control,
+  select.form-select,
+  input[type="date"],
+  input[type="time"] {
+    font-size: 13px;
+  }
+
+  .btn-outline-primary,
+  .btn-danger,
+  .btn-primary.w-100 {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .d-flex.mb-2 {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 15px;
+  }
+
+  .container {
+    padding-bottom: 200px;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  .d-flex.mb-2 {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .d-flex.mb-2 input {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .btn-outline-primary,
+  .btn-danger,
+  .btn-primary.w-100 {
+    width: 100%;
+  }
+
+  .mb-3 {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mb-3 .btn-outline-primary {
+    margin-top: 5px;
+    width: 100%;
+    text-align: center;
+  }
+}
