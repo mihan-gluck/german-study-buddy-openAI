@@ -2,8 +2,9 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LevelAccessService } from './level-access.service';
 
 export interface LearningModule {
   _id?: string;
@@ -64,6 +65,8 @@ export interface ModuleFilters {
   search?: string;
   page?: number;
   limit?: number;
+  accessibleOnly?: boolean; // New: Filter only accessible modules for student
+  studentLevel?: string;    // New: Student's current level for access control
 }
 
 @Injectable({
@@ -72,7 +75,10 @@ export interface ModuleFilters {
 export class LearningModulesService {
   private apiUrl = `${environment.apiUrl}/learning-modules`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private levelAccessService: LevelAccessService
+  ) {}
 
   // Get all modules with filtering
   getModules(filters: ModuleFilters = {}): Observable<any> {
@@ -199,5 +205,92 @@ export class LearningModulesService {
     return this.http.post(`${this.apiUrl}/${moduleId}/progress`, progressData, { 
       withCredentials: true 
     });
+  }
+
+  // ===== LEVEL-BASED ACCESS CONTROL METHODS =====
+
+  // Get modules accessible to a student based on their level
+  getAccessibleModules(studentLevel: string, filters: ModuleFilters = {}): Observable<any> {
+    // Add student level to filters for backend processing
+    const accessFilters = {
+      ...filters,
+      studentLevel,
+      accessibleOnly: true
+    };
+
+    return this.getModules(accessFilters).pipe(
+      map(response => {
+        // Add access information to each module
+        if (response.modules) {
+          response.modules = response.modules.map((module: LearningModule) => ({
+            ...module,
+            accessInfo: this.levelAccessService.getModuleAccessStatus(studentLevel, module.level)
+          }));
+        }
+        return response;
+      })
+    );
+  }
+
+  // Check if student can access a specific module
+  canStudentAccessModule(studentLevel: string, moduleLevel: string): boolean {
+    return this.levelAccessService.canAccessModule(studentLevel, moduleLevel);
+  }
+
+  // Get module access status for display
+  getModuleAccessStatus(studentLevel: string, moduleLevel: string) {
+    return this.levelAccessService.getModuleAccessStatus(studentLevel, moduleLevel);
+  }
+
+  // Get accessible levels for a student
+  getAccessibleLevels(studentLevel: string): string[] {
+    return this.levelAccessService.getAccessibleLevels(studentLevel);
+  }
+
+  // Get recommended modules for a student
+  getRecommendedModules(studentLevel: string, filters: ModuleFilters = {}): Observable<any> {
+    const recommendedLevels = this.levelAccessService.getRecommendedLevels(studentLevel);
+    
+    // Filter by recommended levels
+    const recommendedFilters = {
+      ...filters,
+      studentLevel,
+      recommendedOnly: true
+    };
+
+    return this.getModules(recommendedFilters).pipe(
+      map(response => {
+        if (response.modules) {
+          response.modules = response.modules
+            .filter((module: LearningModule) => recommendedLevels.includes(module.level))
+            .map((module: LearningModule) => ({
+              ...module,
+              accessInfo: this.levelAccessService.getModuleAccessStatus(studentLevel, module.level),
+              isRecommended: true
+            }));
+        }
+        return response;
+      })
+    );
+  }
+
+  // Get level progression information
+  getLevelProgression(currentLevel: string) {
+    return this.levelAccessService.getLevelProgression(currentLevel);
+  }
+
+  // Format level for display
+  formatLevel(levelCode: string): string {
+    return this.levelAccessService.formatLevel(levelCode);
+  }
+
+  // Get level color for UI
+  getLevelColor(levelCode: string): string {
+    return this.levelAccessService.getLevelColor(levelCode);
+  }
+
+  // Get access icon
+  getAccessIcon(canAccess: boolean): string {
+    return this.levelAccessService.getAccessIcon(canAccess);
   }
 }

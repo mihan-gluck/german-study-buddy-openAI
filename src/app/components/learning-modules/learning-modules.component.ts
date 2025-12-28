@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { LearningModulesService, LearningModule, ModuleFilters } from '../../services/learning-modules.service';
 import { AuthService } from '../../services/auth.service';
 import { SubscriptionGuardService, SubscriptionStatus } from '../../services/subscription-guard.service';
+import { LevelAccessService } from '../../services/level-access.service';
 
 @Component({
   selector: 'app-learning-modules',
@@ -54,6 +55,7 @@ export class LearningModulesComponent implements OnInit {
     private learningModulesService: LearningModulesService,
     private authService: AuthService,
     private subscriptionGuard: SubscriptionGuardService,
+    private levelAccessService: LevelAccessService,
     private router: Router
   ) {}
 
@@ -89,19 +91,39 @@ export class LearningModulesComponent implements OnInit {
   loadModules(): void {
     this.isLoading = true;
     
-    this.learningModulesService.getModules(this.filters).subscribe({
-      next: (response) => {
-        this.modules = response.modules;
-        this.filteredModules = response.modules;
-        this.pagination = response.pagination;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading modules:', error);
-        this.isLoading = false;
-        alert('Failed to load learning modules');
-      }
-    });
+    // For students, use level-based access control
+    if (this.currentUser?.role === 'STUDENT') {
+      this.learningModulesService.getAccessibleModules(this.currentUser.level, this.filters).subscribe({
+        next: (response) => {
+          this.modules = response.modules;
+          this.filteredModules = response.modules;
+          this.pagination = response.pagination;
+          this.isLoading = false;
+          
+          console.log(`🔒 Loaded ${response.modules.length} accessible modules for ${this.currentUser.level} level student`);
+        },
+        error: (error) => {
+          console.error('Error loading accessible modules:', error);
+          this.isLoading = false;
+          alert('Failed to load learning modules');
+        }
+      });
+    } else {
+      // For teachers and admins, load all modules
+      this.learningModulesService.getModules(this.filters).subscribe({
+        next: (response) => {
+          this.modules = response.modules;
+          this.filteredModules = response.modules;
+          this.pagination = response.pagination;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error loading modules:', error);
+          this.isLoading = false;
+          alert('Failed to load learning modules');
+        }
+      });
+    }
   }
 
   applyFilters(): void {
@@ -248,17 +270,7 @@ export class LearningModulesComponent implements OnInit {
     }
   }
 
-  getLevelColor(level: string): string {
-    switch (level) {
-      case 'A1': return 'success';
-      case 'A2': return 'info';
-      case 'B1': return 'warning';
-      case 'B2': return 'primary';
-      case 'C1': return 'secondary';
-      case 'C2': return 'dark';
-      default: return 'light';
-    }
-  }
+
 
   getCategoryIcon(category: string): string {
     switch (category) {
@@ -418,5 +430,91 @@ export class LearningModulesComponent implements OnInit {
     }
     
     return pages;
+  }
+
+  // ===== LEVEL-BASED ACCESS CONTROL METHODS =====
+
+  // Check if student can access a module
+  canAccessModule(module: LearningModule): boolean {
+    if (!this.currentUser || this.currentUser.role !== 'STUDENT') {
+      return true; // Teachers and admins can access all modules
+    }
+    
+    return this.levelAccessService.canAccessModule(this.currentUser.level, module.level);
+  }
+
+  // Get access status for a module
+  getModuleAccessStatus(module: LearningModule) {
+    if (!this.currentUser || this.currentUser.role !== 'STUDENT') {
+      return { canAccess: true, reason: 'Full access', levelDifference: 0 };
+    }
+    
+    return this.levelAccessService.getModuleAccessStatus(this.currentUser.level, module.level);
+  }
+
+  // Get level color for display
+  getLevelColor(levelCode: string): string {
+    return this.levelAccessService.getLevelColor(levelCode);
+  }
+
+  // Format level for display
+  formatLevel(levelCode: string): string {
+    return this.levelAccessService.formatLevel(levelCode);
+  }
+
+  // Get access icon
+  getAccessIcon(canAccess: boolean): string {
+    return this.levelAccessService.getAccessIcon(canAccess);
+  }
+
+  // Get student's current level info
+  getCurrentLevelInfo() {
+    if (!this.currentUser || this.currentUser.role !== 'STUDENT') {
+      return null;
+    }
+    
+    return this.levelAccessService.getLevelInfo(this.currentUser.level);
+  }
+
+  // Get level progression for student
+  getLevelProgression() {
+    if (!this.currentUser || this.currentUser.role !== 'STUDENT') {
+      return null;
+    }
+    
+    return this.levelAccessService.getLevelProgression(this.currentUser.level);
+  }
+
+  // Check if module is recommended for student
+  isRecommendedModule(module: LearningModule): boolean {
+    if (!this.currentUser || this.currentUser.role !== 'STUDENT') {
+      return false;
+    }
+    
+    const recommendedLevels = this.levelAccessService.getRecommendedLevels(this.currentUser.level);
+    return recommendedLevels.includes(module.level);
+  }
+
+  // Load only recommended modules
+  loadRecommendedModules(): void {
+    if (!this.currentUser || this.currentUser.role !== 'STUDENT') {
+      return;
+    }
+    
+    this.isLoading = true;
+    this.learningModulesService.getRecommendedModules(this.currentUser.level, this.filters).subscribe({
+      next: (response) => {
+        this.modules = response.modules;
+        this.filteredModules = response.modules;
+        this.pagination = response.pagination;
+        this.isLoading = false;
+        
+        console.log(`⭐ Loaded ${response.modules.length} recommended modules for ${this.currentUser.level} level student`);
+      },
+      error: (error) => {
+        console.error('Error loading recommended modules:', error);
+        this.isLoading = false;
+      }
+    });
   }
 }

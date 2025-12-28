@@ -100,12 +100,12 @@
           <h3>Weekly Activity</h3>
           <div class="activity-chart">
             <div class="chart-item" *ngFor="let dayData of getWeeklyActivityData()">
-              <div class="day-label">{{ dayData.day.substring(0, 3) }}</div>
+              <div class="day-label">{{ dayData.dayShort }}</div>
               <div class="activity-bar">
                 <div 
                   class="bar sessions"
-                  [style.height.px]="dayData.sessions * 20"
-                  [title]="dayData.sessions + ' sessions'">
+                  [style.height.px]="Math.max(dayData.sessions * 15, 2)"
+                  [title]="dayData.sessions + ' sessions on ' + dayData.day">
                 </div>
               </div>
               <div class="session-count">{{ dayData.sessions }}</div>

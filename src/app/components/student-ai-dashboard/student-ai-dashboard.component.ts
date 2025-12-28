@@ -19,6 +19,9 @@ export class StudentAiDashboardComponent implements OnInit {
   recentModules: any[] = [];
   isLoading: boolean = true;
   
+  // Make Math available in template
+  Math = Math;
+  
   constructor(
     private studentProgressService: StudentProgressService,
     private learningModulesService: LearningModulesService,
@@ -85,11 +88,19 @@ export class StudentAiDashboardComponent implements OnInit {
   getWeeklyActivityData(): any[] {
     if (!this.analytics?.weeklyActivity) return [];
     
-    return Object.entries(this.analytics.weeklyActivity).map(([day, data]: [string, any]) => ({
-      day,
-      sessions: data.sessions,
-      timeSpent: data.timeSpent
-    }));
+    // Define days in proper order (starting from Monday for better UX)
+    const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    // Create array with proper day order and ensure all days are present
+    return daysOrder.map(day => {
+      const dayData = this.analytics.weeklyActivity[day] || { sessions: 0, timeSpent: 0 };
+      return {
+        day: day,
+        dayShort: day.substring(0, 3), // Mon, Tue, Wed, etc.
+        sessions: dayData.sessions || 0,
+        timeSpent: dayData.timeSpent || 0
+      };
+    });
   }
 
   getLevelProgressData(): any[] {

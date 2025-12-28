@@ -31,7 +31,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   module: any = null;
   sessionId: string = '';
   sessionType: string = 'practice';
-  isTeacherTestMode: boolean = false; // New: Track if this is a teacher testing session
+  sessionActive: boolean = false;
+  sessionStartTime: Date | null = null;
+  isTeacherTestMode: boolean = false; // Track if this is a teacher testing session
   
   // Auto-refresh mechanism
   private autoRefreshInterval: any;
@@ -43,7 +45,6 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   currentMessage: string = '';
   isLoading: boolean = false;
   isSending: boolean = false;
-  sessionActive: boolean = false;
   
   suggestions: string[] = [];
   currentExercise: any = null;
@@ -290,6 +291,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         console.log('✅ Session creation response:', response);
         this.sessionId = response.sessionId;
         this.sessionActive = true;
+        this.sessionStartTime = new Date(); // Track when session started
         this.suggestions = response.suggestions || [];
         
         console.log('✅ New session started:', this.sessionId, this.isTeacherTestMode ? '(Teacher Test Mode)' : '');
@@ -441,12 +443,14 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
           console.log('🤖 AI Response:', response.response.content);
           console.log('📊 Messages count after AI response - Local:', this.localMessages.length, 'Component:', this.messages.length);
           
-          // Check if role-play session is complete
-          if (response.response.metadata?.sessionState === 'completed' || 
-              response.response.metadata?.sessionEnded === true) {
-            // Session completed - mark module as completed
-            console.log('🎭 Role-play session completed - marking module as completed');
+          // Check if role-play session is naturally completed (not manually stopped)
+          if (response.response.metadata?.sessionState === 'completed') {
+            // Session naturally completed - mark module as completed
+            console.log('🎭 Role-play session naturally completed - marking module as completed');
             this.markModuleAsCompleted();
+          } else if (response.response.metadata?.sessionState === 'manually_ended') {
+            // Session manually stopped - do NOT mark as completed
+            console.log('🛑 Role-play session manually stopped - NOT marking module as completed');
           }
           
           // Speak the AI response if voice is enabled
@@ -575,18 +579,36 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         
         if (navigate) {
-          // Show session summary with improved scoring
+          // Show comprehensive session summary with improved scoring
+          const duration = this.calculateSessionDuration();
           const totalEngagement = this.getTotalEngagementScore();
           const conversationScore = this.getConversationScore();
-          const exerciseScore = response.sessionSummary.sessionScore || 0;
+          const exerciseScore = response.sessionSummary?.sessionScore || this.sessionStats.sessionScore || 0;
+          const accuracy = this.getScorePercentage();
+          const vocabularyCount = this.getVocabularyUsedCount();
+          const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
           
-          alert(`Session completed! 🎉\n\n` +
-                `Duration: ${response.sessionSummary.duration} minutes\n` +
-                `Total Engagement: ${totalEngagement} points\n` +
-                `• Conversation: ${conversationScore} points\n` +
-                `• Exercises: ${exerciseScore} points\n` +
-                `Messages: ${this.getStudentMessageCount()} (${this.getSpeechMessageCount()} spoken)\n` +
-                `${response.sessionSummary.correctAnswers > 0 ? `Accuracy: ${this.getScorePercentage()}%` : 'Great conversation practice!'}`);
+          const summaryText = `Session completed! 🎉
+
+📊 **Comprehensive Summary:**
+
+**💬 Communication:**
+• Messages: ${this.getStudentMessageCount()} (${this.getSpeechMessageCount()} spoken)
+• Duration: ${duration} minutes
+
+**🎯 Performance:**
+• Total Engagement: ${totalEngagement} points
+• Conversation: ${conversationScore} points
+• Exercises: ${exerciseScore} points
+${exerciseCount > 0 ? `• Accuracy: ${accuracy}% (${this.sessionStats.correctAnswers}/${exerciseCount} correct)` : '• Great conversation practice!'}
+
+**📚 Learning:**
+${vocabularyCount > 0 ? `• Vocabulary Used: ${vocabularyCount} words` : '• Vocabulary practice completed'}
+• Session Type: ${this.sessionType}
+
+Keep up the excellent work! 🌟`;
+          
+          alert(summaryText);
           
           // Navigate back to learning modules list
           this.router.navigate(['/learning-modules']);
@@ -619,25 +641,41 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         this.aiTutorService.clearCurrentSession();
         this.isLoading = false;
         
-        // Calculate session duration and scores
-        const duration = response.sessionSummary?.duration || 0;
+        // Calculate comprehensive session metrics
+        const duration = this.calculateSessionDuration();
         const totalMessages = this.sessionStats.totalMessages || 0;
         const exerciseScore = this.sessionStats.sessionScore || 0;
         const conversationScore = this.getConversationScore();
         const totalEngagement = conversationScore + exerciseScore;
+        const accuracy = this.getScorePercentage();
+        const vocabularyCount = this.getVocabularyUsedCount();
+        const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
         
-        // Show silent completion message (no AI speech)
+        // Show comprehensive session summary (no AI speech)
         const completionMessage: TutorMessage = {
           role: 'tutor',
           content: `Session ended by your request. 🎯
 
-📊 Session Summary:
-• Duration: ${duration} minutes
+📊 **Session Summary:**
+
+**💬 Communication Metrics:**
+• Total Messages: ${this.getStudentMessageCount()}
+• Speech Messages: ${this.getSpeechMessageCount()} 🎤
+• Text Messages: ${this.getTypedMessageCount()} ⌨️
+• Session Duration: ${duration} minutes ⏱️
+
+**🎯 Performance Scores:**
 • Total Engagement: ${totalEngagement} points
-• Messages exchanged: ${totalMessages}
-• Conversation score: ${conversationScore} points
-• Exercise score: ${exerciseScore} points
-• Practice completed successfully!
+• Conversation Score: ${conversationScore} points
+• Exercise Score: ${exerciseScore} points
+${exerciseCount > 0 ? `• Exercise Accuracy: ${accuracy}% (${this.sessionStats.correctAnswers}/${exerciseCount})` : '• Great conversation practice! 💬'}
+
+**📚 Learning Progress:**
+${vocabularyCount > 0 ? `• Vocabulary Used: ${vocabularyCount} words` : '• Vocabulary practice completed'}
+• Session Type: ${this.sessionType.charAt(0).toUpperCase() + this.sessionType.slice(1)}
+
+**💡 Keep Going!**
+You made great progress in this session. Practice makes perfect! 🌟
 
 Thank you for practicing! You can start a new session anytime.`,
           messageType: 'text',
@@ -997,6 +1035,41 @@ Thank you for practicing! You can start a new session anytime.`,
     ).length;
   }
 
+  // Calculate session duration in minutes
+  calculateSessionDuration(): number {
+    if (!this.sessionStartTime) return 0;
+    const now = new Date();
+    const durationMs = now.getTime() - this.sessionStartTime.getTime();
+    return Math.round(durationMs / 60000); // Convert to minutes
+  }
+
+  // Count vocabulary words used by student (basic implementation)
+  getVocabularyUsedCount(): number {
+    if (!this.module?.content?.allowedVocabulary) return 0;
+    
+    const studentMessages = this.messages
+      .filter(m => m.role === 'student')
+      .map(m => m.content.toLowerCase())
+      .join(' ');
+    
+    let vocabularyUsed = 0;
+    this.module.content.allowedVocabulary.forEach((vocab: any) => {
+      if (studentMessages.includes(vocab.word.toLowerCase())) {
+        vocabularyUsed++;
+      }
+    });
+    
+    return vocabularyUsed;
+  }
+
+  // Get vocabulary usage percentage
+  getVocabularyUsagePercentage(): number {
+    if (!this.module?.content?.allowedVocabulary) return 0;
+    const totalVocab = this.module.content.allowedVocabulary.length;
+    const usedVocab = this.getVocabularyUsedCount();
+    return totalVocab > 0 ? Math.round((usedVocab / totalVocab) * 100) : 0;
+  }
+
   // Transcript control methods
   toggleTranscript(): void {
     this.showTranscript = !this.showTranscript;
@@ -1070,18 +1143,39 @@ Thank you for practicing! You can start a new session anytime.`,
       next: (response) => {
         console.log('✅ Module marked as completed successfully:', response);
         
-        // Show success message
+        // Show comprehensive success message with detailed metrics
+        const duration = this.calculateSessionDuration();
+        const accuracy = this.getScorePercentage();
+        const vocabularyCount = this.getVocabularyUsedCount();
+        const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
+        
         const completionMessage: TutorMessage = {
           role: 'tutor',
           content: `🎉 Congratulations! You have successfully completed this module!
 
-📊 Final Results:
-• Total Engagement: ${sessionData.totalScore} points
-• Messages Exchanged: ${sessionData.messagesExchanged}
-• Speech Practice: ${sessionData.speechMessages} spoken messages
-• Module Status: ✅ COMPLETED
+📊 **Final Results Summary:**
 
-Great job on completing your language learning session! 🌟`,
+**💬 Communication Metrics:**
+• Total Messages: ${sessionData.messagesExchanged}
+• Speech Messages: ${sessionData.speechMessages} 🎤
+• Text Messages: ${sessionData.messagesExchanged - sessionData.speechMessages} ⌨️
+• Session Duration: ${duration} minutes ⏱️
+
+**🎯 Performance Scores:**
+• Total Engagement: ${sessionData.totalScore} points
+• Conversation Score: ${sessionData.conversationScore} points
+• Exercise Score: ${sessionData.exerciseScore} points
+${exerciseCount > 0 ? `• Exercise Accuracy: ${accuracy}% (${this.sessionStats.correctAnswers}/${exerciseCount})` : '• Great conversation practice! 💬'}
+
+**📚 Learning Progress:**
+${vocabularyCount > 0 ? `• Vocabulary Used: ${vocabularyCount} words` : '• Vocabulary practice completed'}
+• Session Type: ${this.sessionType.charAt(0).toUpperCase() + this.sessionType.slice(1)}
+• Module Status: ✅ **COMPLETED**
+
+**🌟 Achievement Unlocked!**
+You've successfully mastered this learning module. Your dedication to language learning is impressive!
+
+Ready for your next challenge? 🚀`,
           messageType: 'text',
           timestamp: new Date()
         };

@@ -6,10 +6,22 @@ const LearningModule = require('../models/LearningModule');
 const StudentProgress = require('../models/StudentProgress');
 const { verifyToken, checkRole } = require('../middleware/auth');
 
-// GET /api/learning-modules - Get all modules (with filtering)
+// GET /api/learning-modules - Get all modules (with filtering and level-based access control)
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const { level, category, difficulty, targetLanguage, nativeLanguage, search, page = 1, limit = 10 } = req.query;
+    const { 
+      level, 
+      category, 
+      difficulty, 
+      targetLanguage, 
+      nativeLanguage, 
+      search, 
+      page = 1, 
+      limit = 10,
+      accessibleOnly,
+      studentLevel,
+      recommendedOnly
+    } = req.query;
     
     // Build filter object
     const filter = { isActive: true };
@@ -26,6 +38,30 @@ router.get('/', verifyToken, async (req, res) => {
       ];
     }
     
+    // Level-based access control for students
+    if (req.user.role === 'STUDENT' && (accessibleOnly === 'true' || studentLevel)) {
+      const userLevel = studentLevel || req.user.level;
+      const accessibleLevels = getAccessibleLevels(userLevel);
+      
+      if (accessibleLevels.length > 0) {
+        filter.level = { $in: accessibleLevels };
+      }
+      
+      console.log(`🔒 Level access control applied for ${req.user.email}:`, {
+        userLevel,
+        accessibleLevels,
+        filterApplied: filter.level
+      });
+    }
+    
+    // Recommended modules filter
+    if (recommendedOnly === 'true' && studentLevel) {
+      const recommendedLevels = getRecommendedLevels(studentLevel);
+      if (recommendedLevels.length > 0) {
+        filter.level = { $in: recommendedLevels };
+      }
+    }
+    
     // For students, also get their progress
     const modules = await LearningModule.find(filter)
       .populate('createdBy', 'name email')
@@ -34,7 +70,7 @@ router.get('/', verifyToken, async (req, res) => {
       .skip((page - 1) * limit)
       .lean();
     
-    // If user is a student, include progress data
+    // If user is a student, include progress data and access information
     if (req.user.role === 'STUDENT') {
       const moduleIds = modules.map(m => m._id);
       const progressData = await StudentProgress.find({
@@ -48,8 +84,13 @@ router.get('/', verifyToken, async (req, res) => {
         progressMap[p.moduleId.toString()] = p;
       });
       
+      const userLevel = studentLevel || req.user.level;
+      
       modules.forEach(module => {
         module.studentProgress = progressMap[module._id.toString()] || null;
+        
+        // Add access information
+        module.accessInfo = getModuleAccessStatus(userLevel, module.level);
       });
     }
     
@@ -61,7 +102,11 @@ router.get('/', verifyToken, async (req, res) => {
         current: page,
         pages: Math.ceil(total / limit),
         total
-      }
+      },
+      levelInfo: req.user.role === 'STUDENT' ? {
+        userLevel: studentLevel || req.user.level,
+        accessibleLevels: getAccessibleLevels(studentLevel || req.user.level)
+      } : null
     });
   } catch (error) {
     console.error('Error fetching modules:', error);
@@ -209,10 +254,18 @@ router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, 
       createdBy: module.createdBy.toString()
     });
     
-    // Soft delete by setting isActive to false
-    module.isActive = false;
-    module.lastUpdatedBy = req.user.id;
-    await module.save();
+    // Soft delete by setting isActive to false (bypass validation to avoid enum issues)
+    await LearningModule.findByIdAndUpdate(
+      req.params.id,
+      { 
+        isActive: false,
+        lastUpdatedBy: req.user.id,
+        deletedAt: new Date()
+      },
+      { 
+        runValidators: false // Skip validation to avoid enum issues
+      }
+    );
     
     res.json({ 
       message: 'Module deleted successfully',
@@ -590,6 +643,88 @@ function fixModuleValidationIssues(module) {
   }
 
   return fixedModule;
+}
+
+// ===== LEVEL-BASED ACCESS CONTROL HELPER FUNCTIONS =====
+
+// CEFR Level hierarchy (lower order = easier level)
+const LEVEL_HIERARCHY = {
+  'A1': { order: 1, name: 'Beginner' },
+  'A2': { order: 2, name: 'Elementary' },
+  'B1': { order: 3, name: 'Intermediate' },
+  'B2': { order: 4, name: 'Upper Intermediate' },
+  'C1': { order: 5, name: 'Advanced' },
+  'C2': { order: 6, name: 'Proficiency' }
+};
+
+// Get levels that a student can access (their level and below)
+function getAccessibleLevels(studentLevel) {
+  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
+  if (!studentLevelInfo) {
+    return []; // Invalid level
+  }
+
+  return Object.keys(LEVEL_HIERARCHY)
+    .filter(level => LEVEL_HIERARCHY[level].order <= studentLevelInfo.order);
+}
+
+// Get recommended levels for a student (current level and one below)
+function getRecommendedLevels(studentLevel) {
+  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
+  if (!studentLevelInfo) {
+    return [];
+  }
+
+  const recommendedOrders = [studentLevelInfo.order];
+  if (studentLevelInfo.order > 1) {
+    recommendedOrders.push(studentLevelInfo.order - 1);
+  }
+
+  return Object.keys(LEVEL_HIERARCHY)
+    .filter(level => recommendedOrders.includes(LEVEL_HIERARCHY[level].order));
+}
+
+// Check if a student can access a module based on level
+function canAccessModule(studentLevel, moduleLevel) {
+  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
+  const moduleLevelInfo = LEVEL_HIERARCHY[moduleLevel];
+
+  if (!studentLevelInfo || !moduleLevelInfo) {
+    return false; // Invalid levels
+  }
+
+  // Student can access modules at their level or below
+  return moduleLevelInfo.order <= studentLevelInfo.order;
+}
+
+// Get access status for a module
+function getModuleAccessStatus(studentLevel, moduleLevel) {
+  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
+  const moduleLevelInfo = LEVEL_HIERARCHY[moduleLevel];
+
+  if (!studentLevelInfo || !moduleLevelInfo) {
+    return {
+      canAccess: false,
+      reason: 'Invalid level information',
+      levelDifference: 0
+    };
+  }
+
+  const levelDifference = moduleLevelInfo.order - studentLevelInfo.order;
+
+  if (levelDifference <= 0) {
+    return {
+      canAccess: true,
+      reason: levelDifference === 0 ? 'Perfect match for your level' : 'Good for review and practice',
+      levelDifference
+    };
+  } else {
+    return {
+      canAccess: false,
+      reason: `Too advanced - requires ${moduleLevelInfo.name} level`,
+      levelDifference
+    };
+  }
 }
 
 module.exports = router;

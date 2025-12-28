@@ -332,6 +332,174 @@
   gap: 0.25rem;
 }
 
+/* Level Progression Styles */
+.level-progression {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 0.75rem;
+  border: 2px solid #dee2e6;
+}
+
+.level-info {
+  text-align: center;
+}
+
+.current-level {
+  font-size: 1.1rem;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.progression-path {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.level-badge.completed {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.level-badge.current {
+  background: linear-gradient(135deg, #007bff, #6610f2);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.level-badge.locked {
+  background: #e9ecef;
+  color: #6c757d;
+  border: 2px dashed #dee2e6;
+}
+
+.progression-arrow {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+/* Level Access Control Styles */
+.access-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.access-info {
+  margin-top: 1rem;
+}
+
+.access-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.access-blocked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.access-blocked .btn {
+  cursor: not-allowed;
+}
+
+/* Level Filter Buttons */
+.level-filters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.level-filters .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+/* Enhanced Badge Styles for Access Control */
+.badge.badge-warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  color: #212529;
+}
+
+.badge.badge-info {
+  background: linear-gradient(135deg, #17a2b8, #6f42c1);
+  color: white;
+}
+
+/* Access Alert Styles */
+.alert.alert-warning {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alert.alert-warning i {
+  color: #f39c12;
+}
+
+/* Module Card Access States */
+.module-card.locked {
+  opacity: 0.7;
+  position: relative;
+}
+
+.module-card.locked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(108, 117, 125, 0.1);
+  border-radius: 1rem;
+  z-index: 1;
+}
+
+.module-card.recommended {
+  border: 2px solid #17a2b8;
+  box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
+}
+
+.module-card.recommended::after {
+  content: '⭐';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  z-index: 2;
+}
+
 .badge-warning {
   background: linear-gradient(135deg, #ffc107, #e0a800);
   color: #212529;

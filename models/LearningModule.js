@@ -22,7 +22,7 @@ const LearningModuleSchema = new mongoose.Schema({
   },
   nativeLanguage: {
     type: String,
-    enum: ['English', 'Tamil', 'Sinhala'],
+    enum: ['English', 'German', 'Tamil', 'Sinhala'],
     required: true,
     default: 'English'
   },
