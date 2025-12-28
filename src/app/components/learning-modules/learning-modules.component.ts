@@ -55,7 +55,7 @@ export class LearningModulesComponent implements OnInit {
     private learningModulesService: LearningModulesService,
     private authService: AuthService,
     private subscriptionGuard: SubscriptionGuardService,
-    private levelAccessService: LevelAccessService,
+    public levelAccessService: LevelAccessService, // Make public for template access
     private router: Router
   ) {}
 
