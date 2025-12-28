@@ -576,43 +576,60 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.sessionActive = false;
         this.aiTutorService.clearCurrentSession();
-        this.isLoading = false;
         
         if (navigate) {
-          // Show comprehensive session summary with improved scoring
+          // Prepare session data for database storage
           const duration = this.calculateSessionDuration();
-          const totalEngagement = this.getTotalEngagementScore();
-          const conversationScore = this.getConversationScore();
-          const exerciseScore = response.sessionSummary?.sessionScore || this.sessionStats.sessionScore || 0;
-          const accuracy = this.getScorePercentage();
-          const vocabularyCount = this.getVocabularyUsedCount();
-          const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
+          const conversationCount = this.getStudentMessageCount();
+          const vocabularyUsed = this.getVocabularyUsedList();
           
-          const summaryText = `Session completed! 🎉
+          const sessionData = {
+            sessionId: this.sessionId,
+            moduleId: this.moduleId,
+            sessionType: this.sessionType,
+            messages: this.messages,
+            summary: {
+              conversationCount: conversationCount,
+              timeSpentMinutes: duration,
+              vocabularyUsed: vocabularyUsed,
+              exerciseScore: this.sessionStats.sessionScore,
+              conversationScore: this.getConversationScore(),
+              totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+              correctAnswers: this.sessionStats.correctAnswers,
+              incorrectAnswers: this.sessionStats.incorrectAnswers,
+              accuracy: this.getScorePercentage()
+            },
+            sessionState: 'completed',
+            isModuleCompleted: false
+          };
 
-📊 **Comprehensive Summary:**
+          // Save session record to database for teacher review
+          this.aiTutorService.saveSessionRecord(sessionData).subscribe({
+            next: (saveResponse) => {
+              console.log('✅ Session record saved for teacher review');
+            },
+            error: (saveError) => {
+              console.error('❌ Error saving session record:', saveError);
+              // Continue with normal flow even if saving fails
+            }
+          });
 
-**💬 Communication:**
-• Messages: ${this.getStudentMessageCount()} (${this.getSpeechMessageCount()} spoken)
-• Duration: ${duration} minutes
+          // Show simple, concise summary as requested
+          const summaryText = `Session Complete! 🎉
 
-**🎯 Performance:**
-• Total Engagement: ${totalEngagement} points
-• Conversation: ${conversationScore} points
-• Exercises: ${exerciseScore} points
-${exerciseCount > 0 ? `• Accuracy: ${accuracy}% (${this.sessionStats.correctAnswers}/${exerciseCount} correct)` : '• Great conversation practice!'}
+💬 Conversations: ${conversationCount}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
 
-**📚 Learning:**
-${vocabularyCount > 0 ? `• Vocabulary Used: ${vocabularyCount} words` : '• Vocabulary practice completed'}
-• Session Type: ${this.sessionType}
-
-Keep up the excellent work! 🌟`;
+Great job! 🌟`;
           
           alert(summaryText);
           
           // Navigate back to learning modules list
           this.router.navigate(['/learning-modules']);
         }
+        
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error ending session:', error);
@@ -639,50 +656,59 @@ Keep up the excellent work! 🌟`;
       next: (response) => {
         this.sessionActive = false;
         this.aiTutorService.clearCurrentSession();
-        this.isLoading = false;
         
-        // Calculate comprehensive session metrics
+        // Calculate session metrics
         const duration = this.calculateSessionDuration();
-        const totalMessages = this.sessionStats.totalMessages || 0;
-        const exerciseScore = this.sessionStats.sessionScore || 0;
-        const conversationScore = this.getConversationScore();
-        const totalEngagement = conversationScore + exerciseScore;
-        const accuracy = this.getScorePercentage();
-        const vocabularyCount = this.getVocabularyUsedCount();
-        const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
+        const conversationCount = this.getStudentMessageCount();
+        const vocabularyUsed = this.getVocabularyUsedList();
         
-        // Show comprehensive session summary (no AI speech)
+        // Prepare session data for database storage
+        const sessionData = {
+          sessionId: this.sessionId,
+          moduleId: this.moduleId,
+          sessionType: this.sessionType,
+          messages: this.messages,
+          summary: {
+            conversationCount: conversationCount,
+            timeSpentMinutes: duration,
+            vocabularyUsed: vocabularyUsed,
+            exerciseScore: this.sessionStats.sessionScore,
+            conversationScore: this.getConversationScore(),
+            totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+            correctAnswers: this.sessionStats.correctAnswers,
+            incorrectAnswers: this.sessionStats.incorrectAnswers,
+            accuracy: this.getScorePercentage()
+          },
+          sessionState: 'manually_ended',
+          isModuleCompleted: false
+        };
+
+        // Save session record to database for teacher review
+        this.aiTutorService.saveSessionRecord(sessionData).subscribe({
+          next: (saveResponse) => {
+            console.log('✅ Session record saved for teacher review (manually ended)');
+          },
+          error: (saveError) => {
+            console.error('❌ Error saving session record:', saveError);
+          }
+        });
+        
         const completionMessage: TutorMessage = {
           role: 'tutor',
           content: `Session ended by your request. 🎯
 
-📊 **Session Summary:**
+💬 Conversations: ${conversationCount}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
 
-**💬 Communication Metrics:**
-• Total Messages: ${this.getStudentMessageCount()}
-• Speech Messages: ${this.getSpeechMessageCount()} 🎤
-• Text Messages: ${this.getTypedMessageCount()} ⌨️
-• Session Duration: ${duration} minutes ⏱️
-
-**🎯 Performance Scores:**
-• Total Engagement: ${totalEngagement} points
-• Conversation Score: ${conversationScore} points
-• Exercise Score: ${exerciseScore} points
-${exerciseCount > 0 ? `• Exercise Accuracy: ${accuracy}% (${this.sessionStats.correctAnswers}/${exerciseCount})` : '• Great conversation practice! 💬'}
-
-**📚 Learning Progress:**
-${vocabularyCount > 0 ? `• Vocabulary Used: ${vocabularyCount} words` : '• Vocabulary practice completed'}
-• Session Type: ${this.sessionType.charAt(0).toUpperCase() + this.sessionType.slice(1)}
-
-**💡 Keep Going!**
-You made great progress in this session. Practice makes perfect! 🌟
-
-Thank you for practicing! You can start a new session anytime.`,
+⚠️ Note: Module not completed - you can continue anytime!
+Great job so far! 🌟`,
           messageType: 'text',
           timestamp: new Date()
         };
         
         this.aiTutorService.addMessageToCurrentSession(completionMessage);
+        this.isLoading = false;
         
         // No popup - let user use the buttons in the session-inactive section
       },
@@ -1070,6 +1096,25 @@ Thank you for practicing! You can start a new session anytime.`,
     return totalVocab > 0 ? Math.round((usedVocab / totalVocab) * 100) : 0;
   }
 
+  // Get list of actual vocabulary words used by student
+  getVocabularyUsedList(): string[] {
+    if (!this.module?.content?.allowedVocabulary) return [];
+    
+    const studentMessages = this.messages
+      .filter(m => m.role === 'student')
+      .map(m => m.content.toLowerCase())
+      .join(' ');
+    
+    const usedVocabulary: string[] = [];
+    this.module.content.allowedVocabulary.forEach((vocab: any) => {
+      if (studentMessages.includes(vocab.word.toLowerCase())) {
+        usedVocabulary.push(vocab.word);
+      }
+    });
+    
+    return usedVocabulary;
+  }
+
   // Transcript control methods
   toggleTranscript(): void {
     this.showTranscript = !this.showTranscript;
@@ -1143,39 +1188,56 @@ Thank you for practicing! You can start a new session anytime.`,
       next: (response) => {
         console.log('✅ Module marked as completed successfully:', response);
         
-        // Show comprehensive success message with detailed metrics
+        // Prepare session data for database storage
         const duration = this.calculateSessionDuration();
+        const conversationCount = this.getStudentMessageCount();
+        const vocabularyUsed = this.getVocabularyUsedList();
+        
+        const sessionRecordData = {
+          sessionId: this.sessionId,
+          moduleId: this.moduleId,
+          sessionType: this.sessionType,
+          messages: this.messages,
+          summary: {
+            conversationCount: conversationCount,
+            timeSpentMinutes: duration,
+            vocabularyUsed: vocabularyUsed,
+            exerciseScore: this.sessionStats.sessionScore,
+            conversationScore: this.getConversationScore(),
+            totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+            correctAnswers: this.sessionStats.correctAnswers,
+            incorrectAnswers: this.sessionStats.incorrectAnswers,
+            accuracy: this.getScorePercentage()
+          },
+          sessionState: 'completed',
+          isModuleCompleted: true
+        };
+
+        // Save session record to database for teacher review
+        this.aiTutorService.saveSessionRecord(sessionRecordData).subscribe({
+          next: (saveResponse) => {
+            console.log('✅ Module completion session record saved for teacher review');
+          },
+          error: (saveError) => {
+            console.error('❌ Error saving module completion session record:', saveError);
+          }
+        });
+        
+        // Show comprehensive success message with detailed metrics
         const accuracy = this.getScorePercentage();
         const vocabularyCount = this.getVocabularyUsedCount();
         const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
         
         const completionMessage: TutorMessage = {
           role: 'tutor',
-          content: `🎉 Congratulations! You have successfully completed this module!
+          content: `🎉 Module Completed! 
 
-📊 **Final Results Summary:**
+💬 Conversations: ${sessionData.messagesExchanged}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyCount > 0 ? `${vocabularyCount} words` : 'Practice completed'}
 
-**💬 Communication Metrics:**
-• Total Messages: ${sessionData.messagesExchanged}
-• Speech Messages: ${sessionData.speechMessages} 🎤
-• Text Messages: ${sessionData.messagesExchanged - sessionData.speechMessages} ⌨️
-• Session Duration: ${duration} minutes ⏱️
-
-**🎯 Performance Scores:**
-• Total Engagement: ${sessionData.totalScore} points
-• Conversation Score: ${sessionData.conversationScore} points
-• Exercise Score: ${sessionData.exerciseScore} points
-${exerciseCount > 0 ? `• Exercise Accuracy: ${accuracy}% (${this.sessionStats.correctAnswers}/${exerciseCount})` : '• Great conversation practice! 💬'}
-
-**📚 Learning Progress:**
-${vocabularyCount > 0 ? `• Vocabulary Used: ${vocabularyCount} words` : '• Vocabulary practice completed'}
-• Session Type: ${this.sessionType.charAt(0).toUpperCase() + this.sessionType.slice(1)}
-• Module Status: ✅ **COMPLETED**
-
-**🌟 Achievement Unlocked!**
-You've successfully mastered this learning module. Your dedication to language learning is impressive!
-
-Ready for your next challenge? 🚀`,
+✅ Module Status: COMPLETED
+🌟 Great job! Ready for your next challenge? 🚀`,
           messageType: 'text',
           timestamp: new Date()
         };

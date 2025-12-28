@@ -63,14 +63,12 @@ export class StudentAiDashboardComponent implements OnInit {
     this.router.navigate(['/learning-modules']);
   }
 
-  startQuickTutoring(moduleId: string): void {
-    this.router.navigate(['/ai-tutor-chat'], {
-      queryParams: { moduleId, sessionType: 'practice' }
-    });
-  }
-
   viewProgress(): void {
     this.router.navigate(['/student-progress']);
+  }
+
+  viewPerformanceHistory(): void {
+    this.router.navigate(['/performance-history']);
   }
 
   testAudio(): void {
@@ -93,7 +91,7 @@ export class StudentAiDashboardComponent implements OnInit {
     
     // Create array with proper day order and ensure all days are present
     return daysOrder.map(day => {
-      const dayData = this.analytics.weeklyActivity[day] || { sessions: 0, timeSpent: 0 };
+      const dayData = this.analytics?.weeklyActivity?.[day] || { sessions: 0, timeSpent: 0 };
       return {
         day: day,
         dayShort: day.substring(0, 3), // Mon, Tue, Wed, etc.

@@ -33,6 +33,7 @@ const learningModulesRoutes = require('./routes/learningModules');
 const aiTutorRoutes = require('./routes/aiTutor');
 const studentProgressRoutes = require('./routes/studentProgress');
 const aiModuleGeneratorRoutes = require('./routes/aiModuleGenerator');
+const sessionRecordsRoutes = require('./routes/sessionRecords');
 
 
 const app = express();
@@ -95,6 +96,7 @@ app.use('/api/learning-modules', learningModulesRoutes);
 app.use('/api/ai-tutor', aiTutorRoutes);
 app.use('/api/student-progress', studentProgressRoutes);
 app.use('/api/ai', aiModuleGeneratorRoutes);
+app.use('/api/session-records', sessionRecordsRoutes);
 
 
 

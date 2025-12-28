@@ -198,20 +198,20 @@
         <p>Check your detailed learning progress</p>
       </div>
       
+      <div class="action-card" (click)="viewPerformanceHistory()">
+        <div class="action-icon">
+          <i class="fas fa-history"></i>
+        </div>
+        <h4>Performance History</h4>
+        <p>See all your session attempts and improvements</p>
+      </div>
+      
       <div class="action-card" (click)="testAudio()">
         <div class="action-icon">
           <i class="fas fa-microphone-alt"></i>
         </div>
         <h4>Audio Test</h4>
         <p>Test your microphone and speakers</p>
-      </div>
-      
-      <div class="action-card" *ngIf="recentModules.length > 0" (click)="startQuickTutoring(recentModules[0]._id)">
-        <div class="action-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <h4>Quick Tutoring</h4>
-        <p>Continue with your recent module</p>
       </div>
     </div>
   </div>
