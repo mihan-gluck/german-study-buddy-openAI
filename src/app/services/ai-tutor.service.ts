@@ -128,6 +128,29 @@ export class AiTutorService {
     }, { withCredentials: true });
   }
 
+  // Save session record to database for teacher review
+  saveSessionRecord(sessionData: {
+    sessionId: string;
+    moduleId: string;
+    sessionType: string;
+    messages: TutorMessage[];
+    summary: any;
+    sessionState: string;
+    isModuleCompleted?: boolean;
+  }): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/session-records`, sessionData, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        console.log('✅ Session record saved successfully:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error saving session record:', error);
+        throw error;
+      })
+    );
+  }
+
   // Get student's tutoring sessions
   getSessions(moduleId?: string, page: number = 1, limit: number = 10): Observable<any> {
     const params: any = { page, limit };

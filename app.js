@@ -8,9 +8,7 @@ const cors = require("cors");
 const auth = require("./middleware/auth");
 //const { verifyToken, isAdmin} = require('./middleware/auth');
 
-//const allowedOrigins =  ['http://localhost:4200', 'http://13.60.238.193', 'http://51.21.238.184', 'https://51.21.238.184', 'https://gluckstudentsportal.com']; // frontend origin
-
-const allowedOrigins =  ['http://localhost:4200', 'http://16.170.204.125', 'http://13.62.216.210', 'https://13.62.216.210', 'https://gluckjob.com']; // frontend origin
+const allowedOrigins =  ['http://localhost:4200', 'http://16.170.204.125', 'http://13.62.216.210', 'https://13.62.216.210', 'https://gluckstudentsportal.com']; // frontend origin
 
 
 const authRoutes = require("./routes/auth");
@@ -34,6 +32,7 @@ const learningModulesRoutes = require('./routes/learningModules');
 const aiTutorRoutes = require('./routes/aiTutor');
 const studentProgressRoutes = require('./routes/studentProgress');
 const aiModuleGeneratorRoutes = require('./routes/aiModuleGenerator');
+const sessionRecordsRoutes = require('./routes/sessionRecords');
 
 
 const app = express();
@@ -96,6 +95,7 @@ app.use('/api/learning-modules', learningModulesRoutes);
 app.use('/api/ai-tutor', aiTutorRoutes);
 app.use('/api/student-progress', studentProgressRoutes);
 app.use('/api/ai', aiModuleGeneratorRoutes);
+app.use('/api/session-records', sessionRecordsRoutes);
 
 
 

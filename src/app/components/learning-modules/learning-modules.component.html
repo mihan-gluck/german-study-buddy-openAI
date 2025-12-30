@@ -24,9 +24,48 @@
             <i class="fas fa-info-circle"></i> AI Tutoring requires PLATINUM
           </small>
         </div>
+        
+        <!-- Level Progression for Students -->
+        <div class="level-progression" *ngIf="isStudent() && getCurrentLevelInfo()">
+          <div class="level-info">
+            <span class="current-level">
+              <i class="fas fa-graduation-cap"></i>
+              Current Level: <strong>{{ formatLevel(currentUser.level) }}</strong>
+            </span>
+            <div class="progression-path mt-2">
+              <ng-container *ngFor="let level of levelAccessService.getAllLevels(); let i = index">
+                <span class="level-badge"
+                      [class.completed]="levelAccessService.canAccessModule(currentUser.level, level.code)"
+                      [class.current]="level.code === currentUser.level"
+                      [class.locked]="!levelAccessService.canAccessModule(currentUser.level, level.code)"
+                      [title]="level.description">
+                  <i class="fas" 
+                     [class.fa-check-circle]="levelAccessService.canAccessModule(currentUser.level, level.code) && level.code !== currentUser.level"
+                     [class.fa-star]="level.code === currentUser.level"
+                     [class.fa-lock]="!levelAccessService.canAccessModule(currentUser.level, level.code)"></i>
+                  {{ level.code }}
+                </span>
+                <i class="fas fa-arrow-right progression-arrow" *ngIf="i < levelAccessService.getAllLevels().length - 1"></i>
+              </ng-container>
+            </div>
+            <small class="text-muted">
+              You can access modules at your level ({{ currentUser.level }}) and below for review
+            </small>
+          </div>
+        </div>
       </div>
       
       <div class="header-actions">
+        <!-- Student Level Filters -->
+        <div class="level-filters" *ngIf="isStudent()">
+          <button class="btn btn-outline-info btn-sm me-2" (click)="loadRecommendedModules()">
+            <i class="fas fa-star"></i> Show Recommended
+          </button>
+          <button class="btn btn-outline-secondary btn-sm me-2" (click)="loadModules()">
+            <i class="fas fa-list"></i> Show All Accessible
+          </button>
+        </div>
+        
         <button class="btn btn-outline-secondary" (click)="testAudio()">
           <i class="fas fa-microphone-alt"></i> Audio Test
         </button>
@@ -171,11 +210,33 @@
                 {{ module.level }}
               </span>
               <span class="category-icon">{{ getCategoryIcon(module.category) }}</span>
+              
+              <!-- Level Access Indicator for Students -->
+              <span *ngIf="currentUser?.role === 'STUDENT'" class="access-indicator">
+                <i [class]="getAccessIcon(canAccessModule(module))" 
+                   [title]="getModuleAccessStatus(module).reason"
+                   [class.text-success]="canAccessModule(module)"
+                   [class.text-danger]="!canAccessModule(module)"></i>
+              </span>
             </div>
             
             <div class="module-status">
               <span class="badge" [class]="getStatusBadgeClass(module)">
                 {{ getStatusText(module) }}
+              </span>
+              
+              <!-- Access Status Badge for Students -->
+              <span *ngIf="currentUser?.role === 'STUDENT' && !canAccessModule(module)" 
+                    class="badge badge-warning ms-1"
+                    [title]="getModuleAccessStatus(module).reason">
+                <i class="fas fa-lock"></i> Locked
+              </span>
+              
+              <!-- Recommended Badge -->
+              <span *ngIf="currentUser?.role === 'STUDENT' && isRecommendedModule(module)" 
+                    class="badge badge-info ms-1"
+                    title="Recommended for your level">
+                <i class="fas fa-star"></i> Recommended
               </span>
             </div>
           </div>
@@ -213,6 +274,16 @@
                 </div>
               </div>
             </div>
+            
+            <!-- Level Access Information for Students -->
+            <div class="access-info" *ngIf="currentUser?.role === 'STUDENT'">
+              <div class="access-status" 
+                   [class.text-success]="canAccessModule(module)"
+                   [class.text-warning]="!canAccessModule(module)">
+                <i [class]="getAccessIcon(canAccessModule(module))"></i>
+                <small>{{ getModuleAccessStatus(module).reason }}</small>
+              </div>
+            </div>
           </div>
           
           <!-- Card Footer -->
@@ -222,19 +293,30 @@
               <ng-container *ngIf="currentUser?.role === 'STUDENT'">
                 <button 
                   class="btn btn-outline-primary btn-sm"
-                  (click)="viewModuleDetails(module)">
+                  (click)="viewModuleDetails(module)"
+                  [disabled]="!canAccessModule(module)">
                   View Details
                 </button>
                 
                 <button 
                   class="btn btn-primary btn-sm"
-                  *ngIf="canEnroll(module)"
+                  *ngIf="canEnroll(module) && canAccessModule(module)"
                   (click)="enrollInModule(module)">
                   Enroll
                 </button>
                 
+                <!-- Level Access Blocked Message -->
+                <div *ngIf="!canAccessModule(module)" class="access-blocked">
+                  <button class="btn btn-secondary btn-sm" disabled>
+                    <i class="fas fa-lock"></i> Level {{ module.level }} Required
+                  </button>
+                  <small class="text-muted d-block mt-1">
+                    Complete {{ getCurrentLevelInfo()?.code }} modules to unlock
+                  </small>
+                </div>
+                
                 <!-- AI Tutoring Buttons - PLATINUM ONLY -->
-                <div class="btn-group" *ngIf="canStartTutoring(module) && canAccessAiTutoring()">
+                <div class="btn-group" *ngIf="canStartTutoring(module) && canAccessAiTutoring() && canAccessModule(module)">
                   <button 
                     class="btn btn-success btn-sm"
                     (click)="startTutoring(module, 'practice')">
@@ -263,7 +345,7 @@
                 </div>
                 
                 <!-- Subscription Upgrade Button for SILVER students -->
-                <div *ngIf="canStartTutoring(module) && !canAccessAiTutoring() && isStudent()" class="subscription-upgrade">
+                <div *ngIf="canStartTutoring(module) && !canAccessAiTutoring() && isStudent() && canAccessModule(module)" class="subscription-upgrade">
                   <button 
                     class="btn btn-warning btn-sm"
                     (click)="startTutoring(module, 'practice')"
@@ -315,12 +397,35 @@
       <div class="list-content">
         <div class="list-header">
           <div class="module-info">
-            <h5 class="module-title">{{ module.title }}</h5>
+            <h5 class="module-title">
+              {{ module.title }}
+              <!-- Level Access Indicator for Students -->
+              <span *ngIf="currentUser?.role === 'STUDENT'" class="access-indicator ms-2">
+                <i [class]="getAccessIcon(canAccessModule(module))" 
+                   [title]="getModuleAccessStatus(module).reason"
+                   [class.text-success]="canAccessModule(module)"
+                   [class.text-danger]="!canAccessModule(module)"></i>
+              </span>
+            </h5>
             <div class="module-meta">
               <span class="badge" [class]="'badge-' + getLevelColor(module.level)">{{ module.level }}</span>
               <span class="category">{{ getCategoryIcon(module.category) }} {{ module.category }}</span>
               <span class="duration">{{ formatDuration(module.estimatedDuration) }}</span>
               <span class="difficulty">{{ module.difficulty }}</span>
+              
+              <!-- Access Status for Students -->
+              <span *ngIf="currentUser?.role === 'STUDENT' && !canAccessModule(module)" 
+                    class="badge badge-warning ms-1"
+                    [title]="getModuleAccessStatus(module).reason">
+                <i class="fas fa-lock"></i> Locked
+              </span>
+              
+              <!-- Recommended Badge -->
+              <span *ngIf="currentUser?.role === 'STUDENT' && isRecommendedModule(module)" 
+                    class="badge badge-info ms-1"
+                    title="Recommended for your level">
+                <i class="fas fa-star"></i> Recommended
+              </span>
             </div>
           </div>
           
@@ -332,6 +437,14 @@
         </div>
         
         <p class="module-description">{{ module.description }}</p>
+        
+        <!-- Level Access Information for Students -->
+        <div class="access-info" *ngIf="currentUser?.role === 'STUDENT' && !canAccessModule(module)">
+          <div class="alert alert-warning py-2">
+            <i class="fas fa-lock"></i>
+            <strong>Level Access Required:</strong> {{ getModuleAccessStatus(module).reason }}
+          </div>
+        </div>
         
         <!-- Progress Bar -->
         <div class="progress-section" *ngIf="module.studentProgress">
@@ -354,21 +467,31 @@
         <ng-container *ngIf="currentUser?.role === 'STUDENT'">
           <button 
             class="btn btn-outline-primary btn-sm"
-            (click)="viewModuleDetails(module)">
+            (click)="viewModuleDetails(module)"
+            [disabled]="!canAccessModule(module)">
             Details
           </button>
           
           <button 
             class="btn btn-primary btn-sm"
-            *ngIf="canEnroll(module)"
+            *ngIf="canEnroll(module) && canAccessModule(module)"
             (click)="enrollInModule(module)">
             Enroll
+          </button>
+          
+          <!-- Level Access Blocked -->
+          <button 
+            class="btn btn-secondary btn-sm" 
+            *ngIf="!canAccessModule(module)"
+            disabled
+            [title]="getModuleAccessStatus(module).reason">
+            <i class="fas fa-lock"></i> Locked
           </button>
           
           <!-- AI Tutoring Button - PLATINUM ONLY -->
           <button 
             class="btn btn-success btn-sm"
-            *ngIf="canStartTutoring(module) && canAccessAiTutoring()"
+            *ngIf="canStartTutoring(module) && canAccessAiTutoring() && canAccessModule(module)"
             (click)="startTutoring(module, 'practice')">
             <i class="fas fa-robot"></i> Start AI Tutoring
           </button>
@@ -376,7 +499,7 @@
           <!-- Subscription Upgrade Button for SILVER students -->
           <button 
             class="btn btn-warning btn-sm"
-            *ngIf="canStartTutoring(module) && !canAccessAiTutoring() && isStudent()"
+            *ngIf="canStartTutoring(module) && !canAccessAiTutoring() && isStudent() && canAccessModule(module)"
             (click)="startTutoring(module, 'practice')"
             title="AI Tutoring requires PLATINUM subscription">
             <i class="fas fa-crown"></i> Upgrade for AI

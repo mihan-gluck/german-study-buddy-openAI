@@ -190,21 +190,21 @@ import { firstValueFrom } from 'rxjs';
                 </div>
                 
                 <div class="module-preview">
-                  <h5>📋 Generated Module: {{generatedModule.title}}</h5>
-                  <p class="text-muted">{{generatedModule.description}}</p>
+                  <h5>📋 Generated Module: {{generatedModule?.title || 'Untitled Module'}}</h5>
+                  <p class="text-muted">{{generatedModule?.description || 'No description available'}}</p>
                   
                   <div class="row g-3 mb-3">
                     <div class="col-md-3">
                       <small class="text-muted">Level:</small><br>
-                      <span class="badge bg-primary">{{generatedModule.level}}</span>
+                      <span class="badge bg-primary">{{generatedModule?.level || 'N/A'}}</span>
                     </div>
                     <div class="col-md-3">
                       <small class="text-muted">Category:</small><br>
-                      <span class="badge bg-info">{{generatedModule.category}}</span>
+                      <span class="badge bg-info">{{generatedModule?.category || 'N/A'}}</span>
                     </div>
                     <div class="col-md-3">
                       <small class="text-muted">Duration:</small><br>
-                      <span class="badge bg-secondary">{{generatedModule.estimatedDuration}} min</span>
+                      <span class="badge bg-secondary">{{generatedModule?.estimatedDuration || 0}} min</span>
                     </div>
                     <div class="col-md-3">
                       <small class="text-muted">Vocabulary:</small><br>
@@ -403,16 +403,103 @@ export class AiModuleCreatorComponent implements OnInit {
       
       // Call the actual AI generation API
       const formData = this.aiForm.value;
+      console.log('📋 Generating module with form data:', formData);
+      
       const response = await this.callAIGenerationAPI(formData);
       
-      this.generatedModule = response;
+      // Validate and clean the response
+      this.generatedModule = this.validateAndCleanResponse(response, formData);
       this.isGenerating = false;
       
+      console.log('✅ Module generation completed successfully:', this.generatedModule.title);
+      
     } catch (error) {
-      console.error('Error generating module:', error);
-      alert('Failed to generate module. Please try again.');
+      console.error('❌ Error generating module:', error);
+      
+      // Create a fallback module to prevent undefined values
+      const formData = this.aiForm.value;
+      this.generatedModule = this.createFallbackModule(formData);
       this.isGenerating = false;
+      
+      // Show user-friendly error message
+      alert('AI generation encountered an issue, but we created a basic module template for you. You can edit and customize it as needed.');
     }
+  }
+  
+  private validateAndCleanResponse(response: any, formData: any): any {
+    // Ensure all required fields exist and are not undefined
+    const cleanedResponse = {
+      title: response?.title || `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
+      description: response?.description || formData.description || 'AI-generated learning module',
+      targetLanguage: response?.targetLanguage || formData.targetLanguage,
+      nativeLanguage: response?.nativeLanguage || formData.nativeLanguage,
+      level: response?.level || formData.level,
+      category: response?.category || formData.category,
+      difficulty: response?.difficulty || formData.difficulty,
+      estimatedDuration: response?.estimatedDuration || formData.estimatedDuration || 30,
+      learningObjectives: response?.learningObjectives || [
+        {
+          objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
+          description: `Develop ${formData.level} level ${formData.category.toLowerCase()} abilities`
+        }
+      ],
+      content: {
+        introduction: response?.content?.introduction || `Welcome to this ${formData.targetLanguage} ${formData.category.toLowerCase()} module.`,
+        keyTopics: response?.content?.keyTopics || [formData.category],
+        allowedVocabulary: response?.content?.allowedVocabulary || [],
+        allowedGrammar: response?.content?.allowedGrammar || [],
+        examples: response?.content?.examples || [],
+        exercises: response?.content?.exercises || []
+      },
+      aiTutorConfig: {
+        personality: response?.aiTutorConfig?.personality || `friendly and encouraging ${formData.targetLanguage} tutor`,
+        focusAreas: response?.aiTutorConfig?.focusAreas || [formData.category],
+        helpfulPhrases: response?.aiTutorConfig?.helpfulPhrases || [],
+        commonMistakes: response?.aiTutorConfig?.commonMistakes || [],
+        culturalNotes: response?.aiTutorConfig?.culturalNotes || []
+      },
+      tags: response?.tags || [formData.level.toLowerCase(), formData.category.toLowerCase()],
+      isActive: true
+    };
+    
+    console.log('🔧 Response validated and cleaned:', cleanedResponse.title);
+    return cleanedResponse;
+  }
+  
+  private createFallbackModule(formData: any): any {
+    return {
+      title: `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
+      description: formData.description || 'Learning module created with AI assistance',
+      targetLanguage: formData.targetLanguage,
+      nativeLanguage: formData.nativeLanguage,
+      level: formData.level,
+      category: formData.category,
+      difficulty: formData.difficulty,
+      estimatedDuration: formData.estimatedDuration || 30,
+      learningObjectives: [
+        {
+          objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
+          description: `Develop ${formData.level} level ${formData.category.toLowerCase()} abilities`
+        }
+      ],
+      content: {
+        introduction: `Welcome to this ${formData.targetLanguage} ${formData.category.toLowerCase()} module.`,
+        keyTopics: [formData.category],
+        allowedVocabulary: [],
+        allowedGrammar: [],
+        examples: [],
+        exercises: []
+      },
+      aiTutorConfig: {
+        personality: `friendly and encouraging ${formData.targetLanguage} tutor`,
+        focusAreas: [formData.category],
+        helpfulPhrases: [],
+        commonMistakes: [],
+        culturalNotes: []
+      },
+      tags: [formData.level.toLowerCase(), formData.category.toLowerCase()],
+      isActive: true
+    };
   }
   
   private async simulateAIGeneration(): Promise<void> {
@@ -432,14 +519,105 @@ export class AiModuleCreatorComponent implements OnInit {
   }
   
   private async callAIGenerationAPI(formData: any): Promise<any> {
-    // This will call our backend AI generation endpoint
-    const response = await firstValueFrom(
-      this.http.post(`${environment.apiUrl}/ai/generate-module`, formData, {
-        withCredentials: true
-      })
-    );
-    
-    return response;
+    try {
+      console.log('🤖 Calling AI generation API with data:', formData);
+      
+      // This will call our backend AI generation endpoint
+      const response = await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/ai/generate-module`, formData, {
+          withCredentials: true
+        })
+      );
+      
+      console.log('✅ AI generation response received:', response);
+      
+      // Validate the response has required fields
+      if (!response || typeof response !== 'object') {
+        throw new Error('Invalid response format from AI generation API');
+      }
+      
+      // Check for undefined values in critical fields
+      const criticalFields = ['title', 'description', 'targetLanguage', 'nativeLanguage', 'level', 'category', 'difficulty'];
+      const undefinedFields = criticalFields.filter(field => (response as any)[field] === undefined);
+      
+      if (undefinedFields.length > 0) {
+        console.warn('⚠️ Found undefined fields in AI response:', undefinedFields);
+        
+        // Fix undefined fields with fallback values
+        const fixedResponse = { ...response };
+        undefinedFields.forEach(field => {
+          switch (field) {
+            case 'title':
+              (fixedResponse as any)[field] = `${formData.targetLanguage} ${formData.category} Module`;
+              break;
+            case 'description':
+              (fixedResponse as any)[field] = formData.description || 'AI-generated learning module';
+              break;
+            case 'targetLanguage':
+              (fixedResponse as any)[field] = formData.targetLanguage;
+              break;
+            case 'nativeLanguage':
+              (fixedResponse as any)[field] = formData.nativeLanguage;
+              break;
+            case 'level':
+              (fixedResponse as any)[field] = formData.level;
+              break;
+            case 'category':
+              (fixedResponse as any)[field] = formData.category;
+              break;
+            case 'difficulty':
+              (fixedResponse as any)[field] = formData.difficulty;
+              break;
+          }
+        });
+        
+        console.log('🔧 Fixed undefined fields in response');
+        return fixedResponse;
+      }
+      
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Error calling AI generation API:', error);
+      
+      // Create a fallback response to prevent undefined values
+      const fallbackResponse = {
+        title: `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
+        description: formData.description || 'AI-generated learning module',
+        targetLanguage: formData.targetLanguage,
+        nativeLanguage: formData.nativeLanguage,
+        level: formData.level,
+        category: formData.category,
+        difficulty: formData.difficulty,
+        estimatedDuration: formData.estimatedDuration || 30,
+        learningObjectives: [
+          {
+            objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
+            description: `Develop ${formData.level} level ${formData.category.toLowerCase()} abilities`
+          }
+        ],
+        content: {
+          introduction: `Welcome to this ${formData.targetLanguage} ${formData.category.toLowerCase()} module.`,
+          keyTopics: [formData.category],
+          allowedVocabulary: [],
+          allowedGrammar: [],
+          examples: [],
+          exercises: []
+        },
+        aiTutorConfig: {
+          personality: `friendly and encouraging ${formData.targetLanguage} tutor`,
+          focusAreas: [formData.category],
+          helpfulPhrases: [],
+          commonMistakes: [],
+          culturalNotes: []
+        },
+        tags: [formData.level.toLowerCase(), formData.category.toLowerCase()],
+        isActive: true
+      };
+      
+      console.log('🔄 Using fallback response to prevent undefined values');
+      throw error; // Re-throw to trigger the error handling in generateModule()
+    }
   }
   
   getVocabularyCount(): number {

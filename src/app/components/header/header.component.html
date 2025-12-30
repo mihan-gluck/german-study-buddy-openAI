@@ -18,6 +18,7 @@
       <li><a (click)="navigateTo('/student-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Student Dashboard</a></li>
       <li><a (click)="navigateTo('/learning-modules'); closeMenu()" *ngIf="isLoggedIn() && (userRole === 'STUDENT' || userRole === 'TEACHER' || userRole === 'ADMIN')">Learning Modules</a></li>
       <li><a (click)="navigateTo('/student-progress'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">My Progress</a></li>
+      <li><a (click)="navigateTo('/performance-history'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Performance History</a></li>
       <li><a (click)="navigateTo('/admin-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Students</a></li>
       <li><a (click)="navigateTo('/teacher-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>
       <li><a (click)="navigateTo('/teachers'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>

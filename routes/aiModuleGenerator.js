@@ -112,6 +112,13 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
     // Enhance the generated module with required fields
     const enhancedModule = enhanceGeneratedModule(generatedModule, req.body, req.user.id);
 
+    // Add debugging to check for undefined values
+    console.log('🔍 Checking enhanced module for undefined values...');
+    const undefinedFields = findUndefinedFields(enhancedModule);
+    if (undefinedFields.length > 0) {
+      console.log('⚠️ Found undefined fields in enhanced module:', undefinedFields);
+    }
+
     // Validate the enhanced module before sending
     const validationResult = validateGeneratedModule(enhancedModule);
     if (!validationResult.isValid) {
@@ -119,6 +126,13 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       // Fix common issues
       const fixedModule = fixModuleValidationIssues(enhancedModule);
       console.log('✅ Module validation issues fixed');
+      
+      // Final check for undefined values after fixing
+      const finalUndefinedFields = findUndefinedFields(fixedModule);
+      if (finalUndefinedFields.length > 0) {
+        console.log('❌ Still have undefined fields after fixing:', finalUndefinedFields);
+      }
+      
       res.json(fixedModule);
     } else {
       console.log('✅ Module generated successfully:', enhancedModule.title);
@@ -444,6 +458,50 @@ function fixModuleValidationIssues(module) {
     module.title = module.title.substring(0, 57) + '...';
   }
 
+  // Ensure required fields are not undefined
+  module.title = module.title || 'Generated Module';
+  module.description = module.description || 'AI-generated learning module';
+  module.targetLanguage = module.targetLanguage || 'English';
+  module.nativeLanguage = module.nativeLanguage || 'English';
+  module.level = module.level || 'A1';
+  module.category = module.category || 'Conversation';
+  module.difficulty = module.difficulty || 'Beginner';
+  module.estimatedDuration = module.estimatedDuration || 30;
+
+  // Ensure content structure exists
+  if (!module.content) {
+    module.content = {};
+  }
+  module.content.introduction = module.content.introduction || 'Welcome to this learning module.';
+  module.content.keyTopics = module.content.keyTopics || [];
+  module.content.allowedVocabulary = module.content.allowedVocabulary || [];
+  module.content.allowedGrammar = module.content.allowedGrammar || [];
+  module.content.examples = module.content.examples || [];
+  module.content.exercises = module.content.exercises || [];
+
+  // Ensure learning objectives exist
+  if (!module.learningObjectives || module.learningObjectives.length === 0) {
+    module.learningObjectives = [
+      {
+        objective: `Learn ${module.category.toLowerCase()} skills`,
+        description: `Develop ${module.level} level abilities`
+      }
+    ];
+  }
+
+  // Ensure AI tutor config exists
+  if (!module.aiTutorConfig) {
+    module.aiTutorConfig = {};
+  }
+  module.aiTutorConfig.personality = module.aiTutorConfig.personality || `friendly ${module.targetLanguage} tutor`;
+  module.aiTutorConfig.focusAreas = module.aiTutorConfig.focusAreas || [module.category];
+  module.aiTutorConfig.helpfulPhrases = module.aiTutorConfig.helpfulPhrases || [];
+  module.aiTutorConfig.commonMistakes = module.aiTutorConfig.commonMistakes || [];
+  module.aiTutorConfig.culturalNotes = module.aiTutorConfig.culturalNotes || [];
+
+  // Ensure tags exist
+  module.tags = module.tags || [module.level.toLowerCase(), module.category.toLowerCase()];
+
   // Fix exercise types
   if (module.content && module.content.exercises) {
     module.content.exercises = module.content.exercises.map(exercise => {
@@ -477,6 +535,39 @@ function fixModuleValidationIssues(module) {
   }
 
   return module;
+}
+
+// Helper function to find undefined fields recursively
+function findUndefinedFields(obj, path = '') {
+  const undefinedFields = [];
+  
+  if (obj === null || obj === undefined) {
+    return [path || 'root'];
+  }
+  
+  if (typeof obj !== 'object') {
+    return [];
+  }
+  
+  for (const [key, value] of Object.entries(obj)) {
+    const currentPath = path ? `${path}.${key}` : key;
+    
+    if (value === undefined) {
+      undefinedFields.push(currentPath);
+    } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      undefinedFields.push(...findUndefinedFields(value, currentPath));
+    } else if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        if (item === undefined) {
+          undefinedFields.push(`${currentPath}[${index}]`);
+        } else if (item !== null && typeof item === 'object') {
+          undefinedFields.push(...findUndefinedFields(item, `${currentPath}[${index}]`));
+        }
+      });
+    }
+  }
+  
+  return undefinedFields;
 }
 
 module.exports = router;

@@ -174,9 +174,11 @@
   display: flex;
   justify-content: space-between;
   align-items: end;
-  height: 150px;
+  height: 180px;
   margin-bottom: 1rem;
-  padding: 1rem 0;
+  padding: 1rem 0.5rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
 }
 
 .chart-item {
@@ -185,34 +187,54 @@
   align-items: center;
   gap: 0.5rem;
   flex: 1;
+  max-width: 60px;
+  min-width: 40px;
 }
 
 .day-label {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-weight: 500;
+  font-size: 0.75rem;
+  color: #495057;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 0.25rem;
 }
 
 .activity-bar {
-  height: 80px;
+  height: 100px;
   display: flex;
   align-items: end;
   width: 100%;
   justify-content: center;
+  position: relative;
 }
 
 .bar {
-  width: 20px;
-  background: #007bff;
-  border-radius: 2px 2px 0 0;
+  width: 24px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-radius: 3px 3px 0 0;
   min-height: 2px;
-  transition: height 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.bar:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: scaleY(1.05);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
 }
 
 .session-count {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #495057;
+  text-align: center;
+  width: 100%;
+  margin-top: 0.25rem;
+  background: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  border: 1px solid #dee2e6;
 }
 
 .chart-legend {

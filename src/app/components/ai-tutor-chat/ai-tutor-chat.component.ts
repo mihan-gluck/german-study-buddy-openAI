@@ -31,7 +31,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   module: any = null;
   sessionId: string = '';
   sessionType: string = 'practice';
-  isTeacherTestMode: boolean = false; // New: Track if this is a teacher testing session
+  sessionActive: boolean = false;
+  sessionStartTime: Date | null = null;
+  isTeacherTestMode: boolean = false; // Track if this is a teacher testing session
   
   // Auto-refresh mechanism
   private autoRefreshInterval: any;
@@ -43,7 +45,6 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   currentMessage: string = '';
   isLoading: boolean = false;
   isSending: boolean = false;
-  sessionActive: boolean = false;
   
   suggestions: string[] = [];
   currentExercise: any = null;
@@ -290,6 +291,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         console.log('✅ Session creation response:', response);
         this.sessionId = response.sessionId;
         this.sessionActive = true;
+        this.sessionStartTime = new Date(); // Track when session started
         this.suggestions = response.suggestions || [];
         
         console.log('✅ New session started:', this.sessionId, this.isTeacherTestMode ? '(Teacher Test Mode)' : '');
@@ -441,12 +443,14 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
           console.log('🤖 AI Response:', response.response.content);
           console.log('📊 Messages count after AI response - Local:', this.localMessages.length, 'Component:', this.messages.length);
           
-          // Check if role-play session is complete
-          if (response.response.metadata?.sessionState === 'completed' || 
-              response.response.metadata?.sessionEnded === true) {
-            // Session completed - mark module as completed
-            console.log('🎭 Role-play session completed - marking module as completed');
+          // Check if role-play session is naturally completed (not manually stopped)
+          if (response.response.metadata?.sessionState === 'completed') {
+            // Session naturally completed - mark module as completed
+            console.log('🎭 Role-play session naturally completed - marking module as completed');
             this.markModuleAsCompleted();
+          } else if (response.response.metadata?.sessionState === 'manually_ended') {
+            // Session manually stopped - do NOT mark as completed
+            console.log('🛑 Role-play session manually stopped - NOT marking module as completed');
           }
           
           // Speak the AI response if voice is enabled
@@ -572,25 +576,60 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.sessionActive = false;
         this.aiTutorService.clearCurrentSession();
-        this.isLoading = false;
         
         if (navigate) {
-          // Show session summary with improved scoring
-          const totalEngagement = this.getTotalEngagementScore();
-          const conversationScore = this.getConversationScore();
-          const exerciseScore = response.sessionSummary.sessionScore || 0;
+          // Prepare session data for database storage
+          const duration = this.calculateSessionDuration();
+          const conversationCount = this.getStudentMessageCount();
+          const vocabularyUsed = this.getVocabularyUsedList();
           
-          alert(`Session completed! 🎉\n\n` +
-                `Duration: ${response.sessionSummary.duration} minutes\n` +
-                `Total Engagement: ${totalEngagement} points\n` +
-                `• Conversation: ${conversationScore} points\n` +
-                `• Exercises: ${exerciseScore} points\n` +
-                `Messages: ${this.getStudentMessageCount()} (${this.getSpeechMessageCount()} spoken)\n` +
-                `${response.sessionSummary.correctAnswers > 0 ? `Accuracy: ${this.getScorePercentage()}%` : 'Great conversation practice!'}`);
+          const sessionData = {
+            sessionId: this.sessionId,
+            moduleId: this.moduleId,
+            sessionType: this.sessionType,
+            messages: this.messages,
+            summary: {
+              conversationCount: conversationCount,
+              timeSpentMinutes: duration,
+              vocabularyUsed: vocabularyUsed,
+              exerciseScore: this.sessionStats.sessionScore,
+              conversationScore: this.getConversationScore(),
+              totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+              correctAnswers: this.sessionStats.correctAnswers,
+              incorrectAnswers: this.sessionStats.incorrectAnswers,
+              accuracy: this.getScorePercentage()
+            },
+            sessionState: 'completed',
+            isModuleCompleted: false
+          };
+
+          // Save session record to database for teacher review
+          this.aiTutorService.saveSessionRecord(sessionData).subscribe({
+            next: (saveResponse) => {
+              console.log('✅ Session record saved for teacher review');
+            },
+            error: (saveError) => {
+              console.error('❌ Error saving session record:', saveError);
+              // Continue with normal flow even if saving fails
+            }
+          });
+
+          // Show simple, concise summary as requested
+          const summaryText = `Session Complete! 🎉
+
+💬 Conversations: ${conversationCount}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
+
+Great job! 🌟`;
+          
+          alert(summaryText);
           
           // Navigate back to learning modules list
           this.router.navigate(['/learning-modules']);
         }
+        
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error ending session:', error);
@@ -617,34 +656,59 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.sessionActive = false;
         this.aiTutorService.clearCurrentSession();
-        this.isLoading = false;
         
-        // Calculate session duration and scores
-        const duration = response.sessionSummary?.duration || 0;
-        const totalMessages = this.sessionStats.totalMessages || 0;
-        const exerciseScore = this.sessionStats.sessionScore || 0;
-        const conversationScore = this.getConversationScore();
-        const totalEngagement = conversationScore + exerciseScore;
+        // Calculate session metrics
+        const duration = this.calculateSessionDuration();
+        const conversationCount = this.getStudentMessageCount();
+        const vocabularyUsed = this.getVocabularyUsedList();
         
-        // Show silent completion message (no AI speech)
+        // Prepare session data for database storage
+        const sessionData = {
+          sessionId: this.sessionId,
+          moduleId: this.moduleId,
+          sessionType: this.sessionType,
+          messages: this.messages,
+          summary: {
+            conversationCount: conversationCount,
+            timeSpentMinutes: duration,
+            vocabularyUsed: vocabularyUsed,
+            exerciseScore: this.sessionStats.sessionScore,
+            conversationScore: this.getConversationScore(),
+            totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+            correctAnswers: this.sessionStats.correctAnswers,
+            incorrectAnswers: this.sessionStats.incorrectAnswers,
+            accuracy: this.getScorePercentage()
+          },
+          sessionState: 'manually_ended',
+          isModuleCompleted: false
+        };
+
+        // Save session record to database for teacher review
+        this.aiTutorService.saveSessionRecord(sessionData).subscribe({
+          next: (saveResponse) => {
+            console.log('✅ Session record saved for teacher review (manually ended)');
+          },
+          error: (saveError) => {
+            console.error('❌ Error saving session record:', saveError);
+          }
+        });
+        
         const completionMessage: TutorMessage = {
           role: 'tutor',
           content: `Session ended by your request. 🎯
 
-📊 Session Summary:
-• Duration: ${duration} minutes
-• Total Engagement: ${totalEngagement} points
-• Messages exchanged: ${totalMessages}
-• Conversation score: ${conversationScore} points
-• Exercise score: ${exerciseScore} points
-• Practice completed successfully!
+💬 Conversations: ${conversationCount}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
 
-Thank you for practicing! You can start a new session anytime.`,
+⚠️ Note: Module not completed - you can continue anytime!
+Great job so far! 🌟`,
           messageType: 'text',
           timestamp: new Date()
         };
         
         this.aiTutorService.addMessageToCurrentSession(completionMessage);
+        this.isLoading = false;
         
         // No popup - let user use the buttons in the session-inactive section
       },
@@ -997,6 +1061,60 @@ Thank you for practicing! You can start a new session anytime.`,
     ).length;
   }
 
+  // Calculate session duration in minutes
+  calculateSessionDuration(): number {
+    if (!this.sessionStartTime) return 0;
+    const now = new Date();
+    const durationMs = now.getTime() - this.sessionStartTime.getTime();
+    return Math.round(durationMs / 60000); // Convert to minutes
+  }
+
+  // Count vocabulary words used by student (basic implementation)
+  getVocabularyUsedCount(): number {
+    if (!this.module?.content?.allowedVocabulary) return 0;
+    
+    const studentMessages = this.messages
+      .filter(m => m.role === 'student')
+      .map(m => m.content.toLowerCase())
+      .join(' ');
+    
+    let vocabularyUsed = 0;
+    this.module.content.allowedVocabulary.forEach((vocab: any) => {
+      if (studentMessages.includes(vocab.word.toLowerCase())) {
+        vocabularyUsed++;
+      }
+    });
+    
+    return vocabularyUsed;
+  }
+
+  // Get vocabulary usage percentage
+  getVocabularyUsagePercentage(): number {
+    if (!this.module?.content?.allowedVocabulary) return 0;
+    const totalVocab = this.module.content.allowedVocabulary.length;
+    const usedVocab = this.getVocabularyUsedCount();
+    return totalVocab > 0 ? Math.round((usedVocab / totalVocab) * 100) : 0;
+  }
+
+  // Get list of actual vocabulary words used by student
+  getVocabularyUsedList(): string[] {
+    if (!this.module?.content?.allowedVocabulary) return [];
+    
+    const studentMessages = this.messages
+      .filter(m => m.role === 'student')
+      .map(m => m.content.toLowerCase())
+      .join(' ');
+    
+    const usedVocabulary: string[] = [];
+    this.module.content.allowedVocabulary.forEach((vocab: any) => {
+      if (studentMessages.includes(vocab.word.toLowerCase())) {
+        usedVocabulary.push(vocab.word);
+      }
+    });
+    
+    return usedVocabulary;
+  }
+
   // Transcript control methods
   toggleTranscript(): void {
     this.showTranscript = !this.showTranscript;
@@ -1070,18 +1188,56 @@ Thank you for practicing! You can start a new session anytime.`,
       next: (response) => {
         console.log('✅ Module marked as completed successfully:', response);
         
-        // Show success message
+        // Prepare session data for database storage
+        const duration = this.calculateSessionDuration();
+        const conversationCount = this.getStudentMessageCount();
+        const vocabularyUsed = this.getVocabularyUsedList();
+        
+        const sessionRecordData = {
+          sessionId: this.sessionId,
+          moduleId: this.moduleId,
+          sessionType: this.sessionType,
+          messages: this.messages,
+          summary: {
+            conversationCount: conversationCount,
+            timeSpentMinutes: duration,
+            vocabularyUsed: vocabularyUsed,
+            exerciseScore: this.sessionStats.sessionScore,
+            conversationScore: this.getConversationScore(),
+            totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+            correctAnswers: this.sessionStats.correctAnswers,
+            incorrectAnswers: this.sessionStats.incorrectAnswers,
+            accuracy: this.getScorePercentage()
+          },
+          sessionState: 'completed',
+          isModuleCompleted: true
+        };
+
+        // Save session record to database for teacher review
+        this.aiTutorService.saveSessionRecord(sessionRecordData).subscribe({
+          next: (saveResponse) => {
+            console.log('✅ Module completion session record saved for teacher review');
+          },
+          error: (saveError) => {
+            console.error('❌ Error saving module completion session record:', saveError);
+          }
+        });
+        
+        // Show comprehensive success message with detailed metrics
+        const accuracy = this.getScorePercentage();
+        const vocabularyCount = this.getVocabularyUsedCount();
+        const exerciseCount = this.sessionStats.correctAnswers + this.sessionStats.incorrectAnswers;
+        
         const completionMessage: TutorMessage = {
           role: 'tutor',
-          content: `🎉 Congratulations! You have successfully completed this module!
+          content: `🎉 Module Completed! 
 
-📊 Final Results:
-• Total Engagement: ${sessionData.totalScore} points
-• Messages Exchanged: ${sessionData.messagesExchanged}
-• Speech Practice: ${sessionData.speechMessages} spoken messages
-• Module Status: ✅ COMPLETED
+💬 Conversations: ${sessionData.messagesExchanged}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyCount > 0 ? `${vocabularyCount} words` : 'Practice completed'}
 
-Great job on completing your language learning session! 🌟`,
+✅ Module Status: COMPLETED
+🌟 Great job! Ready for your next challenge? 🚀`,
           messageType: 'text',
           timestamp: new Date()
         };

@@ -272,16 +272,21 @@ async function getWeeklyActivity(studentId) {
   }).select('startTime totalDuration').lean();
   
   const weeklyData = {};
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  // Use consistent day names (starting with Monday for better UX)
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
-  // Initialize all days
+  // Initialize all days with zero values
   days.forEach(day => {
     weeklyData[day] = { sessions: 0, timeSpent: 0 };
   });
   
   // Aggregate session data by day
   sessions.forEach(session => {
-    const dayName = days[session.startTime.getDay()];
+    const dayIndex = session.startTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    // Convert Sunday=0 to Sunday=6 for our Monday-first array
+    const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+    const dayName = days[adjustedIndex];
+    
     weeklyData[dayName].sessions += 1;
     weeklyData[dayName].timeSpent += session.totalDuration || 0;
   });
