@@ -243,20 +243,23 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Unified language mapping
+  private getLanguageCode(targetLanguage: string): string {
+    const languageMap: { [key: string]: string } = {
+      'English': 'en-US',
+      'German': 'de-DE',
+      'Spanish': 'es-ES',
+      'French': 'fr-FR'
+    };
+    return languageMap[targetLanguage] || 'en-US';
+  }
+
   // Update speech recognition language based on module
   updateSpeechRecognitionLanguage(): void {
     if (this.speechRecognition && this.module) {
-      if (this.module.targetLanguage === 'English') {
-        this.speechRecognition.lang = 'en-US';
-        console.log('🎤 Speech recognition set to English (en-US)');
-      } else if (this.module.targetLanguage === 'German') {
-        this.speechRecognition.lang = 'de-DE';
-        console.log('🎤 Speech recognition set to German (de-DE)');
-      } else {
-        // Default to English
-        this.speechRecognition.lang = 'en-US';
-        console.log('🎤 Speech recognition set to English (default)');
-      }
+      const langCode = this.getLanguageCode(this.module.targetLanguage);
+      this.speechRecognition.lang = langCode;
+      console.log(`🎤 Speech recognition set to ${this.module.targetLanguage} (${langCode})`);
     }
   }
 
@@ -856,19 +859,31 @@ Great job so far! 🌟`,
       
       this.speechRecognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        const confidence = event.results[0][0].confidence;
+        const confidence = event.results[0][0].confidence || 0.8; // Default confidence
         console.log('🎤 Speech captured:', transcript, 'Confidence:', confidence);
         
-        // Set the transcript in the currentMessage for processing
-        this.currentMessage = transcript;
+        // Apply confidence threshold
+        if (confidence < 0.6) {
+          console.warn('🎤 Low confidence transcript, asking for retry');
+          this.isListening = false;
+          // You could add UI feedback here for low confidence
+          return;
+        }
+        
+        // Normalize the transcript for consistent processing
+        const normalizedTranscript = this.normalizeText(transcript);
+        
+        // Set the normalized transcript in the currentMessage for processing
+        this.currentMessage = normalizedTranscript;
         this.isListening = false;
         this.isProcessingSpeech = true;
         
         // Show what was captured briefly before sending
-        console.log('🎤 You said:', transcript);
+        console.log('🎤 Original:', transcript);
+        console.log('🎤 Normalized:', normalizedTranscript);
         
         // Automatically send the captured speech with speech indicator
-        if (transcript.trim()) {
+        if (normalizedTranscript.trim()) {
           setTimeout(() => {
             // Mark this message as coming from speech recognition
             this.sendMessage(true); // Pass true to indicate speech input
@@ -933,6 +948,18 @@ Great job so far! 🌟`,
     }
   }
 
+  // Normalize text for consistent processing
+  private normalizeText(text: string): string {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
+      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* formatting
+      .replace(/🎭|📝|💬|💡|✏️|🌟|🎪|🎉/g, '') // Remove emojis
+      .replace(/\n\n/g, '. ')          // Replace double newlines with periods
+      .replace(/\n/g, ' ')             // Replace single newlines with spaces
+      .replace(/\s+/g, ' ')            // Normalize whitespace
+      .trim();
+  }
+
   // Text-to-Speech: Speak the AI tutor's response
   speakText(text: string): void {
     if (!this.voiceEnabled || this.isSpeaking) return;
@@ -941,13 +968,7 @@ Great job so far! 🌟`,
     this.speechSynthesis.cancel();
     
     // Clean up markdown formatting and emojis for better speech
-    const cleanText = text
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
-      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* formatting
-      .replace(/🎭|📝|💬|💡|✏️|🌟|🎪|🎉/g, '') // Remove emojis
-      .replace(/\n\n/g, '. ')          // Replace double newlines with periods
-      .replace(/\n/g, ' ')             // Replace single newlines with spaces
-      .trim();
+    const cleanText = this.normalizeText(text);
     
     const utterance = new SpeechSynthesisUtterance(cleanText);
     
@@ -958,34 +979,31 @@ Great job so far! 🌟`,
       nativeLanguage: this.module?.nativeLanguage
     });
     
-    // Configure voice based on target language
+    // Configure voice based on target language using unified mapping
     const voices = this.speechSynthesis.getVoices();
     let targetVoice;
-    let selectedLang = 'en-US'; // Default to English
+    const selectedLang = this.getLanguageCode(this.module?.targetLanguage || 'English');
     
-    if (this.module?.targetLanguage === 'English') {
+    // Find appropriate voice for the language
+    if (selectedLang.startsWith('en')) {
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
       );
-      utterance.lang = 'en-US';
-      selectedLang = 'en-US';
       console.log('🔊 Using English TTS for English module');
-    } else if (this.module?.targetLanguage === 'German') {
+    } else if (selectedLang.startsWith('de')) {
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('de') || voice.name.toLowerCase().includes('german')
       );
-      utterance.lang = 'de-DE';
-      selectedLang = 'de-DE';
       console.log('🔊 Using German TTS for German module');
     } else {
       // Fallback: Use English as default
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
       );
-      utterance.lang = 'en-US';
-      selectedLang = 'en-US';
-      console.log('🔊 Using English TTS as fallback (unknown target language)');
+      console.log('🔊 Using English TTS as fallback');
     }
+    
+    utterance.lang = selectedLang;
     
     console.log('🔊 Selected voice:', targetVoice?.name || 'Default', 'Language:', selectedLang);
     
