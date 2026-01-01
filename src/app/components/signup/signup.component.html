@@ -198,17 +198,6 @@
         </select>
       </div>
 
-      <!-- Conversation ID -->
-      <div class="mb-3" *ngIf="role === 'STUDENT' && subscription === 'PLATINUM'">
-        <label for="conversationId" class="form-label">Conversation ID</label>
-        <input
-          type="text"
-          id="conversationId"
-          name="conversationId"
-          [(ngModel)]="conversationId"
-          class="form-control"
-        />
-      </div>
 
       <!-- Submit Button -->
       <button

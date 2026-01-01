@@ -76,9 +76,6 @@
         <th>Level</th>
         <th>Status</th>
         <th>Assigned Teacher</th>
-        <th>Bot Remaining Minutes</th>
-        <th>Remaining Days</th>
-        <th>Subscription Update Date</th>
         <th colspan="2" style="text-align: center;">Actions</th>
       </tr>
     </thead>
@@ -93,9 +90,6 @@
         <td data-label="Level">{{ student.level || 'N/A' }}</td>
         <td data-label="Status">{{ student.studentStatus || 'N/A' }}</td>
         <td data-label="Assigned Teacher">{{ student.assignedTeacher?.name || 'N/A' }}</td>
-        <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes }}</td>
-        <td data-label="Remaining Days">{{ student.remainingDays}}</td>
-        <td data-label="Subscription Update Date">{{ student.planUpgradeDate}}</td>
         <td data-label="Update">
           <button 
             class="btn btn-outline-primary btn-sm"
