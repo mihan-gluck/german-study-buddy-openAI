@@ -128,8 +128,8 @@ export const routes: Routes = [
   
   { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN'] } },
 
-  // Audio Test Route (for students to test microphone and speakers)
-  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+  // Audio Test Route (for students and teachers to test microphone and speakers)
+  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER'] } },
 
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }

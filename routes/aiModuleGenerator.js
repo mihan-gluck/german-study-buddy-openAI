@@ -22,6 +22,17 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       description,
       estimatedDuration,
       moduleType,
+      
+      // Role-play specific fields
+      rolePlaySituation,
+      rolePlaySetting,
+      studentRole,
+      aiRole,
+      rolePlayObjective,
+      aiPersonality,
+      studentGuidance,
+      
+      // Generation options
       generateVocabulary,
       generateExercises,
       generateConversation,
@@ -160,13 +171,20 @@ function createModuleGenerationPrompt(requirements) {
     description,
     estimatedDuration,
     moduleType,
+    rolePlaySituation,
+    rolePlaySetting,
+    studentRole,
+    aiRole,
+    rolePlayObjective,
+    aiPersonality,
+    studentGuidance,
     generateVocabulary,
     generateExercises,
     generateConversation,
     generateCulturalNotes
   } = requirements;
 
-  return `Create a comprehensive ${targetLanguage} learning module with the following requirements:
+  const basePrompt = `Create a comprehensive ${targetLanguage} learning module with the following requirements:
 
 TARGET LANGUAGE: ${targetLanguage}
 NATIVE LANGUAGE: ${nativeLanguage}
@@ -176,16 +194,121 @@ DIFFICULTY: ${difficulty}
 DURATION: ${estimatedDuration} minutes
 MODULE TYPE: ${moduleType}
 
-DESCRIPTION: ${description}
+DESCRIPTION: ${description}`;
+
+  // Add role-play specific information if it's a role-play module
+  const rolePlayInfo = moduleType === 'roleplay' ? `
+
+ROLE-PLAY SCENARIO:
+- Student Role: ${studentRole || 'Student'}
+- AI Role: ${aiRole || 'Tutor'}
+
+IMPORTANT: Based on these roles and the module description, you should intelligently generate:
+- A realistic situation/scenario that fits these roles
+- Appropriate setting details
+- Clear objective for the role-play
+- AI personality that matches the AI role
+- Student guidance appropriate for the student role
+- Multiple AI opening lines for conversation variety
+- Suggested student responses to help them start
+- Conversation flow stages that make sense for this scenario` : '';
+
+  const generationOptions = `
 
 GENERATION OPTIONS:
 - Generate Vocabulary: ${generateVocabulary}
 - Generate Exercises: ${generateExercises}
 - Generate Conversation: ${generateConversation}
-- Generate Cultural Notes: ${generateCulturalNotes}
+- Generate Cultural Notes: ${generateCulturalNotes}`;
 
-Please create a complete learning module and respond with ONLY a valid JSON object in this exact format (NO markdown, NO code blocks, JUST the JSON):
-
+  // Different JSON structure for role-play vs standard modules
+  const jsonStructure = moduleType === 'roleplay' ? `
+{
+  "title": "Module title (max 60 characters)",
+  "description": "Detailed module description",
+  "targetLanguage": "${targetLanguage}",
+  "nativeLanguage": "${nativeLanguage}",
+  "level": "${level}",
+  "category": "${category}",
+  "difficulty": "${difficulty}",
+  "estimatedDuration": ${estimatedDuration},
+  "learningObjectives": [
+    {
+      "objective": "Learning objective 1",
+      "description": "Detailed description"
+    }
+  ],
+  "content": {
+    "introduction": "Engaging introduction text",
+    "rolePlayScenario": {
+      "situation": "Generate appropriate situation based on the roles",
+      "setting": "Generate detailed setting description",
+      "studentRole": "${studentRole || 'Student'}",
+      "aiRole": "${aiRole || 'Tutor'}",
+      "objective": "Generate clear objective for this role-play",
+      "aiPersonality": "Generate personality that fits the AI role",
+      "studentGuidance": "Generate guidance appropriate for the student role",
+      "aiOpeningLines": ["Generate 3-5 opening lines", "that fit the AI role", "and scenario"],
+      "suggestedStudentResponses": ["Generate 3-5 responses", "that help students start", "the conversation"]
+    },
+    "keyTopics": ["topic1", "topic2", "topic3"],
+    "allowedVocabulary": [
+      {
+        "word": "${targetLanguage} word",
+        "translation": "${nativeLanguage} translation",
+        "category": "category"
+      }
+    ],
+    "allowedGrammar": [
+      {
+        "structure": "Grammar structure name",
+        "examples": ["example1", "example2"],
+        "level": "${level}"
+      }
+    ],
+    "conversationFlow": [
+      {
+        "stage": "Generate stage name",
+        "aiPrompts": ["Generate AI prompts for this stage"],
+        "expectedResponses": ["Generate expected student responses"],
+        "helpfulPhrases": ["Generate helpful phrases"]
+      }
+    ],
+    "examples": [
+      {
+        "${targetLanguage.toLowerCase()}": "${targetLanguage} example",
+        "${nativeLanguage.toLowerCase()}": "${nativeLanguage} translation",
+        "explanation": "Grammar/usage explanation"
+      }
+    ],
+    "exercises": [
+      {
+        "type": "role-play",
+        "question": "Role-play exercise description",
+        "options": [],
+        "correctAnswer": "",
+        "explanation": "Role-play guidance",
+        "points": 1
+      }
+    ]
+  },
+  "aiTutorConfig": {
+    "personality": "Generate personality based on AI role",
+    "focusAreas": ["Role-play conversation", "Situational vocabulary", "Natural dialogue flow"],
+    "helpfulPhrases": ["Generate phrases relevant to the scenario"],
+    "commonMistakes": ["Generate common mistakes for this scenario"],
+    "culturalNotes": ["Generate cultural notes if relevant"],
+    "rolePlayInstructions": {
+      "aiRole": "${aiRole || 'Tutor'}",
+      "aiPersonality": "Generate detailed AI personality",
+      "openingLines": ["Generate opening lines"],
+      "studentRole": "${studentRole || 'Student'}",
+      "studentGuidance": "Generate detailed student guidance",
+      "suggestedResponses": ["Generate suggested responses"]
+    }
+  },
+  "tags": ["role-play", "${level.toLowerCase()}", "${category.toLowerCase()}"]
+}` : `
 {
   "title": "Module title (max 60 characters)",
   "description": "Detailed module description",
@@ -244,8 +367,26 @@ Please create a complete learning module and respond with ONLY a valid JSON obje
     "culturalNotes": ["note1", "note2"]
   },
   "tags": ["tag1", "tag2", "tag3"]
-}
+}`;
 
+  const requirements_text = moduleType === 'roleplay' ? `
+
+REQUIREMENTS FOR ROLE-PLAY MODULE:
+1. INTELLIGENTLY GENERATE scenario details based on the student and AI roles
+2. CREATE realistic situation that makes sense for these roles (e.g., if student=Customer and AI=Waiter, generate restaurant scenario)
+3. GENERATE appropriate setting description that fits the situation
+4. CREATE clear objective that matches what these roles would realistically do together
+5. DEVELOP AI personality that authentically represents the AI role
+6. WRITE student guidance that helps them understand their role and reduces anxiety
+7. GENERATE 3-5 varied AI opening lines that fit the role and scenario
+8. CREATE 3-5 helpful student response suggestions to get them started
+9. DESIGN conversation flow stages that naturally progress through the scenario
+10. INCLUDE 10-20 vocabulary words relevant to the specific scenario
+11. ENSURE all content is appropriate for ${level} level
+12. FOCUS on practical, real-world conversation for these specific roles
+13. MAKE the role-play engaging and educational
+
+IMPORTANT: Use your intelligence to create a cohesive, realistic scenario based on just the two roles provided!` : `
 REQUIREMENTS:
 1. Generate 15-25 vocabulary words with accurate translations
 2. Create 3-5 learning objectives
@@ -257,7 +398,12 @@ REQUIREMENTS:
 8. Ensure all content is accurate and pedagogically sound
 9. IMPORTANT: Exercise types must be ONLY: "multiple-choice", "fill-blank", "translation", "conversation", "essay", or "role-play"
 10. For multiple-choice exercises, provide exactly 4 options
-11. Always include correctAnswer and explanation for exercises
+11. Always include correctAnswer and explanation for exercises`;
+
+  return basePrompt + rolePlayInfo + generationOptions + `
+
+Please create a complete learning module and respond with ONLY a valid JSON object in this exact format (NO markdown, NO code blocks, JUST the JSON):
+` + jsonStructure + requirements_text + `
 
 Generate the module now:`;
 }
@@ -279,11 +425,25 @@ function enhanceGeneratedModule(generatedModule, originalRequest, userId) {
     
     // Enhance AI tutor config
     aiTutorConfig: {
-      personality: generatedModule.aiTutorConfig?.personality || `friendly and encouraging ${originalRequest.targetLanguage} tutor`,
+      personality: generatedModule.aiTutorConfig?.personality || originalRequest.aiPersonality || `friendly and encouraging ${originalRequest.targetLanguage} tutor`,
       focusAreas: generatedModule.aiTutorConfig?.focusAreas || [originalRequest.category],
       helpfulPhrases: generatedModule.aiTutorConfig?.helpfulPhrases || [],
       commonMistakes: generatedModule.aiTutorConfig?.commonMistakes || [],
-      culturalNotes: generatedModule.aiTutorConfig?.culturalNotes || []
+      culturalNotes: generatedModule.aiTutorConfig?.culturalNotes || [],
+      
+      // Add role-play instructions if it's a role-play module
+      ...(originalRequest.moduleType === 'roleplay' && {
+        rolePlayInstructions: {
+          aiRole: originalRequest.aiRole || 'Tutor',
+          aiPersonality: originalRequest.aiPersonality || 'Friendly and encouraging tutor',
+          openingLines: generatedModule.aiTutorConfig?.rolePlayInstructions?.openingLines || 
+                       generatedModule.content?.rolePlayScenario?.aiOpeningLines || [],
+          studentRole: originalRequest.studentRole || 'Student',
+          studentGuidance: originalRequest.studentGuidance || 'Be natural and don\'t worry about making mistakes',
+          suggestedResponses: generatedModule.aiTutorConfig?.rolePlayInstructions?.suggestedResponses || 
+                             generatedModule.content?.rolePlayScenario?.suggestedStudentResponses || []
+        }
+      })
     },
     
     // Ensure content structure
@@ -305,37 +465,57 @@ function enhanceGeneratedModule(generatedModule, originalRequest, userId) {
 
 // Generate role-play scenario from module content
 function generateRolePlayScenario(generatedModule, originalRequest) {
-  const description = originalRequest.description.toLowerCase();
+  // For AI-assisted creation, the AI should have generated all the details
+  // We just need to extract them from the generated content
+  if (generatedModule.content?.rolePlayScenario) {
+    return {
+      situation: generatedModule.content.rolePlayScenario.situation,
+      setting: generatedModule.content.rolePlayScenario.setting,
+      studentRole: originalRequest.studentRole || generatedModule.content.rolePlayScenario.studentRole,
+      aiRole: originalRequest.aiRole || generatedModule.content.rolePlayScenario.aiRole,
+      objective: generatedModule.content.rolePlayScenario.objective,
+      aiPersonality: generatedModule.content.rolePlayScenario.aiPersonality,
+      studentGuidance: generatedModule.content.rolePlayScenario.studentGuidance,
+      aiOpeningLines: generatedModule.content.rolePlayScenario.aiOpeningLines || [],
+      suggestedStudentResponses: generatedModule.content.rolePlayScenario.suggestedStudentResponses || []
+    };
+  }
   
-  // Extract scenario details from description
+  // Fallback: Generate basic scenario from roles if AI didn't provide details
+  const studentRole = originalRequest.studentRole || 'Student';
+  const aiRole = originalRequest.aiRole || 'Tutor';
+  
+  // Intelligent scenario generation based on roles
   let situation = 'General conversation';
-  let studentRole = 'Student';
-  let aiRole = 'Native speaker';
+  let setting = 'A friendly learning environment';
   
-  if (description.includes('restaurant')) {
+  if (aiRole.toLowerCase().includes('waiter') || aiRole.toLowerCase().includes('server')) {
     situation = 'At a restaurant';
-    studentRole = 'Customer';
-    aiRole = 'Waiter/Waitress';
-  } else if (description.includes('shop') || description.includes('store')) {
+    setting = 'A busy restaurant with authentic cuisine';
+  } else if (aiRole.toLowerCase().includes('shop') || aiRole.toLowerCase().includes('sales')) {
     situation = 'Shopping';
-    studentRole = 'Customer';
-    aiRole = 'Shop assistant';
-  } else if (description.includes('hotel')) {
+    setting = 'A popular retail store';
+  } else if (aiRole.toLowerCase().includes('hotel') || aiRole.toLowerCase().includes('reception')) {
     situation = 'At a hotel';
-    studentRole = 'Guest';
-    aiRole = 'Hotel receptionist';
-  } else if (description.includes('job') || description.includes('interview')) {
+    setting = 'A hotel lobby with reception desk';
+  } else if (aiRole.toLowerCase().includes('interview') || aiRole.toLowerCase().includes('employer')) {
     situation = 'Job interview';
-    studentRole = 'Job applicant';
-    aiRole = 'Interviewer';
+    setting = 'A professional office environment';
+  } else if (aiRole.toLowerCase().includes('doctor') || aiRole.toLowerCase().includes('medical')) {
+    situation = 'Medical consultation';
+    setting = 'A doctor\'s office or clinic';
   }
   
   return {
     situation,
+    setting,
     studentRole,
     aiRole,
-    setting: `A typical ${situation.toLowerCase()} scenario`,
-    objective: `Practice ${originalRequest.targetLanguage} conversation in a ${situation.toLowerCase()} context`
+    objective: `Practice ${originalRequest.targetLanguage} conversation between ${studentRole} and ${aiRole}`,
+    aiPersonality: `Professional and helpful ${aiRole} who is patient with language learners`,
+    studentGuidance: `You are playing the role of ${studentRole}. Be natural, ask questions if you don't understand, and don't worry about making mistakes.`,
+    aiOpeningLines: [],
+    suggestedStudentResponses: []
   };
 }
 

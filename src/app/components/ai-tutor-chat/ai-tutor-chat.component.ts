@@ -178,12 +178,12 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   private startAutoRefresh(): void {
-    // Auto-refresh messages every 2 seconds to ensure real-time updates
+    // Auto-refresh messages every 1.25 seconds to ensure real-time updates
     this.autoRefreshInterval = setInterval(() => {
       if (this.sessionActive) {
         this.autoRefreshMessages();
       }
-    }, 2000);
+    }, 1250);
   }
 
   private autoRefreshMessages(): void {
@@ -698,14 +698,22 @@ Great job! 🌟`;
         
         const completionMessage: TutorMessage = {
           role: 'tutor',
-          content: `Session ended by your request. 🎯
+          content: `⚠️ Session Stopped Before Completion
+
+You ended the session early. Here's your progress:
 
 💬 Conversations: ${conversationCount}
 ⏱️ Time Spent: ${duration} minutes
 📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
 
-⚠️ Note: Module not completed - you can continue anytime!
-Great job so far! 🌟`,
+🔄 **Module Status: NOT COMPLETED**
+To complete this module and earn full credit:
+- Restart the session and continue the conversation
+- Practice until you reach all learning objectives
+- Complete the full scenario from start to finish
+
+💡 You can restart this module anytime to complete it!
+Keep practicing! 🌟`,
           messageType: 'text',
           timestamp: new Date()
         };
@@ -842,7 +850,7 @@ Great job so far! 🌟`,
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       this.speechRecognition = new SpeechRecognition();
       
-      this.speechRecognition.continuous = false;
+      this.speechRecognition.continuous = true; // Keep listening until manually stopped
       this.speechRecognition.interimResults = false;
       
       // Set language based on module's target language
@@ -865,8 +873,7 @@ Great job so far! 🌟`,
         // Apply confidence threshold
         if (confidence < 0.6) {
           console.warn('🎤 Low confidence transcript, asking for retry');
-          this.isListening = false;
-          // You could add UI feedback here for low confidence
+          // Don't automatically stop - let user decide
           return;
         }
         
@@ -875,7 +882,6 @@ Great job so far! 🌟`,
         
         // Set the normalized transcript in the currentMessage for processing
         this.currentMessage = normalizedTranscript;
-        this.isListening = false;
         this.isProcessingSpeech = true;
         
         // Show what was captured briefly before sending
@@ -890,6 +896,8 @@ Great job so far! 🌟`,
             this.isProcessingSpeech = false;
             // Clear the message since we don't have a visible input field
             this.currentMessage = '';
+            // Keep microphone active for continuous conversation
+            // Student can manually stop when they want
           }, 800); // Slightly longer delay so user can see what was captured
         } else {
           this.isProcessingSpeech = false;
@@ -1022,18 +1030,8 @@ Great job so far! 🌟`,
     utterance.onend = () => {
       this.isSpeaking = false;
       
-      // Auto-enable microphone after AI finishes speaking (for role-play intro)
-      // BUT NOT when session is completed or ending
-      if (this.isRolePlayModule() && 
-          this.voiceEnabled && 
-          !this.isListening && 
-          this.sessionActive && 
-          !this.isSessionCompleted()) {
-        // Small delay to ensure speech has fully ended
-        setTimeout(() => {
-          this.startListening();
-        }, 500);
-      }
+      // Manual microphone control - students decide when to speak
+      // No automatic microphone activation for better learning control
     };
     
     utterance.onerror = () => {
@@ -1089,21 +1087,7 @@ Great job so far! 🌟`,
 
   // Count vocabulary words used by student (basic implementation)
   getVocabularyUsedCount(): number {
-    if (!this.module?.content?.allowedVocabulary) return 0;
-    
-    const studentMessages = this.messages
-      .filter(m => m.role === 'student')
-      .map(m => m.content.toLowerCase())
-      .join(' ');
-    
-    let vocabularyUsed = 0;
-    this.module.content.allowedVocabulary.forEach((vocab: any) => {
-      if (studentMessages.includes(vocab.word.toLowerCase())) {
-        vocabularyUsed++;
-      }
-    });
-    
-    return vocabularyUsed;
+    return this.getVocabularyUsedList().length;
   }
 
   // Get vocabulary usage percentage
@@ -1116,21 +1100,43 @@ Great job so far! 🌟`,
 
   // Get list of actual vocabulary words used by student
   getVocabularyUsedList(): string[] {
-    if (!this.module?.content?.allowedVocabulary) return [];
+    // If module has defined vocabulary, use that
+    if (this.module?.content?.allowedVocabulary && this.module.content.allowedVocabulary.length > 0) {
+      const studentMessages = this.messages
+        .filter(m => m.role === 'student')
+        .map(m => m.content.toLowerCase())
+        .join(' ');
+      
+      const usedVocabulary: string[] = [];
+      this.module.content.allowedVocabulary.forEach((vocab: any) => {
+        if (studentMessages.includes(vocab.word.toLowerCase())) {
+          usedVocabulary.push(vocab.word);
+        }
+      });
+      
+      return usedVocabulary;
+    }
     
+    // Fallback: Extract meaningful words from student messages
     const studentMessages = this.messages
       .filter(m => m.role === 'student')
-      .map(m => m.content.toLowerCase())
+      .map(m => m.content)
       .join(' ');
     
-    const usedVocabulary: string[] = [];
-    this.module.content.allowedVocabulary.forEach((vocab: any) => {
-      if (studentMessages.includes(vocab.word.toLowerCase())) {
-        usedVocabulary.push(vocab.word);
-      }
-    });
+    if (!studentMessages.trim()) return [];
     
-    return usedVocabulary;
+    // Extract words (remove common words, punctuation, etc.)
+    const words = studentMessages
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ') // Remove punctuation
+      .split(/\s+/)
+      .filter(word => 
+        word.length > 2 && // At least 3 characters
+        !['the', 'and', 'but', 'for', 'are', 'was', 'were', 'been', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'can', 'may', 'might', 'must', 'shall', 'this', 'that', 'these', 'those', 'with', 'from', 'they', 'them', 'their', 'there', 'where', 'when', 'what', 'who', 'how', 'why', 'yes', 'you', 'your', 'mine', 'his', 'her', 'our', 'stop', 'end', 'finish', 'quit', 'exit'].includes(word)
+      );
+    
+    // Return unique words (first 10 to avoid overwhelming display)
+    return [...new Set(words)].slice(0, 10);
   }
 
   // Transcript control methods

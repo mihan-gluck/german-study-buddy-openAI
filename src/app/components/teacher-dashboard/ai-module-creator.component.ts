@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LearningModulesService } from '../../services/learning-modules.service';
+import { ModuleDataTransferService } from '../../services/module-data-transfer.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { firstValueFrom } from 'rxjs';
@@ -111,10 +112,69 @@ import { firstValueFrom } from 'rxjs';
                     
                     <div class="col-md-6">
                       <label class="form-label">Module Type</label>
-                      <select class="form-select" formControlName="moduleType">
+                      <select class="form-select" formControlName="moduleType" (change)="onModuleTypeChange()">
                         <option value="standard">Standard Module</option>
                         <option value="roleplay">Role-Play Module</option>
                       </select>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Role-Play Configuration (only shown when roleplay is selected) -->
+                <div class="mb-4" *ngIf="aiForm.get('moduleType')?.value === 'roleplay'">
+                  <h5 class="section-title">
+                    <i class="fas fa-theater-masks text-success"></i>
+                    Role-Play Configuration
+                  </h5>
+                  
+                  <div class="roleplay-config">
+                    <p class="text-muted mb-3">
+                      <i class="fas fa-lightbulb me-2"></i>
+                      Define the basic roles - AI will generate all other details automatically!
+                    </p>
+                    
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Student Role *</label>
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          formControlName="studentRole" 
+                          placeholder="e.g., Customer, Tourist, Job applicant">
+                        <small class="form-text text-muted">What role will the student play?</small>
+                      </div>
+                      
+                      <div class="col-md-6">
+                        <label class="form-label">AI Role *</label>
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          formControlName="aiRole" 
+                          placeholder="e.g., Waiter, Shop assistant, Interviewer">
+                        <small class="form-text text-muted">What role will the AI play?</small>
+                      </div>
+                    </div>
+                    
+                    <div class="ai-generation-note mt-3 p-3 bg-light rounded">
+                      <h6 class="text-success mb-2">
+                        <i class="fas fa-magic me-2"></i>AI will automatically generate:
+                      </h6>
+                      <div class="row">
+                        <div class="col-md-6">
+                          <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>Role personalities</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Opening conversation lines</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Student guidance</li>
+                          </ul>
+                        </div>
+                        <div class="col-md-6">
+                          <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>Scenario details</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Conversation flow</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Role-specific vocabulary</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -284,6 +344,23 @@ import { firstValueFrom } from 'rxjs';
       border-left: 4px solid #ffc107;
     }
     
+    .roleplay-config {
+      background: #f0f8ff;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      border-left: 4px solid #28a745;
+    }
+    
+    .ai-generation-note {
+      border: 2px solid #28a745;
+      background: linear-gradient(135deg, #f8fff9, #e8f5e8);
+    }
+    
+    .ai-generation-note h6 {
+      color: #28a745;
+      font-weight: 600;
+    }
+    
     .form-check {
       margin-bottom: 0.75rem;
     }
@@ -353,6 +430,7 @@ export class AiModuleCreatorComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private learningModulesService: LearningModulesService,
+    private moduleDataTransferService: ModuleDataTransferService,
     private router: Router,
     private http: HttpClient
   ) {
@@ -373,6 +451,12 @@ export class AiModuleCreatorComponent implements OnInit {
       description: ['', [Validators.required, Validators.minLength(20)]],
       estimatedDuration: [30, [Validators.min(10), Validators.max(120)]],
       moduleType: ['standard'],
+      
+      // Simplified role-play fields (only essential ones)
+      studentRole: [''],
+      aiRole: [''],
+      
+      // AI generation options
       generateVocabulary: [true],
       generateExercises: [true],
       generateConversation: [true],
@@ -386,6 +470,27 @@ export class AiModuleCreatorComponent implements OnInit {
     this.difficulties = this.learningModulesService.getAvailableDifficulties();
     this.availableLanguages = this.learningModulesService.getAvailableLanguages();
     this.availableNativeLanguages = this.learningModulesService.getAvailableNativeLanguages();
+  }
+  
+  onModuleTypeChange(): void {
+    const moduleType = this.aiForm.get('moduleType')?.value;
+    
+    if (moduleType === 'roleplay') {
+      // Add required validators for essential role-play fields only
+      this.aiForm.get('studentRole')?.setValidators([Validators.required]);
+      this.aiForm.get('aiRole')?.setValidators([Validators.required]);
+      
+      // Set category to Conversation for role-play modules
+      this.aiForm.patchValue({ category: 'Conversation' });
+    } else {
+      // Remove validators for standard modules
+      this.aiForm.get('studentRole')?.clearValidators();
+      this.aiForm.get('aiRole')?.clearValidators();
+    }
+    
+    // Update form validation
+    this.aiForm.get('studentRole')?.updateValueAndValidity();
+    this.aiForm.get('aiRole')?.updateValueAndValidity();
   }
   
   async generateModule(): Promise<void> {
@@ -449,16 +554,47 @@ export class AiModuleCreatorComponent implements OnInit {
         allowedVocabulary: response?.content?.allowedVocabulary || [],
         allowedGrammar: response?.content?.allowedGrammar || [],
         examples: response?.content?.examples || [],
-        exercises: response?.content?.exercises || []
+        exercises: response?.content?.exercises || [],
+        
+        // Role-play specific content
+        ...(formData.moduleType === 'roleplay' && {
+          rolePlayScenario: {
+            situation: response?.content?.rolePlayScenario?.situation || formData.rolePlaySituation,
+            setting: response?.content?.rolePlayScenario?.setting || formData.rolePlaySetting,
+            studentRole: response?.content?.rolePlayScenario?.studentRole || formData.studentRole,
+            aiRole: response?.content?.rolePlayScenario?.aiRole || formData.aiRole,
+            objective: response?.content?.rolePlayScenario?.objective || formData.rolePlayObjective,
+            aiPersonality: response?.content?.rolePlayScenario?.aiPersonality || formData.aiPersonality,
+            studentGuidance: response?.content?.rolePlayScenario?.studentGuidance || formData.studentGuidance,
+            aiOpeningLines: response?.content?.rolePlayScenario?.aiOpeningLines || [],
+            suggestedStudentResponses: response?.content?.rolePlayScenario?.suggestedStudentResponses || []
+          }
+        })
       },
       aiTutorConfig: {
-        personality: response?.aiTutorConfig?.personality || `friendly and encouraging ${formData.targetLanguage} tutor`,
+        personality: response?.aiTutorConfig?.personality || formData.aiPersonality || `friendly and encouraging ${formData.targetLanguage} tutor`,
         focusAreas: response?.aiTutorConfig?.focusAreas || [formData.category],
         helpfulPhrases: response?.aiTutorConfig?.helpfulPhrases || [],
         commonMistakes: response?.aiTutorConfig?.commonMistakes || [],
-        culturalNotes: response?.aiTutorConfig?.culturalNotes || []
+        culturalNotes: response?.aiTutorConfig?.culturalNotes || [],
+        
+        // Role-play instructions
+        ...(formData.moduleType === 'roleplay' && {
+          rolePlayInstructions: {
+            aiRole: formData.aiRole,
+            aiPersonality: formData.aiPersonality,
+            openingLines: response?.aiTutorConfig?.rolePlayInstructions?.openingLines || [],
+            studentRole: formData.studentRole,
+            studentGuidance: formData.studentGuidance,
+            suggestedResponses: response?.aiTutorConfig?.rolePlayInstructions?.suggestedResponses || []
+          }
+        })
       },
-      tags: response?.tags || [formData.level.toLowerCase(), formData.category.toLowerCase()],
+      tags: response?.tags || [
+        formData.level.toLowerCase(), 
+        formData.category.toLowerCase(),
+        ...(formData.moduleType === 'roleplay' ? ['role-play'] : [])
+      ],
       isActive: true
     };
     
@@ -467,7 +603,7 @@ export class AiModuleCreatorComponent implements OnInit {
   }
   
   private createFallbackModule(formData: any): any {
-    return {
+    const baseModule = {
       title: `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
       description: formData.description || 'Learning module created with AI assistance',
       targetLanguage: formData.targetLanguage,
@@ -488,18 +624,51 @@ export class AiModuleCreatorComponent implements OnInit {
         allowedVocabulary: [],
         allowedGrammar: [],
         examples: [],
-        exercises: []
+        exercises: [],
+        
+        // Add role-play scenario if it's a role-play module
+        ...(formData.moduleType === 'roleplay' && {
+          rolePlayScenario: {
+            situation: formData.rolePlaySituation || 'General conversation',
+            setting: formData.rolePlaySetting || 'A friendly environment',
+            studentRole: formData.studentRole || 'Student',
+            aiRole: formData.aiRole || 'Tutor',
+            objective: formData.rolePlayObjective || 'Practice conversation skills',
+            aiPersonality: formData.aiPersonality || 'Friendly and encouraging tutor',
+            studentGuidance: formData.studentGuidance || 'Be natural and don\'t worry about making mistakes',
+            aiOpeningLines: [],
+            suggestedStudentResponses: []
+          }
+        })
       },
       aiTutorConfig: {
-        personality: `friendly and encouraging ${formData.targetLanguage} tutor`,
+        personality: formData.aiPersonality || `friendly and encouraging ${formData.targetLanguage} tutor`,
         focusAreas: [formData.category],
         helpfulPhrases: [],
         commonMistakes: [],
-        culturalNotes: []
+        culturalNotes: [],
+        
+        // Add role-play instructions if it's a role-play module
+        ...(formData.moduleType === 'roleplay' && {
+          rolePlayInstructions: {
+            aiRole: formData.aiRole || 'Tutor',
+            aiPersonality: formData.aiPersonality || 'Friendly and encouraging tutor',
+            openingLines: [],
+            studentRole: formData.studentRole || 'Student',
+            studentGuidance: formData.studentGuidance || 'Be natural and don\'t worry about making mistakes',
+            suggestedResponses: []
+          }
+        })
       },
-      tags: [formData.level.toLowerCase(), formData.category.toLowerCase()],
+      tags: [
+        formData.level.toLowerCase(), 
+        formData.category.toLowerCase(),
+        ...(formData.moduleType === 'roleplay' ? ['role-play'] : [])
+      ],
       isActive: true
     };
+    
+    return baseModule;
   }
   
   private async simulateAIGeneration(): Promise<void> {
@@ -640,13 +809,18 @@ export class AiModuleCreatorComponent implements OnInit {
   }
   
   editModule(): void {
-    if (!this.generatedModule) return;
+    if (!this.generatedModule) {
+      console.log('❌ No generated module data to edit');
+      return;
+    }
     
-    // Store the generated module in session storage for editing
-    sessionStorage.setItem('generatedModule', JSON.stringify(this.generatedModule));
-    this.router.navigate(['/create-module'], { 
-      queryParams: { source: 'ai-generated' } 
-    });
+    console.log('🔄 Transferring AI-generated module data for editing:', this.generatedModule.title);
+    
+    // Store the generated module in both the service and sessionStorage as backup
+    this.moduleDataTransferService.setGeneratedModule(this.generatedModule);
+    sessionStorage.setItem('aiGeneratedModule', JSON.stringify(this.generatedModule));
+    
+    this.router.navigate(['/create-module']);
   }
   
   startOver(): void {
@@ -658,6 +832,8 @@ export class AiModuleCreatorComponent implements OnInit {
       nativeLanguage: 'English',
       estimatedDuration: 30,
       moduleType: 'standard',
+      studentRole: '',
+      aiRole: '',
       generateVocabulary: true,
       generateExercises: true,
       generateConversation: true,

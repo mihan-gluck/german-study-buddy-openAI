@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { LearningModulesService, LearningModule } from '../../services/learning-modules.service';
+import { ModuleDataTransferService } from '../../services/module-data-transfer.service';
 
 @Component({
   selector: 'app-module-form',
@@ -315,6 +316,7 @@ export class ModuleFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private learningModulesService: LearningModulesService,
+    private moduleDataTransferService: ModuleDataTransferService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -324,6 +326,7 @@ export class ModuleFormComponent implements OnInit {
   ngOnInit(): void {
     this.initializeOptions();
     this.checkEditMode();
+    this.checkAiGeneratedModule();
   }
 
   createForm(): FormGroup {
@@ -380,6 +383,40 @@ export class ModuleFormComponent implements OnInit {
       this.isEditMode = true;
       this.loadModule();
     }
+  }
+
+  checkAiGeneratedModule(): void {
+    console.log('🔍 Checking for AI-generated module data...');
+    
+    // First try the transfer service
+    if (this.moduleDataTransferService.hasGeneratedModule()) {
+      const generatedModule = this.moduleDataTransferService.getGeneratedModule();
+      if (generatedModule) {
+        console.log('📋 Loading AI-generated module from service:', generatedModule.title);
+        this.populateFormFromAiGenerated(generatedModule);
+        return;
+      } else {
+        console.log('⚠️ Transfer service indicated data exists but returned null');
+      }
+    }
+    
+    // Fallback to sessionStorage
+    const sessionData = sessionStorage.getItem('aiGeneratedModule');
+    if (sessionData) {
+      try {
+        const generatedModule = JSON.parse(sessionData);
+        console.log('📋 Loading AI-generated module from sessionStorage:', generatedModule.title);
+        this.populateFormFromAiGenerated(generatedModule);
+        // Clear sessionStorage after use
+        sessionStorage.removeItem('aiGeneratedModule');
+        return;
+      } catch (error) {
+        console.error('❌ Error parsing AI-generated module from sessionStorage:', error);
+        sessionStorage.removeItem('aiGeneratedModule');
+      }
+    }
+    
+    console.log('ℹ️ No AI-generated module data found');
   }
 
   loadModule(): void {
@@ -439,6 +476,75 @@ export class ModuleFormComponent implements OnInit {
     // Set selected languages
     this.selectedTargetLanguage = module.targetLanguage || 'German';
     this.selectedNativeLanguage = module.nativeLanguage || 'English';
+  }
+
+  populateFormFromAiGenerated(generatedModule: any): void {
+    console.log('🔧 Populating form with AI-generated data:', generatedModule);
+    
+    // Set basic form values
+    this.moduleForm.patchValue({
+      title: generatedModule.title || '',
+      description: generatedModule.description || '',
+      targetLanguage: generatedModule.targetLanguage || 'German',
+      nativeLanguage: generatedModule.nativeLanguage || 'English',
+      level: generatedModule.level || '',
+      category: generatedModule.category || '',
+      difficulty: generatedModule.difficulty || '',
+      estimatedDuration: generatedModule.estimatedDuration || 30,
+      content: {
+        introduction: generatedModule.content?.introduction || '',
+        examples: generatedModule.content?.examples || [],
+        exercises: generatedModule.content?.exercises || []
+      },
+      aiTutorConfig: {
+        personality: generatedModule.aiTutorConfig?.personality || 'friendly and encouraging language tutor',
+        commonMistakes: generatedModule.aiTutorConfig?.commonMistakes || [],
+        culturalNotes: generatedModule.aiTutorConfig?.culturalNotes || []
+      }
+    });
+
+    // Set learning objectives
+    this.learningObjectives.clear();
+    if (generatedModule.learningObjectives && generatedModule.learningObjectives.length > 0) {
+      generatedModule.learningObjectives.forEach((obj: any) => {
+        this.learningObjectives.push(this.fb.group({
+          objective: [obj.objective || ''],
+          description: [obj.description || '']
+        }));
+      });
+    } else {
+      // Add at least one empty objective
+      this.learningObjectives.push(this.createLearningObjective());
+    }
+
+    // Set dynamic arrays
+    this.keyTopics = [...(generatedModule.content?.keyTopics || [])];
+    this.focusAreas = [...(generatedModule.aiTutorConfig?.focusAreas || [])];
+    this.helpfulPhrases = [...(generatedModule.aiTutorConfig?.helpfulPhrases || [])];
+    this.tags = [...(generatedModule.tags || [])];
+    
+    // Set selected languages
+    this.selectedTargetLanguage = generatedModule.targetLanguage || 'German';
+    this.selectedNativeLanguage = generatedModule.nativeLanguage || 'English';
+    
+    // Handle role-play specific data if present
+    if (generatedModule.content?.rolePlayScenario) {
+      console.log('🎭 Loading role-play scenario data');
+      this.moduleForm.patchValue({
+        moduleType: 'roleplay',
+        rolePlaySituation: generatedModule.content.rolePlayScenario.situation || '',
+        rolePlaySetting: generatedModule.content.rolePlayScenario.setting || '',
+        studentRole: generatedModule.content.rolePlayScenario.studentRole || '',
+        aiRole: generatedModule.content.rolePlayScenario.aiRole || '',
+        rolePlayObjective: generatedModule.content.rolePlayScenario.objective || '',
+        studentGuidance: generatedModule.content.rolePlayScenario.studentGuidance || ''
+      });
+    } else {
+      // Set as standard module
+      this.moduleForm.patchValue({ moduleType: 'standard' });
+    }
+    
+    console.log('✅ Form populated successfully with AI-generated data');
   }
 
   addLearningObjective(): void {
