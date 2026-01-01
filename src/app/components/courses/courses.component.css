@@ -38,17 +38,6 @@ h2 {
   }
 }
 
-/* .create-course-btn:hover {
-  background-color: yellow;
-  transform: scale(1.03);
-}
-
-.create-course-btn:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-} */
-
-/* Course list */
 .course-list {
   margin-top: 30px;
 }

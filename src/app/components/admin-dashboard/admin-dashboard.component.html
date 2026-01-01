@@ -93,22 +93,6 @@
         <td data-label="Level">{{ student.level || 'N/A' }}</td>
         <td data-label="Status">{{ student.studentStatus || 'N/A' }}</td>
         <td data-label="Assigned Teacher">{{ student.assignedTeacher?.name || 'N/A' }}</td>
-        <!-- <td>
-          <input type="text" [(ngModel)]="student.courseAssigned">
-          <button (click)="assignCourseToStudent(student)">Assign</button>
-        </td> -->
-        <!-- <td>
-          <select [value]="student.vapiAccess.status" (change)="onStatusChange($event, student._id)">
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="finished">Finished</option>
-          </select>
-        </td> -->
-        <!-- <td>{{ student.feedbackStats?.fluency || 'N/A' }}</td>
-        <td>{{ student.feedbackStats?.grammar || 'N/A' }}</td>
-        <td>{{ student.feedbackStats?.accent || 'N/A' }}</td>
-        <td>{{ student.feedbackStats?.overallCFBR || 'N/A' }}</td> -->
-        <!-- <td>{{ student.feedbackStats?.currentLevel || 'N/A' }}</td> -->
         <td data-label="Bot Remaining Minutes">{{ student.remainingMinutes }}</td>
         <td data-label="Remaining Days">{{ student.remainingDays}}</td>
         <td data-label="Subscription Update Date">{{ student.planUpgradeDate}}</td>
@@ -127,44 +111,6 @@
             Delete
           </button>
         </td>
-
-        <!-- ElevenLabs column
-        <td>
-          <div *ngIf="!student.editingElevenLabs">
-            <a *ngIf="student.elevenLabsLink" [href]="student.elevenLabsLink" target="_blank">Link</a>
-            <span *ngIf="!student.elevenLabsLink">No link</span>
-            <button (click)="student.editingElevenLabs = true">Edit</button>
-          </div>
-          <div *ngIf="student.editingElevenLabs">
-            <input type="text" [(ngModel)]="student.elevenLabsLink" placeholder="Enter ElevenLabs link">
-            <button (click)="saveElevenLabsLink(student)">Save</button>
-            <button (click)="cancelEditElevenLabs(student)">Cancel</button>
-          </div>
-        </td>
-
-        Course progress
-        <td>
-          <div *ngIf="student.courseProgress?.length; else noProgress">
-            <div *ngFor="let progress of student.courseProgress">
-              {{ progress.courseName }}: {{ progress.progressPercentage }}%
-              <small>({{ progress.lastUpdated | date:'short' }})</small>
-            </div>
-          </div>
-          <ng-template #noProgress>No progress</ng-template>
-        </td>
-
-        Feedback -->
-        <!-- <td>
-          <button (click)="loadFeedbackForStudent(student._id)">Load Feedback</button>
-          <button (click)="exportFeedbackAsCSV(student._id)">Export CSV</button>
-          <div *ngIf="feedbackMap[student._id]?.length">
-            <ul>
-              <li *ngFor="let fb of feedbackMap[student._id]">
-                {{ fb.timestamp | date:'short' }} - {{ fb.summary }}
-              </li>
-            </ul>
-          </div>
-        </td> -->
       </tr>
     </tbody>
   </table>

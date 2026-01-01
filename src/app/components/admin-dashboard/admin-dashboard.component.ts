@@ -246,32 +246,6 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  // loadFeedbackStats(student: Student): void {
-  //   this.feedbackService.getStudentFeedback(student._id).subscribe({
-  //     next: (feedbackList: FeedbackEntry[]) => {
-  //       const getAvg = (key: 'fluency' | 'grammar' | 'accent' | 'overallCfbr'): number => {
-  //         const scores = feedbackList
-  //           .map(f => parseFloat(f[key] as string))
-  //           .filter(n => !isNaN(n));
-  //         return scores.length ? +(scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : 0;
-  //       };
-  //       const latestLevel = feedbackList.length > 0
-  //         ? feedbackList.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0].currentLevel
-  //         : 'N/A';
-  //       student.feedbackStats = {
-  //         fluency: getAvg('fluency'),
-  //         grammar: getAvg('grammar'),
-  //         accent: getAvg('accent'),
-  //         overallCFBR: getAvg('overallCfbr'),
-  //         currentLevel: latestLevel
-  //       };
-  //     },
-  //     error: err => {
-  //       console.warn(`No feedback for student ${student.name}`, err);
-  //     }
-  //   });
-  // }
-
   loadCourseProgress(student: Student): void {
     this.fetchCourseProgress(student._id);
   }
@@ -287,7 +261,6 @@ export class AdminDashboardComponent implements OnInit {
         this.fetchStudents();
       },
       error: err => {
-        //console.error('Failed to assign course', err);
         alert('Failed to assign course');
       }
     });
@@ -299,7 +272,6 @@ export class AdminDashboardComponent implements OnInit {
         this.fetchStudents();
       },
       error: err => {
-        //console.error('Failed to update VAPI status', err);
       }
     });
   }
@@ -324,7 +296,6 @@ export class AdminDashboardComponent implements OnInit {
         this.feedbackLoading = false;
       },
       error: (err) => {
-        //console.error('Failed to load feedback:', err);
         this.feedbackError = 'Failed to load feedback';
         this.feedbackLoading = false;
       }
@@ -377,7 +348,6 @@ export class AdminDashboardComponent implements OnInit {
         }
       },
       error: err => {
-        //console.error('Failed to fetch course progress', err);
       }
     });
   }
@@ -390,7 +360,6 @@ export class AdminDashboardComponent implements OnInit {
         this.fetchStudents();
       },
       error: err => {
-        //console.error('Reset failed', err);
         alert('Failed to reset usage.');
       }
     });
@@ -401,12 +370,10 @@ export class AdminDashboardComponent implements OnInit {
       this.authService.deleteUser(id).subscribe({
         next: (response) => {
           alert('User deleted successfully!');
-          //console.log('Deleted:', response);
           this.fetchStudents(); // Refresh your user list after deletion
         },
         error: (error) => {
           alert('Failed to delete user: ' + (error.error?.message || 'Please try again.'));
-          //console.error('Delete failed:', error);
         }
       });
     }

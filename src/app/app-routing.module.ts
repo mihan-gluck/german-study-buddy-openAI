@@ -10,7 +10,6 @@ import { HomeComponent } from './components/home/home.component';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { ProfileComponent } from './components/profile/profile.component';
-import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { CreateCourseComponent } from './components/courses/course-create.component';
 
 export const routes: Routes = [
@@ -64,9 +63,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard], 
     data: { role: 'ADMIN' } 
   },
-
-  // Forgot password route
-  { path: 'forgot-password', loadComponent: () => import('./forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
 
   { path: 'teachers', loadComponent: () => import('./components/teachers/teachers.component').then(m => m.TeachersComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 

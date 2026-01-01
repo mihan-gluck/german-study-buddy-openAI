@@ -26,7 +26,6 @@
       <li><a (click)="navigateTo('/view-course-materials'); closeMenu()" *ngIf="isLoggedIn() && (userRole === 'ADMIN')">Course Materials</a></li>
       <li><a (click)="navigateTo(userRole === 'ADMIN' ? '/time-table-view-admin' : userRole === 'STUDENT' ? '/time-table-view-student' : '/time-table-view-teacher'); closeMenu()" *ngIf="userRole === 'ADMIN' || userRole === 'STUDENT' || userRole === 'TEACHER'">Timetable</a></li>
       <li><a (click)="navigateTo('/meeting-link-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Meeting Links</a></li>
-      <!--<li><a (click)="navigateTo('/'); closeMenu()" *ngIf="isLoggedIn() && (userRole === 'ADMIN')">Exam Timetable</a></li>-->
       <li><a (click)="openInternalReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
       <li><a (click)="openStudentReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
       <li><a (click)="navigateTo('/feedback-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Feedback</a></li>

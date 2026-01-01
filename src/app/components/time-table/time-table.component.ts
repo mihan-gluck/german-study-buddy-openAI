@@ -103,7 +103,6 @@ export class TimeTableComponent implements OnInit {
     this.authService.getTeachersByMedium(this.medium).subscribe({
       next: (data) => this.teachers = data,
       error: (err) => {
-        //console.error('Failed to load teachers', err);
         this.teachers = [];
       }
     });
@@ -152,7 +151,6 @@ export class TimeTableComponent implements OnInit {
         error: (err) => {
           this.isLoading = false;
           this.errorMessage = err.error?.message || 'Failed to update timetable.';
-          //console.error('❌ Update failed:', err);
         }
       });
       
@@ -168,7 +166,6 @@ export class TimeTableComponent implements OnInit {
         error: (err) => {
           this.isLoading = false;
           this.errorMessage = err.error?.message || 'Failed to create timetable.';
-          //console.error('❌ Creation failed:', err);
         }
       });
     }
