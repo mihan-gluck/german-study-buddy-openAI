@@ -74,7 +74,13 @@ const LearningModuleSchema = new mongoose.Schema({
         required: false // e.g., "Waiter", "Interviewer", "Shop assistant"
       },
       setting: String, // e.g., "A busy restaurant in Berlin", "A formal office"
-      objective: String // e.g., "Order a meal and ask for the bill"
+      objective: String, // e.g., "Order a meal and ask for the bill"
+      
+      // Enhanced role personality and introduction system
+      aiPersonality: String, // How the AI should behave in this role
+      studentGuidance: String, // Instructions for the student about their role
+      aiOpeningLines: [String], // Different ways AI can start the conversation
+      suggestedStudentResponses: [String] // Example responses students can use
     },
     
     // Vocabulary constraints
@@ -127,7 +133,17 @@ const LearningModuleSchema = new mongoose.Schema({
     focusAreas: [String], // What the AI should focus on for this module
     commonMistakes: [String], // Common mistakes to watch for
     helpfulPhrases: [String], // German phrases to teach
-    culturalNotes: [String] // Cultural context to include
+    culturalNotes: [String], // Cultural context to include
+    
+    // Enhanced role-play instructions
+    rolePlayInstructions: {
+      aiRole: String, // The role AI should play
+      aiPersonality: String, // How AI should behave in this role
+      openingLines: [String], // Different conversation starters
+      studentRole: String, // The role student should play
+      studentGuidance: String, // Instructions for the student
+      suggestedResponses: [String] // Example responses for students
+    }
   },
   
   // Metadata

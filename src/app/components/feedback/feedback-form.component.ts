@@ -60,7 +60,6 @@ export class FeedbackFormComponent implements OnInit {
   }
   
     onSubmit(): void {
-    //console.log('Submitting feedback:', this.feedbackForm.value);
     this.submitted = true;
     this.successMessage = '';
     this.errorMessage = '';
@@ -79,8 +78,6 @@ export class FeedbackFormComponent implements OnInit {
       rating: Number(this.feedbackForm.value.rating)
     };
 
-    //console.log('Payload sent to backend:', feedbackData);
-
     this.feedbackService.submitFeedback(feedbackData).subscribe({
       next: (response) => {
         if ((response as any).success) {
@@ -93,7 +90,6 @@ export class FeedbackFormComponent implements OnInit {
         }
       },
       error: (error) => {
-        //console.error('Error submitting feedback:', error);
         this.errorMessage = 'Failed to submit feedback. Please try again later.';
       }
     });

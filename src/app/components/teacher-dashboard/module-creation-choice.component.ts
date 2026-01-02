@@ -25,9 +25,13 @@ import { Router } from '@angular/router';
                   <i class="fas fa-tools"></i>
                 </div>
                 <h4>Create from Scratch</h4>
-                <p class="text-muted">Build your module manually with complete control over every detail</p>
+                <p class="text-muted">Build your module manually with complete control over every detail. Choose between standard or role-play modules.</p>
                 
                 <div class="features-list">
+                  <div class="feature-item">
+                    <i class="fas fa-check-circle text-success"></i>
+                    <span>Choose module type (Standard/Role-play)</span>
+                  </div>
                   <div class="feature-item">
                     <i class="fas fa-check-circle text-success"></i>
                     <span>Full customization control</span>
@@ -38,11 +42,7 @@ import { Router } from '@angular/router';
                   </div>
                   <div class="feature-item">
                     <i class="fas fa-check-circle text-success"></i>
-                    <span>Define specific vocabulary</span>
-                  </div>
-                  <div class="feature-item">
-                    <i class="fas fa-check-circle text-success"></i>
-                    <span>Create role-play scenarios</span>
+                    <span>Define role personalities & scenarios</span>
                   </div>
                 </div>
                 
@@ -62,7 +62,7 @@ import { Router } from '@angular/router';
                   <i class="fas fa-robot"></i>
                 </div>
                 <h4>Create with AI Assistant</h4>
-                <p class="text-muted">Let AI generate a complete module based on your requirements</p>
+                <p class="text-muted">Let AI generate a complete module based on your requirements. For role-play modules, just specify the roles!</p>
                 
                 <div class="features-list">
                   <div class="feature-item">
@@ -71,7 +71,7 @@ import { Router } from '@angular/router';
                   </div>
                   <div class="feature-item">
                     <i class="fas fa-magic text-warning"></i>
-                    <span>Smart vocabulary selection</span>
+                    <span>Smart role-play scenarios</span>
                   </div>
                   <div class="feature-item">
                     <i class="fas fa-magic text-warning"></i>

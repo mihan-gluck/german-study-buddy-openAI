@@ -131,6 +131,94 @@ import { LearningModulesService } from '../../services/learning-modules.service'
                   </div>
                 </div>
 
+                <!-- Role Personalities & Introductions -->
+                <div class="row mb-4">
+                  <div class="col-12">
+                    <h5 class="border-bottom pb-2">🎪 Role Personalities & Introductions</h5>
+                    <p class="text-muted">Define how each role should behave and introduce themselves</p>
+                  </div>
+                  
+                  <!-- AI Role Personality -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">AI Role Personality</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="aiRolePersonality" 
+                              [ngModelOptions]="{standalone: true}"
+                              placeholder="e.g., Friendly and helpful waiter, professional but approachable, speaks clearly and patiently"></textarea>
+                    <small class="form-text text-muted">How should the AI behave in this role?</small>
+                  </div>
+                  
+                  <!-- Student Role Guidance -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Student Role Guidance</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="studentRoleGuidance" 
+                              [ngModelOptions]="{standalone: true}"
+                              placeholder="e.g., You are a tourist visiting Germany for the first time. Be polite and ask questions if you don't understand something."></textarea>
+                    <small class="form-text text-muted">Instructions for the student about their role</small>
+                  </div>
+                  
+                  <!-- AI Opening Lines -->
+                  <div class="col-12 mb-3">
+                    <label class="form-label">AI Opening Lines</label>
+                    <div class="row g-2 mb-2">
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" [(ngModel)]="newAiOpeningLine" 
+                               [ngModelOptions]="{standalone: true}" 
+                               placeholder="e.g., Guten Tag! Welcome to our restaurant. How can I help you today?">
+                      </div>
+                      <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-primary w-100" (click)="addAiOpeningLine()">
+                          <i class="fas fa-plus"></i> Add
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="opening-lines-list">
+                      <div *ngFor="let line of aiOpeningLines; let i = index" 
+                           class="d-flex align-items-center mb-2 p-2 border rounded">
+                        <div class="flex-grow-1">
+                          <i class="fas fa-robot text-primary me-2"></i>
+                          {{line}}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAiOpeningLine(i)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <small class="form-text text-muted">Different ways the AI can start the conversation</small>
+                  </div>
+                  
+                  <!-- Suggested Student Responses -->
+                  <div class="col-12 mb-3">
+                    <label class="form-label">Suggested Student Responses</label>
+                    <div class="row g-2 mb-2">
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" [(ngModel)]="newStudentResponse" 
+                               [ngModelOptions]="{standalone: true}" 
+                               placeholder="e.g., Hallo! Ich hätte gern einen Tisch für zwei Personen.">
+                      </div>
+                      <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-success w-100" (click)="addStudentResponse()">
+                          <i class="fas fa-plus"></i> Add
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="student-responses-list">
+                      <div *ngFor="let response of suggestedStudentResponses; let i = index" 
+                           class="d-flex align-items-center mb-2 p-2 border rounded">
+                        <div class="flex-grow-1">
+                          <i class="fas fa-user text-success me-2"></i>
+                          {{response}}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeStudentResponse(i)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <small class="form-text text-muted">Example responses students can use to get started</small>
+                  </div>
+                </div>
+
                 <!-- Vocabulary Constraints -->
                 <div class="row mb-4">
                   <div class="col-12">
@@ -311,6 +399,12 @@ export class RoleplayModuleFormComponent implements OnInit {
   allowedGrammar: Array<{structure: string, examples: string[], level: string}> = [];
   conversationFlow: Array<{stage: string, aiPrompts: string[], expectedResponses: string[], helpfulPhrases: string[]}> = [];
 
+  // Role personality and introduction fields
+  aiRolePersonality = '';
+  studentRoleGuidance = '';
+  aiOpeningLines: string[] = [];
+  suggestedStudentResponses: string[] = [];
+
   // Input fields for dynamic arrays
   newVocabWord = '';
   newVocabTranslation = '';
@@ -320,6 +414,8 @@ export class RoleplayModuleFormComponent implements OnInit {
   newFlowStage = '';
   newFlowAiPrompt = '';
   newFlowExpectedResponse = '';
+  newAiOpeningLine = '';
+  newStudentResponse = '';
 
   constructor(
     private fb: FormBuilder,
@@ -416,6 +512,28 @@ export class RoleplayModuleFormComponent implements OnInit {
     this.conversationFlow.splice(index, 1);
   }
 
+  addAiOpeningLine(): void {
+    if (this.newAiOpeningLine.trim()) {
+      this.aiOpeningLines.push(this.newAiOpeningLine.trim());
+      this.newAiOpeningLine = '';
+    }
+  }
+
+  removeAiOpeningLine(index: number): void {
+    this.aiOpeningLines.splice(index, 1);
+  }
+
+  addStudentResponse(): void {
+    if (this.newStudentResponse.trim()) {
+      this.suggestedStudentResponses.push(this.newStudentResponse.trim());
+      this.newStudentResponse = '';
+    }
+  }
+
+  removeStudentResponse(index: number): void {
+    this.suggestedStudentResponses.splice(index, 1);
+  }
+
   onSubmit(): void {
     if (this.moduleForm.invalid) {
       this.moduleForm.markAllAsTouched();
@@ -430,7 +548,13 @@ export class RoleplayModuleFormComponent implements OnInit {
       ...formValue,
       content: {
         introduction: `Welcome to this role-play scenario: ${formValue.rolePlayScenario.situation}`,
-        rolePlayScenario: formValue.rolePlayScenario,
+        rolePlayScenario: {
+          ...formValue.rolePlayScenario,
+          aiPersonality: this.aiRolePersonality,
+          studentGuidance: this.studentRoleGuidance,
+          aiOpeningLines: this.aiOpeningLines,
+          suggestedStudentResponses: this.suggestedStudentResponses
+        },
         allowedVocabulary: this.allowedVocabulary,
         allowedGrammar: this.allowedGrammar,
         conversationFlow: this.conversationFlow,
@@ -439,7 +563,7 @@ export class RoleplayModuleFormComponent implements OnInit {
         exercises: []
       },
       aiTutorConfig: {
-        personality: `experienced ${formValue.targetLanguage} tutor specialized in role-play scenarios`,
+        personality: this.aiRolePersonality || `experienced ${formValue.targetLanguage} tutor specialized in role-play scenarios`,
         focusAreas: [
           'Role-play conversation',
           'Situational vocabulary',
@@ -448,7 +572,15 @@ export class RoleplayModuleFormComponent implements OnInit {
         ],
         helpfulPhrases: this.allowedVocabulary.map(v => v.word),
         commonMistakes: [],
-        culturalNotes: []
+        culturalNotes: [],
+        rolePlayInstructions: {
+          aiRole: formValue.rolePlayScenario.aiRole,
+          aiPersonality: this.aiRolePersonality,
+          openingLines: this.aiOpeningLines,
+          studentRole: formValue.rolePlayScenario.studentRole,
+          studentGuidance: this.studentRoleGuidance,
+          suggestedResponses: this.suggestedStudentResponses
+        }
       },
       tags: ['role-play', formValue.rolePlayScenario.situation.toLowerCase(), formValue.level.toLowerCase()]
     };

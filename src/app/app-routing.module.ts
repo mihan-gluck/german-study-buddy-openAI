@@ -10,7 +10,6 @@ import { HomeComponent } from './components/home/home.component';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { ProfileComponent } from './components/profile/profile.component';
-import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { CreateCourseComponent } from './components/courses/course-create.component';
 
 export const routes: Routes = [
@@ -64,9 +63,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard], 
     data: { role: 'ADMIN' } 
   },
-
-  // Forgot password route
-  { path: 'forgot-password', loadComponent: () => import('./forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
 
   { path: 'teachers', loadComponent: () => import('./components/teachers/teachers.component').then(m => m.TeachersComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
@@ -132,8 +128,8 @@ export const routes: Routes = [
   
   { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN'] } },
 
-  // Audio Test Route (for students to test microphone and speakers)
-  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+  // Audio Test Route (for students and teachers to test microphone and speakers)
+  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER'] } },
 
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }

@@ -538,18 +538,31 @@ router.post('/send-message', verifyToken, async (req, res) => {
     const stopCommands = ['stop', 'end', 'finish', 'quit', 'exit'];
     if (stopCommands.some(cmd => lowerMessage.includes(cmd))) {
       const stopResponse = {
-        content: `Thank you for practicing! You did great in this session. 
+        content: `⚠️ Session Stopped Before Completion
+
+You ended the session early. Here's what happened:
 
 **Session Summary:**
 - Scenario: ${session.moduleId.content?.rolePlayScenario?.situation || 'Language practice'}
 - Your role: ${session.moduleId.content?.rolePlayScenario?.studentRole || 'Student'}
 - Practice time: ${Math.round((Date.now() - session.startTime) / 60000)} minutes
 
-Feel free to try this scenario again or explore other modules. Keep up the excellent work! 🎉`,
-        messageType: 'role-play-complete',
+🔄 **Module Status: NOT COMPLETED**
+To complete this module and earn full credit, you'll need to:
+- Continue the conversation until the learning objectives are met
+- Practice the full scenario from start to finish
+
+💡 **Next Steps:**
+- You can restart this module anytime to complete it
+- Try to reach the conversation goals for full completion
+- Don't worry - you can practice as many times as needed!
+
+Keep practicing! 🌟`,
+        messageType: 'role-play-incomplete',
         metadata: {
           sessionState: 'manually_ended',
-          sessionEnded: true
+          sessionEnded: true,
+          moduleCompleted: false
         }
       };
       

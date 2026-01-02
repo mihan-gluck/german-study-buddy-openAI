@@ -114,8 +114,7 @@ export class TimeTableViewComponent implements OnInit {
   private loadTimeTablesforStudent(batch: string, medium: string, plan: string): void {
     this.timeTableService.getTimeTablesbyBatchMediumPlan(batch, medium, plan).subscribe(
       (data: TimeTable[]) => {
-        //console.log('Student timetable fetched:', data);
-
+        
         const currentDate = new Date();
         const currentMonth = currentDate.getMonth();
         const currentYear = currentDate.getFullYear();

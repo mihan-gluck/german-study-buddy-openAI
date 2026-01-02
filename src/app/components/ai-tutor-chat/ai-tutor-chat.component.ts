@@ -178,12 +178,12 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   private startAutoRefresh(): void {
-    // Auto-refresh messages every 2 seconds to ensure real-time updates
+    // Auto-refresh messages every 1.25 seconds to ensure real-time updates
     this.autoRefreshInterval = setInterval(() => {
       if (this.sessionActive) {
         this.autoRefreshMessages();
       }
-    }, 2000);
+    }, 1250);
   }
 
   private autoRefreshMessages(): void {
@@ -243,20 +243,23 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Unified language mapping
+  private getLanguageCode(targetLanguage: string): string {
+    const languageMap: { [key: string]: string } = {
+      'English': 'en-US',
+      'German': 'de-DE',
+      'Spanish': 'es-ES',
+      'French': 'fr-FR'
+    };
+    return languageMap[targetLanguage] || 'en-US';
+  }
+
   // Update speech recognition language based on module
   updateSpeechRecognitionLanguage(): void {
     if (this.speechRecognition && this.module) {
-      if (this.module.targetLanguage === 'English') {
-        this.speechRecognition.lang = 'en-US';
-        console.log('🎤 Speech recognition set to English (en-US)');
-      } else if (this.module.targetLanguage === 'German') {
-        this.speechRecognition.lang = 'de-DE';
-        console.log('🎤 Speech recognition set to German (de-DE)');
-      } else {
-        // Default to English
-        this.speechRecognition.lang = 'en-US';
-        console.log('🎤 Speech recognition set to English (default)');
-      }
+      const langCode = this.getLanguageCode(this.module.targetLanguage);
+      this.speechRecognition.lang = langCode;
+      console.log(`🎤 Speech recognition set to ${this.module.targetLanguage} (${langCode})`);
     }
   }
 
@@ -695,14 +698,22 @@ Great job! 🌟`;
         
         const completionMessage: TutorMessage = {
           role: 'tutor',
-          content: `Session ended by your request. 🎯
+          content: `⚠️ Session Stopped Before Completion
+
+You ended the session early. Here's your progress:
 
 💬 Conversations: ${conversationCount}
 ⏱️ Time Spent: ${duration} minutes
 📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
 
-⚠️ Note: Module not completed - you can continue anytime!
-Great job so far! 🌟`,
+🔄 **Module Status: NOT COMPLETED**
+To complete this module and earn full credit:
+- Restart the session and continue the conversation
+- Practice until you reach all learning objectives
+- Complete the full scenario from start to finish
+
+💡 You can restart this module anytime to complete it!
+Keep practicing! 🌟`,
           messageType: 'text',
           timestamp: new Date()
         };
@@ -839,7 +850,7 @@ Great job so far! 🌟`,
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       this.speechRecognition = new SpeechRecognition();
       
-      this.speechRecognition.continuous = false;
+      this.speechRecognition.continuous = true; // Keep listening until manually stopped
       this.speechRecognition.interimResults = false;
       
       // Set language based on module's target language
@@ -856,25 +867,37 @@ Great job so far! 🌟`,
       
       this.speechRecognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        const confidence = event.results[0][0].confidence;
+        const confidence = event.results[0][0].confidence || 0.8; // Default confidence
         console.log('🎤 Speech captured:', transcript, 'Confidence:', confidence);
         
-        // Set the transcript in the currentMessage for processing
-        this.currentMessage = transcript;
-        this.isListening = false;
+        // Apply confidence threshold
+        if (confidence < 0.6) {
+          console.warn('🎤 Low confidence transcript, asking for retry');
+          // Don't automatically stop - let user decide
+          return;
+        }
+        
+        // Normalize the transcript for consistent processing
+        const normalizedTranscript = this.normalizeText(transcript);
+        
+        // Set the normalized transcript in the currentMessage for processing
+        this.currentMessage = normalizedTranscript;
         this.isProcessingSpeech = true;
         
         // Show what was captured briefly before sending
-        console.log('🎤 You said:', transcript);
+        console.log('🎤 Original:', transcript);
+        console.log('🎤 Normalized:', normalizedTranscript);
         
         // Automatically send the captured speech with speech indicator
-        if (transcript.trim()) {
+        if (normalizedTranscript.trim()) {
           setTimeout(() => {
             // Mark this message as coming from speech recognition
             this.sendMessage(true); // Pass true to indicate speech input
             this.isProcessingSpeech = false;
             // Clear the message since we don't have a visible input field
             this.currentMessage = '';
+            // Keep microphone active for continuous conversation
+            // Student can manually stop when they want
           }, 800); // Slightly longer delay so user can see what was captured
         } else {
           this.isProcessingSpeech = false;
@@ -933,6 +956,18 @@ Great job so far! 🌟`,
     }
   }
 
+  // Normalize text for consistent processing
+  private normalizeText(text: string): string {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
+      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* formatting
+      .replace(/🎭|📝|💬|💡|✏️|🌟|🎪|🎉/g, '') // Remove emojis
+      .replace(/\n\n/g, '. ')          // Replace double newlines with periods
+      .replace(/\n/g, ' ')             // Replace single newlines with spaces
+      .replace(/\s+/g, ' ')            // Normalize whitespace
+      .trim();
+  }
+
   // Text-to-Speech: Speak the AI tutor's response
   speakText(text: string): void {
     if (!this.voiceEnabled || this.isSpeaking) return;
@@ -941,13 +976,7 @@ Great job so far! 🌟`,
     this.speechSynthesis.cancel();
     
     // Clean up markdown formatting and emojis for better speech
-    const cleanText = text
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
-      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* formatting
-      .replace(/🎭|📝|💬|💡|✏️|🌟|🎪|🎉/g, '') // Remove emojis
-      .replace(/\n\n/g, '. ')          // Replace double newlines with periods
-      .replace(/\n/g, ' ')             // Replace single newlines with spaces
-      .trim();
+    const cleanText = this.normalizeText(text);
     
     const utterance = new SpeechSynthesisUtterance(cleanText);
     
@@ -958,34 +987,31 @@ Great job so far! 🌟`,
       nativeLanguage: this.module?.nativeLanguage
     });
     
-    // Configure voice based on target language
+    // Configure voice based on target language using unified mapping
     const voices = this.speechSynthesis.getVoices();
     let targetVoice;
-    let selectedLang = 'en-US'; // Default to English
+    const selectedLang = this.getLanguageCode(this.module?.targetLanguage || 'English');
     
-    if (this.module?.targetLanguage === 'English') {
+    // Find appropriate voice for the language
+    if (selectedLang.startsWith('en')) {
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
       );
-      utterance.lang = 'en-US';
-      selectedLang = 'en-US';
       console.log('🔊 Using English TTS for English module');
-    } else if (this.module?.targetLanguage === 'German') {
+    } else if (selectedLang.startsWith('de')) {
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('de') || voice.name.toLowerCase().includes('german')
       );
-      utterance.lang = 'de-DE';
-      selectedLang = 'de-DE';
       console.log('🔊 Using German TTS for German module');
     } else {
       // Fallback: Use English as default
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
       );
-      utterance.lang = 'en-US';
-      selectedLang = 'en-US';
-      console.log('🔊 Using English TTS as fallback (unknown target language)');
+      console.log('🔊 Using English TTS as fallback');
     }
+    
+    utterance.lang = selectedLang;
     
     console.log('🔊 Selected voice:', targetVoice?.name || 'Default', 'Language:', selectedLang);
     
@@ -1004,18 +1030,8 @@ Great job so far! 🌟`,
     utterance.onend = () => {
       this.isSpeaking = false;
       
-      // Auto-enable microphone after AI finishes speaking (for role-play intro)
-      // BUT NOT when session is completed or ending
-      if (this.isRolePlayModule() && 
-          this.voiceEnabled && 
-          !this.isListening && 
-          this.sessionActive && 
-          !this.isSessionCompleted()) {
-        // Small delay to ensure speech has fully ended
-        setTimeout(() => {
-          this.startListening();
-        }, 500);
-      }
+      // Manual microphone control - students decide when to speak
+      // No automatic microphone activation for better learning control
     };
     
     utterance.onerror = () => {
@@ -1071,21 +1087,7 @@ Great job so far! 🌟`,
 
   // Count vocabulary words used by student (basic implementation)
   getVocabularyUsedCount(): number {
-    if (!this.module?.content?.allowedVocabulary) return 0;
-    
-    const studentMessages = this.messages
-      .filter(m => m.role === 'student')
-      .map(m => m.content.toLowerCase())
-      .join(' ');
-    
-    let vocabularyUsed = 0;
-    this.module.content.allowedVocabulary.forEach((vocab: any) => {
-      if (studentMessages.includes(vocab.word.toLowerCase())) {
-        vocabularyUsed++;
-      }
-    });
-    
-    return vocabularyUsed;
+    return this.getVocabularyUsedList().length;
   }
 
   // Get vocabulary usage percentage
@@ -1098,21 +1100,43 @@ Great job so far! 🌟`,
 
   // Get list of actual vocabulary words used by student
   getVocabularyUsedList(): string[] {
-    if (!this.module?.content?.allowedVocabulary) return [];
+    // If module has defined vocabulary, use that
+    if (this.module?.content?.allowedVocabulary && this.module.content.allowedVocabulary.length > 0) {
+      const studentMessages = this.messages
+        .filter(m => m.role === 'student')
+        .map(m => m.content.toLowerCase())
+        .join(' ');
+      
+      const usedVocabulary: string[] = [];
+      this.module.content.allowedVocabulary.forEach((vocab: any) => {
+        if (studentMessages.includes(vocab.word.toLowerCase())) {
+          usedVocabulary.push(vocab.word);
+        }
+      });
+      
+      return usedVocabulary;
+    }
     
+    // Fallback: Extract meaningful words from student messages
     const studentMessages = this.messages
       .filter(m => m.role === 'student')
-      .map(m => m.content.toLowerCase())
+      .map(m => m.content)
       .join(' ');
     
-    const usedVocabulary: string[] = [];
-    this.module.content.allowedVocabulary.forEach((vocab: any) => {
-      if (studentMessages.includes(vocab.word.toLowerCase())) {
-        usedVocabulary.push(vocab.word);
-      }
-    });
+    if (!studentMessages.trim()) return [];
     
-    return usedVocabulary;
+    // Extract words (remove common words, punctuation, etc.)
+    const words = studentMessages
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ') // Remove punctuation
+      .split(/\s+/)
+      .filter(word => 
+        word.length > 2 && // At least 3 characters
+        !['the', 'and', 'but', 'for', 'are', 'was', 'were', 'been', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'can', 'may', 'might', 'must', 'shall', 'this', 'that', 'these', 'those', 'with', 'from', 'they', 'them', 'their', 'there', 'where', 'when', 'what', 'who', 'how', 'why', 'yes', 'you', 'your', 'mine', 'his', 'her', 'our', 'stop', 'end', 'finish', 'quit', 'exit'].includes(word)
+      );
+    
+    // Return unique words (first 10 to avoid overwhelming display)
+    return [...new Set(words)].slice(0, 10);
   }
 
   // Transcript control methods
