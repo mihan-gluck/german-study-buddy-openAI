@@ -454,6 +454,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
           } else if (response.response.metadata?.sessionState === 'manually_ended') {
             // Session manually stopped - do NOT mark as completed
             console.log('🛑 Role-play session manually stopped - NOT marking module as completed');
+          } else {
+            // Check for automatic completion based on AI response content
+            this.checkForAutoCompletion(response.response);
           }
           
           // Speak the AI response if voice is enabled
@@ -1341,5 +1344,192 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     }
     
     return false;
+  }
+
+  // Check for automatic completion based on AI response patterns
+  private checkForAutoCompletion(aiMessage: TutorMessage): void {
+    const messageContent = aiMessage.content.toLowerCase();
+    
+    // Completion indicators in AI responses
+    const completionPhrases = [
+      'thank you for practicing',
+      'have a fantastic day',
+      'feel free to reach out',
+      'practice again',
+      'see you next time',
+      'goodbye',
+      'auf wiedersehen',
+      'until next time',
+      'great work today',
+      'you did excellent',
+      'session is complete',
+      'well done today',
+      'fantastic progress',
+      'keep up the great work'
+    ];
+    
+    // Farewell patterns that indicate natural session end
+    const farewellPatterns = [
+      /thank you.*practicing.*today/i,
+      /have a (great|fantastic|wonderful) day/i,
+      /feel free to reach out/i,
+      /practice again.*questions/i,
+      /(goodbye|auf wiedersehen|see you)/i,
+      /until next time/i,
+      /keep.*practicing/i
+    ];
+    
+    // Check for completion phrases
+    const hasCompletionPhrase = completionPhrases.some(phrase => 
+      messageContent.includes(phrase)
+    );
+    
+    // Check for farewell patterns
+    const hasFarewellPattern = farewellPatterns.some(pattern => 
+      pattern.test(messageContent)
+    );
+    
+    // Check if message is encouraging further practice (indicates session end)
+    const encouragesPractice = messageContent.includes('practice again') || 
+                              messageContent.includes('feel free to reach out') ||
+                              messageContent.includes('have any other questions');
+    
+    if (hasCompletionPhrase || hasFarewellPattern || encouragesPractice) {
+      console.log('🎯 Auto-completion detected in AI response:', {
+        hasCompletionPhrase,
+        hasFarewellPattern,
+        encouragesPractice,
+        messagePreview: messageContent.substring(0, 100) + '...'
+      });
+      
+      // Wait a moment for the message to be displayed, then auto-complete
+      setTimeout(() => {
+        this.autoCompleteModule();
+      }, 2000); // 2 second delay to let user read the message
+    }
+  }
+
+  // Automatically complete the module when AI indicates session is done
+  private autoCompleteModule(): void {
+    if (!this.sessionActive) {
+      console.log('⚠️ Session already inactive, skipping auto-completion');
+      return;
+    }
+    
+    console.log('🎯 Auto-completing module based on AI completion signal');
+    
+    // Stop any ongoing speech
+    this.speechSynthesis.cancel();
+    this.isSpeaking = false;
+    
+    // Stop listening
+    if (this.isListening) {
+      this.stopListening();
+    }
+    
+    // Mark as completed and end session
+    this.sessionActive = false;
+    
+    // Calculate session metrics
+    const duration = this.calculateSessionDuration();
+    const conversationCount = this.getStudentMessageCount();
+    const vocabularyUsed = this.getVocabularyUsedList();
+    
+    // Prepare session data for database storage
+    const sessionData = {
+      sessionId: this.sessionId,
+      moduleId: this.moduleId,
+      sessionType: this.sessionType,
+      messages: this.messages,
+      summary: {
+        conversationCount: conversationCount,
+        timeSpentMinutes: duration,
+        vocabularyUsed: vocabularyUsed,
+        exerciseScore: this.sessionStats.sessionScore,
+        conversationScore: this.getConversationScore(),
+        totalScore: this.sessionStats.sessionScore + this.getConversationScore(),
+        correctAnswers: this.sessionStats.correctAnswers,
+        incorrectAnswers: this.sessionStats.incorrectAnswers,
+        accuracy: this.getScorePercentage()
+      },
+      sessionState: 'completed', // Auto-completed by AI
+      isModuleCompleted: true // Mark module as completed
+    };
+
+    // Save session record and mark module as completed
+    this.aiTutorService.saveSessionRecord(sessionData).subscribe({
+      next: (saveResponse) => {
+        console.log('✅ Auto-completed session record saved');
+        
+        // Also mark module as completed in the learning modules system
+        this.markModuleAsCompletedWithData(sessionData);
+      },
+      error: (saveError) => {
+        console.error('❌ Error saving auto-completed session record:', saveError);
+        // Still try to mark module as completed
+        this.markModuleAsCompletedWithData(sessionData);
+      }
+    });
+    
+    // Add auto-completion message to chat
+    const autoCompletionMessage: TutorMessage = {
+      role: 'tutor',
+      content: `🎉 Module Automatically Completed!
+
+The AI tutor has indicated that your learning session is complete.
+
+💬 Conversations: ${conversationCount}
+⏱️ Time Spent: ${duration} minutes
+📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
+
+✅ **Module Status: COMPLETED**
+🌟 Excellent work! You've successfully completed this module!
+
+You can now move on to the next challenge or review your progress in the performance history.`,
+      messageType: 'text',
+      timestamp: new Date(),
+      metadata: { autoCompleted: true } as any
+    };
+    
+    // Add completion message to chat
+    this.aiTutorService.addMessageToCurrentSession(autoCompletionMessage);
+    this.localMessages.push(autoCompletionMessage);
+    this.messages = [...this.localMessages];
+    this.cdr.detectChanges();
+    
+    // Scroll to show completion message
+    setTimeout(() => this.scrollToBottom(), 100);
+    
+    // End the backend session
+    this.aiTutorService.endSession(this.sessionId).subscribe({
+      next: (response) => {
+        console.log('✅ Backend session ended after auto-completion');
+      },
+      error: (error) => {
+        console.error('❌ Error ending backend session:', error);
+      }
+    });
+  }
+
+  // Mark module as completed with session data
+  private markModuleAsCompletedWithData(sessionData: any): void {
+    if (!this.moduleId) {
+      console.warn('⚠️ Cannot mark module as completed: No module ID');
+      return;
+    }
+
+    console.log('📋 Marking module as completed with session data:', sessionData.summary);
+
+    this.learningModulesService.markModuleCompleted(this.moduleId, { 
+      sessionData: sessionData.summary,
+      autoCompleted: true 
+    }).subscribe({
+      next: (response) => {
+        console.log('✅ Module marked as completed successfully (auto-completion):', response);
+      },
+      error: (error) => {
+        console.error('❌ Error marking module as completed (auto-completion):', error);
+      }
+    });
   }
 }
