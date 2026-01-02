@@ -10,7 +10,7 @@ class OpenAIService {
     });
     
     this.model = process.env.OPENAI_MODEL || 'gpt-4o';
-    this.maxTokens = parseInt(process.env.OPENAI_MAX_TOKENS) || 1500;
+    this.maxTokens = parseInt(process.env.OPENAI_MAX_TOKENS) || 800; // Reduced from 1500
     this.temperature = parseFloat(process.env.OPENAI_TEMPERATURE) || 0.7;
   }
 
@@ -24,17 +24,22 @@ class OpenAIService {
       const systemPrompt = this.buildSystemPrompt(module, sessionType, studentLevel);
       const conversationHistory = this.buildConversationHistory(previousMessages);
       
-      const completion = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...conversationHistory,
-          { role: 'user', content: message }
-        ],
-        max_tokens: this.maxTokens,
-        temperature: this.temperature
-        // Removed response_format to fix the error
-      });
+      const completion = await Promise.race([
+        this.openai.chat.completions.create({
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory,
+            { role: 'user', content: message }
+          ],
+          max_tokens: this.maxTokens,
+          temperature: this.temperature
+          // Removed response_format to fix the error
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('OpenAI request timeout')), 15000) // 15 second timeout
+        )
+      ]);
 
       // Parse response - try JSON first, fallback to plain text
       let response;

@@ -178,12 +178,12 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   private startAutoRefresh(): void {
-    // Auto-refresh messages every 1.25 seconds to ensure real-time updates
+    // Auto-refresh messages every 0.8 seconds for faster response feel
     this.autoRefreshInterval = setInterval(() => {
       if (this.sessionActive) {
         this.autoRefreshMessages();
       }
-    }, 1250);
+    }, 800); // Reduced from 1250ms
   }
 
   private autoRefreshMessages(): void {
@@ -364,9 +364,24 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     }
     
     const messageContent = this.currentMessage.trim();
-    this.currentMessage = '';
+    this.currentMessage = ''; // Clear immediately to prevent double-sending
     
     console.log('📤 Sending message:', messageContent, 'from:', fromSpeech ? 'speech' : 'text');
+    
+    // Show immediate loading feedback
+    const loadingMessage: TutorMessage = {
+      role: 'tutor',
+      content: '🤖 Thinking...',
+      messageType: 'text',
+      timestamp: new Date(),
+      metadata: { isLoading: true } as any as any
+    };
+    
+    // Add loading message temporarily
+    this.localMessages.push(loadingMessage);
+    this.messages = [...this.localMessages];
+    this.cdr.detectChanges();
+    setTimeout(() => this.scrollToBottom(), 50);
     
     // Check for stop commands - end session immediately without AI response
     const stopCommands = ['stop', 'end', 'finish', 'quit', 'exit'];
@@ -424,6 +439,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     this.aiTutorService.sendMessage(this.sessionId, messageContent).subscribe({
       next: (response) => {
         console.log('📥 Received response from backend:', response);
+        
+        // Remove loading message and add real response
+        this.localMessages = this.localMessages.filter(m => !(m.metadata as any)?.isLoading);
         
         // Add tutor response
         if (response.response) {
@@ -875,37 +893,22 @@ Keep practicing! 🌟`,
         
         // Apply confidence threshold
         if (confidence < 0.6) {
-          console.warn('🎤 Low confidence transcript, asking for retry');
-          // Don't automatically stop - let user decide
+          console.warn('🎤 Low confidence transcript, ignoring');
           return;
         }
         
         // Normalize the transcript for consistent processing
         const normalizedTranscript = this.normalizeText(transcript);
         
-        // Set the normalized transcript in the currentMessage for processing
+        // Store the captured speech but DON'T send it yet
         this.currentMessage = normalizedTranscript;
-        this.isProcessingSpeech = true;
+        this.isProcessingSpeech = false;
         
-        // Show what was captured briefly before sending
-        console.log('🎤 Original:', transcript);
-        console.log('🎤 Normalized:', normalizedTranscript);
+        console.log('🎤 Speech stored (not sent yet):', normalizedTranscript);
+        console.log('🎤 User must manually stop microphone to send message');
         
-        // Automatically send the captured speech with speech indicator
-        if (normalizedTranscript.trim()) {
-          setTimeout(() => {
-            // Mark this message as coming from speech recognition
-            this.sendMessage(true); // Pass true to indicate speech input
-            this.isProcessingSpeech = false;
-            // Clear the message since we don't have a visible input field
-            this.currentMessage = '';
-            // Keep microphone active for continuous conversation
-            // Student can manually stop when they want
-          }, 800); // Slightly longer delay so user can see what was captured
-        } else {
-          this.isProcessingSpeech = false;
-          this.currentMessage = '';
-        }
+        // Show what was captured in the UI but don't send
+        // The user will manually stop the mic when ready to send
       };
       
       this.speechRecognition.onerror = (event: any) => {
@@ -937,7 +940,11 @@ Keep practicing! 🌟`,
       };
       
       this.speechRecognition.onend = () => {
+        console.log('🎤 Speech recognition ended');
         this.isListening = false;
+        
+        // Don't automatically restart - user controls when to speak
+        // Message will be sent by stopListening() if there's content
       };
     } else {
       console.warn('Speech recognition not supported in this browser');
@@ -952,10 +959,22 @@ Keep practicing! 🌟`,
     }
   }
 
-  // Stop listening
+  // Stop listening and send the captured message
   stopListening(): void {
     if (this.speechRecognition && this.isListening) {
       this.speechRecognition.stop();
+      
+      // If there's a captured message, send it now
+      if (this.currentMessage && this.currentMessage.trim()) {
+        console.log('🎤 Microphone stopped - sending captured message:', this.currentMessage);
+        
+        // Send the message that was captured during listening
+        setTimeout(() => {
+          this.sendMessage(true); // true indicates speech input
+        }, 500); // Small delay to ensure mic has stopped
+      } else {
+        console.log('🎤 Microphone stopped - no message to send');
+      }
     }
   }
 

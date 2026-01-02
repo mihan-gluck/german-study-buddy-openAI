@@ -333,6 +333,15 @@
       </div>
     </div>
     
+    <!-- Speech Captured Feedback -->
+    <div class="speech-captured-feedback" *ngIf="isListening && currentMessage && currentMessage.trim()">
+      <div class="alert alert-success">
+        <i class="fas fa-microphone"></i>
+        <strong>Speech captured:</strong> "{{currentMessage}}"
+        <br><small>Tap the microphone button to stop and send this message</small>
+      </div>
+    </div>
+    
     <!-- Suggestions -->
     <div class="suggestions-container" *ngIf="suggestions.length > 0">
       <div class="suggestions-label">Suggestions:</div>
@@ -378,9 +387,10 @@
       
       <!-- Status Text -->
       <div class="mic-status-text">
-        <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled && !isSessionCompleted()">Tap to speak</span>
+        <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled && !isSessionCompleted()">Tap to start speaking</span>
         <span *ngIf="!isListening && !isProcessingSpeech && voiceEnabled && isSessionCompleted()">Session completed - Tap to speak</span>
-        <span *ngIf="isListening">Listening...</span>
+        <span *ngIf="isListening && !currentMessage.trim()">Listening... (tap stop when done)</span>
+        <span *ngIf="isListening && currentMessage.trim()">Speech captured - tap stop to send</span>
         <span *ngIf="isProcessingSpeech">Processing...</span>
         <span *ngIf="!voiceEnabled">Voice disabled</span>
       </div>
