@@ -66,6 +66,11 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   showTranscript: boolean = true;
   transcriptMode: 'full' | 'minimal' | 'hidden' = 'full';
   
+  // Native language subtitles
+  showSubtitles: boolean = true;
+  subtitleCache: Map<string, string> = new Map(); // Cache translations
+  isTranslating: boolean = false;
+  
   // Speech functionality
   speechSynthesis: SpeechSynthesis;
   speechRecognition: any;
@@ -1298,6 +1303,12 @@ Keep practicing! 🌟`,
         
         // Scroll to show completion message
         setTimeout(() => this.scrollToBottom(), 100);
+        
+        // Automatically redirect to summary after showing completion message
+        setTimeout(() => {
+          console.log('🔄 Automatically redirecting to session summary...');
+          this.navigateToSummary();
+        }, 3000); // Wait 3 seconds to let user read the completion message
       },
       error: (error) => {
         console.error('❌ Error marking module as completed:', error);
@@ -1317,8 +1328,254 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         this.messages = [...this.localMessages];
         this.cdr.detectChanges();
         setTimeout(() => this.scrollToBottom(), 100);
+        
+        // Automatically redirect to summary even if backend fails
+        setTimeout(() => {
+          console.log('🔄 Automatically redirecting to session summary (fallback)...');
+          this.navigateToSummary();
+        }, 3000);
       }
     });
+  }
+
+  // Navigate to session summary/performance history after module completion
+  private navigateToSummary(): void {
+    if (this.isTeacherTestMode) {
+      // For teacher test sessions, go back to learning modules
+      console.log('🔄 Teacher test completed, redirecting to learning modules');
+      this.router.navigate(['/learning-modules']);
+    } else {
+      // For student sessions, go to performance history where they can see the summary
+      console.log('🔄 Student session completed, redirecting to performance history');
+      this.router.navigate(['/performance-history']);
+    }
+  }
+
+  // Toggle subtitle display
+  toggleSubtitles(): void {
+    this.showSubtitles = !this.showSubtitles;
+    
+    // Clear cache when toggling to ensure fresh translations
+    if (this.showSubtitles) {
+      this.subtitleCache.clear();
+      console.log('🔤 Subtitle cache cleared for fresh translations');
+      
+      // Force refresh of all visible translations
+      this.refreshAllTranslations();
+    }
+    
+    console.log('🔤 Subtitles toggled:', this.showSubtitles ? 'ON' : 'OFF');
+  }
+
+  // Force refresh all translations
+  private refreshAllTranslations(): void {
+    if (!this.showSubtitles || !this.module) return;
+    
+    console.log('🔄 Refreshing all translations...');
+    
+    // Trigger translation refresh for all AI messages
+    this.messages
+      .filter(m => m.role === 'tutor')
+      .forEach(message => {
+        this.loadSubtitleAsync(message);
+      });
+    
+    // Force change detection
+    this.cdr.detectChanges();
+  }
+
+  // Get native language translation for AI messages
+  async getMessageTranslation(message: TutorMessage): Promise<string> {
+    // Only translate AI tutor messages that are in target language
+    if (message.role !== 'tutor' || !this.module) {
+      return '';
+    }
+
+    const targetLanguage = this.module.targetLanguage;
+    const nativeLanguage = this.module.nativeLanguage;
+    
+    // Don't translate if target and native are the same
+    if (targetLanguage === nativeLanguage) {
+      return '';
+    }
+
+    // Check cache first
+    const cacheKey = `${message.content}_${targetLanguage}_${nativeLanguage}`;
+    if (this.subtitleCache.has(cacheKey)) {
+      return this.subtitleCache.get(cacheKey) || '';
+    }
+
+    // Don't translate if message is likely already in native language
+    if (this.isMessageInNativeLanguage(message.content, nativeLanguage)) {
+      return '';
+    }
+
+    try {
+      this.isTranslating = true;
+      const translation = await this.translateMessage(message.content, targetLanguage, nativeLanguage);
+      
+      // Cache the translation
+      this.subtitleCache.set(cacheKey, translation);
+      
+      return translation;
+    } catch (error) {
+      console.error('❌ Translation error:', error);
+      return '';
+    } finally {
+      this.isTranslating = false;
+    }
+  }
+
+  // Check if message is likely in native language (simple heuristic)
+  private isMessageInNativeLanguage(content: string, nativeLanguage: string): boolean {
+    const lowerContent = content.toLowerCase();
+    
+    // Don't translate session summary/completion messages
+    const summaryKeywords = [
+      'module completed',
+      'session completed', 
+      'session complete',
+      'congratulations',
+      'great job',
+      'well done',
+      'excellent work',
+      'fantastic progress',
+      'conversations:',
+      'time spent:',
+      'vocabulary used:',
+      'module status:',
+      'session status:',
+      'performance',
+      'summary',
+      'total score',
+      'accuracy',
+      'keep practicing',
+      'next challenge',
+      'automatically completed',
+      'session ended',
+      'practice again'
+    ];
+    
+    // Check if this is a summary/completion message
+    const isSummaryMessage = summaryKeywords.some(keyword => 
+      lowerContent.includes(keyword.toLowerCase())
+    );
+    
+    if (isSummaryMessage) {
+      console.log('📊 Skipping translation for summary/completion message');
+      return true; // Treat as native language to skip translation
+    }
+    
+    // Simple detection based on common phrases
+    const nativeLanguagePhrases: { [key: string]: string[] } = {
+      'English': ['hello', 'thank you', 'goodbye', 'how are you', 'welcome', 'congratulations'],
+      'Tamil': ['வணக்கம்', 'நன்றி', 'பயிற்சி', 'வாழ்த்துக்கள்', 'அமர்வு'],
+      'Sinhala': ['ආයුබෝවන්', 'ස්තූතියි', 'පුහුණුවීම', 'සුභපැතුම්', 'සැසිය']
+    };
+
+    const phrases = nativeLanguagePhrases[nativeLanguage] || [];
+    return phrases.some((phrase: string) => lowerContent.includes(phrase.toLowerCase()));
+  }
+
+  // Translate message using OpenAI-powered backend service
+  private async translateMessage(content: string, fromLanguage: string, toLanguage: string): Promise<string> {
+    try {
+      console.log('🔤 Translating with OpenAI:', { content: content.substring(0, 50), fromLanguage, toLanguage });
+      
+      // Use our OpenAI-powered backend translation service with cache busting
+      const response = await fetch('/api/translate?' + new URLSearchParams({
+        t: Date.now().toString() // Cache busting parameter
+      }), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache', // Prevent caching
+        },
+        body: JSON.stringify({
+          text: content,
+          from: fromLanguage,
+          to: toLanguage
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.translatedText) {
+          console.log('✅ OpenAI translation success:', result.translatedText);
+          return result.translatedText;
+        }
+      } else {
+        console.warn('⚠️ Translation API error:', response.status);
+      }
+
+      // Fallback message if translation fails
+      const languageNames: { [key: string]: string } = {
+        'Tamil': 'தமிழில்',
+        'Sinhala': 'සිංහලෙන්',
+        'English': 'in English',
+        'German': 'auf Deutsch'
+      };
+      
+      const nativeName = languageNames[toLanguage] || toLanguage;
+      return `💬 ${nativeName} translation processing...`;
+
+    } catch (error) {
+      console.error('❌ Translation service error:', error);
+      
+      // Simple fallback message
+      const languageNames: { [key: string]: string } = {
+        'Tamil': 'தමிழில்',
+        'Sinhala': 'සිංහලෙන්',
+        'English': 'in English',
+        'German': 'auf Deutsch'
+      };
+      
+      const nativeName = languageNames[toLanguage] || toLanguage;
+      return `💬 ${nativeName} translation temporarily unavailable`;
+    }
+  }
+
+  // Get subtitle for message (synchronous for template)
+  getMessageSubtitle(message: TutorMessage): string {
+    if (!this.showSubtitles || message.role !== 'tutor' || !this.module) {
+      return '';
+    }
+
+    const targetLanguage = this.module.targetLanguage;
+    const nativeLanguage = this.module.nativeLanguage;
+    
+    // Don't show subtitle if languages are the same
+    if (targetLanguage === nativeLanguage) {
+      return '';
+    }
+
+    // Check cache first
+    const cacheKey = `${message.content}_${targetLanguage}_${nativeLanguage}`;
+    if (this.subtitleCache.has(cacheKey)) {
+      return this.subtitleCache.get(cacheKey) || '';
+    }
+
+    // Don't show subtitle if message is likely already in native language
+    if (this.isMessageInNativeLanguage(message.content, nativeLanguage)) {
+      return '';
+    }
+
+    // Trigger async translation and return loading state
+    this.loadSubtitleAsync(message);
+    return '<i class="fas fa-spinner fa-spin"></i> <small>Translating...</small>';
+  }
+
+  // Load subtitle asynchronously
+  private async loadSubtitleAsync(message: TutorMessage): Promise<void> {
+    try {
+      const translation = await this.getMessageTranslation(message);
+      if (translation) {
+        // Trigger change detection to update the view
+        this.cdr.detectChanges();
+      }
+    } catch (error) {
+      console.error('❌ Error loading subtitle:', error);
+    }
   }
 
   // Check if session is completed or ending (to prevent auto-microphone activation)
@@ -1369,52 +1626,46 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   private checkForAutoCompletion(aiMessage: TutorMessage): void {
     const messageContent = aiMessage.content.toLowerCase();
     
-    // Completion indicators in AI responses
-    const completionPhrases = [
-      'thank you for practicing',
-      'have a fantastic day',
-      'feel free to reach out',
-      'practice again',
-      'see you next time',
-      'goodbye',
-      'auf wiedersehen',
-      'until next time',
-      'great work today',
-      'you did excellent',
-      'session is complete',
-      'well done today',
-      'fantastic progress',
-      'keep up the great work'
-    ];
+    // Get both target and native languages for comprehensive completion detection
+    const targetLanguage = this.module?.targetLanguage || 'English';
+    const nativeLanguage = this.module?.nativeLanguage || 'English';
     
-    // Farewell patterns that indicate natural session end
-    const farewellPatterns = [
-      /thank you.*practicing.*today/i,
-      /have a (great|fantastic|wonderful) day/i,
-      /feel free to reach out/i,
-      /practice again.*questions/i,
-      /(goodbye|auf wiedersehen|see you)/i,
-      /until next time/i,
-      /keep.*practicing/i
-    ];
+    console.log('🔍 Checking completion for languages:', { targetLanguage, nativeLanguage });
+    
+    // Check completion phrases in both target and native languages
+    const targetCompletionPhrases = this.getCompletionPhrases(targetLanguage);
+    const nativeCompletionPhrases = this.getCompletionPhrases(nativeLanguage);
+    const allCompletionPhrases = [...targetCompletionPhrases, ...nativeCompletionPhrases];
+    
+    // Check farewell patterns in both languages
+    const targetFarewellPatterns = this.getFarewellPatterns(targetLanguage);
+    const nativeFarewellPatterns = this.getFarewellPatterns(nativeLanguage);
+    const allFarewellPatterns = [...targetFarewellPatterns, ...nativeFarewellPatterns];
+    
+    // Check practice encouragement in both languages
+    const targetPracticeEncouragement = this.getPracticeEncouragementPhrases(targetLanguage);
+    const nativePracticeEncouragement = this.getPracticeEncouragementPhrases(nativeLanguage);
+    const allPracticeEncouragement = [...targetPracticeEncouragement, ...nativePracticeEncouragement];
     
     // Check for completion phrases
-    const hasCompletionPhrase = completionPhrases.some(phrase => 
-      messageContent.includes(phrase)
+    const hasCompletionPhrase = allCompletionPhrases.some(phrase => 
+      messageContent.includes(phrase.toLowerCase())
     );
     
     // Check for farewell patterns
-    const hasFarewellPattern = farewellPatterns.some(pattern => 
+    const hasFarewellPattern = allFarewellPatterns.some(pattern => 
       pattern.test(messageContent)
     );
     
     // Check if message is encouraging further practice (indicates session end)
-    const encouragesPractice = messageContent.includes('practice again') || 
-                              messageContent.includes('feel free to reach out') ||
-                              messageContent.includes('have any other questions');
+    const encouragesPractice = allPracticeEncouragement.some(phrase => 
+      messageContent.includes(phrase.toLowerCase())
+    );
     
     if (hasCompletionPhrase || hasFarewellPattern || encouragesPractice) {
       console.log('🎯 Auto-completion detected in AI response:', {
+        targetLanguage,
+        nativeLanguage,
         hasCompletionPhrase,
         hasFarewellPattern,
         encouragesPractice,
@@ -1426,6 +1677,210 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         this.autoCompleteModule();
       }, 2000); // 2 second delay to let user read the message
     }
+  }
+
+  // Get completion phrases for specific language
+  private getCompletionPhrases(targetLanguage: string): string[] {
+    const phrases: { [key: string]: string[] } = {
+      'English': [
+        'thank you for practicing',
+        'have a fantastic day',
+        'feel free to reach out',
+        'practice again',
+        'see you next time',
+        'goodbye',
+        'until next time',
+        'great work today',
+        'you did excellent',
+        'session is complete',
+        'well done today',
+        'fantastic progress',
+        'keep up the great work',
+        'good bye',
+        'bye for now',
+        'talk to you later',
+        'have a great day',
+        'wonderful job',
+        'excellent work',
+        'session completed',
+        'module completed',
+        'congratulations'
+      ],
+      'German': [
+        'vielen dank fürs üben',
+        'danke fürs praktizieren',
+        'haben sie einen schönen tag',
+        'hab einen schönen tag',
+        'auf wiedersehen',
+        'bis zum nächsten mal',
+        'tschüss',
+        'tschau',
+        'großartige arbeit heute',
+        'toll gemacht heute',
+        'fantastische fortschritte',
+        'weiter so',
+        'gut gemacht',
+        'ausgezeichnet',
+        'wunderbar',
+        'perfekt',
+        'session beendet',
+        'sitzung beendet',
+        'modul abgeschlossen',
+        'herzlichen glückwunsch',
+        'glückwunsch',
+        'bis bald',
+        'mach weiter so',
+        'sehr gut gemacht'
+      ],
+      'Tamil': [
+        'பயிற்சிக்கு நன்றி',
+        'நல்ல நாள் இருக்கட்டும்',
+        'மீண்டும் பயிற்சி செய்யுங்கள்',
+        'அடுத்த முறை சந்திப்போம்',
+        'வணக்கம்',
+        'பிரியாவிடை',
+        'இன்று நல்ல வேலை',
+        'சிறப்பாக செய்தீர்கள்',
+        'அமர்வு முடிந்தது',
+        'நன்றாக செய்தீர்கள்',
+        'அருமையான முன்னேற்றம்',
+        'தொடர்ந்து செய்யுங்கள்',
+        'வாழ்த்துக்கள்',
+        'பாராட்டுக்கள்',
+        'மிகச் சிறப்பு',
+        'அமர்வு நிறைவு',
+        'பாடம் முடிந்தது'
+      ],
+      'Sinhala': [
+        'පුහුණුවීමට ස්තූතියි',
+        'හොඳ දිනයක් වේවා',
+        'නැවත පුහුණු වන්න',
+        'ඊළඟ වතාවේ හමුවෙමු',
+        'ආයුබෝවන්',
+        'සමුගන්නවා',
+        'අද හොඳ වැඩක්',
+        'ඔබ විශිෂ්ට ලෙස කළා',
+        'සැසිය අවසන්',
+        'හොඳින් කළා',
+        'අපූරු ප්‍රගතියක්',
+        'දිගටම කරන්න',
+        'සුභපැතුම්',
+        'ප්‍රශංසනීය',
+        'ඉතා විශිෂ්ට',
+        'සැසිය සම්පූර්ණ',
+        'පාඩම අවසන්'
+      ]
+    };
+    
+    return phrases[targetLanguage] || phrases['English'];
+  }
+
+  // Get farewell patterns for specific language
+  private getFarewellPatterns(targetLanguage: string): RegExp[] {
+    const patterns: { [key: string]: RegExp[] } = {
+      'English': [
+        /thank you.*practicing.*today/i,
+        /have a (great|fantastic|wonderful) day/i,
+        /feel free to reach out/i,
+        /practice again.*questions/i,
+        /(goodbye|see you|bye)/i,
+        /until next time/i,
+        /keep.*practicing/i,
+        /(good bye|talk.*later)/i,
+        /(wonderful|excellent).*work/i,
+        /session.*(complete|completed|finished)/i,
+        /module.*(complete|completed|finished)/i
+      ],
+      'German': [
+        /vielen dank.*üben/i,
+        /danke.*praktizieren/i,
+        /(haben sie|hab).*schönen tag/i,
+        /auf wiedersehen/i,
+        /bis zum nächsten mal/i,
+        /(tschüss|tschau|bis bald)/i,
+        /(großartige|toll).*arbeit/i,
+        /(gut|ausgezeichnet|wunderbar).*gemacht/i,
+        /weiter.*so/i,
+        /(session|sitzung).*(beendet|abgeschlossen)/i,
+        /modul.*abgeschlossen/i,
+        /herzlichen.*glückwunsch/i
+      ],
+      'Tamil': [
+        /பயிற்சிக்கு.*நன்றி/i,
+        /நல்ல.*நாள்/i,
+        /மீண்டும்.*பயிற்சி/i,
+        /அடுத்த.*முறை/i,
+        /(வணக்கம்|பிரியாவிடை)/i,
+        /நல்ல.*வேலை/i,
+        /சிறப்பாக.*செய்தீர்கள்/i,
+        /அமர்வு.*முடிந்தது/i,
+        /நன்றாக.*செய்தீர்கள்/i,
+        /அருமையான.*முன்னேற்றம்/i,
+        /(வாழ்த்துக்கள்|பாராட்டுக்கள்)/i,
+        /பாடம்.*முடிந்தது/i
+      ],
+      'Sinhala': [
+        /පුහුණුවීමට.*ස්තූතියි/i,
+        /හොඳ.*දිනයක්/i,
+        /නැවත.*පුහුණු/i,
+        /ඊළඟ.*වතාවේ/i,
+        /(ආයුබෝවන්|සමුගන්නවා)/i,
+        /හොඳ.*වැඩක්/i,
+        /විශිෂ්ට.*ලෙස/i,
+        /සැසිය.*අවසන්/i,
+        /හොඳින්.*කළා/i,
+        /අපූරු.*ප්‍රගතියක්/i,
+        /(සුභපැතුම්|ප්‍රශංසනීය)/i,
+        /පාඩම.*අවසන්/i
+      ]
+    };
+    
+    return patterns[targetLanguage] || patterns['English'];
+  }
+
+  // Get practice encouragement phrases for specific language
+  private getPracticeEncouragementPhrases(targetLanguage: string): string[] {
+    const phrases: { [key: string]: string[] } = {
+      'English': [
+        'practice again',
+        'feel free to reach out',
+        'have any other questions',
+        'come back anytime',
+        'practice more',
+        'keep practicing',
+        'try again later'
+      ],
+      'German': [
+        'üben sie weiter',
+        'praktizieren sie weiter',
+        'kommen sie gerne wieder',
+        'haben sie noch fragen',
+        'melden sie sich gerne',
+        'bis zum nächsten üben',
+        'weiter üben',
+        'mehr praktizieren'
+      ],
+      'Tamil': [
+        'மீண்டும் பயிற்சி செய்யுங்கள்',
+        'தொடர்ந்து பயிற்சி செய்யுங்கள்',
+        'எப்போது வேண்டுமானாலும் வாருங்கள்',
+        'வேறு கேள்விகள் உள்ளதா',
+        'தொடர்பு கொள்ளுங்கள்',
+        'அடுத்த பயிற்சிக்கு வாருங்கள்',
+        'மேலும் பயிற்சி செய்யுங்கள்'
+      ],
+      'Sinhala': [
+        'නැවත පුහුණු වන්න',
+        'දිගටම පුහුණු වන්න',
+        'ඕනෑම වේලාවක එන්න',
+        'වෙනත් ප්‍රශ්න තිබේද',
+        'සම්බන්ධ වන්න',
+        'ඊළඟ පුහුණුවට එන්න',
+        'තවත් පුහුණු වන්න'
+      ]
+    };
+    
+    return phrases[targetLanguage] || phrases['English'];
   }
 
   // Automatically complete the module when AI indicates session is done
@@ -1518,6 +1973,12 @@ You can now move on to the next challenge or review your progress in the perform
     
     // Scroll to show completion message
     setTimeout(() => this.scrollToBottom(), 100);
+    
+    // Automatically redirect to summary after showing completion message
+    setTimeout(() => {
+      console.log('🔄 Automatically redirecting to session summary (auto-completion)...');
+      this.navigateToSummary();
+    }, 3000); // Wait 3 seconds to let user read the completion message
     
     // End the backend session
     this.aiTutorService.endSession(this.sessionId).subscribe({

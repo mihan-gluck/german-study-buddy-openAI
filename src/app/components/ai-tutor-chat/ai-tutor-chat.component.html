@@ -74,6 +74,18 @@
       <div class="header-actions">
         <!-- Transcript Controls -->
         <div class="transcript-controls" *ngIf="sessionActive">
+          <!-- Subtitle Toggle -->
+          <button 
+            class="btn btn-outline-light btn-sm me-2"
+            [class.btn-warning]="showSubtitles"
+            [class.btn-secondary]="!showSubtitles"
+            (click)="toggleSubtitles()"
+            title="Toggle native language subtitles"
+            *ngIf="module?.targetLanguage !== module?.nativeLanguage">
+            <i class="fas fa-closed-captioning"></i>
+            {{ showSubtitles ? 'Hide' : 'Show' }} Subtitles
+          </button>
+          
           <div class="btn-group" dropdown>
             <button 
               class="btn btn-outline-light btn-sm"
@@ -241,6 +253,22 @@
             </div>
             <div class="message-text">
               {{ message.content }}
+            </div>
+            
+            <!-- Native Language Subtitle -->
+            <div class="message-subtitle" 
+                 *ngIf="showSubtitles && message.role === 'tutor' && module?.targetLanguage !== module?.nativeLanguage">
+              <div class="subtitle-content" 
+                   [class.loading]="isTranslating">
+                <i class="fas fa-language subtitle-icon"></i>
+                <span class="subtitle-text" 
+                      [innerHTML]="getMessageSubtitle(message)">
+                </span>
+                <div class="subtitle-loading" *ngIf="isTranslating">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <small>Translating...</small>
+                </div>
+              </div>
             </div>
             
             <!-- Message Status (hidden in minimal mode) -->

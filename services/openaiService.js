@@ -309,8 +309,11 @@ Instructions:
 7. Include pronunciation tips when helpful (use phonetic spelling or IPA)
 8. Provide practical examples students can use in real ${targetLang} conversations
 9. COMPLETION DETECTION: When the conversation has reached a natural conclusion (student has practiced sufficiently, learning objectives met, or you're saying goodbye), include completion signals in your response:
-   - Use phrases like "Thank you for practicing", "Have a fantastic day", "Feel free to reach out", "Practice again"
-   - Include farewell expressions appropriate to ${targetLang} culture
+   - For English modules/native: Use phrases like "Thank you for practicing", "Have a fantastic day", "Feel free to reach out", "Practice again", "Good bye", "See you next time"
+   - For German modules/native: Use phrases like "Vielen Dank fürs Üben", "Haben Sie einen schönen Tag", "Auf Wiedersehen", "Bis zum nächsten Mal", "Tschüss", "Gut gemacht"
+   - For Tamil native language: Use phrases like "பயிற்சிக்கு நன்றி", "நல்ல நாள் இருக்கட்டும்", "வாழ்த்துக்கள்", "அடுத்த முறை சந்திப்போம்"
+   - For Sinhala native language: Use phrases like "පුහුණුවීමට ස්තූතියි", "හොඳ දිනයක් වේවා", "සුභපැතුම්", "ඊළඟ වතාවේ හමුවෙමු"
+   - Include farewell expressions appropriate to ${targetLang} or ${nativeLang} culture
    - Encourage future practice or learning
    - The system will automatically detect these patterns and complete the module
 
@@ -407,8 +410,12 @@ SESSION STATES - FOLLOW THIS FLOW:
    - Break character and congratulate the student in ${nativeLang}
    - Summarize what was accomplished
    - Provide positive feedback on their performance
-   - Use completion phrases like "Thank you for practicing with me today!", "Have a fantastic day!", "Feel free to reach out if you have questions"
-   - Include appropriate ${targetLang} farewell expressions
+   - Use completion phrases appropriate to the native language for congratulations:
+     * English: "Thank you for practicing with me today!", "Have a fantastic day!", "Feel free to reach out if you have questions", "Good bye!", "See you next time!"
+     * German: "Vielen Dank fürs Üben heute!", "Haben Sie einen schönen Tag!", "Auf Wiedersehen!", "Bis zum nächsten Mal!", "Tschüss!", "Gut gemacht!"
+     * Tamil: "பயிற்சிக்கு நன்றி!", "நல்ல நாள் இருக்கட்டும்!", "வாழ்த்துக்கள்!", "அடுத்த முறை சந்திப்போம்!"
+     * Sinhala: "පුහුණුවීමට ස්තූතියි!", "හොඳ දිනයක් වේවා!", "සුභපැතුම්!", "ඊළඟ වතාවේ හමුවෙමු!"
+   - Include appropriate ${nativeLang} farewell expressions for the completion state
    - The system will automatically detect these completion signals and mark the module as completed
 
 4. MANUAL STOP (if student says "stop", "end", "finish", "quit"):
@@ -593,6 +600,52 @@ Remember: You are managing a structured role-play session with clear personality
 - Provide cultural context relevant to ${targetLang}-speaking regions
 - Explain formality levels and social conventions
 - Include practical examples for real-world use`;
+  }
+
+  /**
+   * Translate text using OpenAI
+   */
+  async translateText(text, fromLanguage, toLanguage) {
+    try {
+      console.log('🔤 OpenAI Translation:', { text: text.substring(0, 50), fromLanguage, toLanguage });
+      
+      const translationPrompt = `Translate the following text from ${fromLanguage} to ${toLanguage}. 
+      
+Provide ONLY the translation, no explanations or additional text.
+
+Text to translate: "${text}"
+
+Translation:`;
+
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-3.5-turbo', // Use faster model for translations
+        messages: [
+          { 
+            role: 'system', 
+            content: `You are a professional translator. Translate accurately from ${fromLanguage} to ${toLanguage}. Provide only the translation, no explanations.` 
+          },
+          { role: 'user', content: translationPrompt }
+        ],
+        max_tokens: 200, // Sufficient for most translations
+        temperature: 0.1 // Low temperature for consistent translations
+      });
+
+      const translation = completion.choices[0].message.content.trim();
+      console.log('✅ OpenAI translation success:', translation);
+      
+      return {
+        success: true,
+        translatedText: translation,
+        service: 'OpenAI'
+      };
+    } catch (error) {
+      console.error('❌ OpenAI translation error:', error);
+      return {
+        success: false,
+        error: error.message,
+        service: 'OpenAI'
+      };
+    }
   }
 
   /**

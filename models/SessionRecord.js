@@ -101,7 +101,7 @@ const sessionRecordSchema = new mongoose.Schema({
   // Session details
   sessionType: {
     type: String,
-    enum: ['practice', 'test', 'role-play'],
+    enum: ['practice', 'test', 'role-play', 'teacher-test'],
     default: 'practice'
   },
   sessionState: {
