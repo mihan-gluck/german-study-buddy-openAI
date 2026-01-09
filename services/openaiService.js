@@ -603,7 +603,8 @@ Remember: You are managing a structured role-play session with clear personality
   }
 
   /**
-   * Translate text using OpenAI
+   * Translate text using OpenAI GPT-5.1
+   * Uses the latest GPT-5.1 model with "no reasoning" mode for fast, high-quality translations
    */
   async translateText(text, fromLanguage, toLanguage) {
     try {
@@ -617,8 +618,16 @@ Text to translate: "${text}"
 
 Translation:`;
 
+      // Use GPT-5.1 for translations - latest and highest quality model available
+      // Alternative models you can use:
+      // - 'gpt-5.1': Latest model with best quality and adaptive reasoning (recommended)
+      // - 'gpt-5': High quality but slower than 5.1
+      // - 'gpt-4o': Good quality but older generation
+      // - 'gpt-4o-mini': Balanced quality and cost but lower than GPT-5 series
+      const translationModel = process.env.OPENAI_TRANSLATION_MODEL || 'gpt-5.1';
+
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo', // Use faster model for translations
+        model: translationModel,
         messages: [
           { 
             role: 'system', 
@@ -627,7 +636,9 @@ Translation:`;
           { role: 'user', content: translationPrompt }
         ],
         max_tokens: 200, // Sufficient for most translations
-        temperature: 0.1 // Low temperature for consistent translations
+        temperature: 0.1, // Low temperature for consistent translations
+        // Use "no reasoning" mode for GPT-5.1 to make translations faster
+        ...(translationModel === 'gpt-5.1' && { reasoning_effort: 'none' })
       });
 
       const translation = completion.choices[0].message.content.trim();
