@@ -635,7 +635,11 @@ Translation:`;
           },
           { role: 'user', content: translationPrompt }
         ],
-        max_tokens: 200, // Sufficient for most translations
+        // GPT-5.1 uses max_completion_tokens instead of max_tokens
+        ...(translationModel === 'gpt-5.1' ? 
+          { max_completion_tokens: 200 } : 
+          { max_tokens: 200 }
+        ),
         temperature: 0.1, // Low temperature for consistent translations
         // Use "no reasoning" mode for GPT-5.1 to make translations faster
         ...(translationModel === 'gpt-5.1' && { reasoning_effort: 'none' })
