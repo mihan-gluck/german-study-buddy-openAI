@@ -4,11 +4,10 @@
 const express = require('express');
 const router = express.Router();
 const LearningModule = require('../models/LearningModule');
-const auth = require('../middleware/auth');
-const checkRole = require('../middleware/checkRole');
+const { verifyToken, checkRole } = require('../middleware/auth');
 
 // Get all trash items (Admin only)
-router.get('/', auth, checkRole(['ADMIN']), async (req, res) => {
+router.get('/', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     console.log('📋 Admin requesting trash items');
     
@@ -45,7 +44,7 @@ router.get('/', auth, checkRole(['ADMIN']), async (req, res) => {
 });
 
 // Move module to trash (soft delete)
-router.post('/move/:moduleId', auth, checkRole(['ADMIN']), async (req, res) => {
+router.post('/move/:moduleId', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     const { moduleId } = req.params;
     const { reason } = req.body;
@@ -95,7 +94,7 @@ router.post('/move/:moduleId', auth, checkRole(['ADMIN']), async (req, res) => {
 });
 
 // Restore module from trash
-router.post('/restore/:moduleId', auth, checkRole(['ADMIN']), async (req, res) => {
+router.post('/restore/:moduleId', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     const { moduleId } = req.params;
     const userId = req.user.id;
@@ -139,7 +138,7 @@ router.post('/restore/:moduleId', auth, checkRole(['ADMIN']), async (req, res) =
 });
 
 // Permanently delete module from trash
-router.delete('/permanent/:moduleId', auth, checkRole(['ADMIN']), async (req, res) => {
+router.delete('/permanent/:moduleId', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     const { moduleId } = req.params;
     const userId = req.user.id;
@@ -191,7 +190,7 @@ router.delete('/permanent/:moduleId', auth, checkRole(['ADMIN']), async (req, re
 });
 
 // Empty entire trash (permanently delete all trash items)
-router.delete('/empty', auth, checkRole(['ADMIN']), async (req, res) => {
+router.delete('/empty', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     const userId = req.user.id;
     
@@ -230,7 +229,7 @@ router.delete('/empty', auth, checkRole(['ADMIN']), async (req, res) => {
 });
 
 // Cleanup expired trash items (can be called manually or by scheduled job)
-router.post('/cleanup', auth, checkRole(['ADMIN']), async (req, res) => {
+router.post('/cleanup', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     console.log('🧹 Running trash cleanup job');
     
@@ -267,7 +266,7 @@ router.post('/cleanup', auth, checkRole(['ADMIN']), async (req, res) => {
 });
 
 // Get trash statistics
-router.get('/stats', auth, checkRole(['ADMIN']), async (req, res) => {
+router.get('/stats', verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     const now = new Date();
     
