@@ -223,21 +223,46 @@ class OpenAIService {
   }
 
   /**
-   * Convert text to speech using OpenAI TTS
+   * Convert text to speech using OpenAI GPT-4o-Mini-TTS
+   * Uses the latest GPT-4o-mini-tts model with improved controllability and voice quality
    */
-  async textToSpeech(text, voice = 'alloy') {
+  async textToSpeech(text, voice = 'alloy', options = {}) {
     try {
-      const mp3 = await this.openai.audio.speech.create({
-        model: 'tts-1',
+      // Use GPT-4o-Mini-TTS for superior text-to-speech quality
+      const ttsModel = process.env.OPENAI_TTS_MODEL || 'gpt-4o-mini-tts';
+      
+      // Enhanced options for language learning
+      const requestOptions = {
+        model: ttsModel,
         voice: voice, // alloy, echo, fable, onyx, nova, shimmer
         input: text,
-        speed: 0.9 // Slightly slower for language learning
-      });
+        speed: options.speed || 0.9, // Slightly slower for language learning
+        // GPT-4o-mini-tts supports additional controllability
+        ...(ttsModel === 'gpt-4o-mini-tts' && options.instructions && {
+          instructions: options.instructions // Custom pronunciation instructions
+        })
+      };
+      
+      const mp3 = await this.openai.audio.speech.create(requestOptions);
 
       return mp3.body; // Returns audio stream
     } catch (error) {
-      console.error('OpenAI TTS Error:', error);
-      return null;
+      console.error('OpenAI GPT-4o-Mini-TTS Error:', error);
+      
+      // Fallback to basic TTS if GPT-4o-mini-tts fails
+      try {
+        console.log('Falling back to tts-1...');
+        const mp3 = await this.openai.audio.speech.create({
+          model: 'tts-1',
+          voice: voice,
+          input: text,
+          speed: options.speed || 0.9
+        });
+        return mp3.body;
+      } catch (fallbackError) {
+        console.error('Fallback TTS Error:', fallbackError);
+        return null;
+      }
     }
   }
 
