@@ -1367,7 +1367,7 @@ Keep practicing! 🌟`,
         setTimeout(() => {
           console.log('🔄 Automatically redirecting to session summary...');
           this.navigateToSummary();
-        }, 3000); // Wait 3 seconds to let user read the completion message
+        }, 30000); // Wait 30 seconds to let user read the completion message
       },
       error: (error) => {
         console.error('❌ Error marking module as completed:', error);
@@ -1392,7 +1392,7 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         setTimeout(() => {
           console.log('🔄 Automatically redirecting to session summary (fallback)...');
           this.navigateToSummary();
-        }, 3000);
+        }, 30000);
       }
     });
   }
@@ -2112,7 +2112,7 @@ You can now move on to the next challenge or review your progress in the perform
     setTimeout(() => {
       console.log('🔄 Automatically redirecting to session summary (auto-completion)...');
       this.navigateToSummary();
-    }, 3000); // Wait 3 seconds to let user read the completion message
+    }, 30000); // Wait 30 seconds to let user read the completion message
     
     // End the backend session
     this.aiTutorService.endSession(this.sessionId).subscribe({
