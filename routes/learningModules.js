@@ -24,7 +24,7 @@ router.get('/', verifyToken, async (req, res) => {
     } = req.query;
     
     // Build filter object
-    const filter = { isActive: true };
+    const filter = { isActive: true, isDeleted: { $ne: true } }; // Exclude deleted items
     if (level) filter.level = level;
     if (category) filter.category = category;
     if (difficulty) filter.difficulty = difficulty;
@@ -121,7 +121,7 @@ router.get('/:id', verifyToken, async (req, res) => {
       .populate('createdBy', 'name email')
       .lean();
     
-    if (!module) {
+    if (!module || module.isDeleted) {
       return res.status(404).json({ message: 'Module not found' });
     }
     
@@ -185,7 +185,7 @@ router.put('/:id', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res
   try {
     const module = await LearningModule.findById(req.params.id);
     
-    if (!module) {
+    if (!module || module.isDeleted) {
       return res.status(404).json({ message: 'Module not found' });
     }
     
@@ -232,7 +232,7 @@ router.put('/:id', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res
   }
 });
 
-// DELETE /api/learning-modules/:id - Delete module (Admins can delete any, Teachers can delete their own)
+// DELETE /api/learning-modules/:id - Move module to trash (Admins can delete any, Teachers can delete their own)
 router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, res) => {
   try {
     const module = await LearningModule.findById(req.params.id);
@@ -241,12 +241,17 @@ router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, 
       return res.status(404).json({ message: 'Module not found' });
     }
     
+    // Check if already deleted
+    if (module.isDeleted) {
+      return res.status(400).json({ message: 'Module is already in trash' });
+    }
+    
     // Check permissions: Admins can delete any module, Teachers can only delete their own
     if (req.user.role === 'TEACHER' && module.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'You can only delete modules you created' });
     }
     
-    console.log('🗑️ Deleting module:', {
+    console.log('🗑️ Moving module to trash:', {
       moduleId: req.params.id,
       title: module.title,
       deletedBy: req.user.role,
@@ -254,26 +259,25 @@ router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, 
       createdBy: module.createdBy.toString()
     });
     
-    // Soft delete by setting isActive to false (bypass validation to avoid enum issues)
-    await LearningModule.findByIdAndUpdate(
-      req.params.id,
-      { 
-        isActive: false,
-        lastUpdatedBy: req.user.id,
-        deletedAt: new Date()
-      },
-      { 
-        runValidators: false // Skip validation to avoid enum issues
-      }
-    );
+    // Move to trash using the new trash system
+    const reason = req.body.reason || `Deleted by ${req.user.role.toLowerCase()}`;
+    const trashedModule = await LearningModule.moveToTrash(req.params.id, req.user.id, reason);
+    
+    console.log('✅ Module moved to trash successfully:', {
+      scheduledDeletion: trashedModule.scheduledDeletionDate,
+      daysUntilPermanentDeletion: 30
+    });
     
     res.json({ 
-      message: 'Module deleted successfully',
-      moduleTitle: module.title
+      message: 'Module moved to trash successfully',
+      moduleTitle: module.title,
+      scheduledDeletionDate: trashedModule.scheduledDeletionDate,
+      daysUntilPermanentDeletion: 30,
+      canBeRestored: true
     });
   } catch (error) {
-    console.error('Error deleting module:', error);
-    res.status(500).json({ message: 'Error deleting module' });
+    console.error('Error moving module to trash:', error);
+    res.status(500).json({ message: 'Error moving module to trash' });
   }
 });
 

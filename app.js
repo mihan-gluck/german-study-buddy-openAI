@@ -33,6 +33,7 @@ const studentProgressRoutes = require('./routes/studentProgress');
 const aiModuleGeneratorRoutes = require('./routes/aiModuleGenerator');
 const sessionRecordsRoutes = require('./routes/sessionRecords');
 const translationRoutes = require('./routes/translation');
+const moduleTrashRoutes = require('./routes/moduleTrash');
 
 
 const app = express();
@@ -84,6 +85,7 @@ app.use('/api/student-progress', studentProgressRoutes);
 app.use('/api/ai', aiModuleGeneratorRoutes);
 app.use('/api/session-records', sessionRecordsRoutes);
 app.use('/api/translate', translationRoutes);
+app.use('/api/module-trash', moduleTrashRoutes);
 
 
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {

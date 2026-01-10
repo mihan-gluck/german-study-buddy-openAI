@@ -160,6 +160,31 @@ const LearningModuleSchema = new mongoose.Schema({
     type: Boolean, 
     default: true 
   },
+  
+  // Trash/Soft Delete System
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: {
+    type: Date,
+    default: null
+  },
+  deletedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  deletionReason: {
+    type: String,
+    default: null
+  },
+  // Auto-delete after 30 days (will be handled by cleanup job)
+  scheduledDeletionDate: {
+    type: Date,
+    default: null
+  },
+  
   tags: [String],
   
   // Update history for admin tracking
@@ -226,5 +251,59 @@ LearningModuleSchema.pre('save', function(next) {
 LearningModuleSchema.index({ level: 1, category: 1, isActive: 1 });
 LearningModuleSchema.index({ createdBy: 1 });
 LearningModuleSchema.index({ tags: 1 });
+LearningModuleSchema.index({ isDeleted: 1, scheduledDeletionDate: 1 }); // For trash management
+
+// Static method to soft delete a module (move to trash)
+LearningModuleSchema.statics.moveToTrash = function(moduleId, userId, reason = 'Deleted by admin') {
+  const scheduledDeletion = new Date();
+  scheduledDeletion.setDate(scheduledDeletion.getDate() + 30); // 30 days from now
+  
+  return this.findByIdAndUpdate(moduleId, {
+    isDeleted: true,
+    deletedAt: new Date(),
+    deletedBy: userId,
+    deletionReason: reason,
+    scheduledDeletionDate: scheduledDeletion,
+    isActive: false // Also mark as inactive
+  }, { new: true });
+};
+
+// Static method to restore from trash
+LearningModuleSchema.statics.restoreFromTrash = function(moduleId) {
+  return this.findByIdAndUpdate(moduleId, {
+    isDeleted: false,
+    deletedAt: null,
+    deletedBy: null,
+    deletionReason: null,
+    scheduledDeletionDate: null,
+    isActive: true // Restore as active
+  }, { new: true });
+};
+
+// Static method to permanently delete (remove from database)
+LearningModuleSchema.statics.permanentlyDelete = function(moduleId) {
+  return this.findByIdAndDelete(moduleId);
+};
+
+// Static method to get trash items
+LearningModuleSchema.statics.getTrashItems = function(userId = null) {
+  const query = { isDeleted: true };
+  if (userId) {
+    query.deletedBy = userId;
+  }
+  return this.find(query)
+    .populate('deletedBy', 'name email regNo')
+    .populate('createdBy', 'name email regNo')
+    .sort({ deletedAt: -1 });
+};
+
+// Static method to clean up expired trash items (for scheduled job)
+LearningModuleSchema.statics.cleanupExpiredTrash = function() {
+  const now = new Date();
+  return this.deleteMany({
+    isDeleted: true,
+    scheduledDeletionDate: { $lte: now }
+  });
+};
 
 module.exports = mongoose.model('LearningModule', LearningModuleSchema);

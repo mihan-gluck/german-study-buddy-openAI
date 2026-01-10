@@ -1,0 +1,286 @@
+<!-- src/app/components/admin-dashboard/module-trash/module-trash.component.html -->
+<div class="trash-management">
+  <div class="header-section">
+    <h2><i class="fas fa-trash"></i> Module Trash Management</h2>
+    <p class="text-muted">Manage deleted modules. Items are automatically deleted after 30 days.</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section" *ngIf="stats">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon text-primary">
+            <i class="fas fa-trash-alt"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.totalItems }}</h3>
+            <p>Total Items</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon text-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.expiredItems }}</h3>
+            <p>Expired Items</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon text-warning">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.itemsExpiringSoon }}</h3>
+            <p>Expiring Soon</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon text-success">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ stats.totalItems - stats.expiredItems }}</h3>
+            <p>Active in Trash</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="bulk-actions">
+        <button class="btn btn-outline-success btn-sm" 
+                (click)="bulkRestore()" 
+                [disabled]="selectedItems.size === 0">
+          <i class="fas fa-undo"></i> Restore Selected ({{ selectedItems.size }})
+        </button>
+        <button class="btn btn-outline-danger btn-sm ms-2" 
+                (click)="bulkDelete()" 
+                [disabled]="selectedItems.size === 0">
+          <i class="fas fa-times"></i> Delete Selected ({{ selectedItems.size }})
+        </button>
+      </div>
+      
+      <div class="global-actions">
+        <button class="btn btn-warning btn-sm" (click)="runCleanup()">
+          <i class="fas fa-broom"></i> Run Cleanup
+        </button>
+        <button class="btn btn-danger btn-sm ms-2" 
+                (click)="emptyTrash()" 
+                [disabled]="trashItems.length === 0">
+          <i class="fas fa-trash"></i> Empty Trash
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="row">
+      <div class="col-md-3">
+        <label class="form-label">Search</label>
+        <input type="text" 
+               class="form-control form-control-sm" 
+               [(ngModel)]="searchTerm" 
+               placeholder="Search by title, description, or deleted by...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Level</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterLevel">
+          <option value="">All Levels</option>
+          <option *ngFor="let level of getUniqueValues('level')" [value]="level">{{ level }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Category</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterCategory">
+          <option value="">All Categories</option>
+          <option *ngFor="let category of getUniqueValues('category')" [value]="category">{{ category }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filterExpired">
+          <option value="">All Items</option>
+          <option value="active">Active in Trash</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Selection</label>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" (click)="selectAll()">
+            Select All
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" (click)="deselectAll()">
+            Deselect All
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-4">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading trash items...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && trashItems.length === 0" class="empty-state text-center py-5">
+    <i class="fas fa-trash-alt fa-3x text-muted mb-3"></i>
+    <h4>Trash is Empty</h4>
+    <p class="text-muted">No deleted modules found. Great job keeping things clean!</p>
+  </div>
+
+  <!-- Trash Items Table -->
+  <div *ngIf="!isLoading && trashItems.length > 0" class="table-section">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th width="40">
+              <input type="checkbox" 
+                     class="form-check-input"
+                     [checked]="selectedItems.size === paginatedItems.length && paginatedItems.length > 0"
+                     (change)="selectedItems.size === paginatedItems.length ? deselectAll() : selectAll()">
+            </th>
+            <th (click)="setSortBy('title')" class="sortable">
+              Title 
+              <i class="fas fa-sort" *ngIf="sortBy !== 'title'"></i>
+              <i class="fas fa-sort-up" *ngIf="sortBy === 'title' && sortOrder === 'asc'"></i>
+              <i class="fas fa-sort-down" *ngIf="sortBy === 'title' && sortOrder === 'desc'"></i>
+            </th>
+            <th (click)="setSortBy('level')" class="sortable">
+              Level
+              <i class="fas fa-sort" *ngIf="sortBy !== 'level'"></i>
+              <i class="fas fa-sort-up" *ngIf="sortBy === 'level' && sortOrder === 'asc'"></i>
+              <i class="fas fa-sort-down" *ngIf="sortBy === 'level' && sortOrder === 'desc'"></i>
+            </th>
+            <th>Category</th>
+            <th (click)="setSortBy('deletedAt')" class="sortable">
+              Deleted At
+              <i class="fas fa-sort" *ngIf="sortBy !== 'deletedAt'"></i>
+              <i class="fas fa-sort-up" *ngIf="sortBy === 'deletedAt' && sortOrder === 'asc'"></i>
+              <i class="fas fa-sort-down" *ngIf="sortBy === 'deletedAt' && sortOrder === 'desc'"></i>
+            </th>
+            <th (click)="setSortBy('deletedBy')" class="sortable">
+              Deleted By
+              <i class="fas fa-sort" *ngIf="sortBy !== 'deletedBy'"></i>
+              <i class="fas fa-sort-up" *ngIf="sortBy === 'deletedBy' && sortOrder === 'asc'"></i>
+              <i class="fas fa-sort-down" *ngIf="sortBy === 'deletedBy' && sortOrder === 'desc'"></i>
+            </th>
+            <th (click)="setSortBy('daysRemaining')" class="sortable">
+              Status
+              <i class="fas fa-sort" *ngIf="sortBy !== 'daysRemaining'"></i>
+              <i class="fas fa-sort-up" *ngIf="sortBy === 'daysRemaining' && sortOrder === 'asc'"></i>
+              <i class="fas fa-sort-down" *ngIf="sortBy === 'daysRemaining' && sortOrder === 'desc'"></i>
+            </th>
+            <th width="150">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of paginatedItems" 
+              [class.table-danger]="item.isExpired"
+              [class.table-warning]="!item.isExpired && item.daysRemaining <= 7">
+            <td>
+              <input type="checkbox" 
+                     class="form-check-input"
+                     [checked]="selectedItems.has(item._id)"
+                     (change)="toggleSelection(item._id)">
+            </td>
+            <td>
+              <div class="module-title">
+                <strong>{{ item.title }}</strong>
+                <small class="d-block text-muted">{{ item.description | slice:0:100 }}{{ item.description.length > 100 ? '...' : '' }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-primary">{{ item.level }}</span>
+            </td>
+            <td>
+              <span class="badge bg-secondary">{{ item.category }}</span>
+            </td>
+            <td>
+              <small>{{ formatDate(item.deletedAt) }}</small>
+            </td>
+            <td>
+              <div class="user-info">
+                <strong>{{ item.deletedBy.name }}</strong>
+                <small class="d-block text-muted">{{ item.deletedBy.email }}</small>
+              </div>
+            </td>
+            <td>
+              <span [class]="getDaysRemainingClass(item.daysRemaining)">
+                <i class="fas fa-clock me-1"></i>
+                {{ getDaysRemainingText(item.daysRemaining) }}
+              </span>
+              <div *ngIf="item.deletionReason" class="mt-1">
+                <small class="text-muted">{{ item.deletionReason }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-success" 
+                        (click)="restoreItem(item)"
+                        title="Restore module">
+                  <i class="fas fa-undo"></i>
+                </button>
+                <button class="btn btn-outline-danger" 
+                        (click)="permanentlyDeleteItem(item)"
+                        title="Permanently delete">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav *ngIf="totalPages > 1" class="d-flex justify-content-center mt-3">
+      <ul class="pagination pagination-sm">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="currentPage = currentPage - 1" [disabled]="currentPage === 1">
+            Previous
+          </button>
+        </li>
+        <li class="page-item" 
+            *ngFor="let page of [].constructor(totalPages); let i = index"
+            [class.active]="currentPage === i + 1">
+          <button class="page-link" (click)="currentPage = i + 1">
+            {{ i + 1 }}
+          </button>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link" (click)="currentPage = currentPage + 1" [disabled]="currentPage === totalPages">
+            Next
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Results Info -->
+    <div class="results-info text-center text-muted mt-3">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to 
+      {{ Math.min(currentPage * itemsPerPage, filteredItems.length) }} of 
+      {{ filteredItems.length }} items
+      <span *ngIf="filteredItems.length !== trashItems.length">
+        (filtered from {{ trashItems.length }} total)
+      </span>
+    </div>
+  </div>
+</div>
