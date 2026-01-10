@@ -242,13 +242,17 @@ class OpenAIService {
   }
 
   /**
-   * Convert speech to text using OpenAI Whisper
+   * Convert speech to text using OpenAI GPT-4o-Transcribe
+   * Uses the latest GPT-4o-transcribe model for superior accuracy and performance
    */
   async speechToText(audioBuffer, language = 'de') {
     try {
+      // Use GPT-4o-Transcribe for superior speech recognition
+      const speechModel = process.env.OPENAI_SPEECH_MODEL || 'gpt-4o-transcribe';
+      
       const transcription = await this.openai.audio.transcriptions.create({
         file: audioBuffer,
-        model: 'whisper-1',
+        model: speechModel,
         language: language,
         response_format: 'json',
         temperature: 0.2 // Lower temperature for more accurate transcription
@@ -259,7 +263,7 @@ class OpenAIService {
         confidence: transcription.confidence || 0.9
       };
     } catch (error) {
-      console.error('OpenAI Whisper Error:', error);
+      console.error('OpenAI GPT-4o-Transcribe Error:', error);
       return { text: '', confidence: 0 };
     }
   }
