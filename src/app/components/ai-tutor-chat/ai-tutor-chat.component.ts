@@ -70,7 +70,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   transcriptMode: 'full' | 'minimal' | 'hidden' = 'full';
   
   // Native language subtitles
-  showSubtitles: boolean = true;
+  showSubtitles: boolean = false; // Disabled by default to prevent infinite loops
   subtitleCache: Map<string, string> = new Map(); // Cache translations
   isTranslating: boolean = false;
   private messagesBeingTranslated: Set<string> = new Set(); // Track messages being translated
@@ -1632,8 +1632,20 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       return '';
     }
 
+    // Check if already being translated to prevent infinite loop
+    const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
+    if (this.messagesBeingTranslated.has(messageKey)) {
+      return ''; // Already being translated, don't trigger again
+    }
+
     // Only translate complete messages - trigger async translation but don't show loading state immediately
-    this.loadSubtitleAsync(message);
+    // Use setTimeout to prevent infinite loop in template
+    setTimeout(() => {
+      if (!this.messagesBeingTranslated.has(messageKey)) {
+        this.loadSubtitleAsync(message);
+      }
+    }, 100);
+    
     return ''; // Return empty initially, will update when translation completes
   }
 
@@ -1647,6 +1659,12 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   private async loadSubtitleAsync(message: TutorMessage): Promise<void> {
     const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
     
+    // Prevent duplicate translation attempts
+    if (this.messagesBeingTranslated.has(messageKey)) {
+      console.log('🔤 Translation already in progress for message, skipping');
+      return;
+    }
+    
     try {
       // Mark this message as being translated
       this.messagesBeingTranslated.add(messageKey);
@@ -1654,6 +1672,12 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       
       // Wait a moment to ensure the message is fully displayed/typed
       await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+      
+      // Double-check we're still supposed to translate this message
+      if (!this.showSubtitles || !this.messagesBeingTranslated.has(messageKey)) {
+        console.log('🔤 Subtitles disabled or translation cancelled, skipping');
+        return;
+      }
       
       // Double-check the message hasn't changed (still the same content)
       const currentMessage = this.messages.find(m => 
