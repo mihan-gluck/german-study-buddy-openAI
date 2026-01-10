@@ -1,0 +1,579 @@
+// routes/adminAnalytics.js
+// Advanced Admin Analytics for Student Usage and Teacher Performance
+
+const express = require('express');
+const router = express.Router();
+const { verifyToken, checkRole } = require('../middleware/auth');
+const SessionRecord = require('../models/SessionRecord');
+const LearningModule = require('../models/LearningModule');
+const User = require('../models/User');
+const mongoose = require('mongoose');
+
+// GET /api/admin-analytics/module-usage - Get detailed module usage analytics
+router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    console.log('📊 Admin requesting module usage analytics');
+    
+    const { 
+      moduleId, 
+      teacherId, 
+      batch, 
+      level, 
+      dateFrom, 
+      dateTo,
+      groupBy = 'module' // module, teacher, batch, student
+    } = req.query;
+    
+    // Build match criteria
+    const matchCriteria = {};
+    
+    if (moduleId) matchCriteria.moduleId = new mongoose.Types.ObjectId(moduleId);
+    if (dateFrom || dateTo) {
+      matchCriteria.createdAt = {};
+      if (dateFrom) matchCriteria.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) matchCriteria.createdAt.$lte = new Date(dateTo);
+    }
+    
+    // Build aggregation pipeline
+    const pipeline = [
+      { $match: matchCriteria },
+      
+      // Populate student and module data
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      {
+        $lookup: {
+          from: 'learningmodules',
+          localField: 'moduleId',
+          foreignField: '_id',
+          as: 'module'
+        }
+      },
+      
+      // Unwind arrays
+      { $unwind: '$student' },
+      { $unwind: '$module' },
+      
+      // Filter by additional criteria
+      ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
+      ...(level ? [{ $match: { 'student.level': level } }] : []),
+      ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
+      
+      // Group by specified criteria
+      {
+        $group: {
+          _id: getGroupByField(groupBy),
+          totalSessions: { $sum: 1 },
+          totalTimeSpent: { $sum: '$durationMinutes' },
+          completedSessions: {
+            $sum: { $cond: [{ $eq: ['$sessionState', 'completed'] }, 1, 0] }
+          },
+          averageScore: { $avg: '$summary.totalScore' },
+          totalStudents: { $addToSet: '$studentId' },
+          totalVocabularyLearned: { $sum: { $size: { $ifNull: ['$summary.vocabularyUsed', []] } } },
+          sessions: {
+            $push: {
+              sessionId: '$sessionId',
+              studentName: '$student.name',
+              studentBatch: '$student.batch',
+              studentLevel: '$student.level',
+              moduleName: '$module.title',
+              moduleLevel: '$module.level',
+              timeSpent: '$durationMinutes',
+              score: '$summary.totalScore',
+              completionStatus: '$sessionState',
+              date: '$createdAt'
+            }
+          }
+        }
+      },
+      
+      // Add calculated fields
+      {
+        $addFields: {
+          uniqueStudentCount: { $size: '$totalStudents' },
+          completionRate: {
+            $multiply: [
+              { $divide: ['$completedSessions', '$totalSessions'] },
+              100
+            ]
+          },
+          averageTimePerSession: {
+            $divide: ['$totalTimeSpent', '$totalSessions']
+          },
+          averageTimePerStudent: {
+            $divide: ['$totalTimeSpent', { $size: '$totalStudents' }]
+          }
+        }
+      },
+      
+      // Sort by total time spent (descending)
+      { $sort: { totalTimeSpent: -1 } }
+    ];
+    
+    const results = await SessionRecord.aggregate(pipeline);
+    
+    // Get summary statistics
+    const summaryPipeline = [
+      { $match: matchCriteria },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      { $unwind: '$student' },
+      ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
+      ...(level ? [{ $match: { 'student.level': level } }] : []),
+      ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
+      {
+        $group: {
+          _id: null,
+          totalSessions: { $sum: 1 },
+          totalTimeSpent: { $sum: '$durationMinutes' },
+          totalStudents: { $addToSet: '$studentId' },
+          totalModules: { $addToSet: '$moduleId' },
+          averageScore: { $avg: '$summary.totalScore' }
+        }
+      }
+    ];
+    
+    const summary = await SessionRecord.aggregate(summaryPipeline);
+    
+    res.json({
+      success: true,
+      data: results,
+      summary: summary[0] || {
+        totalSessions: 0,
+        totalTimeSpent: 0,
+        totalStudents: [],
+        totalModules: [],
+        averageScore: 0
+      },
+      filters: {
+        moduleId,
+        teacherId,
+        batch,
+        level,
+        dateFrom,
+        dateTo,
+        groupBy
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching module usage analytics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching module usage analytics',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/admin-analytics/teacher-performance - Get teacher batch performance analytics
+router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    console.log('👨‍🏫 Admin requesting teacher performance analytics');
+    
+    const { teacherId, batch, dateFrom, dateTo } = req.query;
+    
+    // Build match criteria
+    const matchCriteria = {};
+    if (dateFrom || dateTo) {
+      matchCriteria.createdAt = {};
+      if (dateFrom) matchCriteria.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) matchCriteria.createdAt.$lte = new Date(dateTo);
+    }
+    
+    const pipeline = [
+      { $match: matchCriteria },
+      
+      // Populate student data
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      {
+        $lookup: {
+          from: 'learningmodules',
+          localField: 'moduleId',
+          foreignField: '_id',
+          as: 'module'
+        }
+      },
+      
+      { $unwind: '$student' },
+      { $unwind: '$module' },
+      
+      // Filter by teacher and batch if specified
+      ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
+      ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
+      
+      // Populate teacher data
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'student.assignedTeacher',
+          foreignField: '_id',
+          as: 'teacher'
+        }
+      },
+      { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+      
+      // Group by teacher and module
+      {
+        $group: {
+          _id: {
+            teacherId: '$teacher._id',
+            teacherName: '$teacher.name',
+            teacherEmail: '$teacher.email',
+            moduleId: '$module._id',
+            moduleName: '$module.title',
+            moduleLevel: '$module.level',
+            batch: '$student.batch'
+          },
+          totalSessions: { $sum: 1 },
+          totalTimeSpent: { $sum: '$durationMinutes' },
+          completedSessions: {
+            $sum: { $cond: [{ $eq: ['$sessionState', 'completed'] }, 1, 0] }
+          },
+          averageScore: { $avg: '$summary.totalScore' },
+          studentsInvolved: { $addToSet: '$studentId' },
+          studentDetails: {
+            $addToSet: {
+              studentId: '$studentId',
+              studentName: '$student.name',
+              studentLevel: '$student.level',
+              studentBatch: '$student.batch'
+            }
+          }
+        }
+      },
+      
+      // Add calculated fields
+      {
+        $addFields: {
+          studentCount: { $size: '$studentsInvolved' },
+          completionRate: {
+            $multiply: [
+              { $divide: ['$completedSessions', '$totalSessions'] },
+              100
+            ]
+          },
+          averageTimePerStudent: {
+            $divide: ['$totalTimeSpent', { $size: '$studentsInvolved' }]
+          },
+          averageSessionsPerStudent: {
+            $divide: ['$totalSessions', { $size: '$studentsInvolved' }]
+          }
+        }
+      },
+      
+      // Group by teacher for final summary
+      {
+        $group: {
+          _id: {
+            teacherId: '$_id.teacherId',
+            teacherName: '$_id.teacherName',
+            teacherEmail: '$_id.teacherEmail'
+          },
+          totalTimeSpent: { $sum: '$totalTimeSpent' },
+          totalSessions: { $sum: '$totalSessions' },
+          totalCompletedSessions: { $sum: '$completedSessions' },
+          averageScore: { $avg: '$averageScore' },
+          totalStudents: { $sum: '$studentCount' },
+          modulePerformance: {
+            $push: {
+              moduleId: '$_id.moduleId',
+              moduleName: '$_id.moduleName',
+              moduleLevel: '$_id.moduleLevel',
+              batch: '$_id.batch',
+              timeSpent: '$totalTimeSpent',
+              sessions: '$totalSessions',
+              completedSessions: '$completedSessions',
+              completionRate: '$completionRate',
+              averageScore: '$averageScore',
+              studentCount: '$studentCount',
+              averageTimePerStudent: '$averageTimePerStudent',
+              studentDetails: '$studentDetails'
+            }
+          }
+        }
+      },
+      
+      // Add teacher-level calculated fields
+      {
+        $addFields: {
+          overallCompletionRate: {
+            $multiply: [
+              { $divide: ['$totalCompletedSessions', '$totalSessions'] },
+              100
+            ]
+          },
+          averageTimePerStudent: {
+            $divide: ['$totalTimeSpent', '$totalStudents']
+          }
+        }
+      },
+      
+      // Sort by total time spent (most active teachers first)
+      { $sort: { totalTimeSpent: -1 } }
+    ];
+    
+    const teacherPerformance = await SessionRecord.aggregate(pipeline);
+    
+    // Get batch-level statistics
+    const batchStatsPipeline = [
+      { $match: matchCriteria },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      { $unwind: '$student' },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'student.assignedTeacher',
+          foreignField: '_id',
+          as: 'teacher'
+        }
+      },
+      { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+      
+      {
+        $group: {
+          _id: {
+            batch: '$student.batch',
+            teacherId: '$teacher._id',
+            teacherName: '$teacher.name'
+          },
+          totalTimeSpent: { $sum: '$durationMinutes' },
+          totalSessions: { $sum: 1 },
+          studentCount: { $addToSet: '$studentId' }
+        }
+      },
+      {
+        $addFields: {
+          uniqueStudentCount: { $size: '$studentCount' }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id.batch',
+          totalTimeSpent: { $sum: '$totalTimeSpent' },
+          totalSessions: { $sum: '$totalSessions' },
+          totalStudents: { $sum: '$uniqueStudentCount' },
+          teachers: {
+            $push: {
+              teacherId: '$_id.teacherId',
+              teacherName: '$_id.teacherName',
+              timeSpent: '$totalTimeSpent',
+              sessions: '$totalSessions',
+              studentCount: '$uniqueStudentCount'
+            }
+          }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ];
+    
+    const batchStats = await SessionRecord.aggregate(batchStatsPipeline);
+    
+    res.json({
+      success: true,
+      teacherPerformance,
+      batchStats,
+      summary: {
+        totalTeachers: teacherPerformance.length,
+        totalBatches: batchStats.length,
+        totalTimeSpent: teacherPerformance.reduce((sum, teacher) => sum + teacher.totalTimeSpent, 0),
+        totalSessions: teacherPerformance.reduce((sum, teacher) => sum + teacher.totalSessions, 0)
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching teacher performance analytics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching teacher performance analytics',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/admin-analytics/student-module-details - Get detailed student usage per module
+router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    console.log('👨‍🎓 Admin requesting detailed student module usage');
+    
+    const { moduleId, studentId, teacherId, batch } = req.query;
+    
+    const matchCriteria = {};
+    if (moduleId) matchCriteria.moduleId = new mongoose.Types.ObjectId(moduleId);
+    if (studentId) matchCriteria.studentId = new mongoose.Types.ObjectId(studentId);
+    
+    const pipeline = [
+      { $match: matchCriteria },
+      
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      {
+        $lookup: {
+          from: 'learningmodules',
+          localField: 'moduleId',
+          foreignField: '_id',
+          as: 'module'
+        }
+      },
+      
+      { $unwind: '$student' },
+      { $unwind: '$module' },
+      
+      // Filter by additional criteria
+      ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
+      ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
+      
+      // Populate teacher data
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'student.assignedTeacher',
+          foreignField: '_id',
+          as: 'teacher'
+        }
+      },
+      { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+      
+      // Project detailed information
+      {
+        $project: {
+          sessionId: 1,
+          studentName: '$student.name',
+          studentEmail: '$student.email',
+          studentBatch: '$student.batch',
+          studentLevel: '$student.level',
+          teacherName: '$teacher.name',
+          teacherEmail: '$teacher.email',
+          moduleName: '$module.title',
+          moduleLevel: '$module.level',
+          moduleCategory: '$module.category',
+          sessionType: 1,
+          sessionState: 1,
+          durationMinutes: 1,
+          summary: 1,
+          createdAt: 1,
+          startTime: 1,
+          endTime: 1
+        }
+      },
+      
+      { $sort: { createdAt: -1 } }
+    ];
+    
+    const detailedUsage = await SessionRecord.aggregate(pipeline);
+    
+    // Calculate summary statistics
+    const summaryStats = detailedUsage.reduce((acc, session) => {
+      acc.totalSessions++;
+      acc.totalTimeSpent += session.durationMinutes || 0;
+      acc.totalScore += session.summary?.totalScore || 0;
+      
+      if (session.sessionState === 'completed') {
+        acc.completedSessions++;
+      }
+      
+      // Track unique students and modules
+      acc.uniqueStudents.add(session.studentName);
+      acc.uniqueModules.add(session.moduleName);
+      
+      return acc;
+    }, {
+      totalSessions: 0,
+      completedSessions: 0,
+      totalTimeSpent: 0,
+      totalScore: 0,
+      uniqueStudents: new Set(),
+      uniqueModules: new Set()
+    });
+    
+    // Convert sets to counts
+    summaryStats.uniqueStudentCount = summaryStats.uniqueStudents.size;
+    summaryStats.uniqueModuleCount = summaryStats.uniqueModules.size;
+    summaryStats.averageScore = summaryStats.totalSessions > 0 ? summaryStats.totalScore / summaryStats.totalSessions : 0;
+    summaryStats.completionRate = summaryStats.totalSessions > 0 ? (summaryStats.completedSessions / summaryStats.totalSessions) * 100 : 0;
+    
+    // Remove sets from response
+    delete summaryStats.uniqueStudents;
+    delete summaryStats.uniqueModules;
+    
+    res.json({
+      success: true,
+      detailedUsage,
+      summary: summaryStats,
+      totalRecords: detailedUsage.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching detailed student module usage:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching detailed usage',
+      error: error.message
+    });
+  }
+});
+
+// Helper function to determine grouping field
+function getGroupByField(groupBy) {
+  switch (groupBy) {
+    case 'teacher':
+      return {
+        teacherId: '$student.assignedTeacher',
+        teacherName: '$student.assignedTeacher' // Will be populated later
+      };
+    case 'batch':
+      return {
+        batch: '$student.batch'
+      };
+    case 'student':
+      return {
+        studentId: '$studentId',
+        studentName: '$student.name',
+        studentBatch: '$student.batch',
+        studentLevel: '$student.level'
+      };
+    case 'module':
+    default:
+      return {
+        moduleId: '$moduleId',
+        moduleName: '$module.title',
+        moduleLevel: '$module.level',
+        moduleCategory: '$module.category'
+      };
+  }
+}
+
+module.exports = router;
