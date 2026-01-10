@@ -13,6 +13,28 @@ const OpenAIService = require('../services/openaiService');
 // Initialize OpenAI service
 const openaiService = new OpenAIService();
 
+// Helper function to generate language-specific role-play welcome messages
+function generateRolePlayWelcome(targetLanguage, scenario) {
+  const messages = {
+    'German': {
+      welcome: `Willkommen zur Rollenspiel-Sitzung! Du wirst der/die ${scenario.studentRole} sein, ich werde der/die ${scenario.aiRole} sein. Sage "Los geht's" um zu beginnen oder "Stopp" um die Sitzung zu beenden.`,
+      triggers: {
+        start: ["Los geht's", "Beginnen wir", "Anfangen", "Start"],
+        stop: ["Stopp", "Ende", "Aufhören", "Beenden"]
+      }
+    },
+    'English': {
+      welcome: `Welcome to the Role-Play Session! You will be the ${scenario.studentRole}, I will be the ${scenario.aiRole}. Say "Let's start" to begin or "stop" to end the session.`,
+      triggers: {
+        start: ["Let's start", "Start", "Begin", "Go"],
+        stop: ["Stop", "End", "Quit", "Finish"]
+      }
+    }
+  };
+  
+  return messages[targetLanguage] || messages['English'];
+}
+
 // Enhanced AI Tutor Service using ChatGPT-4o
 class AiTutorService {
   static async generateResponse(message, context) {
@@ -275,12 +297,17 @@ router.post('/start-teacher-test', verifyToken, checkRole(['TEACHER', 'ADMIN']),
       // For role-play modules, start with introduction state
       const scenario = module.content.rolePlayScenario;
       
+      // Generate language-specific welcome message
+      const welcomeData = generateRolePlayWelcome(module.targetLanguage, scenario);
+      
       welcomeResponse = {
-        content: `Welcome to the Role-Play Session! You will be the ${scenario.studentRole}, I will be the ${scenario.aiRole}. Say "Let's start" to begin or "stop" to end the session.`,
+        content: welcomeData.welcome,
         messageType: 'role-play-intro',
         metadata: {
           sessionState: 'introduction',
           waitingForTrigger: true,
+          targetLanguage: module.targetLanguage,
+          triggerWords: welcomeData.triggers,
           rolePlayDetails: {
             scenario: scenario.situation,
             setting: scenario.setting || 'A typical situation',
@@ -410,12 +437,17 @@ router.post('/start-session', verifyToken, requirePlatinum, async (req, res) => 
       // For role-play modules, start with introduction state
       const scenario = module.content.rolePlayScenario;
       
+      // Generate language-specific welcome message
+      const welcomeData = generateRolePlayWelcome(module.targetLanguage, scenario);
+      
       welcomeResponse = {
-        content: `Welcome to the Role-Play Session! You will be the ${scenario.studentRole}, I will be the ${scenario.aiRole}. Say "Let's start" to begin or "stop" to end the session.`,
+        content: welcomeData.welcome,
         messageType: 'role-play-intro',
         metadata: {
           sessionState: 'introduction',
           waitingForTrigger: true,
+          targetLanguage: module.targetLanguage,
+          triggerWords: welcomeData.triggers,
           rolePlayDetails: {
             scenario: scenario.situation,
             setting: scenario.setting || 'A typical situation',

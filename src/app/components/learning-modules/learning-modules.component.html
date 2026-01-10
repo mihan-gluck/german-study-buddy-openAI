@@ -252,10 +252,6 @@
                 <span>{{ module.category }}</span>
               </div>
               <div class="detail-item">
-                <i class="fas fa-clock"></i>
-                <span>{{ formatDuration(module.estimatedDuration) }}</span>
-              </div>
-              <div class="detail-item">
                 <i class="fas fa-signal"></i>
                 <span>{{ module.difficulty }}</span>
               </div>
@@ -410,7 +406,6 @@
             <div class="module-meta">
               <span class="badge" [class]="'badge-' + getLevelColor(module.level)">{{ module.level }}</span>
               <span class="category">{{ getCategoryIcon(module.category) }} {{ module.category }}</span>
-              <span class="duration">{{ formatDuration(module.estimatedDuration) }}</span>
               <span class="difficulty">{{ module.difficulty }}</span>
               
               <!-- Access Status for Students -->

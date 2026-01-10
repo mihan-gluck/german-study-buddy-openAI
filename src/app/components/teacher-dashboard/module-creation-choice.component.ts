@@ -13,8 +13,8 @@ import { Router } from '@angular/router';
       <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-6">
           <div class="text-center mb-5">
-            <h2 class="display-6 fw-bold text-primary">Create Learning Module</h2>
-            <p class="lead text-muted">Choose how you'd like to create your new learning module</p>
+            <h2 class="display-6 fw-bold text-primary">🎭 Create Role-Play Module</h2>
+            <p class="lead text-muted">Choose how you'd like to create your interactive role-play learning module</p>
           </div>
           
           <div class="row g-4">
@@ -24,32 +24,32 @@ import { Router } from '@angular/router';
                 <div class="card-icon">
                   <i class="fas fa-tools"></i>
                 </div>
-                <h4>Create from Scratch</h4>
-                <p class="text-muted">Build your module manually with complete control over every detail. Choose between standard or role-play modules.</p>
+                <h4>Create Role-Play from Scratch</h4>
+                <p class="text-muted">Build your role-play module manually with complete control over scenarios, characters, and dialogue.</p>
                 
                 <div class="features-list">
                   <div class="feature-item">
                     <i class="fas fa-check-circle text-success"></i>
-                    <span>Choose module type (Standard/Role-play)</span>
+                    <span>Custom role-play scenarios</span>
                   </div>
                   <div class="feature-item">
                     <i class="fas fa-check-circle text-success"></i>
-                    <span>Full customization control</span>
+                    <span>Define character personalities</span>
                   </div>
                   <div class="feature-item">
                     <i class="fas fa-check-circle text-success"></i>
-                    <span>Add custom exercises</span>
+                    <span>Create conversation flows</span>
                   </div>
                   <div class="feature-item">
                     <i class="fas fa-check-circle text-success"></i>
-                    <span>Define role personalities & scenarios</span>
+                    <span>Set vocabulary & grammar rules</span>
                   </div>
                 </div>
                 
                 <div class="card-footer">
                   <button class="btn btn-outline-primary btn-lg w-100">
-                    <i class="fas fa-hammer me-2"></i>
-                    Create Manually
+                    <i class="fas fa-theater-masks me-2"></i>
+                    Create Role-Play Manually
                   </button>
                 </div>
               </div>
@@ -61,8 +61,8 @@ import { Router } from '@angular/router';
                 <div class="card-icon ai-icon">
                   <i class="fas fa-robot"></i>
                 </div>
-                <h4>Create with AI Assistant</h4>
-                <p class="text-muted">Let AI generate a complete module based on your requirements. For role-play modules, just specify the roles!</p>
+                <h4>Create Role-Play with AI</h4>
+                <p class="text-muted">Let AI generate a complete role-play scenario. Just specify the student and AI roles - AI handles the rest!</p>
                 
                 <div class="features-list">
                   <div class="feature-item">
@@ -223,7 +223,7 @@ export class ModuleCreationChoiceComponent {
   constructor(private router: Router) {}
   
   createManually(): void {
-    this.router.navigate(['/create-module']);
+    this.router.navigate(['/create-roleplay-module']);
   }
   
   createWithAI(): void {

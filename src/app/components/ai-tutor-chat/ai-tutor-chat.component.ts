@@ -8,6 +8,7 @@ import { AiTutorService, TutorMessage } from '../../services/ai-tutor.service';
 import { LearningModulesService } from '../../services/learning-modules.service';
 import { SubscriptionGuardService } from '../../services/subscription-guard.service';
 import { Subscription } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 
 // Speech Recognition interface
 declare global {
@@ -37,6 +38,8 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   
   // Auto-refresh mechanism
   private autoRefreshInterval: any;
+  private autoRefreshCount: number = 0;
+  private maxAutoRefreshAttempts: number = 100; // Prevent infinite refresh
   
   // Local message storage to ensure persistence
   private localMessages: TutorMessage[] = [];
@@ -70,6 +73,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   showSubtitles: boolean = true;
   subtitleCache: Map<string, string> = new Map(); // Cache translations
   isTranslating: boolean = false;
+  private messagesBeingTranslated: Set<string> = new Set(); // Track messages being translated
   
   // Speech functionality
   speechSynthesis: SpeechSynthesis;
@@ -112,17 +116,33 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       // Check subscription access (skip for teacher test mode)
       if (!this.isTeacherTestMode) {
         console.log('👤 Regular mode - checking subscription access...');
-        this.subscriptionGuard.checkPlatinumAccess().subscribe(status => {
-          if (!status.hasAccess) {
-            // User doesn't have PLATINUM access, redirect with message
-            alert(`🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nRedirecting to learning modules...`);
-            this.router.navigate(['/learning-modules']);
-            return;
+        
+        // Add timeout to prevent hanging
+        const subscriptionCheck = this.subscriptionGuard.checkPlatinumAccess().pipe(
+          timeout(5000) // 5 second timeout
+        );
+        
+        const subscriptionSub = subscriptionCheck.subscribe({
+          next: (status) => {
+            if (!status.hasAccess) {
+              // User doesn't have PLATINUM access, redirect with message
+              alert(`🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nRedirecting to learning modules...`);
+              this.router.navigate(['/learning-modules']);
+              return;
+            }
+            
+            // User has access, proceed with initialization
+            this.initializeComponent();
+          },
+          error: (error) => {
+            console.error('❌ Subscription check failed:', error);
+            // Proceed anyway for development/testing
+            console.log('⚠️ Proceeding without subscription check due to error');
+            this.initializeComponent();
           }
-          
-          // User has access, proceed with initialization
-          this.initializeComponent();
         });
+        
+        this.subscriptions.push(subscriptionSub);
       } else {
         // Teacher test mode - skip subscription check
         console.log('🧪 Teacher test mode activated - skipping subscription check');
@@ -183,15 +203,26 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   private startAutoRefresh(): void {
-    // Auto-refresh messages every 0.8 seconds for faster response feel
+    // Auto-refresh messages every 2 seconds for better performance
     this.autoRefreshInterval = setInterval(() => {
-      if (this.sessionActive) {
+      if (this.sessionActive && !this.isLoading && !this.isSending) {
         this.autoRefreshMessages();
       }
-    }, 800); // Reduced from 1250ms
+    }, 2000); // Increased from 800ms to 2000ms to prevent performance issues
   }
 
   private autoRefreshMessages(): void {
+    // Circuit breaker to prevent infinite refresh
+    this.autoRefreshCount++;
+    if (this.autoRefreshCount > this.maxAutoRefreshAttempts) {
+      console.warn('⚠️ Auto-refresh limit reached, stopping to prevent infinite loop');
+      if (this.autoRefreshInterval) {
+        clearInterval(this.autoRefreshInterval);
+        this.autoRefreshInterval = null;
+      }
+      return;
+    }
+    
     const serviceMessages = this.aiTutorService.getCurrentMessages();
     
     // Only update if there are new messages
@@ -210,17 +241,38 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    console.log('🧹 Cleaning up AI tutor chat component...');
+    
+    // Unsubscribe from all subscriptions
+    this.subscriptions.forEach(sub => {
+      if (sub && !sub.closed) {
+        sub.unsubscribe();
+      }
+    });
+    this.subscriptions = [];
     
     // Clear auto-refresh interval
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = null;
+    }
+    
+    // Stop any ongoing speech
+    if (this.speechSynthesis) {
+      this.speechSynthesis.cancel();
+    }
+    
+    // Stop speech recognition
+    if (this.speechRecognition && this.isListening) {
+      this.speechRecognition.stop();
     }
     
     // End session if still active
     if (this.sessionActive && this.sessionId) {
       this.endSession(false);
     }
+    
+    console.log('✅ AI tutor chat component cleaned up');
   }
 
   loadModule(): void {
@@ -294,7 +346,12 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       isTeacherTest: this.isTeacherTestMode
     });
     
-    this.aiTutorService.startSession(this.moduleId, this.sessionType, this.isTeacherTestMode).subscribe({
+    // Add timeout to prevent hanging
+    const sessionStart = this.aiTutorService.startSession(this.moduleId, this.sessionType, this.isTeacherTestMode).pipe(
+      timeout(20000) // 20 second timeout (longer than backend 15s timeout)
+    );
+    
+    const sessionSub = sessionStart.subscribe({
       next: (response) => {
         console.log('✅ Session creation response:', response);
         this.sessionId = response.sessionId;
@@ -356,6 +413,8 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         alert(errorMessage);
       }
     });
+    
+    this.subscriptions.push(sessionSub);
   }
 
   sendMessage(fromSpeech: boolean = false): void {
@@ -1355,13 +1414,18 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   toggleSubtitles(): void {
     this.showSubtitles = !this.showSubtitles;
     
-    // Clear cache when toggling to ensure fresh translations
+    // Clear cache and translation tracking when toggling
     if (this.showSubtitles) {
       this.subtitleCache.clear();
+      this.messagesBeingTranslated.clear();
       console.log('🔤 Subtitle cache cleared for fresh translations');
       
       // Force refresh of all visible translations
       this.refreshAllTranslations();
+    } else {
+      // Clear ongoing translations when hiding subtitles
+      this.messagesBeingTranslated.clear();
+      console.log('🔤 Subtitles hidden, cleared translation tracking');
     }
     
     console.log('🔤 Subtitles toggled:', this.showSubtitles ? 'ON' : 'OFF');
@@ -1371,13 +1435,16 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   private refreshAllTranslations(): void {
     if (!this.showSubtitles || !this.module) return;
     
-    console.log('🔄 Refreshing all translations...');
+    console.log('🔄 Refreshing all translations with delay...');
     
-    // Trigger translation refresh for all AI messages
+    // Trigger translation refresh for all AI messages with staggered delays
     this.messages
       .filter(m => m.role === 'tutor')
-      .forEach(message => {
-        this.loadSubtitleAsync(message);
+      .forEach((message, index) => {
+        // Stagger the translations to avoid overwhelming the API
+        setTimeout(() => {
+          this.loadSubtitleAsync(message);
+        }, index * 500); // 500ms delay between each translation
       });
     
     // Force change detection
@@ -1549,32 +1616,75 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       return '';
     }
 
+    // Don't show subtitle if message is likely already in native language
+    if (this.isMessageInNativeLanguage(message.content, nativeLanguage)) {
+      return '';
+    }
+
     // Check cache first
     const cacheKey = `${message.content}_${targetLanguage}_${nativeLanguage}`;
     if (this.subtitleCache.has(cacheKey)) {
       return this.subtitleCache.get(cacheKey) || '';
     }
 
-    // Don't show subtitle if message is likely already in native language
-    if (this.isMessageInNativeLanguage(message.content, nativeLanguage)) {
+    // Don't translate if this is a loading/typing message or incomplete message
+    if (this.isSending || message.content.includes('🤖 Thinking...') || message.content.length < 10) {
       return '';
     }
 
-    // Trigger async translation and return loading state
+    // Only translate complete messages - trigger async translation but don't show loading state immediately
     this.loadSubtitleAsync(message);
-    return '<i class="fas fa-spinner fa-spin"></i> <small>Translating...</small>';
+    return ''; // Return empty initially, will update when translation completes
   }
 
-  // Load subtitle asynchronously
+  // Check if a specific message is being translated
+  isMessageBeingTranslated(message: TutorMessage): boolean {
+    const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
+    return this.messagesBeingTranslated.has(messageKey);
+  }
+
+  // Load subtitle asynchronously - only after message is complete
   private async loadSubtitleAsync(message: TutorMessage): Promise<void> {
+    const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
+    
     try {
+      // Mark this message as being translated
+      this.messagesBeingTranslated.add(messageKey);
+      this.cdr.detectChanges(); // Update UI to show loading state
+      
+      // Wait a moment to ensure the message is fully displayed/typed
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+      
+      // Double-check the message hasn't changed (still the same content)
+      const currentMessage = this.messages.find(m => 
+        m.timestamp === message.timestamp && m.content === message.content
+      );
+      
+      if (!currentMessage) {
+        console.log('🔤 Message changed during delay, skipping translation');
+        return;
+      }
+
+      // Check if we're still in an active session and subtitles are still enabled
+      if (!this.showSubtitles) {
+        console.log('🔤 Subtitles disabled, skipping translation');
+        return;
+      }
+
+      console.log('🔤 Starting translation for complete message:', message.content.substring(0, 50));
+      
       const translation = await this.getMessageTranslation(message);
       if (translation) {
+        console.log('✅ Translation completed, updating UI');
         // Trigger change detection to update the view
         this.cdr.detectChanges();
       }
     } catch (error) {
       console.error('❌ Error loading subtitle:', error);
+    } finally {
+      // Remove from translation tracking
+      this.messagesBeingTranslated.delete(messageKey);
+      this.cdr.detectChanges();
     }
   }
 

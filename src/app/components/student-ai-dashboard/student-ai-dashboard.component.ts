@@ -36,25 +36,37 @@ export class StudentAiDashboardComponent implements OnInit {
   loadDashboardData(): void {
     this.isLoading = true;
     
+    console.log('🔄 Loading dashboard data for student...');
+    
     // Load analytics
     this.studentProgressService.getDashboardAnalytics().subscribe({
       next: (analytics) => {
+        console.log('✅ Dashboard analytics loaded:', analytics);
         this.analytics = analytics;
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading dashboard analytics:', error);
+        console.error('❌ Error loading dashboard analytics:', error);
+        console.error('❌ Error details:', {
+          status: error.status,
+          message: error.message,
+          error: error.error
+        });
         this.isLoading = false;
+        
+        // Show error message to user
+        alert(`Failed to load dashboard analytics: ${error.message || 'Unknown error'}`);
       }
     });
     
     // Load recent modules
     this.learningModulesService.getModules({ limit: 6 }).subscribe({
       next: (response) => {
+        console.log('✅ Recent modules loaded:', response);
         this.recentModules = response.modules.filter((m: any) => m.studentProgress);
       },
       error: (error) => {
-        console.error('Error loading recent modules:', error);
+        console.error('❌ Error loading recent modules:', error);
       }
     });
   }

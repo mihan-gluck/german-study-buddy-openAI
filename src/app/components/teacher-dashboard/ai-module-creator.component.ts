@@ -23,8 +23,8 @@ import { firstValueFrom } from 'rxjs';
               <div class="ai-header-icon">
                 <i class="fas fa-robot"></i>
               </div>
-              <h3 class="mb-0">🤖 AI Module Creator</h3>
-              <p class="text-muted mb-0">Let AI generate a complete learning module for you</p>
+              <h3 class="mb-0">🎭 AI Role-Play Creator</h3>
+              <p class="text-muted mb-0">Let AI generate a complete role-play scenario for you</p>
             </div>
             
             <div class="card-body">
@@ -53,28 +53,16 @@ import { firstValueFrom } from 'rxjs';
                       </select>
                     </div>
                     
-                    <div class="col-md-4">
-                      <label class="form-label">Level *</label>
-                      <select class="form-select" formControlName="level">
-                        <option value="">Select Level</option>
-                        <option *ngFor="let level of levels" [value]="level">{{level}}</option>
-                      </select>
-                    </div>
-                    
-                    <div class="col-md-4">
-                      <label class="form-label">Category *</label>
-                      <select class="form-select" formControlName="category">
-                        <option value="">Select Category</option>
-                        <option *ngFor="let category of categories" [value]="category">{{category}}</option>
-                      </select>
-                    </div>
-                    
-                    <div class="col-md-4">
-                      <label class="form-label">Difficulty *</label>
-                      <select class="form-select" formControlName="difficulty">
-                        <option value="">Select Difficulty</option>
-                        <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{difficulty}}</option>
-                      </select>
+                    <div class="col-md-12">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label class="form-label">Level *</label>
+                          <select class="form-select" formControlName="level" (change)="onLevelChange()">
+                            <option value="">Select Level</option>
+                            <option *ngFor="let level of levels" [value]="level">{{level}}</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -99,23 +87,12 @@ import { firstValueFrom } from 'rxjs';
                   </div>
                   
                   <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label">Duration (minutes)</label>
-                      <input 
-                        type="number" 
-                        class="form-control" 
-                        formControlName="estimatedDuration" 
-                        placeholder="e.g., 30"
-                        min="10" 
-                        max="120">
-                    </div>
-                    
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                       <label class="form-label">Module Type</label>
-                      <select class="form-select" formControlName="moduleType" (change)="onModuleTypeChange()">
-                        <option value="standard">Standard Module</option>
-                        <option value="roleplay">Role-Play Module</option>
+                      <select class="form-select" formControlName="moduleType" [disabled]="true">>
+                        <option value="roleplay">🎭 Role-Play Module</option>
                       </select>
+                      <small class="form-text text-muted">All modules are role-play focused. Session time is tracked automatically during student interactions.</small>
                     </div>
                   </div>
                 </div>
@@ -183,37 +160,53 @@ import { firstValueFrom } from 'rxjs';
                 <div class="mb-4">
                   <h5 class="section-title">
                     <i class="fas fa-cogs text-info"></i>
-                    AI Generation Options
+                    Role-Play Generation Options
                   </h5>
                   
                   <div class="ai-options">
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" formControlName="generateVocabulary" id="generateVocabulary">
                       <label class="form-check-label" for="generateVocabulary">
-                        Generate vocabulary list with translations
+                        Generate scenario-specific vocabulary with translations
                       </label>
+                      <small class="form-text text-muted">Creates vocabulary relevant to your specific role-play situation</small>
                     </div>
                     
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" formControlName="generateExercises" id="generateExercises">
                       <label class="form-check-label" for="generateExercises">
-                        Create practice exercises
+                        Create role-play practice exercises
                       </label>
+                      <small class="form-text text-muted">Generates exercises to prepare students for the conversation</small>
                     </div>
                     
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" formControlName="generateConversation" id="generateConversation">
                       <label class="form-check-label" for="generateConversation">
-                        Generate conversation examples
+                        Generate conversation flow and example dialogues
                       </label>
+                      <small class="form-text text-muted">Creates sample conversations and conversation stages for the scenario</small>
                     </div>
                     
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" formControlName="generateCulturalNotes" id="generateCulturalNotes">
                       <label class="form-check-label" for="generateCulturalNotes">
-                        Include cultural notes and context
+                        Include cultural context and etiquette tips
                       </label>
+                      <small class="form-text text-muted">Adds cultural information relevant to the role-play scenario</small>
                     </div>
+                  </div>
+                  
+                  <div class="mt-3 p-3 bg-light rounded">
+                    <h6 class="text-info mb-2">
+                      <i class="fas fa-lightbulb me-2"></i>Role-Play Generation Tips:
+                    </h6>
+                    <ul class="list-unstyled mb-0 small">
+                      <li><i class="fas fa-check text-success me-2"></i><strong>Vocabulary:</strong> Essential for students to understand key terms in the scenario</li>
+                      <li><i class="fas fa-check text-success me-2"></i><strong>Exercises:</strong> Help students practice before the actual role-play conversation</li>
+                      <li><i class="fas fa-check text-success me-2"></i><strong>Conversation Flow:</strong> Provides structure and example dialogues for the scenario</li>
+                      <li><i class="fas fa-check text-success me-2"></i><strong>Cultural Notes:</strong> Important for real-world scenarios (restaurants, business, social situations)</li>
+                    </ul>
                   </div>
                 </div>
                 
@@ -254,19 +247,15 @@ import { firstValueFrom } from 'rxjs';
                   <p class="text-muted">{{generatedModule?.description || 'No description available'}}</p>
                   
                   <div class="row g-3 mb-3">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <small class="text-muted">Level:</small><br>
                       <span class="badge bg-primary">{{generatedModule?.level || 'N/A'}}</span>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <small class="text-muted">Category:</small><br>
                       <span class="badge bg-info">{{generatedModule?.category || 'N/A'}}</span>
                     </div>
-                    <div class="col-md-3">
-                      <small class="text-muted">Duration:</small><br>
-                      <span class="badge bg-secondary">{{generatedModule?.estimatedDuration || 0}} min</span>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <small class="text-muted">Vocabulary:</small><br>
                       <span class="badge bg-success">{{getVocabularyCount()}} words</span>
                     </div>
@@ -422,8 +411,6 @@ export class AiModuleCreatorComponent implements OnInit {
   
   // Form options
   levels: string[] = [];
-  categories: string[] = [];
-  difficulties: string[] = [];
   availableLanguages: string[] = [];
   availableNativeLanguages: string[] = [];
   
@@ -439,6 +426,8 @@ export class AiModuleCreatorComponent implements OnInit {
   
   ngOnInit(): void {
     this.initializeOptions();
+    // Initialize role-play validators since all modules are now role-play
+    this.onModuleTypeChange();
   }
   
   createForm(): FormGroup {
@@ -446,11 +435,10 @@ export class AiModuleCreatorComponent implements OnInit {
       targetLanguage: ['English', Validators.required],
       nativeLanguage: ['English', Validators.required],
       level: ['', Validators.required],
-      category: ['', Validators.required],
-      difficulty: ['', Validators.required],
+      category: ['Conversation'], // Fixed for role-play modules
+      difficulty: ['Beginner'], // Auto-set based on level
       description: ['', [Validators.required, Validators.minLength(20)]],
-      estimatedDuration: [30, [Validators.min(10), Validators.max(120)]],
-      moduleType: ['standard'],
+      moduleType: ['roleplay'], // Default to role-play
       
       // Simplified role-play fields (only essential ones)
       studentRole: [''],
@@ -466,31 +454,32 @@ export class AiModuleCreatorComponent implements OnInit {
   
   initializeOptions(): void {
     this.levels = this.learningModulesService.getAvailableLevels();
-    this.categories = this.learningModulesService.getAvailableCategories();
-    this.difficulties = this.learningModulesService.getAvailableDifficulties();
     this.availableLanguages = this.learningModulesService.getAvailableLanguages();
     this.availableNativeLanguages = this.learningModulesService.getAvailableNativeLanguages();
   }
   
   onModuleTypeChange(): void {
-    const moduleType = this.aiForm.get('moduleType')?.value;
-    
-    if (moduleType === 'roleplay') {
-      // Add required validators for essential role-play fields only
-      this.aiForm.get('studentRole')?.setValidators([Validators.required]);
-      this.aiForm.get('aiRole')?.setValidators([Validators.required]);
-      
-      // Set category to Conversation for role-play modules
-      this.aiForm.patchValue({ category: 'Conversation' });
-    } else {
-      // Remove validators for standard modules
-      this.aiForm.get('studentRole')?.clearValidators();
-      this.aiForm.get('aiRole')?.clearValidators();
-    }
+    // Always role-play now - ensure validators are set
+    this.aiForm.get('studentRole')?.setValidators([Validators.required]);
+    this.aiForm.get('aiRole')?.setValidators([Validators.required]);
     
     // Update form validation
     this.aiForm.get('studentRole')?.updateValueAndValidity();
     this.aiForm.get('aiRole')?.updateValueAndValidity();
+  }
+
+  onLevelChange(): void {
+    const level = this.aiForm.get('level')?.value;
+    if (level) {
+      // Auto-set difficulty based on CEFR level
+      let difficulty = 'Beginner';
+      if (['B1', 'B2'].includes(level)) {
+        difficulty = 'Intermediate';
+      } else if (['C1', 'C2'].includes(level)) {
+        difficulty = 'Advanced';
+      }
+      this.aiForm.patchValue({ difficulty });
+    }
   }
   
   async generateModule(): Promise<void> {
@@ -541,7 +530,7 @@ export class AiModuleCreatorComponent implements OnInit {
       level: response?.level || formData.level,
       category: response?.category || formData.category,
       difficulty: response?.difficulty || formData.difficulty,
-      estimatedDuration: response?.estimatedDuration || formData.estimatedDuration || 30,
+      estimatedDuration: 30, // Default value - actual time tracked per session
       learningObjectives: response?.learningObjectives || [
         {
           objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
@@ -549,7 +538,7 @@ export class AiModuleCreatorComponent implements OnInit {
         }
       ],
       content: {
-        introduction: response?.content?.introduction || `Welcome to this ${formData.targetLanguage} ${formData.category.toLowerCase()} module.`,
+        introduction: this.generateModuleIntroduction(response?.targetLanguage || formData.targetLanguage, formData.category),
         keyTopics: response?.content?.keyTopics || [formData.category],
         allowedVocabulary: response?.content?.allowedVocabulary || [],
         allowedGrammar: response?.content?.allowedGrammar || [],
@@ -611,7 +600,7 @@ export class AiModuleCreatorComponent implements OnInit {
       level: formData.level,
       category: formData.category,
       difficulty: formData.difficulty,
-      estimatedDuration: formData.estimatedDuration || 30,
+      estimatedDuration: 30, // Default value - actual time tracked per session
       learningObjectives: [
         {
           objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
@@ -619,7 +608,7 @@ export class AiModuleCreatorComponent implements OnInit {
         }
       ],
       content: {
-        introduction: `Welcome to this ${formData.targetLanguage} ${formData.category.toLowerCase()} module.`,
+        introduction: this.generateModuleIntroduction(formData.targetLanguage, formData.category),
         keyTopics: [formData.category],
         allowedVocabulary: [],
         allowedGrammar: [],
@@ -758,7 +747,7 @@ export class AiModuleCreatorComponent implements OnInit {
         level: formData.level,
         category: formData.category,
         difficulty: formData.difficulty,
-        estimatedDuration: formData.estimatedDuration || 30,
+        estimatedDuration: 30, // Default value - actual time tracked per session
         learningObjectives: [
           {
             objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
@@ -789,6 +778,32 @@ export class AiModuleCreatorComponent implements OnInit {
     }
   }
   
+  generateModuleIntroduction(targetLanguage: string, category: string): string {
+    // Generate language-specific introductions for role-play modules
+    const introductions: { [key: string]: { [key: string]: string } } = {
+      'German': {
+        'Conversation': 'Willkommen zu diesem Rollenspiel-Modul! Hier wirst du praktische Gesprächsfähigkeiten in realistischen Situationen üben.',
+        'Grammar': 'Willkommen zu diesem Grammatik-Modul! Wir werden wichtige deutsche Grammatikregeln durch praktische Übungen lernen.',
+        'Vocabulary': 'Willkommen zu diesem Wortschatz-Modul! Du wirst neue deutsche Wörter in natürlichen Kontexten lernen.',
+        'Reading': 'Willkommen zu diesem Lesemodul! Wir werden deine deutschen Lesefähigkeiten durch interessante Texte verbessern.',
+        'Writing': 'Willkommen zu diesem Schreibmodul! Du wirst lernen, auf Deutsch klar und effektiv zu schreiben.',
+        'Listening': 'Willkommen zu diesem Hörverständnis-Modul! Wir werden deine Fähigkeit verbessern, gesprochenes Deutsch zu verstehen.'
+      },
+      'English': {
+        'Conversation': 'Welcome to this role-play module! Here you will practice practical conversation skills in realistic situations.',
+        'Grammar': 'Welcome to this grammar module! We will learn important English grammar rules through practical exercises.',
+        'Vocabulary': 'Welcome to this vocabulary module! You will learn new English words in natural contexts.',
+        'Reading': 'Welcome to this reading module! We will improve your English reading skills through interesting texts.',
+        'Writing': 'Welcome to this writing module! You will learn to write clearly and effectively in English.',
+        'Listening': 'Welcome to this listening module! We will improve your ability to understand spoken English.'
+      }
+    };
+    
+    // Get language-specific introduction or fall back to English
+    const languageIntros = introductions[targetLanguage] || introductions['English'];
+    return languageIntros[category] || languageIntros['Conversation'] || 'Welcome to this learning module!';
+  }
+
   getVocabularyCount(): number {
     return this.generatedModule?.content?.allowedVocabulary?.length || 0;
   }
@@ -820,7 +835,7 @@ export class AiModuleCreatorComponent implements OnInit {
     this.moduleDataTransferService.setGeneratedModule(this.generatedModule);
     sessionStorage.setItem('aiGeneratedModule', JSON.stringify(this.generatedModule));
     
-    this.router.navigate(['/create-module']);
+    this.router.navigate(['/create-roleplay-module']);
   }
   
   startOver(): void {
@@ -830,8 +845,7 @@ export class AiModuleCreatorComponent implements OnInit {
     this.aiForm.reset({
       targetLanguage: 'English',
       nativeLanguage: 'English',
-      estimatedDuration: 30,
-      moduleType: 'standard',
+      moduleType: 'roleplay', // Always role-play now
       studentRole: '',
       aiRole: '',
       generateVocabulary: true,

@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { LearningModulesService } from '../../services/learning-modules.service';
+import { ModuleDataTransferService } from '../../services/module-data-transfer.service';
 
 @Component({
   selector: 'app-roleplay-module-form',
@@ -16,7 +17,7 @@ import { LearningModulesService } from '../../services/learning-modules.service'
         <div class="col-12">
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-              <h4 class="mb-0">🎭 Create Role-Play Module</h4>
+              <h4 class="mb-0">🎭 {{ isEditMode ? 'Edit' : 'Create' }} Role-Play Module</h4>
               <button class="btn btn-secondary" (click)="goBack()">
                 <i class="fas fa-arrow-left"></i> Back
               </button>
@@ -35,12 +36,6 @@ import { LearningModulesService } from '../../services/learning-modules.service'
                     <label class="form-label">Module Title *</label>
                     <input type="text" class="form-control" formControlName="title" 
                            placeholder="e.g., Restaurant Conversation">
-                  </div>
-                  
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label">Duration (minutes) *</label>
-                    <input type="number" class="form-control" formControlName="estimatedDuration" 
-                           placeholder="e.g., 20">
                   </div>
                   
                   <div class="col-12 mb-3">
@@ -72,20 +67,15 @@ import { LearningModulesService } from '../../services/learning-modules.service'
                     </select>
                   </div>
                   
-                  <div class="col-md-3 mb-3">
+                  <div class="col-md-6 mb-3">
                     <label class="form-label">Level *</label>
-                    <select class="form-select" formControlName="level">
+                    <select class="form-select" formControlName="level" (change)="onLevelChange()">
                       <option value="">Select Level</option>
                       <option *ngFor="let level of levels" [value]="level">{{level}}</option>
                     </select>
-                  </div>
-                  
-                  <div class="col-md-3 mb-3">
-                    <label class="form-label">Difficulty *</label>
-                    <select class="form-select" formControlName="difficulty">
-                      <option value="">Select Difficulty</option>
-                      <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{difficulty}}</option>
-                    </select>
+                    <small class="form-text text-muted">
+                      CEFR proficiency level - determines content complexity and student access
+                    </small>
                   </div>
                 </div>
 
@@ -362,7 +352,7 @@ import { LearningModulesService } from '../../services/learning-modules.service'
                       </button>
                       <button type="submit" class="btn btn-primary" [disabled]="moduleForm.invalid || isSubmitting">
                         <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-                        Create Role-Play Module
+                        {{ isEditMode ? 'Update' : 'Create' }} Role-Play Module
                       </button>
                     </div>
                   </div>
@@ -390,7 +380,6 @@ export class RoleplayModuleFormComponent implements OnInit {
 
   // Form options
   levels: string[] = [];
-  difficulties: string[] = [];
   availableLanguages: string[] = [];
   availableNativeLanguages: string[] = [];
 
@@ -404,6 +393,11 @@ export class RoleplayModuleFormComponent implements OnInit {
   studentRoleGuidance = '';
   aiOpeningLines: string[] = [];
   suggestedStudentResponses: string[] = [];
+
+  // Edit mode tracking
+  isEditMode: boolean = false;
+  moduleId: string | null = null;
+  existingModule: any = null;
 
   // Input fields for dynamic arrays
   newVocabWord = '';
@@ -420,13 +414,27 @@ export class RoleplayModuleFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private learningModulesService: LearningModulesService,
-    private router: Router
+    private moduleDataTransferService: ModuleDataTransferService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.moduleForm = this.createForm();
   }
 
   ngOnInit(): void {
     this.initializeOptions();
+    
+    // Check if we're in edit mode by looking for route parameters
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.moduleId = params['id'];
+        this.loadExistingModule(params['id']);
+      } else {
+        // Only load AI-generated data if we're not in edit mode
+        this.loadAiGeneratedData();
+      }
+    });
   }
 
   createForm(): FormGroup {
@@ -437,8 +445,7 @@ export class RoleplayModuleFormComponent implements OnInit {
       nativeLanguage: ['English', Validators.required],
       level: ['', Validators.required],
       category: ['Conversation'], // Fixed for role-play
-      difficulty: ['', Validators.required],
-      estimatedDuration: ['', [Validators.required, Validators.min(1)]],
+      difficulty: ['Beginner'], // Auto-set based on level
       rolePlayScenario: this.fb.group({
         situation: ['', Validators.required],
         studentRole: ['', Validators.required],
@@ -451,9 +458,22 @@ export class RoleplayModuleFormComponent implements OnInit {
 
   initializeOptions(): void {
     this.levels = this.learningModulesService.getAvailableLevels();
-    this.difficulties = this.learningModulesService.getAvailableDifficulties();
     this.availableLanguages = this.learningModulesService.getAvailableLanguages();
     this.availableNativeLanguages = this.learningModulesService.getAvailableNativeLanguages();
+  }
+
+  onLevelChange(): void {
+    const level = this.moduleForm.get('level')?.value;
+    if (level) {
+      // Auto-set difficulty based on CEFR level
+      let difficulty = 'Beginner';
+      if (['B1', 'B2'].includes(level)) {
+        difficulty = 'Intermediate';
+      } else if (['C1', 'C2'].includes(level)) {
+        difficulty = 'Advanced';
+      }
+      this.moduleForm.patchValue({ difficulty });
+    }
   }
 
   addVocabulary(): void {
@@ -546,8 +566,9 @@ export class RoleplayModuleFormComponent implements OnInit {
     // Prepare the role-play module data
     const moduleData = {
       ...formValue,
+      estimatedDuration: 30, // Default value - actual time tracked per session
       content: {
-        introduction: `Welcome to this role-play scenario: ${formValue.rolePlayScenario.situation}`,
+        introduction: this.generateModuleIntroduction(formValue.targetLanguage, formValue.rolePlayScenario.situation),
         rolePlayScenario: {
           ...formValue.rolePlayScenario,
           aiPersonality: this.aiRolePersonality,
@@ -585,17 +606,207 @@ export class RoleplayModuleFormComponent implements OnInit {
       tags: ['role-play', formValue.rolePlayScenario.situation.toLowerCase(), formValue.level.toLowerCase()]
     };
 
-    this.learningModulesService.createModule(moduleData).subscribe({
-      next: (response) => {
-        alert('Role-play module created successfully!');
-        this.goBack();
+    // Determine if we're creating or updating
+    if (this.isEditMode && this.moduleId) {
+      // Update existing module
+      this.learningModulesService.updateModule(this.moduleId, moduleData).subscribe({
+        next: (response) => {
+          alert('Role-play module updated successfully!');
+          this.goBack();
+        },
+        error: (error) => {
+          console.error('Error updating role-play module:', error);
+          alert('Failed to update role-play module. Please try again.');
+          this.isSubmitting = false;
+        }
+      });
+    } else {
+      // Create new module
+      this.learningModulesService.createModule(moduleData).subscribe({
+        next: (response) => {
+          alert('Role-play module created successfully!');
+          this.goBack();
+        },
+        error: (error) => {
+          console.error('Error creating role-play module:', error);
+          alert('Failed to create role-play module. Please try again.');
+          this.isSubmitting = false;
+        }
+      });
+    }
+  }
+
+  loadAiGeneratedData(): void {
+    // First try the transfer service
+    if (this.moduleDataTransferService.hasGeneratedModule()) {
+      const generatedModule = this.moduleDataTransferService.getGeneratedModule();
+      if (generatedModule) {
+        console.log('📋 Loading AI-generated role-play module from service:', generatedModule.title);
+        this.populateFormFromAiGenerated(generatedModule);
+        return;
+      } else {
+        console.log('⚠️ Transfer service indicated data exists but returned null');
+      }
+    }
+    
+    // Fallback to sessionStorage
+    const sessionData = sessionStorage.getItem('aiGeneratedModule');
+    if (sessionData) {
+      try {
+        const generatedModule = JSON.parse(sessionData);
+        console.log('📋 Loading AI-generated role-play module from sessionStorage:', generatedModule.title);
+        this.populateFormFromAiGenerated(generatedModule);
+        // Clear sessionStorage after use
+        sessionStorage.removeItem('aiGeneratedModule');
+        return;
+      } catch (error) {
+        console.error('❌ Error parsing AI-generated module from sessionStorage:', error);
+        sessionStorage.removeItem('aiGeneratedModule');
+      }
+    }
+    
+    console.log('ℹ️ No AI-generated module data found');
+  }
+
+  loadExistingModule(moduleId: string): void {
+    console.log('📋 Loading existing module for editing:', moduleId);
+    
+    this.learningModulesService.getModule(moduleId).subscribe({
+      next: (module) => {
+        console.log('✅ Existing module loaded:', module.title);
+        this.existingModule = module;
+        this.populateFormFromExistingModule(module);
       },
       error: (error) => {
-        console.error('Error creating role-play module:', error);
-        alert('Failed to create role-play module. Please try again.');
-        this.isSubmitting = false;
+        console.error('❌ Error loading existing module:', error);
+        alert('Error loading module for editing. Please try again.');
+        this.router.navigate(['/learning-modules']);
       }
     });
+  }
+
+  populateFormFromExistingModule(module: any): void {
+    console.log('🔧 Populating form with existing module data:', module);
+    
+    // Populate basic form fields
+    this.moduleForm.patchValue({
+      title: module.title || '',
+      description: module.description || '',
+      targetLanguage: module.targetLanguage || 'English',
+      nativeLanguage: module.nativeLanguage || 'English',
+      level: module.level || '',
+      category: module.category || 'Conversation',
+      difficulty: module.difficulty || 'Beginner',
+      rolePlayScenario: {
+        situation: module.content?.rolePlayScenario?.situation || '',
+        studentRole: module.content?.rolePlayScenario?.studentRole || '',
+        aiRole: module.content?.rolePlayScenario?.aiRole || '',
+        setting: module.content?.rolePlayScenario?.setting || '',
+        objective: module.content?.rolePlayScenario?.objective || ''
+      }
+    });
+
+    // Populate AI tutor configuration
+    if (module.aiTutorConfig) {
+      this.aiRolePersonality = module.aiTutorConfig.personality || '';
+      
+      // Handle both old and new structure for student guidance
+      this.studentRoleGuidance = 
+        module.aiTutorConfig.rolePlayInstructions?.studentGuidance || 
+        module.content?.rolePlayScenario?.studentGuidance || 
+        '';
+      
+      // Populate AI opening lines
+      this.aiOpeningLines = 
+        module.aiTutorConfig.rolePlayInstructions?.openingLines || 
+        module.content?.rolePlayScenario?.aiOpeningLines || 
+        [];
+      
+      // Populate suggested student responses
+      this.suggestedStudentResponses = 
+        module.aiTutorConfig.rolePlayInstructions?.suggestedResponses || 
+        module.content?.rolePlayScenario?.suggestedStudentResponses || 
+        [];
+    }
+
+    // Populate vocabulary
+    if (module.content?.allowedVocabulary) {
+      this.allowedVocabulary = [...module.content.allowedVocabulary];
+    }
+
+    // Populate grammar
+    if (module.content?.allowedGrammar) {
+      this.allowedGrammar = [...module.content.allowedGrammar];
+    }
+
+    // Populate conversation flow
+    if (module.content?.conversationFlow) {
+      this.conversationFlow = [...module.content.conversationFlow];
+    }
+
+    console.log('✅ Form populated with existing module data');
+    console.log('🔍 AI Configuration loaded:', {
+      personality: this.aiRolePersonality,
+      guidance: this.studentRoleGuidance,
+      openingLines: this.aiOpeningLines.length,
+      suggestedResponses: this.suggestedStudentResponses.length
+    });
+  }
+
+  populateFormFromAiGenerated(generatedModule: any): void {
+    console.log('🔧 Populating role-play form with AI-generated data:', generatedModule);
+    
+    // Set basic form values
+    this.moduleForm.patchValue({
+      title: generatedModule.title || '',
+      description: generatedModule.description || '',
+      targetLanguage: generatedModule.targetLanguage || 'English',
+      nativeLanguage: generatedModule.nativeLanguage || 'English',
+      level: generatedModule.level || '',
+      difficulty: generatedModule.difficulty || ''
+    });
+
+    // Handle role-play scenario data
+    if (generatedModule.content?.rolePlayScenario) {
+      const scenario = generatedModule.content.rolePlayScenario;
+      this.moduleForm.patchValue({
+        rolePlayScenario: {
+          situation: scenario.situation || '',
+          setting: scenario.setting || '',
+          studentRole: scenario.studentRole || '',
+          aiRole: scenario.aiRole || '',
+          objective: scenario.objective || '',
+          aiPersonality: scenario.aiPersonality || '',
+          studentGuidance: scenario.studentGuidance || ''
+        }
+      });
+
+      // Set AI opening lines and student responses
+      this.aiOpeningLines = [...(scenario.aiOpeningLines || [])];
+      this.suggestedStudentResponses = [...(scenario.suggestedStudentResponses || [])];
+    }
+
+    // Set vocabulary, grammar, and conversation flow
+    this.allowedVocabulary = [...(generatedModule.content?.allowedVocabulary || [])];
+    this.allowedGrammar = [...(generatedModule.content?.allowedGrammar || [])];
+    this.conversationFlow = [...(generatedModule.content?.conversationFlow || [])];
+
+    // Set AI tutor config
+    if (generatedModule.aiTutorConfig) {
+      this.aiRolePersonality = generatedModule.aiTutorConfig.personality || '';
+      this.studentRoleGuidance = generatedModule.aiTutorConfig.rolePlayInstructions?.studentGuidance || '';
+    }
+
+    console.log('✅ Role-play form populated with AI-generated data');
+  }
+
+  generateModuleIntroduction(targetLanguage: string, situation: string): string {
+    const introductions: { [key: string]: string } = {
+      'German': `Willkommen zu diesem Rollenspiel-Szenario: ${situation}`,
+      'English': `Welcome to this role-play scenario: ${situation}`
+    };
+    
+    return introductions[targetLanguage] || introductions['English'];
   }
 
   goBack(): void {

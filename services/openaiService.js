@@ -179,7 +179,7 @@ class OpenAIService {
         Category: ${module.category}
         Difficulty: ${difficulty}
         Exercise Type: ${exerciseType}
-        Key Topics: ${module.content.keyTopics?.join(', ') || `General ${targetLang}`}
+        Key Topics: ${module.content?.keyTopics?.join(', ') || `General ${targetLang}`}
         
         Generate exercise in JSON format:
         {
@@ -320,8 +320,8 @@ Current Context:
 - Student Level: ${studentLevel}
 
 Module Details:
-- Description: ${module.description}
-- Key Topics: ${module.content.keyTopics?.join(', ') || `General ${targetLang}`}
+- Description: ${module.description || 'Language learning module'}
+- Key Topics: ${module.content?.keyTopics?.join(', ') || `General ${targetLang}`}
 - Learning Objectives: ${module.learningObjectives?.map(obj => obj.objective).join(', ') || 'Language practice'}
 
 AI Tutor Personality: ${module.aiTutorConfig?.personality || `friendly and encouraging ${targetLang} tutor`}

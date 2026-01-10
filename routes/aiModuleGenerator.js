@@ -43,8 +43,12 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       targetLanguage,
       level,
       category,
-      description: description.substring(0, 100) + '...'
+      description: description.substring(0, 100) + '...',
+      moduleType: moduleType || 'roleplay' // Default to role-play
     });
+
+    // Default to role-play if not specified
+    const finalModuleType = moduleType || 'roleplay';
 
     // Create AI prompt for module generation
     const prompt = createModuleGenerationPrompt({
@@ -55,7 +59,7 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       difficulty,
       description,
       estimatedDuration,
-      moduleType,
+      moduleType: finalModuleType,
       generateVocabulary,
       generateExercises,
       generateConversation,
@@ -191,7 +195,6 @@ NATIVE LANGUAGE: ${nativeLanguage}
 LEVEL: ${level}
 CATEGORY: ${category}
 DIFFICULTY: ${difficulty}
-DURATION: ${estimatedDuration} minutes
 MODULE TYPE: ${moduleType}
 
 DESCRIPTION: ${description}`;
@@ -231,7 +234,6 @@ GENERATION OPTIONS:
   "level": "${level}",
   "category": "${category}",
   "difficulty": "${difficulty}",
-  "estimatedDuration": ${estimatedDuration},
   "learningObjectives": [
     {
       "objective": "Learning objective 1",
@@ -239,7 +241,7 @@ GENERATION OPTIONS:
     }
   ],
   "content": {
-    "introduction": "Engaging introduction text",
+    "introduction": "Engaging introduction text IN THE TARGET LANGUAGE (${targetLanguage})",
     "rolePlayScenario": {
       "situation": "Generate appropriate situation based on the roles",
       "setting": "Generate detailed setting description",
@@ -317,7 +319,6 @@ GENERATION OPTIONS:
   "level": "${level}",
   "category": "${category}",
   "difficulty": "${difficulty}",
-  "estimatedDuration": ${estimatedDuration},
   "learningObjectives": [
     {
       "objective": "Learning objective 1",
@@ -325,7 +326,7 @@ GENERATION OPTIONS:
     }
   ],
   "content": {
-    "introduction": "Engaging introduction text",
+    "introduction": "Engaging introduction text IN THE TARGET LANGUAGE (${targetLanguage})",
     "keyTopics": ["topic1", "topic2", "topic3"],
     "allowedVocabulary": [
       {
@@ -381,10 +382,21 @@ REQUIREMENTS FOR ROLE-PLAY MODULE:
 7. GENERATE 3-5 varied AI opening lines that fit the role and scenario
 8. CREATE 3-5 helpful student response suggestions to get them started
 9. DESIGN conversation flow stages that naturally progress through the scenario
-10. INCLUDE 10-20 vocabulary words relevant to the specific scenario
-11. ENSURE all content is appropriate for ${level} level
-12. FOCUS on practical, real-world conversation for these specific roles
-13. MAKE the role-play engaging and educational
+10. **VOCABULARY GENERATION (if enabled):** Include 10-20 scenario-specific vocabulary words relevant to the roles and situation
+11. **EXERCISE GENERATION (if enabled):** Create 3-5 role-play preparation exercises (vocabulary practice, phrase building, scenario questions)
+12. **CONVERSATION GENERATION (if enabled):** Generate detailed conversation flow with multiple dialogue examples and conversation stages
+13. **CULTURAL NOTES (if enabled):** Include cultural context, etiquette, and social norms relevant to the specific scenario
+14. ENSURE all content is appropriate for ${level} level
+15. FOCUS on practical, real-world conversation for these specific roles
+16. MAKE the role-play engaging and educational
+17. **CRITICAL: Generate ALL text content (introduction, guidance, opening lines, etc.) in the TARGET LANGUAGE (${targetLanguage}), not English**
+18. **LANGUAGE REQUIREMENT: The introduction must be written in ${targetLanguage} to welcome students in their target language**
+
+GENERATION OPTIONS GUIDE:
+- If generateVocabulary=true: Focus on words/phrases essential for this specific role-play scenario
+- If generateExercises=true: Create exercises that prepare students for the role-play conversation (not generic exercises)
+- If generateConversation=true: Generate detailed conversation flow, multiple dialogue examples, and conversation stages
+- If generateCulturalNotes=true: Include cultural information specific to this scenario (e.g., German restaurant etiquette for restaurant role-play)
 
 IMPORTANT: Use your intelligence to create a cohesive, realistic scenario based on just the two roles provided!` : `
 REQUIREMENTS:
@@ -398,7 +410,9 @@ REQUIREMENTS:
 8. Ensure all content is accurate and pedagogically sound
 9. IMPORTANT: Exercise types must be ONLY: "multiple-choice", "fill-blank", "translation", "conversation", "essay", or "role-play"
 10. For multiple-choice exercises, provide exactly 4 options
-11. Always include correctAnswer and explanation for exercises`;
+11. Always include correctAnswer and explanation for exercises
+12. **CRITICAL: Generate the introduction text in the TARGET LANGUAGE (${targetLanguage}), not English**
+13. **LANGUAGE REQUIREMENT: Welcome students in their target language to create an immersive learning experience**`;
 
   return basePrompt + rolePlayInfo + generationOptions + `
 
@@ -519,6 +533,32 @@ function generateRolePlayScenario(generatedModule, originalRequest) {
   };
 }
 
+// Generate language-specific introduction text
+function generateLanguageSpecificIntroduction(targetLanguage, category) {
+  const introductions = {
+    'German': {
+      'Conversation': 'Willkommen zu diesem Rollenspiel-Modul! Hier wirst du praktische Gesprächsfähigkeiten in realistischen Situationen üben.',
+      'Grammar': 'Willkommen zu diesem Grammatik-Modul! Wir werden wichtige deutsche Grammatikregeln durch praktische Übungen lernen.',
+      'Vocabulary': 'Willkommen zu diesem Wortschatz-Modul! Du wirst neue deutsche Wörter in natürlichen Kontexten lernen.',
+      'Reading': 'Willkommen zu diesem Lesemodul! Wir werden deine deutschen Lesefähigkeiten durch interessante Texte verbessern.',
+      'Writing': 'Willkommen zu diesem Schreibmodul! Du wirst lernen, auf Deutsch klar und effektiv zu schreiben.',
+      'Listening': 'Willkommen zu diesem Hörverständnis-Modul! Wir werden deine Fähigkeit verbessern, gesprochenes Deutsch zu verstehen.'
+    },
+    'English': {
+      'Conversation': 'Welcome to this role-play module! Here you will practice practical conversation skills in realistic situations.',
+      'Grammar': 'Welcome to this grammar module! We will learn important English grammar rules through practical exercises.',
+      'Vocabulary': 'Welcome to this vocabulary module! You will learn new English words in natural contexts.',
+      'Reading': 'Welcome to this reading module! We will improve your English reading skills through interesting texts.',
+      'Writing': 'Welcome to this writing module! You will learn to write clearly and effectively in English.',
+      'Listening': 'Welcome to this listening module! We will improve your ability to understand spoken English.'
+    }
+  };
+  
+  // Get language-specific introduction or fall back to English
+  const languageIntros = introductions[targetLanguage] || introductions['English'];
+  return languageIntros[category] || languageIntros['Conversation'] || 'Welcome to this learning module!';
+}
+
 // Create fallback module if AI generation fails
 function createFallbackModule(requirements, userId) {
   return {
@@ -529,7 +569,7 @@ function createFallbackModule(requirements, userId) {
     level: requirements.level,
     category: requirements.category,
     difficulty: requirements.difficulty,
-    estimatedDuration: requirements.estimatedDuration || 30,
+    estimatedDuration: 30, // Default value - actual time tracked per session
     learningObjectives: [
       {
         objective: `Learn basic ${requirements.category.toLowerCase()} skills`,
@@ -537,7 +577,7 @@ function createFallbackModule(requirements, userId) {
       }
     ],
     content: {
-      introduction: `Welcome to this ${requirements.targetLanguage} ${requirements.category.toLowerCase()} module.`,
+      introduction: generateLanguageSpecificIntroduction(requirements.targetLanguage, requirements.category),
       keyTopics: [requirements.category],
       allowedVocabulary: [],
       allowedGrammar: [],

@@ -215,14 +215,17 @@ router.get('/analytics/dashboard', verifyToken, checkRole(['STUDENT']), async (r
     // Calculate analytics
     const analytics = {
       overview: {
-        totalModules: progressData.length,
-        completedModules: progressData.filter(p => p.status === 'completed').length,
-        inProgressModules: progressData.filter(p => p.status === 'in-progress').length,
+        totalModules: progressData.filter(p => p.moduleId).length, // Only count valid modules
+        completedModules: progressData.filter(p => p.status === 'completed' && p.moduleId).length,
+        inProgressModules: progressData.filter(p => p.status === 'in-progress' && p.moduleId).length,
         totalTimeSpent: progressData.reduce((sum, p) => sum + (p.timeSpent || 0), 0),
         totalSessions: progressData.reduce((sum, p) => sum + (p.sessionsCount || 0), 0)
       },
       
       progressByLevel: progressData.reduce((acc, p) => {
+        // Skip progress records with null or missing moduleId
+        if (!p.moduleId || !p.moduleId.level) return acc;
+        
         const level = p.moduleId.level;
         if (!acc[level]) acc[level] = { total: 0, completed: 0 };
         acc[level].total += 1;
@@ -231,6 +234,9 @@ router.get('/analytics/dashboard', verifyToken, checkRole(['STUDENT']), async (r
       }, {}),
       
       progressByCategory: progressData.reduce((acc, p) => {
+        // Skip progress records with null or missing moduleId
+        if (!p.moduleId || !p.moduleId.category) return acc;
+        
         const category = p.moduleId.category;
         if (!acc[category]) acc[category] = { total: 0, completed: 0 };
         acc[category].total += 1;

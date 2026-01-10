@@ -17,7 +17,7 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
         <div class="col-12">
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-              <h4 class="mb-0">{{isEditMode ? 'Edit' : 'Create'}} Learning Module</h4>
+              <h4 class="mb-0">🎭 {{isEditMode ? 'Edit' : 'Create'}} Role-Play Module</h4>
               <button class="btn btn-secondary" (click)="goBack()">
                 <i class="fas fa-arrow-left"></i> Back
               </button>
@@ -43,10 +43,14 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Estimated Duration (minutes) *</label>
                     <input type="number" class="form-control" formControlName="estimatedDuration" 
-                           placeholder="e.g., 45">
+                           placeholder="e.g., 45" min="10" max="120">
                     <div class="text-danger" *ngIf="moduleForm.get('estimatedDuration')?.invalid && moduleForm.get('estimatedDuration')?.touched">
-                      Duration is required
+                      Duration is required (10-120 minutes)
                     </div>
+                    <small class="form-text text-muted">
+                      How long should this role-play session take to complete? Consider vocabulary practice, exercises, and conversation time.
+                      <br><strong>Suggestions:</strong> Quick role-play (15-20 min) | Standard session (30-45 min) | Extended practice (60+ min)
+                    </small>
                   </div>
                   
                   <div class="col-12 mb-3">
@@ -230,6 +234,66 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
                   </div>
                 </div>
 
+                <!-- Role-Play Configuration -->
+                <div class="row mb-4" formGroupName="content">
+                  <div class="col-12">
+                    <h5 class="border-bottom pb-2">🎭 Role-Play Configuration</h5>
+                  </div>
+                  
+                  <div formGroupName="rolePlayScenario">
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Situation *</label>
+                      <input type="text" class="form-control" formControlName="situation" 
+                             placeholder="e.g., Ordering food at a German restaurant">
+                      <small class="form-text text-muted">Describe the role-play scenario</small>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Setting</label>
+                      <input type="text" class="form-control" formControlName="setting" 
+                             placeholder="e.g., A busy restaurant in Berlin">
+                      <small class="form-text text-muted">Where does this scenario take place?</small>
+                    </div>
+                    
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">Student Role *</label>
+                        <input type="text" class="form-control" formControlName="studentRole" 
+                               placeholder="e.g., Customer">
+                        <small class="form-text text-muted">What role will the student play?</small>
+                      </div>
+                      
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">AI Role *</label>
+                        <input type="text" class="form-control" formControlName="aiRole" 
+                               placeholder="e.g., Waiter">
+                        <small class="form-text text-muted">What role will the AI play?</small>
+                      </div>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Objective</label>
+                      <textarea class="form-control" rows="2" formControlName="objective" 
+                                placeholder="e.g., Successfully order a meal and ask questions about the menu"></textarea>
+                      <small class="form-text text-muted">What should the student accomplish?</small>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Student Guidance</label>
+                      <textarea class="form-control" rows="3" formControlName="studentGuidance" 
+                                placeholder="e.g., You are a tourist visiting Germany. Be polite and ask questions if you don't understand something."></textarea>
+                      <small class="form-text text-muted">Instructions for the student about how to play their role</small>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                      <label class="form-label">AI Personality</label>
+                      <textarea class="form-control" rows="2" formControlName="aiPersonality" 
+                                placeholder="e.g., You are a friendly, helpful waiter who speaks clearly and is patient with tourists."></textarea>
+                      <small class="form-text text-muted">How should the AI behave in this role?</small>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Tags -->
                 <div class="row mb-4">
                   <div class="col-12">
@@ -338,13 +402,28 @@ export class ModuleFormComponent implements OnInit {
       level: ['', Validators.required],
       category: ['', Validators.required],
       difficulty: ['', Validators.required],
-      estimatedDuration: ['', [Validators.required, Validators.min(1)]],
+      estimatedDuration: ['', [Validators.required, Validators.min(10), Validators.max(120)]],
       learningObjectives: this.fb.array([this.createLearningObjective()]),
       prerequisites: [[]],
       content: this.fb.group({
         introduction: [''],
         keyTopics: [[]],
         examples: [[]],
+        // Role-play specific fields (always present now)
+        rolePlayScenario: this.fb.group({
+          situation: ['', Validators.required],
+          setting: [''],
+          studentRole: ['', Validators.required],
+          aiRole: ['', Validators.required],
+          objective: [''],
+          studentGuidance: [''],
+          aiPersonality: [''],
+          aiOpeningLines: [[]],
+          suggestedStudentResponses: [[]]
+        }),
+        allowedVocabulary: [[]],
+        allowedGrammar: [[]],
+        conversationFlow: [[]],
         exercises: [[]]
       }),
       aiTutorConfig: this.fb.group({
@@ -540,8 +619,8 @@ export class ModuleFormComponent implements OnInit {
         studentGuidance: generatedModule.content.rolePlayScenario.studentGuidance || ''
       });
     } else {
-      // Set as standard module
-      this.moduleForm.patchValue({ moduleType: 'standard' });
+      // Default to role-play module
+      console.log('🎭 No role-play scenario found, but all modules are now role-play focused');
     }
     
     console.log('✅ Form populated successfully with AI-generated data');

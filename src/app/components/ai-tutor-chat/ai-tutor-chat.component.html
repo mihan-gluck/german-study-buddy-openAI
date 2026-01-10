@@ -259,15 +259,19 @@
             <div class="message-subtitle" 
                  *ngIf="showSubtitles && message.role === 'tutor' && module?.targetLanguage !== module?.nativeLanguage">
               <div class="subtitle-content" 
+                   *ngIf="getMessageSubtitle(message)"
                    [class.loading]="isTranslating">
                 <i class="fas fa-language subtitle-icon"></i>
                 <span class="subtitle-text" 
                       [innerHTML]="getMessageSubtitle(message)">
                 </span>
-                <div class="subtitle-loading" *ngIf="isTranslating">
-                  <i class="fas fa-spinner fa-spin"></i>
-                  <small>Translating...</small>
-                </div>
+              </div>
+              
+              <!-- Show loading only for messages that are being actively translated -->
+              <div class="subtitle-loading" 
+                   *ngIf="!getMessageSubtitle(message) && isMessageBeingTranslated(message)">
+                <i class="fas fa-spinner fa-spin"></i>
+                <small>Translating complete message...</small>
               </div>
             </div>
             
