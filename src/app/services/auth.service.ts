@@ -125,22 +125,37 @@ export class AuthService {
 
   // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true });
+    console.log('🔍 AuthService: Fetching user profile...');
+    return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true }).pipe(
+      tap({
+        next: (user: any) => console.log('✅ AuthService: Profile fetched:', (user as any)?.email, (user as any)?.role),
+        error: (err) => console.error('❌ AuthService: Profile fetch failed:', err)
+      })
+    );
   }
 
 
   // ✅ Helper: refresh user profile and update BehaviorSubject
   refreshUserProfile(): Observable<any> {
+    console.log('🔄 AuthService: Refreshing user profile...');
     return this.getUserProfile().pipe(
       tap({
-        next: (user) => this.currentUserSubject.next(user),
-        error: () => this.currentUserSubject.next(null)
+        next: (user: any) => {
+          console.log('✅ AuthService: Profile refreshed, updating state:', (user as any)?.email);
+          this.currentUserSubject.next(user);
+        },
+        error: (err) => {
+          console.error('❌ AuthService: Profile refresh failed:', err);
+          this.currentUserSubject.next(null);
+        }
       })
     );
   }
 
   isLoggedIn(): boolean {
-    return this.currentUserSubject.value !== null;
+    const loggedIn = this.currentUserSubject.value !== null;
+    console.log('🔍 AuthService: isLoggedIn check:', loggedIn, 'Current user:', this.currentUserSubject.value?.email);
+    return loggedIn;
   }
 
   // Logout

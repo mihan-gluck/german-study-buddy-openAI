@@ -15,22 +15,121 @@
 
   <nav [class.active]="menuOpen">
     <ul class="nav-links">
-      <li><a (click)="navigateTo('/student-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Student Dashboard</a></li>
-      <li><a (click)="navigateTo('/learning-modules'); closeMenu()" *ngIf="isLoggedIn() && (userRole === 'STUDENT' || userRole === 'TEACHER' || userRole === 'ADMIN')">Learning Modules</a></li>
-      <li><a (click)="navigateTo('/student-progress'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">My Progress</a></li>
-      <li><a (click)="navigateTo('/performance-history'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'STUDENT'">Performance History</a></li>
-      <li><a (click)="navigateTo('/admin-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole=== 'ADMIN'">Students</a></li>
-      <li><a (click)="navigateTo('/teacher-dashboard'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'TEACHER'">Teacher Dashboard</a></li>
-      <li><a (click)="navigateTo('/teachers'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Teachers</a></li>
-      <li><a (click)="navigateTo('/courses'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Courses</a></li>
-      <li><a (click)="navigateTo('/view-course-materials'); closeMenu()" *ngIf="isLoggedIn() && (userRole === 'ADMIN')">Course Materials</a></li>
-      <li><a (click)="navigateTo(userRole === 'ADMIN' ? '/time-table-view-admin' : userRole === 'STUDENT' ? '/time-table-view-student' : '/time-table-view-teacher'); closeMenu()" *ngIf="userRole === 'ADMIN' || userRole === 'STUDENT' || userRole === 'TEACHER'">Timetable</a></li>
-      <li><a (click)="navigateTo('/meeting-link-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Meeting Links</a></li>
-      <li><a (click)="openInternalReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Internal Reports</a></li>
-      <li><a (click)="openStudentReports(); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Student Reports</a></li>
-      <li><a (click)="navigateTo('/feedback-list'); closeMenu()" *ngIf="isLoggedIn() && userRole === 'ADMIN'">Feedback</a></li>
-      <li><a (click)="navigateTo('/profile'); closeMenu()" *ngIf="isLoggedIn()">Profile</a></li>
-      <li><a class="logout-button" href="#" (click)="logOut(); closeMenu()" *ngIf="isLoggedIn() && isAuthenticated">Logout</a></li>
+      <!-- Student Navigation -->
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/student-dashboard'); closeMenu()">Dashboard</a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/student-progress'); closeMenu()">My Progress</a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/performance-history'); closeMenu()">Performance History</a>
+      </li>
+
+      <!-- Teacher Navigation -->
+      <li *ngIf="isLoggedIn() && userRole === 'TEACHER'">
+        <a (click)="navigateTo('/teacher-dashboard'); closeMenu()">Dashboard</a>
+      </li>
+      <li *ngIf="isLoggedIn() && (userRole === 'TEACHER' || userRole === 'ADMIN')">
+        <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
+      </li>
+
+      <!-- Admin Navigation -->
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/admin-dashboard'); closeMenu()" 
+           [class.active]="isCurrentRoute('/admin-dashboard')">
+          <i class="fas fa-users"></i> Students
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/admin-modules'); closeMenu()" 
+           [class.active]="isCurrentRoute('/admin-modules')">
+          <i class="fas fa-book"></i> Modules
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/admin-analytics'); closeMenu()" 
+           [class.active]="isCurrentRoute('/admin-analytics')">
+          <i class="fas fa-chart-bar"></i> Analytics
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/admin-trash'); closeMenu()" 
+           [class.active]="isCurrentRoute('/admin-trash')">
+          <i class="fas fa-trash-alt"></i> Trash
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/teachers'); closeMenu()" 
+           [class.active]="isCurrentRoute('/teachers')">
+          <i class="fas fa-chalkboard-teacher"></i> Teachers
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/courses'); closeMenu()" 
+           [class.active]="isCurrentRoute('/courses')">
+          <i class="fas fa-graduation-cap"></i> Courses
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/view-course-materials'); closeMenu()" 
+           [class.active]="isCurrentRoute('/view-course-materials')">
+          <i class="fas fa-file-alt"></i> Materials
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/time-table-view-admin'); closeMenu()" 
+           [class.active]="isCurrentRoute('/time-table-view-admin')">
+          <i class="fas fa-calendar"></i> Timetable
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/meeting-link-list'); closeMenu()" 
+           [class.active]="isCurrentRoute('/meeting-link-list')">
+          <i class="fas fa-video"></i> Meetings
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="openInternalReports(); closeMenu()">
+          <i class="fas fa-chart-line"></i> Internal Reports
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="openStudentReports(); closeMenu()">
+          <i class="fas fa-user-graduate"></i> Student Reports
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/feedback-list'); closeMenu()" 
+           [class.active]="isCurrentRoute('/feedback-list')">
+          <i class="fas fa-comments"></i> Feedback
+        </a>
+      </li>
+
+      <!-- Common Navigation -->
+      <li *ngIf="isLoggedIn() && userRole === 'TEACHER'">
+        <a (click)="navigateTo('/time-table-view-teacher'); closeMenu()">
+          <i class="fas fa-calendar"></i> Timetable
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/time-table-view-student'); closeMenu()">
+          <i class="fas fa-calendar"></i> Timetable
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn()">
+        <a (click)="navigateTo('/profile'); closeMenu()">
+          <i class="fas fa-user"></i> Profile
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && isAuthenticated">
+        <a class="logout-button" href="#" (click)="logOut(); closeMenu()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </li>
     </ul>
   </nav>
 </header>

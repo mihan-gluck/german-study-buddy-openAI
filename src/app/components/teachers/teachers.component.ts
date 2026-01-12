@@ -124,6 +124,11 @@ fetchTeachers(): void {
     });
   }
 
+  clearFilters(): void {
+    this.filters = { medium: '', course: '' };
+    this.filteredTeachers = [...this.teachers];
+  }
+
   deleteUser(id: string): void {
     if (confirm('Are you sure you want to delete this user?')) {
       this.authService.deleteUser(id).subscribe({

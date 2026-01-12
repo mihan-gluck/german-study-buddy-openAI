@@ -1,136 +1,413 @@
-/* Container */
-.links-container {
-  width: 98%; /* almost full screen */
-  max-width: 1400px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  overflow-x: auto; /* scroll if table overflows */
+/* Meeting Links Management Dashboard Styles */
+.admin-meetings {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 80px);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Heading */
-h2 {
-  text-align: center;
-  color: #000; /* black heading */
-  margin-bottom: 25px;
-  font-size: 2rem;
-}
-
-/* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 700px; /* ensures table doesn't shrink too much */
-}
-
-/* Table Head */
-thead th {
-  background-color: #405980;
+/* ====== Header Section ====== */
+.admin-header {
+  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
   color: white;
-  padding: 12px 10px;
-  text-align: left;
-  position: sticky;
-  top: 0; /* sticky header */
-  z-index: 1;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
 }
 
-/* Table Body */
-tbody td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #ddd;
-  vertical-align: middle;
+.admin-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* Alternate row colors */
-tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+.admin-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
 }
 
-/* Hover effect */
-tbody tr:hover {
-  background-color: #e0e0ff;
-}
-
-/* Error messages */
-.error {
-  color: red;
-  text-align: center;
-  margin: 10px 0;
-}
-
-
-/* ====== Add link Section ====== */
-.add-link {
+.admin-stats-quick {
   display: flex;
   justify-content: flex-end;
-  padding: 10px 0;
+  gap: 2rem;
 }
 
-.add-link-btn {
-  background-color: #000e89;
-  color: white;
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+/* ====== Main Content Area ====== */
+.admin-content {
+  padding: 0 1rem;
+}
+
+/* ====== Action Bar ====== */
+.action-bar {
+  margin-bottom: 2rem;
+}
+
+.btn-add-link {
+  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
   border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.2s ease;
-  &:hover {
-    color: yellow;
-  }
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(232, 62, 140, 0.3);
+  transition: all 0.2s ease;
 }
 
-/* Update button styling */
-td[data-label="Update"] {
-  text-align: right; /* Align the update button to the right */
+.btn-add-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(232, 62, 140, 0.4);
+  color: white;
 }
 
+/* ====== View Options ====== */
+.view-options .btn-group .btn {
+  border-color: #e83e8c;
+  color: #e83e8c;
+}
+
+.view-options .btn-group .btn.active {
+  background-color: #e83e8c;
+  border-color: #e83e8c;
+  color: white;
+}
+
+/* ====== Loading and Error States ====== */
+.loading-state, .error-state {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.loading-state .spinner-border {
+  color: #e83e8c;
+}
+
+.error-state .btn {
+  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  border: none;
+  color: white;
+}
+
+/* ====== Results Summary ====== */
+.results-summary {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.results-count {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e83e8c;
+}
+
+.results-text {
+  color: #6c757d;
+  margin-left: 0.5rem;
+}
+
+/* ====== Meeting Links Table View ====== */
+.links-table .data-table-card .card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.links-table .table {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.links-table .table thead th {
+  background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 1rem 0.75rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.links-table .table tbody td {
+  padding: 1rem 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.links-table .table tbody tr:hover {
+  background-color: rgba(232, 62, 140, 0.05);
+}
+
+/* ====== Batch Info Styling ====== */
+.batch-info .batch-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4em 0.6em;
+  font-weight: 500;
+}
+
+/* ====== Platform Info ====== */
+.platform-info {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ====== Link Info ====== */
+.link-info .meeting-link {
+  color: #e83e8c;
+  text-decoration: none;
+  font-weight: 500;
+  word-break: break-all;
+  transition: color 0.2s ease;
+}
+
+.link-info .meeting-link:hover {
+  color: #d63384;
+  text-decoration: underline;
+}
+
+/* ====== Meeting Links Grid View ====== */
+.links-grid {
+  margin-bottom: 2rem;
+}
+
+.link-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.link-header {
+  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.platform-badge {
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.link-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.meeting-link-section .form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.meeting-link-section .meeting-link {
+  color: #e83e8c;
+  text-decoration: none;
+  font-weight: 500;
+  word-break: break-all;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.meeting-link-section .meeting-link:hover {
+  color: #d63384;
+  background-color: #e9ecef;
+  text-decoration: underline;
+}
+
+.link-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f0f0f0;
+  background-color: #f8f9fa;
+}
+
+/* ====== Action Buttons ====== */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.action-buttons .btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* ====== Empty State ====== */
+.empty-state {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state i {
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.empty-state .btn {
+  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(232, 62, 140, 0.3);
+  transition: all 0.2s ease;
+}
+
+.empty-state .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(232, 62, 140, 0.4);
+  color: white;
+}
+
+/* ====== Responsive Design ====== */
 @media (max-width: 768px) {
-  .add-link {
-    justify-content: center;
+  .admin-content {
+    padding: 0 0.5rem;
   }
-}
-
-
-/* Responsive adjustments */
-@media screen and (max-width: 1400px) {
-  table {
-    font-size: 0.95rem;
+  
+  .admin-title {
+    font-size: 1.75rem;
   }
-}
-
-@media screen and (max-width: 1024px) {
-  table {
-    font-size: 0.9rem;
-    min-width: 600px;
+  
+  .admin-subtitle {
+    font-size: 1rem;
   }
-  h2 {
-    font-size: 1.8rem;
+  
+  .stat-item {
+    padding: 0.75rem 1rem;
   }
-}
-
-@media screen and (max-width: 768px) {
-  table {
-    font-size: 0.85rem;
-    min-width: 500px;
+  
+  .stat-number {
+    font-size: 1.5rem;
   }
-  h2 {
-    font-size: 1.6rem;
+  
+  .action-bar .row > div {
+    margin-bottom: 1rem;
+    text-align: center;
   }
-}
-
-@media screen and (max-width: 480px) {
-  table {
+  
+  .results-summary {
+    text-align: center;
+  }
+  
+  .link-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .batch-info .batch-details {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .action-buttons .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .links-table .table-responsive {
     font-size: 0.8rem;
-    min-width: 400px;
   }
-  h2 {
-    font-size: 1.4rem;
+}
+
+@media (max-width: 576px) {
+  .admin-header {
+    padding: 1.5rem 0;
   }
-  tbody td {
-    padding: 8px 5px;
+  
+  .admin-title {
+    font-size: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .admin-stats-quick {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  
+  .link-header,
+  .link-body,
+  .link-footer {
+    padding: 1rem;
+  }
+  
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+  
+  .meeting-link-section .meeting-link {
+    font-size: 0.8rem;
   }
 }

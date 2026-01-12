@@ -144,7 +144,7 @@ export class AdminAnalyticsService {
       data: ModuleUsageData[];
       summary: any;
       filters: any;
-    }>(`${this.apiUrl}/module-usage`, { params });
+    }>(`${this.apiUrl}/module-usage`, { params, withCredentials: true });
   }
 
   // Get teacher performance analytics
@@ -173,7 +173,7 @@ export class AdminAnalyticsService {
       teacherPerformance: TeacherPerformance[];
       batchStats: BatchStats[];
       summary: any;
-    }>(`${this.apiUrl}/teacher-performance`, { params });
+    }>(`${this.apiUrl}/teacher-performance`, { params, withCredentials: true });
   }
 
   // Get detailed student module usage
@@ -202,7 +202,7 @@ export class AdminAnalyticsService {
       detailedUsage: DetailedUsage[];
       summary: any;
       totalRecords: number;
-    }>(`${this.apiUrl}/student-module-details`, { params });
+    }>(`${this.apiUrl}/student-module-details`, { params, withCredentials: true });
   }
 
   // Utility methods for formatting

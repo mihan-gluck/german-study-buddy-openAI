@@ -15,6 +15,7 @@ export class MeetingLinkListComponent implements OnInit {
   meetingLinkList: any[] = [];
   loading = false;
   errorMessage = '';
+  viewMode: 'table' | 'grid' = 'table';
 
   constructor(
     private meetingLinkService: MeetingLinkService,
@@ -22,6 +23,11 @@ export class MeetingLinkListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadMeetingLinks();
+  }
+
+  // ✅ Load meeting links method for retry functionality
+  loadMeetingLinks(): void {
     this.fetchMeetingLinks();
   }
 

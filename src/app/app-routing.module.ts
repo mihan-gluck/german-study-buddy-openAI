@@ -64,6 +64,24 @@ export const routes: Routes = [
     data: { role: 'ADMIN' } 
   },
 
+  // Admin analytics route
+  { 
+    path: 'admin-analytics', 
+    loadComponent: () => import('./components/admin-dashboard/admin-analytics/admin-analytics.component')
+      .then(m => m.AdminAnalyticsComponent),
+    canActivate: [AuthGuard, RoleGuard], 
+    data: { role: 'ADMIN' } 
+  },
+
+  // Admin module trash management route
+  { 
+    path: 'admin-trash', 
+    loadComponent: () => import('./components/admin-dashboard/module-trash/module-trash.component')
+      .then(m => m.ModuleTrashComponent),
+    canActivate: [AuthGuard, RoleGuard], 
+    data: { role: 'ADMIN' } 
+  },
+
   { path: 'teachers', loadComponent: () => import('./components/teachers/teachers.component').then(m => m.TeachersComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
   { path: 'courses', loadComponent: () => import('./components/courses/courses.component').then(m => m.CoursesComponent), canActivate: [AuthGuard] },

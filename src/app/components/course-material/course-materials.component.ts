@@ -15,7 +15,7 @@ interface Course {
 @Component({
   selector: 'app-course-materials',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './course-materials.component.html',
   styleUrls: ['./course-materials.component.css']
 })
@@ -25,6 +25,7 @@ export class CourseMaterialsComponent implements OnInit {
     loading = true;
     error = '';
     userRole: any;
+    viewMode: 'grid' | 'list' = 'grid';
 
   constructor(
     private materialService: CourseMaterialService,
@@ -34,7 +35,13 @@ export class CourseMaterialsComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadProfile();
+        this.loadMaterials();
+    }
 
+    loadMaterials(): void {
+        this.loading = true;
+        this.error = '';
+        
         forkJoin({
             materialsResp: this.materialService.getAllMaterials(),
             courses: this.coursesService.getCourses()

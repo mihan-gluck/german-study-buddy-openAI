@@ -2,8 +2,9 @@
 
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-header',
@@ -16,6 +17,7 @@ export class HeaderComponent implements OnInit {
   isAuthenticated = false;
   userRole: string | null = null;
   menuOpen = false;
+  currentRoute = '';
 
   constructor(
     private authService: AuthService,
@@ -32,6 +34,13 @@ export class HeaderComponent implements OnInit {
         this.isAuthenticated = false;
         this.userRole = null;
       }
+    });
+
+    // Track current route for active navigation highlighting
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.currentRoute = event.urlAfterRedirects;
     });
 
     // On app start, check if session exists
@@ -79,6 +88,11 @@ export class HeaderComponent implements OnInit {
 
   openStudentFeedback() {
     window.open('https://docs.google.com/spreadsheets/d/1Wb3xMBUJeATQxSaAUFdIIB-F2p2Rrlo1vII5iO2nVZg/edit?usp=sharing');
+  }
+
+  // Check if current route matches the given path
+  isCurrentRoute(path: string): boolean {
+    return this.currentRoute === path;
   }
 
 }

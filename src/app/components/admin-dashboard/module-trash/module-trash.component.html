@@ -1,8 +1,26 @@
 <!-- src/app/components/admin-dashboard/module-trash/module-trash.component.html -->
 <div class="trash-management">
-  <div class="header-section">
-    <h2><i class="fas fa-trash"></i> Module Trash Management</h2>
-    <p class="text-muted">Manage deleted modules. Items are automatically deleted after 30 days.</p>
+  <!-- Header Section -->
+  <div class="admin-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="admin-title">
+            <i class="fas fa-trash-alt"></i>
+            Trash Management
+          </h1>
+          <p class="admin-subtitle">Manage deleted modules. Items are automatically deleted after 30 days.</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="admin-stats-quick" *ngIf="stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ stats.totalItems }}</span>
+              <span class="stat-label">Items in Trash</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Statistics Cards -->

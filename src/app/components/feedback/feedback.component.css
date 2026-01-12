@@ -1,147 +1,425 @@
-/* Container */
-.feedback-container {
-  width: 98%;
-  max-width: 1400px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  overflow-x: auto; /* fallback scroll for small devices */
+/* Feedback Management Dashboard Styles */
+.admin-feedback {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 80px);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Heading */
-h2 {
-  text-align: center;
-  color: #000;
-  margin-bottom: 25px;
-  font-size: 2rem;
-}
-
-/* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  word-wrap: break-word;
-}
-
-/* Table Head */
-thead th {
-  background-color: #405980;
+/* ====== Header Section ====== */
+.admin-header {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
   color: white;
-  padding: 12px 10px;
-  text-align: left;
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
 }
 
-/* Table Body */
-tbody td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #ddd;
-  vertical-align: middle;
+.admin-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* Star rating */
-.filled {
-  color: #FFD700;
+.admin-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+.admin-stats-quick {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+/* ====== Main Content Area ====== */
+.admin-content {
+  padding: 0 1rem;
+}
+
+/* ====== Action Bar ====== */
+.action-bar {
+  margin-bottom: 2rem;
+}
+
+.filter-options .form-select {
+  border-color: #20c997;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.filter-options .form-select:focus {
+  border-color: #20c997;
+  box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
+}
+
+/* ====== View Options ====== */
+.view-options .btn-group .btn {
+  border-color: #20c997;
+  color: #20c997;
+}
+
+.view-options .btn-group .btn.active {
+  background-color: #20c997;
+  border-color: #20c997;
+  color: white;
+}
+
+/* ====== Loading and Error States ====== */
+.loading-state, .error-state {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.loading-state .spinner-border {
+  color: #20c997;
+}
+
+.error-state .btn {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  border: none;
+  color: white;
+}
+
+/* ====== Results Summary ====== */
+.results-summary {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.results-count {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #20c997;
+}
+
+.results-text {
+  color: #6c757d;
+  margin-left: 0.5rem;
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avg-rating {
+  font-weight: 600;
+  color: #495057;
+}
+
+.rating-value {
+  font-weight: 600;
+  color: #20c997;
+}
+
+/* ====== Rating Stars ====== */
+.rating-stars {
+  color: #ddd;
   font-size: 1.2rem;
 }
 
-/* Alternate row colors */
-tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+.rating-stars .filled {
+  color: #ffc107;
 }
 
-/* Hover effect */
-tbody tr:hover {
-  background-color: #e0e0ff;
+/* ====== Feedback Table View ====== */
+.feedback-table .data-table-card .card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-/* Error messages */
-.error {
-  color: red;
-  text-align: center;
-  margin: 10px 0;
+.feedback-table .table {
+  margin-bottom: 0;
+  font-size: 0.9rem;
 }
 
-/* -------- Responsive Design -------- */
-
-/* Medium screens */
-@media screen and (max-width: 1024px) {
-  h2 {
-    font-size: 1.8rem;
-  }
-
-  table {
-    font-size: 0.9rem;
-  }
+.feedback-table .table thead th {
+  background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 1rem 0.75rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Tablets and smaller devices */
-@media screen and (max-width: 768px) {
-  .feedback-container{
-    margin-bottom: 100px;
-  }
-
-  h2 {
-    font-size: 1.6rem;
-  }
-
-  table {
-    font-size: 0.85rem;
-  }
-
-  thead {
-    display: none; /* hide table head for mobile view */
-  }
-
-  tbody tr {
-    display: block;
-    background-color: #fff;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 10px;
-  }
-
-  tbody td {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border: none;
-    border-bottom: 1px solid #eee;
-  }
-
-  tbody td::before {
-    content: attr(data-label);
-    font-weight: bold;
-    text-transform: capitalize;
-    flex: 1;
-    color: #405980;
-  }
-
-  tbody td:last-child {
-    border-bottom: none;
-  }
+.feedback-table .table tbody td {
+  padding: 1rem 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-/* Small screens */
-@media screen and (max-width: 480px) {
-  .feedback-container{
-    margin-bottom: 100px;
-  }
-  h2 {
-    font-size: 1.4rem;
-  }
+.feedback-table .table tbody tr:hover {
+  background-color: rgba(32, 201, 151, 0.05);
+}
 
-  tbody td {
-    font-size: 0.8rem;
-    padding: 6px 8px;
-  }
+/* ====== Student Info Styling ====== */
+.student-info .student-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
 
-  .filled {
+.student-info .student-reg {
+  color: #6c757d;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* ====== Batch Plan Info ====== */
+.batch-plan-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4em 0.6em;
+  font-weight: 500;
+}
+
+/* ====== Feedback Text ====== */
+.feedback-text {
+  max-width: 300px;
+  word-wrap: break-word;
+  line-height: 1.4;
+  color: #495057;
+}
+
+/* ====== Rating Display ====== */
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rating-number {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+/* ====== Date Info ====== */
+.date-info {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ====== Feedback Cards View ====== */
+.feedback-cards {
+  margin-bottom: 2rem;
+}
+
+.feedback-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.feedback-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.feedback-header {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.student-details .student-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.student-details .student-reg {
+  opacity: 0.9;
+  font-size: 0.85rem;
+}
+
+.rating-badge .rating-stars {
+  font-size: 1.3rem;
+}
+
+.feedback-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.batch-plan-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.feedback-content .feedback-text {
+  color: #495057;
+  line-height: 1.6;
+  margin: 0;
+  max-width: none;
+}
+
+.feedback-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f0f0f0;
+  background-color: #f8f9fa;
+}
+
+/* ====== Empty State ====== */
+.empty-state {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state i {
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+/* ====== Responsive Design ====== */
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 0 0.5rem;
+  }
+  
+  .admin-title {
+    font-size: 1.75rem;
+  }
+  
+  .admin-subtitle {
     font-size: 1rem;
+  }
+  
+  .stat-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .action-bar .row > div {
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .results-summary {
+    text-align: center;
+  }
+  
+  .results-summary .d-flex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .feedback-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .feedback-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .batch-plan-info,
+  .batch-plan-tags {
+    justify-content: center;
+  }
+  
+  .feedback-table .table-responsive {
+    font-size: 0.8rem;
+  }
+  
+  .feedback-text {
+    max-width: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-header {
+    padding: 1.5rem 0;
+  }
+  
+  .admin-title {
+    font-size: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .admin-stats-quick {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  
+  .feedback-header,
+  .feedback-body,
+  .feedback-footer {
+    padding: 1rem;
+  }
+  
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+  
+  .rating-stars {
+    font-size: 1rem;
+  }
+  
+  .rating-badge .rating-stars {
+    font-size: 1.1rem;
   }
 }

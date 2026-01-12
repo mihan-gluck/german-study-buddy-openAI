@@ -48,6 +48,7 @@ export class TimeTableViewComponent implements OnInit {
   teachersCache: { [key: string]: string } = {}; // cache id => name
   userRole: string = '';
   userProfile?: UserProfile;
+  viewMode: 'table' | 'calendar' = 'table';
 
   constructor(
     private timeTableService: TimeTableService,

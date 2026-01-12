@@ -22,6 +22,8 @@ import { TeacherService } from '../../../services/teacher.service';
   styleUrls: ['./admin-analytics.component.css']
 })
 export class AdminAnalyticsComponent implements OnInit {
+  Math = Math; // Add Math for template usage
+  
   // Data properties
   moduleUsageData: ModuleUsageData[] = [];
   teacherPerformanceData: TeacherPerformance[] = [];

@@ -1,9 +1,31 @@
 <!-- src/app/components/admin-dashboard/admin-analytics/admin-analytics.component.html -->
 <div class="admin-analytics">
-  <div class="header-section">
-    <h2><i class="fas fa-chart-bar"></i> Advanced Analytics Dashboard</h2>
-    <p class="text-muted">Comprehensive insights into student usage, module performance, and teacher effectiveness</p>
+  <!-- Header Section -->
+  <div class="admin-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="admin-title">
+            <i class="fas fa-chart-bar"></i>
+            Analytics Dashboard
+          </h1>
+          <p class="admin-subtitle">Comprehensive insights into student learning and teacher performance</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="admin-stats-quick">
+            <div class="stat-item" *ngIf="moduleUsageSummary?.totalSessions">
+              <span class="stat-number">{{ moduleUsageSummary.totalSessions }}</span>
+              <span class="stat-label">Total Sessions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Main Content Area -->
+  <div class="container-fluid">
+    <p class="text-muted">Comprehensive insights into student usage, module performance, and teacher effectiveness</p>
 
   <!-- Navigation Tabs -->
   <ul class="nav nav-tabs mb-4">
@@ -587,4 +609,5 @@
       </li>
     </ul>
   </nav>
+</div>
 </div>

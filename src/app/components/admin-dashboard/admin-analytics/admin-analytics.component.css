@@ -1,23 +1,62 @@
-/* src/app/components/admin-dashboard/admin-analytics/admin-analytics.component.css */
-
+/* Admin Analytics Dashboard Styles */
 .admin-analytics {
-  padding: 20px;
   background-color: #f8f9fa;
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.header-section {
-  margin-bottom: 30px;
+/* ====== Header Section ====== */
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.admin-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+.admin-stats-quick {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+}
+
+.stat-item {
   text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
-.header-section h2 {
-  color: #333;
-  margin-bottom: 10px;
-  font-weight: 600;
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.header-section h2 i {
+.stat-label {
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+/* Header Icon */
+.admin-title i {
   color: #007bff;
   margin-right: 10px;
 }

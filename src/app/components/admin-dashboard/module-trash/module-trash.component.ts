@@ -14,6 +14,8 @@ import { ModuleTrashService, TrashItem, TrashStats } from '../../../services/mod
   styleUrls: ['./module-trash.component.css']
 })
 export class ModuleTrashComponent implements OnInit {
+  Math = Math; // Add Math for template usage
+  
   trashItems: TrashItem[] = [];
   stats: TrashStats | null = null;
   isLoading = false;

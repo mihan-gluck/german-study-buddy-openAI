@@ -15,6 +15,7 @@ import { Course } from '../../services/courses.service';
 })
 export class CoursesComponent implements OnInit {
   courses: Course[] = [];
+  viewMode: 'grid' | 'list' = 'grid';
 
   constructor(private coursesService: CoursesService) {}
 

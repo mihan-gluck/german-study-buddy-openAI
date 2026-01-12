@@ -348,8 +348,8 @@ router.post('/:id/enroll', verifyToken, checkRole(['STUDENT']), async (req, res)
 router.get('/stats/overview', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res) => {
   try {
     const filter = req.user.role === 'TEACHER' 
-      ? { createdBy: req.user.id, isActive: true }
-      : { isActive: true };
+      ? { createdBy: req.user.id, isActive: true, isDeleted: { $ne: true } }
+      : { isActive: true, isDeleted: { $ne: true } };
     
     const totalModules = await LearningModule.countDocuments(filter);
     const totalEnrollments = await LearningModule.aggregate([
@@ -386,8 +386,8 @@ router.get('/admin/management', verifyToken, checkRole(['ADMIN']), async (req, r
   try {
     const { page = 1, limit = 20, status = 'all' } = req.query;
     
-    // Build filter
-    const filter = {};
+    // Build filter - IMPORTANT: Exclude deleted modules
+    const filter = { isDeleted: { $ne: true } };
     if (status === 'active') filter.isActive = true;
     if (status === 'inactive') filter.isActive = false;
     
@@ -421,13 +421,15 @@ router.get('/admin/management', verifyToken, checkRole(['ADMIN']), async (req, r
       },
       summary: {
         totalModules: total,
-        activeModules: await LearningModule.countDocuments({ isActive: true }),
-        inactiveModules: await LearningModule.countDocuments({ isActive: false }),
+        activeModules: await LearningModule.countDocuments({ isActive: true, isDeleted: { $ne: true } }),
+        inactiveModules: await LearningModule.countDocuments({ isActive: false, isDeleted: { $ne: true } }),
         teacherCreated: await LearningModule.countDocuments({ 
-          createdBy: { $in: await getUserIdsByRole('TEACHER') }
+          createdBy: { $in: await getUserIdsByRole('TEACHER') },
+          isDeleted: { $ne: true }
         }),
         adminCreated: await LearningModule.countDocuments({ 
-          createdBy: { $in: await getUserIdsByRole('ADMIN') }
+          createdBy: { $in: await getUserIdsByRole('ADMIN') },
+          isDeleted: { $ne: true }
         })
       }
     });

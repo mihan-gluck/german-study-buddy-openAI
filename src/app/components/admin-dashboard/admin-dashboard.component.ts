@@ -213,6 +213,11 @@ export class AdminDashboardComponent implements OnInit {
     this.filteredStudentCount = this.filteredStudents.length;
   }
 
+  clearFilters() {
+    this.filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '' };
+    this.applyFilters();
+  }
+
   toggleStudentSelection(studentId: string): void {
     if (this.selectedStudentIds.has(studentId)) {
       this.selectedStudentIds.delete(studentId);

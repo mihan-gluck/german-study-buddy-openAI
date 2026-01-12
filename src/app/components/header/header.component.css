@@ -1,76 +1,119 @@
 /* ========== Header Base ========== */
 header {
-  background-color: #000e89;
+  background: linear-gradient(135deg, #000e89 0%, #1a237e 100%);
   color: white;
-  padding: 10px 20px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
-  z-index: 100;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo-container {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .company-logo {
-  height: 50px;
+  height: 45px;
   width: auto;
-  margin-right: 10px;
+  margin-right: 12px;
+  border-radius: 4px;
 }
 
 .logo-text {
   color: white;
-  font-weight: bold;
-  font-size: 22px;
-  font-family: 'Brastika Bold';
+  font-weight: 700;
+  font-size: 20px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  letter-spacing: -0.5px;
 }
 
 /* ========== Nav Menu (Desktop) ========== */
+nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
 nav ul {
   list-style-type: none;
   display: flex;
-  justify-content: space-around;
+  align-items: center;
+  gap: 4px;
   padding: 0;
   margin: 0;
+  flex-wrap: wrap;
 }
 
 nav ul li {
-  padding: 5px;
-}
-
-a {
-  cursor: pointer;
+  position: relative;
 }
 
 nav a {
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  padding: 10px;
-  font-weight: bold;
-  transition: background-color 0.3s, color 0.3s;
+  padding: 10px 16px;
+  font-weight: 500;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-nav ul li a:hover:not(.logout-button) {
-  background-color: #000e89;
-  color: yellow;
-  border-radius: 5px;
+nav a i {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+nav a:hover:not(.logout-button) {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+nav a.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background-color: #ffd700;
+  border-radius: 1px;
 }
 
 /* Logout Button */
 .logout-button {
-  background-color: #ff4d4d;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+  color: white !important;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-left: 8px;
+  box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+  transition: all 0.2s ease;
 }
 
 .logout-button:hover {
-  background-color: #ff1a1a;
+  background: linear-gradient(135deg, #ff3742 0%, #ff2f3a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 71, 87, 0.4);
 }
 
 /* ========== Hamburger Menu ========== */
@@ -78,24 +121,57 @@ nav ul li a:hover:not(.logout-button) {
   display: none;
   flex-direction: column;
   cursor: pointer;
-  gap: 5px;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.hamburger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .bar {
-  width: 25px;
-  height: 3px;
+  width: 24px;
+  height: 2px;
   background-color: white;
-  border-radius: 2px;
+  border-radius: 1px;
   transition: all 0.3s ease;
 }
 
 /* ========== Responsive Styles ========== */
+@media (max-width: 1200px) {
+  nav a {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  nav a i {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 992px) {
+  header {
+    padding: 10px 16px;
+  }
+  
+  nav a {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .logo-text {
+    font-size: 18px;
+  }
+}
+
 @media (max-width: 768px) {
-  /* Stack header elements */
   header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    padding: 12px 16px;
   }
 
   .hamburger {
@@ -104,15 +180,15 @@ nav ul li a:hover:not(.logout-button) {
 
   nav {
     position: absolute;
-    top: 70px;
+    top: 100%;
     left: 0;
     width: 100%;
-    background-color: #000e89;
+    background: linear-gradient(135deg, #000e89 0%, #1a237e 100%);
     display: none;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    border-top: 2px solid #ffffff33;
+    align-items: stretch;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   nav.active {
@@ -134,31 +210,66 @@ nav ul li a:hover:not(.logout-button) {
   nav ul {
     flex-direction: column;
     width: 100%;
-    padding: 0;
+    padding: 8px 0;
+    gap: 0;
   }
 
   nav ul li {
     width: 100%;
-    border-bottom: 1px solid #ffffff22;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  nav ul li a {
-    display: block;
+  nav ul li:last-child {
+    border-bottom: none;
+  }
+
+  nav a {
+    display: flex;
     width: 100%;
-    padding: 12px;
-    font-size: 1rem;
+    padding: 16px 24px;
+    font-size: 15px;
+    border-radius: 0;
+    justify-content: flex-start;
+  }
+
+  nav a:hover:not(.logout-button) {
+    background-color: rgba(255, 255, 255, 0.08);
+    transform: none;
+  }
+
+  nav a.active::after {
+    display: none;
+  }
+
+  nav a.active {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-left: 3px solid #ffd700;
   }
 
   .logout-button {
-    width: 90%;
-    margin: 10px auto;
-    display: block;
+    margin: 8px 16px 16px 16px;
+    width: calc(100% - 32px);
+    justify-content: center;
+    border-radius: 8px;
   }
 }
 
-/* ========== Tablet & Desktop Enhancements ========== */
+/* ========== Desktop Enhancements ========== */
 @media (min-width: 769px) {
   nav {
     display: flex !important;
+  }
+}
+
+/* ========== Admin Navigation Grouping ========== */
+@media (min-width: 1200px) {
+  nav ul li:nth-child(5)::before,
+  nav ul li:nth-child(11)::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 8px;
   }
 }

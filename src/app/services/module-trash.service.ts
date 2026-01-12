@@ -65,37 +65,37 @@ export class ModuleTrashService {
 
   // Get all trash items
   getTrashItems(): Observable<{ success: boolean; trashItems: TrashItem[]; totalItems: number }> {
-    return this.http.get<{ success: boolean; trashItems: TrashItem[]; totalItems: number }>(`${this.apiUrl}`);
+    return this.http.get<{ success: boolean; trashItems: TrashItem[]; totalItems: number }>(`${this.apiUrl}`, { withCredentials: true });
   }
 
   // Move module to trash (soft delete)
   moveToTrash(moduleId: string, reason?: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/move/${moduleId}`, { reason });
+    return this.http.post(`${this.apiUrl}/move/${moduleId}`, { reason }, { withCredentials: true });
   }
 
   // Restore module from trash
   restoreFromTrash(moduleId: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/restore/${moduleId}`, {});
+    return this.http.post(`${this.apiUrl}/restore/${moduleId}`, {}, { withCredentials: true });
   }
 
   // Permanently delete module from trash
   permanentlyDelete(moduleId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/permanent/${moduleId}`);
+    return this.http.delete(`${this.apiUrl}/permanent/${moduleId}`, { withCredentials: true });
   }
 
   // Empty entire trash
   emptyTrash(): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/empty`);
+    return this.http.delete(`${this.apiUrl}/empty`, { withCredentials: true });
   }
 
   // Run cleanup job manually
   runCleanup(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cleanup`, {});
+    return this.http.post(`${this.apiUrl}/cleanup`, {}, { withCredentials: true });
   }
 
   // Get trash statistics
   getTrashStats(): Observable<{ success: boolean; stats: TrashStats }> {
-    return this.http.get<{ success: boolean; stats: TrashStats }>(`${this.apiUrl}/stats`);
+    return this.http.get<{ success: boolean; stats: TrashStats }>(`${this.apiUrl}/stats`, { withCredentials: true });
   }
 
   // Helper methods for UI

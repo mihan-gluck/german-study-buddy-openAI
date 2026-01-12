@@ -1,34 +1,189 @@
-<div class="feedback-container">
+<!-- src/app/components/feedback/feedback.component.html -->
+<div class="admin-feedback">
+  <!-- Header Section -->
+  <div class="admin-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="admin-title">
+            <i class="fas fa-comments"></i>
+            Feedback Management
+          </h1>
+          <p class="admin-subtitle">View and analyze student feedback and ratings</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="admin-stats-quick">
+            <div class="stat-item">
+              <span class="stat-number">{{ feedbackList?.length || 0 }}</span>
+              <span class="stat-label">Total Feedback</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <div *ngIf="loading">Loading feedback...</div>
-  <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <!-- Main Content Area -->
+  <div class="admin-content">
+    <div class="container-fluid">
+      
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <div class="filter-options">
+              <select class="form-select" [(ngModel)]="selectedRating" (change)="applyFilters()">
+                <option value="">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <div class="view-options">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary btn-sm" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'">
+                  <i class="fas fa-table"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" [class.active]="viewMode === 'cards'" (click)="viewMode = 'cards'">
+                  <i class="fas fa-th-large"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <table *ngIf="feedbackList.length > 0">
-    <thead>
-      <tr>
-        <th>Reg. No</th>
-        <th>Student Name</th>
-        <th>Batch</th>
-        <th>Plan</th>
-        <th>Feedback</th>
-        <th>Rating</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let fb of feedbackList">
-        <td data-label="Reg. No">{{ fb.studentId?.regNo || 'N/A' }}</td>
-        <td data-label="Student Name">{{ fb.studentId?.name }}</td>
-        <td data-label="Batch">{{ fb.studentId?.batch }}</td>
-        <td data-label="Plan">{{ fb.studentId?.subscription }}</td>
-        <td data-label="Feedback">{{ fb.feedback }}</td>
-        <td data-label="Rating">
-          <span *ngFor="let star of [1,2,3,4,5]">
-            <span [class.filled]="star <= fb.rating">&#9733;</span>
-          </span>
-        </td>
-        <td data-label="Date">{{ fb.createdAt | date:'short' }}</td>
-      </tr>
-    </tbody>
-  </table>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading feedback...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="errorMessage" class="error-state text-center py-5">
+        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+        <h4>Error Loading Feedback</h4>
+        <p class="text-danger">{{ errorMessage }}</p>
+        <button class="btn btn-primary" (click)="loadFeedback()">
+          <i class="fas fa-refresh"></i>
+          Try Again
+        </button>
+      </div>
+
+      <!-- Results Summary -->
+      <div *ngIf="!loading && !errorMessage" class="results-summary">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="results-info">
+            <span class="results-count">{{ filteredFeedback?.length || 0 }}</span>
+            <span class="results-text">feedback entries</span>
+          </div>
+          <div class="rating-summary" *ngIf="averageRating">
+            <span class="avg-rating">Average Rating: </span>
+            <span class="rating-stars">
+              <span *ngFor="let star of [1,2,3,4,5]" [class.filled]="star <= averageRating">&#9733;</span>
+            </span>
+            <span class="rating-value">({{ averageRating | number:'1.1-1' }})</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Table View -->
+      <div *ngIf="!loading && !errorMessage && viewMode === 'table' && filteredFeedback.length > 0" class="feedback-table">
+        <div class="data-table-card">
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Student Info</th>
+                    <th>Batch & Plan</th>
+                    <th>Feedback</th>
+                    <th>Rating</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let fb of filteredFeedback">
+                    <td>
+                      <div class="student-info">
+                        <div class="student-name">{{ fb.studentId?.name || 'N/A' }}</div>
+                        <div class="student-reg">Reg: {{ fb.studentId?.regNo || 'N/A' }}</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="batch-plan-info">
+                        <span class="badge bg-primary me-1">Batch {{ fb.studentId?.batch || 'N/A' }}</span>
+                        <span class="badge bg-success">{{ fb.studentId?.subscription || 'N/A' }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="feedback-text">{{ fb.feedback }}</div>
+                    </td>
+                    <td>
+                      <div class="rating-display">
+                        <span class="rating-stars">
+                          <span *ngFor="let star of [1,2,3,4,5]" [class.filled]="star <= fb.rating">&#9733;</span>
+                        </span>
+                        <span class="rating-number">({{ fb.rating }})</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="date-info">{{ fb.createdAt | date:'MMM d, y' }}</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Cards View -->
+      <div *ngIf="!loading && !errorMessage && viewMode === 'cards' && filteredFeedback.length > 0" class="feedback-cards">
+        <div class="row">
+          <div class="col-lg-4 col-md-6 mb-4" *ngFor="let fb of filteredFeedback">
+            <div class="feedback-card">
+              <div class="feedback-header">
+                <div class="student-details">
+                  <h6 class="student-name">{{ fb.studentId?.name || 'N/A' }}</h6>
+                  <small class="student-reg">Reg: {{ fb.studentId?.regNo || 'N/A' }}</small>
+                </div>
+                <div class="rating-badge">
+                  <span class="rating-stars">
+                    <span *ngFor="let star of [1,2,3,4,5]" [class.filled]="star <= fb.rating">&#9733;</span>
+                  </span>
+                </div>
+              </div>
+              <div class="feedback-body">
+                <div class="batch-plan-tags mb-3">
+                  <span class="badge bg-primary me-1">Batch {{ fb.studentId?.batch || 'N/A' }}</span>
+                  <span class="badge bg-success">{{ fb.studentId?.subscription || 'N/A' }}</span>
+                </div>
+                <div class="feedback-content">
+                  <p class="feedback-text">{{ fb.feedback }}</p>
+                </div>
+              </div>
+              <div class="feedback-footer">
+                <small class="text-muted">{{ fb.createdAt | date:'MMM d, y - h:mm a' }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && !errorMessage && (!filteredFeedback || filteredFeedback.length === 0)" class="empty-state text-center py-5">
+        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+        <h4>No Feedback Available</h4>
+        <p class="text-muted">No student feedback has been submitted yet.</p>
+      </div>
+
+    </div>
+  </div>
 </div>
