@@ -7,7 +7,7 @@
 
 /* ====== Header Section ====== */
 .admin-header {
-  background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -67,31 +67,31 @@
 }
 
 .btn-add-course {
-  background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(111, 66, 193, 0.3);
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
   transition: all 0.2s ease;
 }
 
 .btn-add-course:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
   color: white;
 }
 
 /* ====== View Options ====== */
 .view-options .btn-group .btn {
-  border-color: #6f42c1;
-  color: #6f42c1;
+  border-color: #667eea;
+  color: #667eea;
 }
 
 .view-options .btn-group .btn.active {
-  background-color: #6f42c1;
-  border-color: #6f42c1;
+  background-color: #667eea;
+  border-color: #667eea;
   color: white;
 }
 
@@ -107,7 +107,7 @@
 .results-count {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #6f42c1;
+  color: #667eea;
 }
 
 .results-text {
@@ -137,7 +137,7 @@
 }
 
 .course-header {
-  background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 1.5rem;
   text-align: center;
@@ -203,7 +203,7 @@
 }
 
 .courses-list .table tbody tr:hover {
-  background-color: rgba(111, 66, 193, 0.05);
+  background-color: rgba(102, 126, 234, 0.05);
 }
 
 /* ====== Course Info Styling ====== */
@@ -255,19 +255,19 @@
 }
 
 .empty-state .btn {
-  background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(111, 66, 193, 0.3);
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
   transition: all 0.2s ease;
 }
 
 .empty-state .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
   color: white;
 }
 

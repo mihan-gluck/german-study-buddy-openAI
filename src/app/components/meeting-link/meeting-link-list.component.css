@@ -7,7 +7,7 @@
 
 /* ====== Header Section ====== */
 .admin-header {
-  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -67,7 +67,7 @@
 }
 
 .btn-add-link {
-  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   font-weight: 600;
@@ -85,13 +85,13 @@
 
 /* ====== View Options ====== */
 .view-options .btn-group .btn {
-  border-color: #e83e8c;
-  color: #e83e8c;
+  border-color: #667eea;
+  color: #667eea;
 }
 
 .view-options .btn-group .btn.active {
-  background-color: #e83e8c;
-  border-color: #e83e8c;
+  background-color: #667eea;
+  border-color: #667eea;
   color: white;
 }
 
@@ -104,11 +104,11 @@
 }
 
 .loading-state .spinner-border {
-  color: #e83e8c;
+  color: #667eea;
 }
 
 .error-state .btn {
-  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
 }
@@ -125,7 +125,7 @@
 .results-count {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #e83e8c;
+  color: #667eea;
 }
 
 .results-text {
@@ -190,7 +190,7 @@
 
 /* ====== Link Info ====== */
 .link-info .meeting-link {
-  color: #e83e8c;
+  color: #667eea;
   text-decoration: none;
   font-weight: 500;
   word-break: break-all;
@@ -198,7 +198,7 @@
 }
 
 .link-info .meeting-link:hover {
-  color: #d63384;
+  color: #764ba2;
   text-decoration: underline;
 }
 
@@ -224,7 +224,7 @@
 }
 
 .link-header {
-  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 1.5rem;
   text-align: center;
@@ -251,7 +251,7 @@
 }
 
 .meeting-link-section .meeting-link {
-  color: #e83e8c;
+  color: #667eea;
   text-decoration: none;
   font-weight: 500;
   word-break: break-all;
@@ -262,7 +262,7 @@
 }
 
 .meeting-link-section .meeting-link:hover {
-  color: #d63384;
+  color: #764ba2;
   background-color: #e9ecef;
   text-decoration: underline;
 }
@@ -309,7 +309,7 @@
 }
 
 .empty-state .btn {
-  background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   font-weight: 600;

@@ -7,7 +7,7 @@
 
 /* ====== Header Section ====== */
 .admin-header {
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -67,26 +67,26 @@
 }
 
 .filter-options .form-select {
-  border-color: #20c997;
+  border-color: #667eea;
   border-radius: 8px;
   padding: 0.5rem 1rem;
   font-weight: 500;
 }
 
 .filter-options .form-select:focus {
-  border-color: #20c997;
-  box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
 /* ====== View Options ====== */
 .view-options .btn-group .btn {
-  border-color: #20c997;
-  color: #20c997;
+  border-color: #667eea;
+  color: #667eea;
 }
 
 .view-options .btn-group .btn.active {
-  background-color: #20c997;
-  border-color: #20c997;
+  background-color: #667eea;
+  border-color: #667eea;
   color: white;
 }
 
@@ -99,11 +99,11 @@
 }
 
 .loading-state .spinner-border {
-  color: #20c997;
+  color: #667eea;
 }
 
 .error-state .btn {
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
 }
@@ -120,7 +120,7 @@
 .results-count {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #20c997;
+  color: #667eea;
 }
 
 .results-text {
@@ -141,7 +141,7 @@
 
 .rating-value {
   font-weight: 600;
-  color: #20c997;
+  color: #667eea;
 }
 
 /* ====== Rating Stars ====== */
@@ -264,7 +264,7 @@
 }
 
 .feedback-header {
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 1.5rem;
   display: flex;

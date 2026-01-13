@@ -7,7 +7,7 @@
 
 /* ====== Header Section ====== */
 .admin-header {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -67,7 +67,7 @@
 }
 
 .btn-add-timetable {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   font-weight: 600;
@@ -85,13 +85,13 @@
 
 /* ====== View Options ====== */
 .view-options .btn-group .btn {
-  border-color: #17a2b8;
-  color: #17a2b8;
+  border-color: #667eea;
+  color: #667eea;
 }
 
 .view-options .btn-group .btn.active {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
+  background-color: #667eea;
+  border-color: #667eea;
   color: white;
 }
 
@@ -107,7 +107,7 @@
 .results-count {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #17a2b8;
+  color: #667eea;
 }
 
 .results-text {
@@ -155,11 +155,11 @@
 .week-period {
   background-color: #f8f9fa !important;
   font-weight: 600;
-  border-right: 2px solid #17a2b8 !important;
+  border-right: 2px solid #667eea !important;
 }
 
 .week-range strong {
-  color: #17a2b8;
+  color: #667eea;
   font-size: 0.9rem;
 }
 
@@ -258,7 +258,7 @@
 }
 
 .empty-state .btn {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   font-weight: 600;
@@ -353,7 +353,7 @@
   .timetable tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #17a2b8;
+    color: #667eea;
     flex: 1;
     margin-right: 1rem;
   }
