@@ -204,7 +204,7 @@ DESCRIPTION: ${description}`;
 
 ROLE-PLAY SCENARIO:
 - Student Role: ${studentRole || 'Student'}
-- AI Role: ${aiRole || 'Tutor'}
+- AI Role: ${aiRole || 'Teacher'}
 
 IMPORTANT: Based on these roles and the module description, you should intelligently generate:
 - A realistic situation/scenario that fits these roles
@@ -214,7 +214,9 @@ IMPORTANT: Based on these roles and the module description, you should intellige
 - Student guidance appropriate for the student role
 - Multiple AI opening lines for conversation variety
 - Suggested student responses to help them start
-- Conversation flow stages that make sense for this scenario` : '';
+- Conversation flow stages that make sense for this scenario
+
+NOTE: The roles provided are "${studentRole || 'Student'}" and "${aiRole || 'Teacher'}". Generate content that makes sense for these specific roles.` : '';
 
   const generationOptions = `
 
@@ -246,7 +248,7 @@ GENERATION OPTIONS:
       "situation": "Generate appropriate situation based on the roles",
       "setting": "Generate detailed setting description",
       "studentRole": "${studentRole || 'Student'}",
-      "aiRole": "${aiRole || 'Tutor'}",
+      "aiRole": "${aiRole || 'Teacher'}",
       "objective": "Generate clear objective for this role-play",
       "aiPersonality": "Generate personality that fits the AI role",
       "studentGuidance": "Generate guidance appropriate for the student role",
@@ -300,8 +302,16 @@ GENERATION OPTIONS:
     "helpfulPhrases": ["Generate phrases relevant to the scenario"],
     "commonMistakes": ["Generate common mistakes for this scenario"],
     "culturalNotes": ["Generate cultural notes if relevant"],
+    "allowedVocabulary": [
+      {
+        "word": "${targetLanguage} word that AI will use",
+        "translation": "${nativeLanguage} translation",
+        "category": "category (e.g., greetings, food, numbers)",
+        "usage": "Example sentence showing how to use this word"
+      }
+    ],
     "rolePlayInstructions": {
-      "aiRole": "${aiRole || 'Tutor'}",
+      "aiRole": "${aiRole || 'Teacher'}",
       "aiPersonality": "Generate detailed AI personality",
       "openingLines": ["Generate opening lines"],
       "studentRole": "${studentRole || 'Student'}",
@@ -365,7 +375,15 @@ GENERATION OPTIONS:
     "focusAreas": ["area1", "area2", "area3"],
     "helpfulPhrases": ["phrase1", "phrase2", "phrase3"],
     "commonMistakes": ["mistake1", "mistake2"],
-    "culturalNotes": ["note1", "note2"]
+    "culturalNotes": ["note1", "note2"],
+    "allowedVocabulary": [
+      {
+        "word": "${targetLanguage} word that AI will use",
+        "translation": "${nativeLanguage} translation",
+        "category": "category (e.g., greetings, food, numbers)",
+        "usage": "Example sentence showing how to use this word"
+      }
+    ]
   },
   "tags": ["tag1", "tag2", "tag3"]
 }`;
@@ -382,15 +400,22 @@ REQUIREMENTS FOR ROLE-PLAY MODULE:
 7. GENERATE 3-5 varied AI opening lines that fit the role and scenario
 8. CREATE 3-5 helpful student response suggestions to get them started
 9. DESIGN conversation flow stages that naturally progress through the scenario
-10. **VOCABULARY GENERATION (if enabled):** Include 10-20 scenario-specific vocabulary words relevant to the roles and situation
-11. **EXERCISE GENERATION (if enabled):** Create 3-5 role-play preparation exercises (vocabulary practice, phrase building, scenario questions)
-12. **CONVERSATION GENERATION (if enabled):** Generate detailed conversation flow with multiple dialogue examples and conversation stages
-13. **CULTURAL NOTES (if enabled):** Include cultural context, etiquette, and social norms relevant to the specific scenario
-14. ENSURE all content is appropriate for ${level} level
-15. FOCUS on practical, real-world conversation for these specific roles
-16. MAKE the role-play engaging and educational
-17. **CRITICAL: Generate ALL text content (introduction, guidance, opening lines, etc.) in the TARGET LANGUAGE (${targetLanguage}), not English**
-18. **LANGUAGE REQUIREMENT: The introduction must be written in ${targetLanguage} to welcome students in their target language**
+10. **VOCABULARY GENERATION (if enabled):** Include 10-20 scenario-specific vocabulary words relevant to the roles and situation in content.allowedVocabulary
+11. **AI TUTOR VOCABULARY (CRITICAL):** Generate 15-30 vocabulary words in aiTutorConfig.allowedVocabulary that the AI will actively use during conversations - these control what words the AI tutor can use
+12. **EXERCISE GENERATION (if enabled):** Create 3-5 role-play preparation exercises (vocabulary practice, phrase building, scenario questions)
+13. **CONVERSATION GENERATION (if enabled):** Generate detailed conversation flow with multiple dialogue examples and conversation stages
+14. **CULTURAL NOTES (if enabled):** Include cultural context, etiquette, and social norms relevant to the specific scenario
+15. ENSURE all content is appropriate for ${level} level
+16. FOCUS on practical, real-world conversation for these specific roles
+17. MAKE the role-play engaging and educational
+18. **CRITICAL: Generate ALL text content (introduction, guidance, opening lines, etc.) in the TARGET LANGUAGE (${targetLanguage}), not English**
+19. **LANGUAGE REQUIREMENT: The introduction must be written in ${targetLanguage} to welcome students in their target language**
+
+VOCABULARY CONTROL SYSTEM:
+- **content.allowedVocabulary**: Words students should learn (10-20 words)
+- **aiTutorConfig.allowedVocabulary**: Words the AI tutor will actively use in conversations (15-30 words) - THIS IS CRITICAL FOR AI CONTROL
+- The AI tutor vocabulary should include all student vocabulary PLUS additional words the AI needs for natural conversation
+- Each vocabulary entry must have: word, translation, category, and usage example
 
 GENERATION OPTIONS GUIDE:
 - If generateVocabulary=true: Focus on words/phrases essential for this specific role-play scenario
@@ -400,16 +425,26 @@ GENERATION OPTIONS GUIDE:
 
 IMPORTANT: Use your intelligence to create a cohesive, realistic scenario based on just the two roles provided!` : `
 REQUIREMENTS:
-1. Generate 15-25 vocabulary words with accurate translations
-2. Create 3-5 learning objectives
-3. Include 5-8 practical exercises of different types
-4. Add 3-5 conversation examples
-5. Include cultural context if requested
-6. Make content appropriate for ${level} level
-7. Focus on practical, real-world usage
-8. Ensure all content is accurate and pedagogically sound
-9. IMPORTANT: Exercise types must be ONLY: "multiple-choice", "fill-blank", "translation", "conversation", "essay", or "role-play"
-10. For multiple-choice exercises, provide exactly 4 options
+1. Generate 15-25 vocabulary words with accurate translations in content.allowedVocabulary
+2. **AI TUTOR VOCABULARY (CRITICAL):** Generate 15-30 vocabulary words in aiTutorConfig.allowedVocabulary that the AI will actively use during conversations
+3. Create 3-5 learning objectives
+4. Include 5-8 practical exercises of different types
+5. Add 3-5 conversation examples
+6. Include cultural context if requested
+7. Make content appropriate for ${level} level
+8. Focus on practical, real-world usage
+9. Ensure all content is accurate and pedagogically sound
+10. IMPORTANT: Exercise types must be ONLY: "multiple-choice", "fill-blank", "translation", "conversation", "essay", or "role-play"
+11. For multiple-choice exercises, provide exactly 4 options
+12. Always include correctAnswer and explanation for exercises
+13. **CRITICAL: Generate the introduction text in the TARGET LANGUAGE (${targetLanguage}), not English**
+14. **LANGUAGE REQUIREMENT: Welcome students in their target language to create an immersive learning experience**
+
+VOCABULARY CONTROL SYSTEM:
+- **content.allowedVocabulary**: Words students should learn (15-25 words)
+- **aiTutorConfig.allowedVocabulary**: Words the AI tutor will actively use in conversations (15-30 words) - THIS IS CRITICAL FOR AI CONTROL
+- The AI tutor vocabulary should include all student vocabulary PLUS additional words the AI needs for natural conversation
+- Each vocabulary entry must have: word, translation, category, and usage example
 11. Always include correctAnswer and explanation for exercises
 12. **CRITICAL: Generate the introduction text in the TARGET LANGUAGE (${targetLanguage}), not English**
 13. **LANGUAGE REQUIREMENT: Welcome students in their target language to create an immersive learning experience**`;
@@ -445,11 +480,15 @@ function enhanceGeneratedModule(generatedModule, originalRequest, userId) {
       commonMistakes: generatedModule.aiTutorConfig?.commonMistakes || [],
       culturalNotes: generatedModule.aiTutorConfig?.culturalNotes || [],
       
+      // CRITICAL: AI Tutor Vocabulary Control - words the AI will use in conversations
+      allowedVocabulary: generatedModule.aiTutorConfig?.allowedVocabulary || 
+                        generatedModule.content?.allowedVocabulary || [],
+      
       // Add role-play instructions if it's a role-play module
       ...(originalRequest.moduleType === 'roleplay' && {
         rolePlayInstructions: {
-          aiRole: originalRequest.aiRole || 'Tutor',
-          aiPersonality: originalRequest.aiPersonality || 'Friendly and encouraging tutor',
+          aiRole: originalRequest.aiRole || 'Teacher',
+          aiPersonality: originalRequest.aiPersonality || 'Friendly and encouraging teacher',
           openingLines: generatedModule.aiTutorConfig?.rolePlayInstructions?.openingLines || 
                        generatedModule.content?.rolePlayScenario?.aiOpeningLines || [],
           studentRole: originalRequest.studentRole || 'Student',
@@ -485,8 +524,8 @@ function generateRolePlayScenario(generatedModule, originalRequest) {
     return {
       situation: generatedModule.content.rolePlayScenario.situation,
       setting: generatedModule.content.rolePlayScenario.setting,
-      studentRole: originalRequest.studentRole || generatedModule.content.rolePlayScenario.studentRole,
-      aiRole: originalRequest.aiRole || generatedModule.content.rolePlayScenario.aiRole,
+      studentRole: originalRequest.studentRole || generatedModule.content.rolePlayScenario.studentRole || 'Student',
+      aiRole: originalRequest.aiRole || generatedModule.content.rolePlayScenario.aiRole || 'Teacher',
       objective: generatedModule.content.rolePlayScenario.objective,
       aiPersonality: generatedModule.content.rolePlayScenario.aiPersonality,
       studentGuidance: generatedModule.content.rolePlayScenario.studentGuidance,
@@ -495,9 +534,10 @@ function generateRolePlayScenario(generatedModule, originalRequest) {
     };
   }
   
-  // Fallback: Generate basic scenario from roles if AI didn't provide details
+  // Fallback: Generate basic scenario from roles
+  // IMPORTANT: Always use provided roles or default to Student/Teacher
   const studentRole = originalRequest.studentRole || 'Student';
-  const aiRole = originalRequest.aiRole || 'Tutor';
+  const aiRole = originalRequest.aiRole || 'Teacher';
   
   // Intelligent scenario generation based on roles
   let situation = 'General conversation';
@@ -518,6 +558,9 @@ function generateRolePlayScenario(generatedModule, originalRequest) {
   } else if (aiRole.toLowerCase().includes('doctor') || aiRole.toLowerCase().includes('medical')) {
     situation = 'Medical consultation';
     setting = 'A doctor\'s office or clinic';
+  } else if (aiRole.toLowerCase().includes('teacher') || aiRole.toLowerCase().includes('tutor')) {
+    situation = 'Language learning session';
+    setting = 'A comfortable classroom or study environment';
   }
   
   return {
@@ -589,7 +632,8 @@ function createFallbackModule(requirements, userId) {
       focusAreas: [requirements.category],
       helpfulPhrases: [],
       commonMistakes: [],
-      culturalNotes: []
+      culturalNotes: [],
+      allowedVocabulary: [] // AI tutor vocabulary control
     },
     tags: [requirements.level.toLowerCase(), requirements.category.toLowerCase()],
     createdBy: userId,
@@ -670,7 +714,9 @@ function fixModuleValidationIssues(module) {
     'true-false': 'multiple-choice',
     'listening': 'conversation',
     'speaking': 'conversation',
-    'comprehension': 'translation'
+    'comprehension': 'translation',
+    'vocabulary': 'multiple-choice',  // NEW: vocabulary exercises become multiple-choice
+    'phrase-building': 'multiple-choice'  // NEW: phrase-building becomes multiple-choice
   };
 
   // Fix title length
@@ -718,6 +764,7 @@ function fixModuleValidationIssues(module) {
   module.aiTutorConfig.helpfulPhrases = module.aiTutorConfig.helpfulPhrases || [];
   module.aiTutorConfig.commonMistakes = module.aiTutorConfig.commonMistakes || [];
   module.aiTutorConfig.culturalNotes = module.aiTutorConfig.culturalNotes || [];
+  module.aiTutorConfig.allowedVocabulary = module.aiTutorConfig.allowedVocabulary || [];
 
   // Ensure tags exist
   module.tags = module.tags || [module.level.toLowerCase(), module.category.toLowerCase()];
@@ -725,16 +772,27 @@ function fixModuleValidationIssues(module) {
   // Fix exercise types
   if (module.content && module.content.exercises) {
     module.content.exercises = module.content.exercises.map(exercise => {
+      // Store original type for logging
+      const originalType = exercise.type;
+      
+      // Fix invalid exercise types
       if (!allowedExerciseTypes.includes(exercise.type)) {
         const mappedType = exerciseTypeMapping[exercise.type] || 'multiple-choice';
         console.log(`🔧 Fixed exercise type: ${exercise.type} → ${mappedType}`);
         exercise.type = mappedType;
       }
       
-      // Ensure multiple choice has 4 options
+      // Ensure multiple choice has 4 options BEFORE setting correctAnswer
       if (exercise.type === 'multiple-choice') {
         if (!exercise.options || exercise.options.length < 4) {
           exercise.options = exercise.options || [];
+          
+          // If we have a correctAnswer but no options, use it as first option
+          if (exercise.correctAnswer && exercise.options.length === 0) {
+            exercise.options.push(exercise.correctAnswer);
+          }
+          
+          // Fill remaining options
           while (exercise.options.length < 4) {
             exercise.options.push(`Option ${exercise.options.length + 1}`);
           }
@@ -742,11 +800,27 @@ function fixModuleValidationIssues(module) {
         if (exercise.options.length > 4) {
           exercise.options = exercise.options.slice(0, 4);
         }
+        
+        // NOW ensure correctAnswer is one of the options
+        if (!exercise.correctAnswer || !exercise.options.includes(exercise.correctAnswer)) {
+          exercise.correctAnswer = exercise.options[0];
+          console.log(`🔧 Fixed correctAnswer for multiple-choice exercise: "${exercise.correctAnswer}"`);
+        }
       }
       
-      // Ensure required fields
+      // Ensure required fields for all exercise types
       exercise.question = exercise.question || 'Sample question';
-      exercise.correctAnswer = exercise.correctAnswer || (exercise.options ? exercise.options[0] : 'Sample answer');
+      
+      // Set correctAnswer based on exercise type if still undefined
+      if (!exercise.correctAnswer) {
+        if (exercise.type === 'multiple-choice' && exercise.options && exercise.options.length > 0) {
+          exercise.correctAnswer = exercise.options[0];
+        } else {
+          exercise.correctAnswer = 'Sample answer';
+        }
+        console.log(`🔧 Set missing correctAnswer: "${exercise.correctAnswer}"`);
+      }
+      
       exercise.explanation = exercise.explanation || 'Explanation for the correct answer';
       exercise.points = exercise.points || 1;
       

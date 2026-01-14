@@ -117,8 +117,12 @@ import { firstValueFrom } from 'rxjs';
                           type="text" 
                           class="form-control" 
                           formControlName="studentRole" 
-                          placeholder="e.g., Customer, Tourist, Job applicant">
-                        <small class="form-text text-muted">What role will the student play?</small>
+                          placeholder="e.g., Customer, Tourist, Job applicant"
+                          required>
+                        <small class="form-text text-muted">What role will the student play? (Default: Student)</small>
+                        <div class="text-danger small mt-1" *ngIf="aiForm.get('studentRole')?.invalid && aiForm.get('studentRole')?.touched">
+                          Student role is required for role-play modules
+                        </div>
                       </div>
                       
                       <div class="col-md-6">
@@ -127,8 +131,12 @@ import { firstValueFrom } from 'rxjs';
                           type="text" 
                           class="form-control" 
                           formControlName="aiRole" 
-                          placeholder="e.g., Waiter, Shop assistant, Interviewer">
-                        <small class="form-text text-muted">What role will the AI play?</small>
+                          placeholder="e.g., Waiter, Shop assistant, Interviewer"
+                          required>
+                        <small class="form-text text-muted">What role will the AI play? (Default: Teacher)</small>
+                        <div class="text-danger small mt-1" *ngIf="aiForm.get('aiRole')?.invalid && aiForm.get('aiRole')?.touched">
+                          AI role is required for role-play modules
+                        </div>
                       </div>
                     </div>
                     
@@ -440,9 +448,9 @@ export class AiModuleCreatorComponent implements OnInit {
       description: ['', [Validators.required, Validators.minLength(20)]],
       moduleType: ['roleplay'], // Default to role-play
       
-      // Simplified role-play fields (only essential ones)
-      studentRole: [''],
-      aiRole: [''],
+      // Role-play fields with default values (Student and Teacher)
+      studentRole: ['Student', Validators.required],
+      aiRole: ['Teacher', Validators.required],
       
       // AI generation options
       generateVocabulary: [true],
@@ -459,9 +467,25 @@ export class AiModuleCreatorComponent implements OnInit {
   }
   
   onModuleTypeChange(): void {
-    // Always role-play now - ensure validators are set
-    this.aiForm.get('studentRole')?.setValidators([Validators.required]);
-    this.aiForm.get('aiRole')?.setValidators([Validators.required]);
+    const moduleType = this.aiForm.get('moduleType')?.value;
+    
+    if (moduleType === 'roleplay') {
+      // Role-play modules MUST have roles - set validators and default values
+      this.aiForm.get('studentRole')?.setValidators([Validators.required]);
+      this.aiForm.get('aiRole')?.setValidators([Validators.required]);
+      
+      // Set default values if empty
+      if (!this.aiForm.get('studentRole')?.value) {
+        this.aiForm.patchValue({ studentRole: 'Student' });
+      }
+      if (!this.aiForm.get('aiRole')?.value) {
+        this.aiForm.patchValue({ aiRole: 'Teacher' });
+      }
+    } else {
+      // Standard modules don't need roles
+      this.aiForm.get('studentRole')?.clearValidators();
+      this.aiForm.get('aiRole')?.clearValidators();
+    }
     
     // Update form validation
     this.aiForm.get('studentRole')?.updateValueAndValidity();
@@ -485,6 +509,16 @@ export class AiModuleCreatorComponent implements OnInit {
   async generateModule(): Promise<void> {
     if (this.aiForm.invalid) {
       this.aiForm.markAllAsTouched();
+      
+      // Show specific error for missing roles
+      if (this.aiForm.get('moduleType')?.value === 'roleplay') {
+        if (!this.aiForm.get('studentRole')?.value || !this.aiForm.get('aiRole')?.value) {
+          alert('Role-play modules require both Student Role and AI Role to be specified. Please fill in both fields.');
+          return;
+        }
+      }
+      
+      alert('Please fill in all required fields before generating the module.');
       return;
     }
     
@@ -567,6 +601,10 @@ export class AiModuleCreatorComponent implements OnInit {
         commonMistakes: response?.aiTutorConfig?.commonMistakes || [],
         culturalNotes: response?.aiTutorConfig?.culturalNotes || [],
         
+        // CRITICAL: AI Tutor Vocabulary Control
+        allowedVocabulary: response?.aiTutorConfig?.allowedVocabulary || 
+                          response?.content?.allowedVocabulary || [],
+        
         // Role-play instructions
         ...(formData.moduleType === 'roleplay' && {
           rolePlayInstructions: {
@@ -621,7 +659,7 @@ export class AiModuleCreatorComponent implements OnInit {
             situation: formData.rolePlaySituation || 'General conversation',
             setting: formData.rolePlaySetting || 'A friendly environment',
             studentRole: formData.studentRole || 'Student',
-            aiRole: formData.aiRole || 'Tutor',
+            aiRole: formData.aiRole || 'Teacher',
             objective: formData.rolePlayObjective || 'Practice conversation skills',
             aiPersonality: formData.aiPersonality || 'Friendly and encouraging tutor',
             studentGuidance: formData.studentGuidance || 'Be natural and don\'t worry about making mistakes',
@@ -636,12 +674,13 @@ export class AiModuleCreatorComponent implements OnInit {
         helpfulPhrases: [],
         commonMistakes: [],
         culturalNotes: [],
+        allowedVocabulary: [], // AI tutor vocabulary control
         
         // Add role-play instructions if it's a role-play module
         ...(formData.moduleType === 'roleplay' && {
           rolePlayInstructions: {
-            aiRole: formData.aiRole || 'Tutor',
-            aiPersonality: formData.aiPersonality || 'Friendly and encouraging tutor',
+            aiRole: formData.aiRole || 'Teacher',
+            aiPersonality: formData.aiPersonality || 'Friendly and encouraging teacher',
             openingLines: [],
             studentRole: formData.studentRole || 'Student',
             studentGuidance: formData.studentGuidance || 'Be natural and don\'t worry about making mistakes',
@@ -846,8 +885,10 @@ export class AiModuleCreatorComponent implements OnInit {
       targetLanguage: 'English',
       nativeLanguage: 'English',
       moduleType: 'roleplay', // Always role-play now
-      studentRole: '',
-      aiRole: '',
+      category: 'Conversation',
+      difficulty: 'Beginner',
+      studentRole: 'Student', // Default role
+      aiRole: 'Teacher', // Default role
       generateVocabulary: true,
       generateExercises: true,
       generateConversation: true,

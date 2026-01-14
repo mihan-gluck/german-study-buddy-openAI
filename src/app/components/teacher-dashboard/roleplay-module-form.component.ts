@@ -212,8 +212,8 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
                 <!-- Vocabulary Constraints -->
                 <div class="row mb-4">
                   <div class="col-12">
-                    <h5 class="border-bottom pb-2">📚 Allowed Vocabulary</h5>
-                    <p class="text-muted">Define the vocabulary the AI should use and teach</p>
+                    <h5 class="border-bottom pb-2">📚 Student Learning Vocabulary</h5>
+                    <p class="text-muted">Words that students should learn in this module (10-20 words)</p>
                   </div>
                   
                   <div class="col-12 mb-3">
@@ -249,6 +249,85 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
                         </button>
                       </div>
                     </div>
+                    <small class="text-muted">
+                      <i class="fas fa-info-circle me-1"></i>
+                      These are the core words students will learn
+                    </small>
+                  </div>
+                </div>
+
+                <!-- AI Tutor Vocabulary Control -->
+                <div class="row mb-4">
+                  <div class="col-12">
+                    <h5 class="border-bottom pb-2">🤖 AI Tutor Vocabulary Control</h5>
+                    <p class="text-muted">
+                      <strong>Control what vocabulary the AI tutor can use during conversations (15-30 words)</strong>
+                      <br>
+                      <small>
+                        <i class="fas fa-lightbulb text-warning me-1"></i>
+                        Include all student vocabulary PLUS additional support words the AI needs for natural conversation
+                      </small>
+                    </p>
+                  </div>
+                  
+                  <div class="col-12 mb-3">
+                    <div class="row g-2 mb-2">
+                      <div class="col-md-3">
+                        <input type="text" class="form-control" [(ngModel)]="newAiVocabWord" 
+                               [ngModelOptions]="{standalone: true}" placeholder="Word/Phrase">
+                      </div>
+                      <div class="col-md-3">
+                        <input type="text" class="form-control" [(ngModel)]="newAiVocabTranslation" 
+                               [ngModelOptions]="{standalone: true}" placeholder="Translation">
+                      </div>
+                      <div class="col-md-2">
+                        <input type="text" class="form-control" [(ngModel)]="newAiVocabCategory" 
+                               [ngModelOptions]="{standalone: true}" placeholder="Category">
+                      </div>
+                      <div class="col-md-3">
+                        <input type="text" class="form-control" [(ngModel)]="newAiVocabUsage" 
+                               [ngModelOptions]="{standalone: true}" placeholder="Usage example">
+                      </div>
+                      <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-success w-100" (click)="addAiVocabulary()">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                      <button type="button" class="btn btn-sm btn-outline-info" (click)="copyStudentVocabToAi()">
+                        <i class="fas fa-copy me-1"></i>
+                        Copy Student Vocabulary to AI
+                      </button>
+                      <small class="text-muted ms-2">Quick start: Copy all student words, then add AI support words</small>
+                    </div>
+                    
+                    <div class="vocabulary-list border rounded p-2" style="background-color: #f8f9fa;">
+                      <div *ngIf="aiTutorVocabulary.length === 0" class="text-center text-muted py-3">
+                        <i class="fas fa-robot fa-2x mb-2"></i>
+                        <p class="mb-0">No AI vocabulary defined yet. Add words the AI tutor can use.</p>
+                      </div>
+                      <div *ngFor="let vocab of aiTutorVocabulary; let i = index" 
+                           class="d-flex align-items-start mb-2 p-2 border rounded bg-white">
+                        <div class="flex-grow-1">
+                          <div>
+                            <strong class="text-success">{{vocab.word}}</strong> - {{vocab.translation}}
+                            <small class="text-muted ms-2">({{vocab.category}})</small>
+                          </div>
+                          <div *ngIf="vocab.usage" class="small text-muted mt-1">
+                            <i class="fas fa-quote-left me-1"></i>{{vocab.usage}}
+                          </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAiVocabulary(i)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <small class="text-success">
+                      <i class="fas fa-check-circle me-1"></i>
+                      AI tutor will only use these {{aiTutorVocabulary.length}} words during conversations
+                    </small>
                   </div>
                 </div>
 
@@ -385,6 +464,7 @@ export class RoleplayModuleFormComponent implements OnInit {
 
   // Dynamic arrays
   allowedVocabulary: Array<{word: string, translation: string, category: string}> = [];
+  aiTutorVocabulary: Array<{word: string, translation: string, category: string, usage?: string}> = []; // NEW: AI Tutor vocabulary
   allowedGrammar: Array<{structure: string, examples: string[], level: string}> = [];
   conversationFlow: Array<{stage: string, aiPrompts: string[], expectedResponses: string[], helpfulPhrases: string[]}> = [];
 
@@ -403,6 +483,10 @@ export class RoleplayModuleFormComponent implements OnInit {
   newVocabWord = '';
   newVocabTranslation = '';
   newVocabCategory = '';
+  newAiVocabWord = ''; // NEW: AI vocabulary inputs
+  newAiVocabTranslation = '';
+  newAiVocabCategory = '';
+  newAiVocabUsage = '';
   newGrammarStructure = '';
   newGrammarExample = '';
   newFlowStage = '';
@@ -491,6 +575,49 @@ export class RoleplayModuleFormComponent implements OnInit {
 
   removeVocabulary(index: number): void {
     this.allowedVocabulary.splice(index, 1);
+  }
+
+  // NEW: AI Tutor Vocabulary Methods
+  addAiVocabulary(): void {
+    if (this.newAiVocabWord.trim() && this.newAiVocabTranslation.trim()) {
+      this.aiTutorVocabulary.push({
+        word: this.newAiVocabWord.trim(),
+        translation: this.newAiVocabTranslation.trim(),
+        category: this.newAiVocabCategory.trim() || 'general',
+        usage: this.newAiVocabUsage.trim() || undefined
+      });
+      this.newAiVocabWord = '';
+      this.newAiVocabTranslation = '';
+      this.newAiVocabCategory = '';
+      this.newAiVocabUsage = '';
+    }
+  }
+
+  removeAiVocabulary(index: number): void {
+    this.aiTutorVocabulary.splice(index, 1);
+  }
+
+  copyStudentVocabToAi(): void {
+    // Copy all student vocabulary to AI vocabulary (if not already there)
+    this.allowedVocabulary.forEach(vocab => {
+      const exists = this.aiTutorVocabulary.some(
+        aiVocab => aiVocab.word.toLowerCase() === vocab.word.toLowerCase()
+      );
+      if (!exists) {
+        this.aiTutorVocabulary.push({
+          word: vocab.word,
+          translation: vocab.translation,
+          category: vocab.category,
+          usage: undefined
+        });
+      }
+    });
+    
+    if (this.allowedVocabulary.length > 0) {
+      alert(`Copied ${this.allowedVocabulary.length} words to AI vocabulary. Now add additional support words the AI needs.`);
+    } else {
+      alert('No student vocabulary to copy. Add student vocabulary first.');
+    }
   }
 
   addGrammar(): void {
@@ -594,6 +721,7 @@ export class RoleplayModuleFormComponent implements OnInit {
         helpfulPhrases: this.allowedVocabulary.map(v => v.word),
         commonMistakes: [],
         culturalNotes: [],
+        allowedVocabulary: this.aiTutorVocabulary, // NEW: AI Tutor vocabulary control
         rolePlayInstructions: {
           aiRole: formValue.rolePlayScenario.aiRole,
           aiPersonality: this.aiRolePersonality,
@@ -710,6 +838,9 @@ export class RoleplayModuleFormComponent implements OnInit {
     if (module.aiTutorConfig) {
       this.aiRolePersonality = module.aiTutorConfig.personality || '';
       
+      // NEW: Load AI Tutor vocabulary
+      this.aiTutorVocabulary = module.aiTutorConfig.allowedVocabulary || [];
+      
       // Handle both old and new structure for student guidance
       this.studentRoleGuidance = 
         module.aiTutorConfig.rolePlayInstructions?.studentGuidance || 
@@ -795,6 +926,9 @@ export class RoleplayModuleFormComponent implements OnInit {
     if (generatedModule.aiTutorConfig) {
       this.aiRolePersonality = generatedModule.aiTutorConfig.personality || '';
       this.studentRoleGuidance = generatedModule.aiTutorConfig.rolePlayInstructions?.studentGuidance || '';
+      
+      // NEW: Load AI Tutor vocabulary from generated module
+      this.aiTutorVocabulary = generatedModule.aiTutorConfig.allowedVocabulary || [];
     }
 
     console.log('✅ Role-play form populated with AI-generated data');
