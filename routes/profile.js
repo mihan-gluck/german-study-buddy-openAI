@@ -66,7 +66,7 @@ router.put('/update', verifyToken, async (req, res) => {
 
     // Update the user
     const updatedUser = await User.findByIdAndUpdate(
-      req.user.userId,
+      req.user.id,
       { name, email },
       { new: true, runValidators: true, select: '-password' }
     );
@@ -77,7 +77,7 @@ router.put('/update', verifyToken, async (req, res) => {
 
     res.json({ success: true, msg: 'Profile updated successfully', user: updatedUser });
   } catch (err) {
-    console.error(`Error updating profile for user ${req.user.userId}:`, err);
+    console.error(`Error updating profile for user ${req.user.id}:`, err);
     res.status(500).json({ success: false, msg: 'Error updating profile', error: err.message });
   }
 });
@@ -92,7 +92,7 @@ router.put('/update-password', verifyToken, async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ success: false, msg: 'User not found' });
 
     // Check current password
@@ -107,7 +107,7 @@ router.put('/update-password', verifyToken, async (req, res) => {
 
     res.json({ success: true, msg: 'Password updated successfully' });
   } catch (err) {
-    console.error(`Password update error for user ${req.user.userId}:`, err);
+    console.error(`Password update error for user ${req.user.id}:`, err);
     res.status(500).json({ success: false, msg: 'Error updating password', error: err.message });
   }
 });

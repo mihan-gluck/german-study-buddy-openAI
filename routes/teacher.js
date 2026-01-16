@@ -8,7 +8,7 @@ const { verifyToken, checkRole } = require('../middleware/auth');
 // Get current teacher profile (GET /api/teacher/profile)
 router.get('/profile', verifyToken, checkRole('TEACHER'), async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    const user = await User.findById(req.user.id).select('-password');
     
     res.json({
       _id: user._id,

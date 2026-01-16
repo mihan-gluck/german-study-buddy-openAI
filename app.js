@@ -25,7 +25,6 @@ const feedbackRoutes = require('./routes/feedback');
 
 const profilePicUploadRoutes = require('./routes/profile');
 const timeTableRoutes = require('./routes/timeTable');
-const meetingLinkRoutes = require('./routes/meetingLink');
 const courseMaterialRoutes = require('./routes/courseMaterial');
 const learningModulesRoutes = require('./routes/learningModules');
 const aiTutorRoutes = require('./routes/aiTutor');
@@ -35,6 +34,7 @@ const sessionRecordsRoutes = require('./routes/sessionRecords');
 const translationRoutes = require('./routes/translation');
 const moduleTrashRoutes = require('./routes/moduleTrash');
 const adminAnalyticsRoutes = require('./routes/adminAnalytics');
+const zoomRoutes = require('./routes/zoom');
 
 
 const app = express();
@@ -78,7 +78,6 @@ app.use('/api/protected', roleProtectedRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
 app.use('/api/timeTable', timeTableRoutes);
-app.use('/api/meetingLink', meetingLinkRoutes);
 app.use('/api/courseMaterial', courseMaterialRoutes);
 app.use('/api/learning-modules', learningModulesRoutes);
 app.use('/api/ai-tutor', aiTutorRoutes);
@@ -88,6 +87,7 @@ app.use('/api/session-records', sessionRecordsRoutes);
 app.use('/api/translate', translationRoutes);
 app.use('/api/module-trash', moduleTrashRoutes);
 app.use('/api/admin-analytics', adminAnalyticsRoutes);
+app.use('/api/zoom', zoomRoutes);
 
 
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {

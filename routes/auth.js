@@ -347,40 +347,63 @@ router.put("/:id", async (req, res) => {
       elevenLabsWidgetLink,
       elevenLabsApiKey,
       assignedCourses,
+      assignedBatches,
       assignedTeacher,
       studentStatus
     } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        email,
-        role,
-        subscription,
-        level,
-        batch,
-        medium,
-        plan,
-        conversationId,
-        elevenLabsWidgetLink,
-        elevenLabsApiKey,
-        assignedCourses,
-        assignedTeacher,
-        studentStatus
-      },
-      { new: true } // Return updated document
-    );
-
-    if (!updatedUser) {
+    // ✅ Check if user exists
+    const existingUser = await User.findById(req.params.id);
+    if (!existingUser) {
       return res.status(404).json({ message: "User not found." });
     }
+
+    // ✅ Check if email is being changed and if new email already exists
+    if (email && email !== existingUser.email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: req.params.id } });
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already exists. Please use a different email." });
+      }
+    }
+
+    // ✅ Build update object dynamically (only include provided fields)
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (role !== undefined) updateData.role = role;
+    if (subscription !== undefined) updateData.subscription = subscription;
+    if (level !== undefined) updateData.level = level;
+    if (batch !== undefined) updateData.batch = batch;
+    if (medium !== undefined) updateData.medium = medium;
+    if (plan !== undefined) updateData.plan = plan;
+    if (conversationId !== undefined) updateData.conversationId = conversationId;
+    if (elevenLabsWidgetLink !== undefined) updateData.elevenLabsWidgetLink = elevenLabsWidgetLink;
+    if (elevenLabsApiKey !== undefined) updateData.elevenLabsApiKey = elevenLabsApiKey;
+    if (assignedCourses !== undefined) updateData.assignedCourses = assignedCourses;
+    if (assignedBatches !== undefined) updateData.assignedBatches = assignedBatches;
+    if (assignedTeacher !== undefined) updateData.assignedTeacher = assignedTeacher;
+    if (studentStatus !== undefined) updateData.studentStatus = studentStatus;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true } // Return updated document and run validators
+    );
 
     console.log("✅ User updated:", updatedUser);
     res.status(200).json({ message: "User updated successfully.", data: updatedUser });
   } catch (error) {
     console.error("❌ Error updating user:", error);
-    res.status(500).json({ message: "Internal server error." });
+    
+    // ✅ Handle duplicate key error specifically
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({ 
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists. Please use a different ${field}.` 
+      });
+    }
+    
+    res.status(500).json({ message: "Internal server error.", error: error.message });
   }
 });
 

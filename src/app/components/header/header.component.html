@@ -20,6 +20,12 @@
         <a (click)="navigateTo('/student-dashboard'); closeMenu()">Dashboard</a>
       </li>
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/student/meetings'); closeMenu()" 
+           [class.active]="isCurrentRoute('/student/meetings')">
+          <i class="fas fa-video"></i> My Classes
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
       </li>
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
@@ -32,6 +38,12 @@
       <!-- Teacher Navigation -->
       <li *ngIf="isLoggedIn() && userRole === 'TEACHER'">
         <a (click)="navigateTo('/teacher-dashboard'); closeMenu()">Dashboard</a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'TEACHER'">
+        <a (click)="navigateTo('/teacher/meetings'); closeMenu()" 
+           [class.active]="isCurrentRoute('/teacher/meetings')">
+          <i class="fas fa-calendar-alt"></i> My Meetings
+        </a>
       </li>
       <li *ngIf="isLoggedIn() && (userRole === 'TEACHER' || userRole === 'ADMIN')">
         <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
@@ -87,9 +99,15 @@
         </a>
       </li>
       <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
-        <a (click)="navigateTo('/meeting-link-list'); closeMenu()" 
-           [class.active]="isCurrentRoute('/meeting-link-list')">
-          <i class="fas fa-video"></i> Meetings
+        <a (click)="navigateTo('/teacher/meetings'); closeMenu()" 
+           [class.active]="isCurrentRoute('/teacher/meetings')">
+          <i class="fas fa-video"></i> My Meetings
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
+        <a (click)="navigateTo('/admin/zoom-reports'); closeMenu()" 
+           [class.active]="isCurrentRoute('/admin/zoom-reports')">
+          <i class="fas fa-chart-pie"></i> Zoom Reports
         </a>
       </li>
       <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">

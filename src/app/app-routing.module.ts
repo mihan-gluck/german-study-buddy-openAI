@@ -120,11 +120,16 @@ export const routes: Routes = [
 
   { path: 'feedback-list', loadComponent: () => import('./components/feedback/feedback.component').then(m => m.FeedbackListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
-  { path: 'meeting-link', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
-
-  { path: 'meeting-link-list', loadComponent: () => import('./components/meeting-link/meeting-link-list.component').then(m => m.MeetingLinkListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
-
-  { path: 'meeting-link/:id', loadComponent: () => import('./components/meeting-link/meeting-link.component').then(m => m.MeetingLinkComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  // Zoom Meetings Routes (New System)
+  { path: 'teacher/meetings', loadComponent: () => import('./components/meeting-link/meetings-list.component').then(m => m.MeetingsListComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  { path: 'teacher/meetings/create', loadComponent: () => import('./components/meeting-link/create-zoom-meeting.component').then(m => m.CreateZoomMeetingComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  { path: 'teacher/meetings/:id', loadComponent: () => import('./components/meeting-link/meeting-details.component').then(m => m.MeetingDetailsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  
+  // Student Zoom Meetings
+  { path: 'student/meetings', loadComponent: () => import('./components/meeting-link/student-meetings.component').then(m => m.StudentMeetingsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+  
+  // Admin Zoom Reports
+  { path: 'admin/zoom-reports', loadComponent: () => import('./components/admin-dashboard/zoom-reports.component').then(m => m.ZoomReportsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
   
   { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: 'ADMIN'} },
 

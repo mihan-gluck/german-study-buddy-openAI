@@ -104,7 +104,7 @@ router.get('/profile', verifyToken, checkRole('STUDENT'), async (req, res) => {
 // ✅ Get course progress for current student
 router.get('/course-progress', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate('courseProgress.courseId', 'name');
+    const user = await User.findById(req.user.id).populate('courseProgress.courseId', 'name');
     if (!user) return res.status(404).json({ msg: 'Student not found' });
 
     res.status(200).json(user.courseProgress);
@@ -117,7 +117,7 @@ router.get('/course-progress', verifyToken, checkRole('STUDENT'), async (req, re
 // ✅ GET /api/student/progress - Get course progress for logged-in student
 router.get('/progress', verifyToken, checkRole('STUDENT'), async (req, res) => {
   try {
-    const studentId = req.user.userId;
+    const studentId = req.user.id;
     const progress = await CourseProgress.find({ studentId }).populate('courseId', 'name');
 
     res.status(200).json(progress);
@@ -132,7 +132,7 @@ router.put('/course-progress', verifyToken, checkRole('STUDENT'), async (req, re
   try {
     const { courseId, progressPercent } = req.body;
 
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: 'Student not found' });
 
     const existing = user.courseProgress.find(cp => cp.courseId.toString() === courseId);
