@@ -123,30 +123,33 @@ router.get('/student/:studentId', verifyToken, checkRole(['TEACHER', 'ADMIN']), 
 
     res.json({
       success: true,
-      sessionRecords: sessionRecords.map(record => ({
-        id: record._id,
-        sessionId: record.sessionId,
-        student: {
-          name: record.studentName,
-          email: record.studentEmail,
-          level: record.studentId?.level
-        },
-        module: {
-          title: record.moduleTitle,
-          level: record.moduleLevel
-        },
-        sessionType: record.sessionType,
-        sessionState: record.sessionState,
-        startTime: record.startTime,
-        endTime: record.endTime,
-        durationMinutes: record.durationMinutes,
-        formattedDuration: record.formattedDuration,
-        conversationStats: record.getConversationStats(),
-        performanceSummary: record.getPerformanceSummary(),
-        teacherReviewed: record.teacherReviewed,
-        isModuleCompleted: record.isModuleCompleted,
-        createdAt: record.createdAt
-      })),
+      sessionRecords: sessionRecords
+        .filter(record => record.moduleId !== null) // Skip records with deleted modules
+        .map(record => ({
+          id: record._id,
+          sessionId: record.sessionId,
+          student: {
+            name: record.studentName,
+            email: record.studentEmail,
+            level: record.studentId?.level
+          },
+          module: {
+            title: record.moduleTitle,
+            level: record.moduleLevel,
+            category: record.moduleId?.category || 'General'
+          },
+          sessionType: record.sessionType,
+          sessionState: record.sessionState,
+          startTime: record.startTime,
+          endTime: record.endTime,
+          durationMinutes: record.durationMinutes,
+          formattedDuration: record.formattedDuration,
+          conversationStats: record.getConversationStats(),
+          performanceSummary: record.getPerformanceSummary(),
+          teacherReviewed: record.teacherReviewed,
+          isModuleCompleted: record.isModuleCompleted,
+          createdAt: record.createdAt
+        })),
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -182,26 +185,28 @@ router.get('/module/:moduleId', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
 
     res.json({
       success: true,
-      sessionRecords: sessionRecords.map(record => ({
-        id: record._id,
-        sessionId: record.sessionId,
-        student: {
-          id: record.studentId._id,
-          name: record.studentName,
-          email: record.studentEmail,
-          level: record.studentId?.level
-        },
-        sessionType: record.sessionType,
-        sessionState: record.sessionState,
-        startTime: record.startTime,
-        endTime: record.endTime,
-        durationMinutes: record.durationMinutes,
-        conversationStats: record.getConversationStats(),
-        performanceSummary: record.getPerformanceSummary(),
-        teacherReviewed: record.teacherReviewed,
-        isModuleCompleted: record.isModuleCompleted,
-        createdAt: record.createdAt
-      })),
+      sessionRecords: sessionRecords
+        .filter(record => record.studentId !== null) // Skip records with deleted students
+        .map(record => ({
+          id: record._id,
+          sessionId: record.sessionId,
+          student: {
+            id: record.studentId._id,
+            name: record.studentName,
+            email: record.studentEmail,
+            level: record.studentId?.level
+          },
+          sessionType: record.sessionType,
+          sessionState: record.sessionState,
+          startTime: record.startTime,
+          endTime: record.endTime,
+          durationMinutes: record.durationMinutes,
+          conversationStats: record.getConversationStats(),
+          performanceSummary: record.getPerformanceSummary(),
+          teacherReviewed: record.teacherReviewed,
+          isModuleCompleted: record.isModuleCompleted,
+          createdAt: record.createdAt
+        })),
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -232,6 +237,14 @@ router.get('/:sessionId/details', verifyToken, checkRole(['TEACHER', 'ADMIN']), 
       return res.status(404).json({
         success: false,
         message: 'Session record not found'
+      });
+    }
+
+    // Check if referenced documents exist
+    if (!sessionRecord.studentId || !sessionRecord.moduleId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Session record references deleted student or module'
       });
     }
 
@@ -376,37 +389,39 @@ router.get('/my-history', verifyToken, async (req, res) => {
       }
     }
 
-    // Format session history
-    const sessionHistory = sessionRecords.map(record => ({
-      id: record._id,
-      sessionId: record.sessionId,
-      module: {
-        id: record.moduleId._id,
-        title: record.moduleTitle,
-        level: record.moduleLevel,
-        category: record.moduleId?.category || 'General'
-      },
-      sessionType: record.sessionType,
-      sessionState: record.sessionState,
-      startTime: record.startTime,
-      endTime: record.endTime,
-      durationMinutes: record.durationMinutes,
-      formattedDuration: record.formattedDuration,
-      summary: record.summary || {
-        conversationCount: 0,
-        timeSpentMinutes: record.durationMinutes || 0,
-        vocabularyUsed: [],
-        exerciseScore: 0,
-        conversationScore: 0,
-        totalScore: 0,
-        correctAnswers: 0,
-        incorrectAnswers: 0,
-        accuracy: 0
-      },
-      performanceSummary: record.getPerformanceSummary(),
-      isModuleCompleted: record.isModuleCompleted,
-      createdAt: record.createdAt
-    }));
+    // Format session history (filter out records with deleted modules)
+    const sessionHistory = sessionRecords
+      .filter(record => record.moduleId !== null) // Skip records with deleted modules
+      .map(record => ({
+        id: record._id,
+        sessionId: record.sessionId,
+        module: {
+          id: record.moduleId._id,
+          title: record.moduleTitle,
+          level: record.moduleLevel,
+          category: record.moduleId?.category || 'General'
+        },
+        sessionType: record.sessionType,
+        sessionState: record.sessionState,
+        startTime: record.startTime,
+        endTime: record.endTime,
+        durationMinutes: record.durationMinutes,
+        formattedDuration: record.formattedDuration,
+        summary: record.summary || {
+          conversationCount: 0,
+          timeSpentMinutes: record.durationMinutes || 0,
+          vocabularyUsed: [],
+          exerciseScore: 0,
+          conversationScore: 0,
+          totalScore: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          accuracy: 0
+        },
+        performanceSummary: record.getPerformanceSummary(),
+        isModuleCompleted: record.isModuleCompleted,
+        createdAt: record.createdAt
+      }));
 
     res.json({
       success: true,

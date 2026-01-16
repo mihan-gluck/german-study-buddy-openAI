@@ -1,21 +1,21 @@
 <!-- src/app/components/time-table/time-table-view.component.html -->
-<div class="admin-timetable">
+<div class="timetable-container">
   <!-- Header Section -->
-  <div class="admin-header">
+  <div class="timetable-header">
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-md-8">
-          <h1 class="admin-title">
-            <i class="fas fa-calendar"></i>
-            Timetable Management
+          <h1 class="page-title">
+            <i class="fas fa-calendar-alt"></i>
+            My Timetable
           </h1>
-          <p class="admin-subtitle">View and manage class schedules and timetables</p>
+          <p class="page-subtitle">{{ getCurrentMonthYear() }} Schedule</p>
         </div>
         <div class="col-md-4 text-end">
-          <div class="admin-stats-quick">
-            <div class="stat-item">
-              <span class="stat-number">{{ timeTables?.length || 0 }}</span>
-              <span class="stat-label">Active Schedules</span>
+          <div class="header-stats">
+            <div class="stat-card">
+              <span class="stat-value">{{ timeTables?.length || 0 }}</span>
+              <span class="stat-label">Weeks Scheduled</span>
             </div>
           </div>
         </div>
@@ -24,129 +24,175 @@
   </div>
 
   <!-- Main Content Area -->
-  <div class="admin-content">
+  <div class="timetable-content">
     <div class="container-fluid">
       
       <!-- Action Bar -->
       <div class="action-bar" *ngIf="userRole === 'ADMIN'">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <button class="btn btn-primary btn-add-timetable" routerLink="/time-table">
-              <i class="fas fa-plus"></i>
-              Add New Timetable
-            </button>
-          </div>
-          <div class="col-md-6 text-end">
-            <div class="view-options">
-              <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-secondary btn-sm" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'">
-                  <i class="fas fa-table"></i>
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" [class.active]="viewMode === 'calendar'" (click)="viewMode = 'calendar'">
-                  <i class="fas fa-calendar-alt"></i>
-                </button>
+        <button class="btn-add" routerLink="/time-table">
+          <i class="fas fa-plus-circle"></i>
+          Add New Timetable
+        </button>
+      </div>
+
+      <!-- Timetable Cards -->
+      <div class="timetable-cards">
+        <ng-container *ngFor="let weekGroup of groupByWeek(timeTables, userRole === 'STUDENT')">
+          <ng-container *ngFor="let tt of weekGroup.items; let i = index">
+            
+            <!-- Week Card -->
+            <div class="week-card" *ngIf="i === 0">
+              <div class="week-header">
+                <div class="week-info">
+                  <h2 class="week-title">
+                    <i class="fas fa-calendar-week"></i>
+                    Week of {{ tt.weekStartDate | date:'MMMM d' }} - {{ tt.weekEndDate | date:'d, yyyy' }}
+                  </h2>
+                  <div class="week-meta">
+                    <span class="meta-item" *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">
+                      <i class="fas fa-users"></i>
+                      Batch {{ tt.batch }}
+                    </span>
+                    <span class="meta-item" *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">
+                      <i class="fas fa-language"></i>
+                      {{ tt.medium }}
+                    </span>
+                    <span class="meta-item" *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">
+                      <i class="fas fa-star"></i>
+                      {{ tt.plan }}
+                    </span>
+                    <span class="meta-item" *ngIf="userRole === 'ADMIN'">
+                      <i class="fas fa-chalkboard-teacher"></i>
+                      {{ teachersCache[tt.assignedTeacher] || 'Loading...' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="week-actions" *ngIf="userRole === 'ADMIN'">
+                  <button class="btn-edit" [routerLink]="['/time-table', tt._id]" title="Edit Timetable">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Results Summary -->
-      <div class="results-summary">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="results-info">
-            <span class="results-count">{{ timeTables?.length || 0 }}</span>
-            <span class="results-text">timetable entries</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Timetable Table -->
-      <div class="timetable-section">
-        <div class="card">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0 timetable">
-              <thead class="table-dark">
-                <tr>
-                  <th>Week Period</th>
-                  <th *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">Batch</th>
-                  <th *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">Medium</th>
-                  <th *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'">Plan</th>
-                  <th *ngIf="userRole === 'ADMIN'">Assigned Teacher</th>
-                  <th *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']">
-                    {{ day | titlecase }}
-                  </th>
-                  <th *ngIf="userRole === 'ADMIN'" class="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <ng-container *ngFor="let weekGroup of groupByWeek(timeTables, userRole === 'STUDENT')">
-                  <ng-container *ngFor="let tt of weekGroup.items; let i = index">
-                    <tr>
-                      <td *ngIf="i === 0" [attr.rowspan]="weekGroup.items.length" data-label="Week Period" class="week-period">
-                        <div class="week-range">
-                          <strong>{{ tt.weekStartDate | date:'MMM d' }} - {{ tt.weekEndDate | date:'MMM d, y' }}</strong>
-                        </div>
-                      </td>
-                      <td *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'" data-label="Batch">
-                        <span class="badge bg-primary">Batch {{ tt.batch }}</span>
-                      </td>
-                      <td *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'" data-label="Medium">
-                        <span class="badge bg-info">{{ tt.medium }}</span>
-                      </td>
-                      <td *ngIf="userRole === 'ADMIN' || userRole === 'TEACHER'" data-label="Plan">
-                        <span class="badge bg-success">{{ tt.plan }}</span>
-                      </td>
-                      <td *ngIf="userRole === 'ADMIN'" data-label="Assigned Teacher">
-                        <div class="teacher-info">
-                          <strong>{{ teachersCache[tt.assignedTeacher] || 'Loading...' }}</strong>
-                        </div>
-                      </td>
-                      <td *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']" 
-                          [attr.data-label]="day | titlecase" class="day-schedule">
-                        <div class="time-slots">
-                          <ng-container *ngIf="tt[day] && tt[day].length > 0; else noSlot">
-                            <div class="slot-item" *ngFor="let slot of tt[day]">
-                              <div class="slot-time">{{ slot.start }} - {{ slot.end }}</div>
-                              <div class="slot-status" 
-                                   [ngClass]="{
-                                     'scheduled': slot.classStatus === 'Scheduled',
-                                     'cancelled': slot.classStatus === 'Cancelled'
-                                   }">
-                                {{ slot.classStatus }}
+              <!-- Days Grid -->
+              <div class="days-grid">
+                <div class="day-card" *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']; let dayIndex = index">
+                  <div class="day-header">
+                    <div class="day-name">{{ day | titlecase }}</div>
+                    <div class="day-date">{{ getDateForDay(tt.weekStartDate, dayIndex) | date:'MMM d' }}</div>
+                  </div>
+                  <div class="day-content">
+                    <ng-container *ngIf="tt[day] && tt[day].length > 0; else noDayClass">
+                      <div class="class-slot" *ngFor="let slot of tt[day]" 
+                           [ngClass]="{'cancelled': slot.classStatus === 'Cancelled'}">
+                        
+                        <!-- Get meeting for this slot -->
+                        <ng-container *ngIf="getMeetingForSlot(getDateForDay(tt.weekStartDate, dayIndex), slot.start, tt.batch) as meeting; else noMeeting">
+                          
+                          <!-- Meeting exists -->
+                          <div class="slot-with-meeting">
+                            <div class="slot-header">
+                              <div class="slot-icon">
+                                <i class="fas fa-video"></i>
+                              </div>
+                              <div class="slot-details">
+                                <div class="slot-time">
+                                  <i class="fas fa-clock"></i>
+                                  {{ slot.start }} - {{ slot.end }}
+                                </div>
+                                <div class="meeting-topic">{{ meeting.topic }}</div>
                               </div>
                             </div>
-                          </ng-container>
-                          <ng-template #noSlot>
-                            <span class="no-class">No classes</span>
-                          </ng-template>
-                        </div>
-                      </td>
-                      <td *ngIf="userRole === 'ADMIN'" class="text-center">
-                        <button 
-                          class="btn btn-sm btn-outline-primary"
-                          [routerLink]="['/time-table', tt._id]"
-                          title="Edit Timetable"
-                        >
-                          <i class="fas fa-edit"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  </ng-container>
-                </ng-container>
-              </tbody>
-            </table>
-          </div>
-        </div>
+                            
+                            <!-- Meeting Status Badge -->
+                            <div class="meeting-status-badge" [ngClass]="getMeetingStatus(meeting)">
+                              <span *ngIf="getMeetingStatus(meeting) === 'live'" class="status-live">
+                                <i class="fas fa-circle pulse"></i> LIVE NOW
+                              </span>
+                              <span *ngIf="getMeetingStatus(meeting) === 'upcoming'" class="status-upcoming">
+                                <i class="fas fa-clock"></i> {{ getCountdown(meeting) }}
+                              </span>
+                              <span *ngIf="getMeetingStatus(meeting) === 'ended'" class="status-ended">
+                                <i class="fas fa-check-circle"></i> Ended
+                              </span>
+                            </div>
+                            
+                            <!-- Join Button -->
+                            <button 
+                              *ngIf="canJoinMeeting(meeting)" 
+                              class="btn-join-meeting"
+                              (click)="joinMeeting(meeting)"
+                              [ngClass]="{'live': getMeetingStatus(meeting) === 'live'}">
+                              <i class="fas fa-video"></i>
+                              <span *ngIf="getMeetingStatus(meeting) === 'live'">Join Now</span>
+                              <span *ngIf="getMeetingStatus(meeting) === 'upcoming'">Join Class</span>
+                            </button>
+                            
+                            <!-- Attendees Count (for teachers/admins) -->
+                            <div class="meeting-meta" *ngIf="userRole === 'TEACHER' || userRole === 'ADMIN'">
+                              <span class="meta-attendees">
+                                <i class="fas fa-users"></i>
+                                {{ meeting.attendees?.length || 0 }} students
+                              </span>
+                            </div>
+                          </div>
+                          
+                        </ng-container>
+                        
+                        <!-- No meeting template -->
+                        <ng-template #noMeeting>
+                          <div class="slot-no-meeting">
+                            <div class="slot-icon">
+                              <i class="fas" [ngClass]="slot.classStatus === 'Scheduled' ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                            </div>
+                            <div class="slot-details">
+                              <div class="slot-time">
+                                <i class="fas fa-clock"></i>
+                                {{ slot.start }} - {{ slot.end }}
+                              </div>
+                              <div class="slot-status" [ngClass]="slot.classStatus?.toLowerCase()">
+                                {{ slot.classStatus || 'Scheduled' }}
+                              </div>
+                              <div class="no-meeting-notice" *ngIf="slot.classStatus !== 'Cancelled'">
+                                <i class="fas fa-info-circle"></i>
+                                <span *ngIf="userRole === 'TEACHER' || userRole === 'ADMIN'">No Zoom meeting created</span>
+                                <span *ngIf="userRole === 'STUDENT'">Meeting link not available yet</span>
+                              </div>
+                            </div>
+                          </div>
+                        </ng-template>
+                        
+                      </div>
+                    </ng-container>
+                    <ng-template #noDayClass>
+                      <div class="no-class-message">
+                        <i class="fas fa-calendar-times"></i>
+                        <span>No classes</span>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </ng-container>
+        </ng-container>
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!timeTables || timeTables.length === 0" class="empty-state text-center py-5">
-        <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
-        <h4>No Timetables Available</h4>
-        <p class="text-muted">Start by creating your first timetable to schedule classes.</p>
-        <button *ngIf="userRole === 'ADMIN'" class="btn btn-primary" routerLink="/time-table">
-          <i class="fas fa-plus"></i>
+      <div *ngIf="!timeTables || timeTables.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-calendar-alt"></i>
+        </div>
+        <h3 class="empty-title">No Timetables Available</h3>
+        <p class="empty-text">
+          <span *ngIf="userRole === 'ADMIN'">Start by creating your first timetable to schedule classes.</span>
+          <span *ngIf="userRole === 'STUDENT'">Your teacher hasn't created a timetable yet. Check back soon!</span>
+          <span *ngIf="userRole === 'TEACHER'">No timetables assigned to you yet.</span>
+        </p>
+        <button *ngIf="userRole === 'ADMIN'" class="btn-primary-action" routerLink="/time-table">
+          <i class="fas fa-plus-circle"></i>
           Create First Timetable
         </button>
       </div>

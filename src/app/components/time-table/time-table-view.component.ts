@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TimeTableService } from '../../services/timeTable.service';
 import { AuthService } from '../../services/auth.service';
 import { StudentService } from '../../services/student.service';
 import { TeacherService } from '../../services/teacher.service';
+import { ZoomService } from '../../services/zoom.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -16,13 +17,13 @@ interface TimeTable {
   weekStartDate: Date;
   weekEndDate: Date;
   assignedTeacher: string;
-  monday?: { start: string; end: string }[];
-  tuesday?: { start: string; end: string }[];
-  wednesday?: { start: string; end: string }[];
-  thursday?: { start: string; end: string }[];
-  friday?: { start: string; end: string }[];
-  saturday?: { start: string; end: string }[];
-  sunday?: { start: string; end: string }[];
+  monday?: { start: string; end: string; classStatus?: string }[];
+  tuesday?: { start: string; end: string; classStatus?: string }[];
+  wednesday?: { start: string; end: string; classStatus?: string }[];
+  thursday?: { start: string; end: string; classStatus?: string }[];
+  friday?: { start: string; end: string; classStatus?: string }[];
+  saturday?: { start: string; end: string; classStatus?: string }[];
+  sunday?: { start: string; end: string; classStatus?: string }[];
   classStatus?: 'Scheduled' | 'Cancelled';
   [key: string]: any;
 }
@@ -36,6 +37,17 @@ interface UserProfile {
   [key: string]: any;
 }
 
+interface ZoomMeeting {
+  _id: string;
+  batch: string;
+  topic: string;
+  startTime: Date;
+  duration: number;
+  joinUrl: string;
+  status: string;
+  attendees: any[];
+}
+
 @Component({
   selector: 'app-time-table-view',
   imports: [FormsModule, CommonModule, HttpClientModule, RouterModule],
@@ -43,22 +55,41 @@ interface UserProfile {
   templateUrl: './time-table-view.component.html',
   styleUrls: ['./time-table-view.component.css']
 })
-export class TimeTableViewComponent implements OnInit {
+export class TimeTableViewComponent implements OnInit, OnDestroy {
   timeTables: TimeTable[] = [];
   teachersCache: { [key: string]: string } = {}; // cache id => name
   userRole: string = '';
   userProfile?: UserProfile;
   viewMode: 'table' | 'calendar' = 'table';
+  
+  // Zoom meetings
+  zoomMeetings: ZoomMeeting[] = [];
+  meetingsLoaded: boolean = false;
+  
+  // Auto-refresh timer
+  private refreshInterval: any;
 
   constructor(
     private timeTableService: TimeTableService,
     private authService: AuthService,
     private studentService: StudentService,
     private teacherService: TeacherService,
+    private zoomService: ZoomService,
   ) {}
 
   ngOnInit(): void {
     this.loadUserProfile();
+    
+    // Auto-refresh every 30 seconds
+    this.refreshInterval = setInterval(() => {
+      this.loadZoomMeetings();
+    }, 30000);
+  }
+  
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   // Load user profile and then timetables based on role
@@ -74,17 +105,46 @@ export class TimeTableViewComponent implements OnInit {
           this.loadTimeTables();
         } else if (this.userRole === 'TEACHER') {
           if (profile._id) {
-            this.loadTimeTablesforTeacher(profile._id!); // new method
+            this.loadTimeTablesforTeacher(profile._id!);
           } else {
             console.error('Teacher profile _id is undefined');
           }
         }
-
+        
+        // Load Zoom meetings after profile is loaded
+        this.loadZoomMeetings();
       },
       error: (error) => {
         console.error('Error fetching profile:', error);
       }
     });
+  }
+  
+  // Load Zoom meetings
+  private loadZoomMeetings(): void {
+    if (this.userRole === 'STUDENT') {
+      this.zoomService.getStudentMeetings().subscribe({
+        next: (response) => {
+          this.zoomMeetings = response.meetings || [];
+          this.meetingsLoaded = true;
+        },
+        error: (error) => {
+          console.error('Error loading student meetings:', error);
+          this.meetingsLoaded = true;
+        }
+      });
+    } else if (this.userRole === 'TEACHER' || this.userRole === 'ADMIN') {
+      this.zoomService.getAllMeetings().subscribe({
+        next: (response) => {
+          this.zoomMeetings = response.meetings || [];
+          this.meetingsLoaded = true;
+        },
+        error: (error) => {
+          console.error('Error loading meetings:', error);
+          this.meetingsLoaded = true;
+        }
+      });
+    }
   }
 
   // Admin - all timetables (✅ filtered by current month)
@@ -198,6 +258,100 @@ export class TimeTableViewComponent implements OnInit {
     }
 
     return Object.keys(groups).map(k => ({ week: k, items: groups[k] }));
+  }
+
+  // Get date for specific day of the week
+  getDateForDay(weekStartDate: Date, dayIndex: number): Date {
+    const date = new Date(weekStartDate);
+    date.setDate(date.getDate() + dayIndex);
+    return date;
+  }
+
+  // Get current month and year
+  getCurrentMonthYear(): string {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+  
+  // Get Zoom meeting for a specific time slot
+  getMeetingForSlot(date: Date, startTime: string, batch: string): ZoomMeeting | null {
+    if (!this.meetingsLoaded || !this.zoomMeetings.length) {
+      return null;
+    }
+    
+    // Parse the time slot
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const slotDateTime = new Date(date);
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    // Find matching meeting
+    return this.zoomMeetings.find(meeting => {
+      const meetingStart = new Date(meeting.startTime);
+      const meetingBatch = meeting.batch;
+      
+      // Check if same date, time, and batch
+      return (
+        meetingStart.getFullYear() === slotDateTime.getFullYear() &&
+        meetingStart.getMonth() === slotDateTime.getMonth() &&
+        meetingStart.getDate() === slotDateTime.getDate() &&
+        meetingStart.getHours() === slotDateTime.getHours() &&
+        meetingStart.getMinutes() === slotDateTime.getMinutes() &&
+        meetingBatch === batch
+      );
+    }) || null;
+  }
+  
+  // Get meeting status
+  getMeetingStatus(meeting: ZoomMeeting): string {
+    const now = new Date();
+    const startTime = new Date(meeting.startTime);
+    const endTime = new Date(startTime.getTime() + meeting.duration * 60000);
+    
+    if (now < startTime) {
+      return 'upcoming';
+    } else if (now >= startTime && now <= endTime) {
+      return 'live';
+    } else {
+      return 'ended';
+    }
+  }
+  
+  // Get countdown for upcoming meeting
+  getCountdown(meeting: ZoomMeeting): string {
+    const now = new Date();
+    const startTime = new Date(meeting.startTime);
+    const diff = startTime.getTime() - now.getTime();
+    
+    if (diff <= 0) return '';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 24) {
+      const days = Math.floor(hours / 24);
+      return `in ${days}d ${hours % 24}h`;
+    } else if (hours > 0) {
+      return `in ${hours}h ${minutes}m`;
+    } else {
+      return `in ${minutes}m`;
+    }
+  }
+  
+  // Check if meeting can be joined (15 minutes before start)
+  canJoinMeeting(meeting: ZoomMeeting): boolean {
+    const now = new Date();
+    const startTime = new Date(meeting.startTime);
+    const endTime = new Date(startTime.getTime() + meeting.duration * 60000);
+    const fifteenMinsBefore = new Date(startTime.getTime() - 15 * 60000);
+    
+    return now >= fifteenMinsBefore && now <= endTime;
+  }
+  
+  // Join meeting
+  joinMeeting(meeting: ZoomMeeting): void {
+    if (meeting.joinUrl) {
+      window.open(meeting.joinUrl, '_blank');
+    }
   }
 
 }
