@@ -1,0 +1,144 @@
+<!-- src/app/components/meeting-link/meetings-list.component.html -->
+
+<div class="meetings-list-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>{{ isAdmin() ? 'All Meetings' : 'My Meetings' }}</h1>
+    <button mat-raised-button color="primary" (click)="createMeeting()">
+      <mat-icon>add</mat-icon>
+      Create Meeting
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <div class="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" placeholder="Search by topic, batch...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+          <mat-option value="all">All Status</mat-option>
+          <mat-option value="scheduled">Scheduled</mat-option>
+          <mat-option value="ongoing">Ongoing</mat-option>
+          <mat-option value="ended">Ended</mat-option>
+          <mat-option value="cancelled">Cancelled</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Batch</mat-label>
+        <mat-select [(ngModel)]="batchFilter" (ngModelChange)="onFilterChange()">
+          <mat-option value="all">All Batches</mat-option>
+          <mat-option *ngFor="let batch of getUniqueBatches()" [value]="batch">
+            {{ batch }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading meetings...</p>
+  </div>
+
+  <!-- Error State -->
+  <mat-card *ngIf="error && !loading" class="error-card">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadMeetings()">
+      <mat-icon>refresh</mat-icon>
+      Retry
+    </button>
+  </mat-card>
+
+  <!-- Meetings Grid -->
+  <div *ngIf="!loading && !error" class="meetings-grid">
+    <!-- No Meetings -->
+    <mat-card *ngIf="filteredMeetings.length === 0" class="no-meetings-card">
+      <mat-icon>event_busy</mat-icon>
+      <h3>No meetings found</h3>
+      <p *ngIf="searchQuery || statusFilter !== 'all' || batchFilter !== 'all'">
+        Try adjusting your filters
+      </p>
+      <p *ngIf="!searchQuery && statusFilter === 'all' && batchFilter === 'all'">
+        Create your first meeting to get started
+      </p>
+      <button mat-raised-button color="primary" (click)="createMeeting()">
+        <mat-icon>add</mat-icon>
+        Create Meeting
+      </button>
+    </mat-card>
+
+    <!-- Meeting Cards -->
+    <mat-card 
+      *ngFor="let meeting of filteredMeetings" 
+      class="meeting-card"
+      (click)="viewMeeting(meeting._id)">
+      
+      <!-- Card Header -->
+      <div class="card-header">
+        <mat-chip [color]="getStatusColor(getMeetingStatus(meeting))" selected>
+          {{ getMeetingStatus(meeting) | uppercase }}
+        </mat-chip>
+        <span class="batch-badge">{{ meeting.batch }}</span>
+      </div>
+
+      <!-- Card Content -->
+      <mat-card-content>
+        <h3>{{ meeting.topic }}</h3>
+        
+        <!-- Show teacher name for admins -->
+        <div class="info-row teacher-info" *ngIf="isAdmin()">
+          <mat-icon>person</mat-icon>
+          <span><strong>Teacher:</strong> {{ getTeacherName(meeting) }}</span>
+        </div>
+        
+        <div class="meeting-info">
+          <div class="info-row">
+            <mat-icon>event</mat-icon>
+            <span>{{ formatDate(meeting.startTime) }}</span>
+          </div>
+          
+          <div class="info-row">
+            <mat-icon>schedule</mat-icon>
+            <span>{{ formatDuration(meeting.duration) }}</span>
+          </div>
+          
+          <div class="info-row">
+            <mat-icon>people</mat-icon>
+            <span>{{ meeting.attendees?.length || 0 }} participants</span>
+          </div>
+        </div>
+
+        <p class="agenda" *ngIf="meeting.agenda">
+          {{ meeting.agenda }}
+        </p>
+      </mat-card-content>
+
+      <!-- Card Actions -->
+      <mat-card-actions>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="joinMeeting(meeting, $event)"
+          [disabled]="!canJoinMeeting(meeting)"
+          class="join-button">
+          <mat-icon>videocam</mat-icon>
+          {{ getMeetingStatus(meeting) === 'ongoing' ? 'Join Now' : 'Start Meeting' }}
+        </button>
+        
+        <button mat-button (click)="viewMeeting(meeting._id); $event.stopPropagation()">
+          <mat-icon>visibility</mat-icon>
+          View Details
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

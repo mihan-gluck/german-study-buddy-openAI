@@ -1,0 +1,324 @@
+<!-- src/app/components/meeting-link/meeting-details.component.html -->
+
+<div class="meeting-details-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading meeting details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-card>
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Meetings
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Meeting Details -->
+  <div *ngIf="meeting && !loading" class="meeting-content">
+    <!-- Header Section -->
+    <mat-card class="header-card">
+      <mat-card-header>
+        <mat-card-title>
+          <div class="title-row">
+            <button mat-icon-button (click)="goBack()">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <h2>{{ meeting.topic }}</h2>
+            <mat-chip [color]="getStatusColor(meeting.currentStatus)" selected>
+              {{ meeting.currentStatus | uppercase }}
+            </mat-chip>
+          </div>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="joinMeeting()"
+            [disabled]="!meeting.canJoin || meeting.hasEnded"
+            class="join-button">
+            <mat-icon>videocam</mat-icon>
+            {{ meeting.isOngoing ? 'Join Now' : 'Start Meeting' }}
+          </button>
+
+          <button mat-stroked-button (click)="copyJoinUrl()">
+            <mat-icon>link</mat-icon>
+            Copy Join URL
+          </button>
+
+          <button mat-stroked-button (click)="viewAttendance()" *ngIf="meeting.hasEnded">
+            <mat-icon>people</mat-icon>
+            View Attendance
+          </button>
+
+          <button mat-stroked-button (click)="viewEngagement()" *ngIf="meeting.hasEnded">
+            <mat-icon>analytics</mat-icon>
+            View Engagement
+          </button>
+
+          <button mat-icon-button [matMenuTriggerFor]="menu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="editMeeting()">
+              <mat-icon>edit</mat-icon>
+              <span>Edit Meeting</span>
+            </button>
+            <button mat-menu-item (click)="deleteMeeting()">
+              <mat-icon color="warn">delete</mat-icon>
+              <span>Delete Meeting</span>
+            </button>
+          </mat-menu>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Meeting Information Grid -->
+        <div class="info-grid">
+          <div class="info-item">
+            <mat-icon>event</mat-icon>
+            <div>
+              <label>Date & Time</label>
+              <p>{{ formatDate(meeting.startTime) }}</p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon>schedule</mat-icon>
+            <div>
+              <label>Duration</label>
+              <p>{{ formatDuration(meeting.duration) }}</p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon>class</mat-icon>
+            <div>
+              <label>Batch</label>
+              <p>{{ meeting.batch }}</p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon>public</mat-icon>
+            <div>
+              <label>Timezone</label>
+              <p>{{ meeting.timezone }}</p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon>people</mat-icon>
+            <div>
+              <label>Participants</label>
+              <p>{{ meeting.attendeesCount }} students</p>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="meeting.hasEnded">
+            <mat-icon>check_circle</mat-icon>
+            <div>
+              <label>Attended</label>
+              <p>{{ meeting.attendedCount }} / {{ meeting.attendeesCount }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meeting Credentials -->
+        <div class="credentials-section">
+          <h3>Meeting Credentials</h3>
+          <div class="credential-item">
+            <label>Meeting ID:</label>
+            <span>{{ meeting.zoomMeetingId }}</span>
+            <button mat-icon-button (click)="copyMeetingId()">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+          <div class="credential-item" *ngIf="meeting.zoomPassword">
+            <label>Password:</label>
+            <span>{{ meeting.zoomPassword }}</span>
+            <button mat-icon-button (click)="copyPassword()">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+          <div class="credential-item">
+            <label>Join URL:</label>
+            <span class="url-text">{{ meeting.joinUrl }}</span>
+            <button mat-icon-button (click)="copyJoinUrl()">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Agenda -->
+        <div class="agenda-section" *ngIf="meeting.agenda">
+          <h3>Agenda</h3>
+          <p>{{ meeting.agenda }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tabs Section -->
+    <mat-card class="tabs-card">
+      <mat-tab-group>
+        <!-- Participants Tab -->
+        <mat-tab label="Participants ({{ meeting.attendeesCount }})">
+          <div class="tab-content">
+            <table mat-table [dataSource]="meeting.attendees" class="participants-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let student">
+                  {{ student.studentId?.name || student.name }}
+                </td>
+              </ng-container>
+
+              <!-- Email Column -->
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let student">
+                  {{ student.studentId?.email || student.email }}
+                </td>
+              </ng-container>
+
+              <!-- Batch Column -->
+              <ng-container matColumnDef="batch">
+                <th mat-header-cell *matHeaderCellDef>Batch</th>
+                <td mat-cell *matCellDef="let student">
+                  {{ student.studentId?.batch || '-' }}
+                </td>
+              </ng-container>
+
+              <!-- Level Column -->
+              <ng-container matColumnDef="level">
+                <th mat-header-cell *matHeaderCellDef>Level</th>
+                <td mat-cell *matCellDef="let student">
+                  {{ student.studentId?.level || '-' }}
+                </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let student">
+                  <mat-chip [color]="student.studentId?.studentStatus === 'active' ? 'primary' : 'warn'" selected>
+                    {{ student.studentId?.studentStatus || 'Unknown' }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="attendeeColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: attendeeColumns;"></tr>
+            </table>
+
+            <div *ngIf="meeting.attendees.length === 0" class="no-data">
+              <mat-icon>people_outline</mat-icon>
+              <p>No participants added yet</p>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Attendance Tab (Only if meeting has ended) -->
+        <mat-tab label="Attendance" *ngIf="meeting.hasEnded && meeting.attendance">
+          <div class="tab-content">
+            <div class="attendance-summary">
+              <div class="summary-card">
+                <h4>{{ meeting.attendedCount }}</h4>
+                <p>Attended</p>
+              </div>
+              <div class="summary-card">
+                <h4>{{ meeting.attendeesCount - meeting.attendedCount }}</h4>
+                <p>Absent</p>
+              </div>
+              <div class="summary-card">
+                <h4>{{ meeting.attendedCount > 0 ? ((meeting.attendedCount / meeting.attendeesCount) * 100).toFixed(0) : 0 }}%</h4>
+                <p>Attendance Rate</p>
+              </div>
+            </div>
+
+            <table mat-table [dataSource]="meeting.attendance" class="attendance-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let record">{{ record.name }}</td>
+              </ng-container>
+
+              <!-- Email Column -->
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let record">{{ record.email }}</td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let record">
+                  <mat-chip [color]="getAttendanceColor(record.attended)" selected>
+                    {{ getAttendanceStatus(record.attended) }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Join Time Column -->
+              <ng-container matColumnDef="joinTime">
+                <th mat-header-cell *matHeaderCellDef>Join Time</th>
+                <td mat-cell *matCellDef="let record">{{ formatTime(record.joinTime) }}</td>
+              </ng-container>
+
+              <!-- Duration Column -->
+              <ng-container matColumnDef="duration">
+                <th mat-header-cell *matHeaderCellDef>Duration</th>
+                <td mat-cell *matCellDef="let record">{{ formatMinutes(record.duration) }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="attendanceColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: attendanceColumns;"></tr>
+            </table>
+          </div>
+        </mat-tab>
+
+        <!-- Meeting Info Tab -->
+        <mat-tab label="Meeting Info">
+          <div class="tab-content info-tab">
+            <div class="info-section">
+              <h3>Created By</h3>
+              <p><strong>{{ meeting.createdBy?.name }}</strong></p>
+              <p>{{ meeting.createdBy?.email }}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>Platform</h3>
+              <p>{{ meeting.platform }}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>Host Email</h3>
+              <p>{{ meeting.hostEmail }}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>Created At</h3>
+              <p>{{ formatDate(meeting.createdAt) }}</p>
+            </div>
+
+            <div class="info-section" *ngIf="meeting.updatedAt">
+              <h3>Last Updated</h3>
+              <p>{{ formatDate(meeting.updatedAt) }}</p>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  </div>
+</div>
