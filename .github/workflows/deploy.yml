@@ -21,16 +21,36 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # Navigate to project directory (ec2-user is the correct username)
-            cd /home/ec2-user/Updated-Gluck-Portal
+            set -e  # Exit on any error
             
-            # Pull latest code from GitHub
-            echo "📥 Pulling latest code from GitHub..."
-            git pull origin main
+            echo "🚀 Starting deployment..."
             
-            # Install/update dependencies
-            echo "📦 Installing dependencies..."
-            npm install
+            # Check if project directory exists, if not clone it
+            if [ ! -d "/home/ec2-user/Updated-Gluck-Portal" ]; then
+              echo "📂 Project directory not found. Cloning repository..."
+              cd /home/ec2-user
+              git clone https://github.com/GluckSL/Updated-Gluck-Portal.git
+              cd Updated-Gluck-Portal
+              
+              # Install dependencies for first time
+              echo "📦 Installing dependencies (first time)..."
+              npm install
+              
+              # Create .env file reminder
+              echo "⚠️  IMPORTANT: You need to create .env file with credentials!"
+              echo "⚠️  SSH into EC2 and create /home/ec2-user/Updated-Gluck-Portal/.env"
+            else
+              echo "📂 Project directory found. Updating..."
+              cd /home/ec2-user/Updated-Gluck-Portal
+              
+              # Pull latest code from GitHub
+              echo "📥 Pulling latest code from GitHub..."
+              git pull origin main
+              
+              # Install/update dependencies
+              echo "📦 Installing dependencies..."
+              npm install
+            fi
             
             # Build Angular frontend (Angular 19 syntax)
             echo "🔨 Building Angular frontend..."
@@ -38,7 +58,16 @@ jobs:
             
             # Restart backend with PM2
             echo "🔄 Restarting backend..."
-            pm2 restart germanbuddy-backend || pm2 start app.js --name "germanbuddy-backend"
+            if pm2 list | grep -q "germanbuddy-backend"; then
+              echo "Restarting existing PM2 process..."
+              pm2 restart germanbuddy-backend
+            else
+              echo "Starting new PM2 process..."
+              pm2 start app.js --name "germanbuddy-backend"
+            fi
+            
+            # Save PM2 configuration
+            pm2 save
             
             # Show PM2 status
             echo "✅ Deployment complete!"
