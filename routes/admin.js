@@ -139,6 +139,79 @@ router.post('/bulk-assign', verifyToken, checkRole('admin'), async (req, res) =>
   }
 });
 
+// Bulk update students (teacher, level, status, subscription)
+router.post('/bulk-update', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { studentIds, updates } = req.body;
+
+    // Validate input
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Student IDs are required' 
+      });
+    }
+
+    if (!updates || Object.keys(updates).length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No updates provided' 
+      });
+    }
+
+    // Build update object
+    const updateData = {};
+    
+    if (updates.assignedTeacher) {
+      // Validate teacher exists
+      const teacher = await User.findById(updates.assignedTeacher);
+      if (!teacher || teacher.role !== 'TEACHER') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid teacher ID' 
+        });
+      }
+      updateData.assignedTeacher = updates.assignedTeacher;
+    }
+
+    if (updates.level) {
+      updateData.level = updates.level;
+    }
+
+    if (updates.studentStatus) {
+      updateData.studentStatus = updates.studentStatus;
+    }
+
+    if (updates.subscription) {
+      updateData.subscription = updates.subscription;
+    }
+
+    if (updates.batch) {
+      updateData.batch = updates.batch;
+    }
+
+    // Update all selected students
+    const result = await User.updateMany(
+      { _id: { $in: studentIds }, role: 'STUDENT' },
+      { $set: updateData }
+    );
+
+    res.json({ 
+      success: true, 
+      message: `Successfully updated ${result.modifiedCount} student(s)`,
+      modifiedCount: result.modifiedCount
+    });
+
+  } catch (err) {
+    console.error('Bulk update error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update students',
+      error: err.message 
+    });
+  }
+});
+
 
 module.exports = router;
 

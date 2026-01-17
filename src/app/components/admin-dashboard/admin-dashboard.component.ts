@@ -92,13 +92,24 @@ export class AdminDashboardComponent implements OnInit {
   students: any[] = [];          // original data
   filteredStudents: any[] = [];  // shown in table
   selectedStudentIds = new Set<string>();
+  selectAll = false;
 
   loading = false;
   error = '';
   filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '' };
   plan: string[] = ['PLATINUM', 'SILVER'];
-  level: string[] = ['A1', 'A2', 'B1', 'B2'];
+  level: string[] = ['A1', 'A2', 'A2', 'B1', 'B2'];
   teachers: any[] = [];
+
+  // Bulk edit properties
+  showBulkEditPanel = false;
+  bulkUpdates = {
+    assignedTeacher: '',
+    level: '',
+    studentStatus: '',
+    subscription: '',
+    batch: ''
+  };
 
   feedbackMap: Record<string, any[]> = {};
   selectedStudentName?: string;
@@ -224,6 +235,103 @@ export class AdminDashboardComponent implements OnInit {
     } else {
       this.selectedStudentIds.add(studentId);
     }
+    this.updateSelectAllState();
+  }
+
+  toggleSelectAll(): void {
+    if (this.selectAll) {
+      // Select all filtered students
+      this.filteredStudents.forEach(student => {
+        this.selectedStudentIds.add(student._id);
+      });
+    } else {
+      // Deselect all
+      this.selectedStudentIds.clear();
+    }
+  }
+
+  updateSelectAllState(): void {
+    const filteredIds = this.filteredStudents.map(s => s._id);
+    this.selectAll = filteredIds.length > 0 && 
+                     filteredIds.every(id => this.selectedStudentIds.has(id));
+  }
+
+  isSelected(studentId: string): boolean {
+    return this.selectedStudentIds.has(studentId);
+  }
+
+  getSelectedCount(): number {
+    return this.selectedStudentIds.size;
+  }
+
+  openBulkEditPanel(): void {
+    if (this.selectedStudentIds.size === 0) {
+      alert('Please select at least one student');
+      return;
+    }
+    this.showBulkEditPanel = true;
+  }
+
+  closeBulkEditPanel(): void {
+    this.showBulkEditPanel = false;
+    this.bulkUpdates = {
+      assignedTeacher: '',
+      level: '',
+      studentStatus: '',
+      subscription: '',
+      batch: ''
+    };
+  }
+
+  applyBulkUpdate(): void {
+    const studentIds = Array.from(this.selectedStudentIds);
+    
+    console.log('🔍 [BULK UPDATE] Selected Student IDs:', studentIds);
+    console.log('🔍 [BULK UPDATE] Number of students:', studentIds.length);
+    
+    // Build updates object (only include non-empty values)
+    const updates: any = {};
+    if (this.bulkUpdates.assignedTeacher) updates.assignedTeacher = this.bulkUpdates.assignedTeacher;
+    if (this.bulkUpdates.level) updates.level = this.bulkUpdates.level;
+    if (this.bulkUpdates.studentStatus) updates.studentStatus = this.bulkUpdates.studentStatus;
+    if (this.bulkUpdates.subscription) updates.subscription = this.bulkUpdates.subscription;
+    if (this.bulkUpdates.batch) updates.batch = this.bulkUpdates.batch;
+
+    console.log('🔍 [BULK UPDATE] Updates object:', updates);
+    console.log('🔍 [BULK UPDATE] API URL:', `${apiUrl}/admin/bulk-update`);
+
+    if (Object.keys(updates).length === 0) {
+      alert('Please select at least one field to update');
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to update ${studentIds.length} student(s)?`;
+    if (!confirm(confirmMessage)) return;
+
+    console.log('🔍 [BULK UPDATE] Sending request to backend...');
+
+    this.http.post(`${apiUrl}/admin/bulk-update`, { studentIds, updates }, { withCredentials: true })
+      .subscribe({
+        next: (res: any) => {
+          console.log('✅ [BULK UPDATE] SUCCESS:', res);
+          alert(res.message || 'Bulk update successful');
+          this.selectedStudentIds.clear();
+          this.selectAll = false;
+          this.closeBulkEditPanel();
+          this.fetchStudents();
+        },
+        error: err => {
+          console.error('❌ [BULK UPDATE] FAILED:', err);
+          console.error('❌ [BULK UPDATE] Status:', err.status);
+          console.error('❌ [BULK UPDATE] Status Text:', err.statusText);
+          console.error('❌ [BULK UPDATE] Error Body:', err.error);
+          console.error('❌ [BULK UPDATE] Full Error Object:', JSON.stringify(err, null, 2));
+          
+          // Show detailed error message
+          const errorMessage = err.error?.message || err.message || 'Bulk update failed';
+          alert(`Bulk Update Failed:\n\n${errorMessage}\n\nCheck browser console for details (F12)`);
+        }
+      });
   }
 
   bulkAssign(): void {
