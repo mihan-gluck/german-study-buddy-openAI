@@ -4,11 +4,13 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AiTutorService, TutorMessage } from '../../services/ai-tutor.service';
 import { LearningModulesService } from '../../services/learning-modules.service';
 import { SubscriptionGuardService } from '../../services/subscription-guard.service';
 import { Subscription } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 // Speech Recognition interface
 declare global {
@@ -87,6 +89,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     public router: Router, // Make router public for template access
+    private http: HttpClient,
     private aiTutorService: AiTutorService,
     private learningModulesService: LearningModulesService,
     private subscriptionGuard: SubscriptionGuardService,
@@ -125,9 +128,16 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         const subscriptionSub = subscriptionCheck.subscribe({
           next: (status) => {
             if (!status.hasAccess) {
-              // User doesn't have PLATINUM access, redirect with message
-              alert(`🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nRedirecting to learning modules...`);
-              this.router.navigate(['/learning-modules']);
+              // User doesn't have PLATINUM access, show upgrade option
+              const upgradeMessage = `🤖 AI Tutoring - Premium Feature\n\n${status.message}\n\nWould you like to request an upgrade to PLATINUM?\nOur sales team will contact you within 24 hours.`;
+              
+              if (confirm(upgradeMessage)) {
+                // Send upgrade request
+                this.requestUpgrade();
+              } else {
+                // Redirect to learning modules
+                this.router.navigate(['/learning-modules']);
+              }
               return;
             }
             
@@ -2143,6 +2153,24 @@ You can now move on to the next challenge or review your progress in the perform
       },
       error: (error) => {
         console.error('❌ Error marking module as completed (auto-completion):', error);
+      }
+    });
+  }
+
+  // Request subscription upgrade
+  private requestUpgrade(): void {
+    this.http.post(`${environment.apiUrl}/upgrade-requests/request-upgrade`, {
+      phone: 'Not provided', // Can be updated if you have phone field
+      message: 'Student requested PLATINUM upgrade for AI Tutoring access'
+    }, { withCredentials: true }).subscribe({
+      next: (response: any) => {
+        alert(`✅ Upgrade Request Submitted!\n\n${response.message}\n\nOur sales team will contact you soon to discuss pricing and payment options.`);
+        this.router.navigate(['/learning-modules']);
+      },
+      error: (error) => {
+        console.error('Error submitting upgrade request:', error);
+        alert('❌ Failed to submit upgrade request. Please contact support directly.');
+        this.router.navigate(['/learning-modules']);
       }
     });
   }

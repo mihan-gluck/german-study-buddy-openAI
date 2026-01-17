@@ -35,6 +35,7 @@ const translationRoutes = require('./routes/translation');
 const moduleTrashRoutes = require('./routes/moduleTrash');
 const adminAnalyticsRoutes = require('./routes/adminAnalytics');
 const zoomRoutes = require('./routes/zoom');
+const upgradeRequestsRoutes = require('./routes/upgradeRequests');
 
 
 const app = express();
@@ -88,6 +89,7 @@ app.use('/api/translate', translationRoutes);
 app.use('/api/module-trash', moduleTrashRoutes);
 app.use('/api/admin-analytics', adminAnalyticsRoutes);
 app.use('/api/zoom', zoomRoutes);
+app.use('/api/upgrade-requests', upgradeRequestsRoutes);
 
 
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {

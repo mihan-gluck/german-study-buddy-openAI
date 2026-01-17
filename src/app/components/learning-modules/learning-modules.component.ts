@@ -4,10 +4,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { LearningModulesService, LearningModule, ModuleFilters } from '../../services/learning-modules.service';
 import { AuthService } from '../../services/auth.service';
 import { SubscriptionGuardService, SubscriptionStatus } from '../../services/subscription-guard.service';
 import { LevelAccessService } from '../../services/level-access.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-learning-modules',
@@ -56,7 +58,8 @@ export class LearningModulesComponent implements OnInit {
     private authService: AuthService,
     private subscriptionGuard: SubscriptionGuardService,
     public levelAccessService: LevelAccessService, // Make public for template access
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -207,12 +210,29 @@ export class LearningModulesComponent implements OnInit {
       `• Engagement scoring\n\n` +
       `Current: ${status.currentSubscription || 'No subscription'}\n` +
       `Required: ${status.requiredSubscription}\n\n` +
-      `Would you like to upgrade to PLATINUM?`;
+      `Would you like to request an upgrade to PLATINUM?\n` +
+      `Our sales team will contact you within 24 hours.`;
 
     if (confirm(upgradeMessage)) {
-      // Redirect to subscription upgrade page
-      this.router.navigate(['/subscriptions']);
+      // Send upgrade request email to sales team
+      this.requestUpgrade();
     }
+  }
+
+  // Request subscription upgrade
+  private requestUpgrade(): void {
+    this.http.post(`${environment.apiUrl}/upgrade-requests/request-upgrade`, {
+      phone: this.currentUser?.phone || 'Not provided',
+      message: 'Student requested PLATINUM upgrade for AI Tutoring access'
+    }, { withCredentials: true }).subscribe({
+      next: (response: any) => {
+        alert(`✅ Upgrade Request Submitted!\n\n${response.message}\n\nOur sales team will contact you soon to discuss pricing and payment options.`);
+      },
+      error: (error: any) => {
+        console.error('Error submitting upgrade request:', error);
+        alert('❌ Failed to submit upgrade request. Please contact support directly.');
+      }
+    });
   }
 
   // Check if user can access AI tutoring
