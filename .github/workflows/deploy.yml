@@ -21,8 +21,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # Navigate to project directory
-            cd /home/ubuntu/Updated-Gluck-Portal || cd /home/ec2-user/Updated-Gluck-Portal
+            # Navigate to project directory (ec2-user is the correct username)
+            cd /home/ec2-user/Updated-Gluck-Portal
             
             # Pull latest code from GitHub
             echo "📥 Pulling latest code from GitHub..."
@@ -32,13 +32,13 @@ jobs:
             echo "📦 Installing dependencies..."
             npm install
             
-            # Build Angular frontend
+            # Build Angular frontend (Angular 19 syntax)
             echo "🔨 Building Angular frontend..."
-            npm run build --prod
+            npm run build -- --configuration production
             
             # Restart backend with PM2
             echo "🔄 Restarting backend..."
-            pm2 restart all || pm2 start app.js --name "germanbuddy-backend"
+            pm2 restart germanbuddy-backend || pm2 start app.js --name "germanbuddy-backend"
             
             # Show PM2 status
             echo "✅ Deployment complete!"
