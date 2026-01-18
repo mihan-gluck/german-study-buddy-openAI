@@ -48,4 +48,13 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
-".env" 
+".env"
+
+# Documentation files (generated during development)
+*.md
+!README.md
+!COMPLETE_APPLICATION_DOCUMENTATION.md
+!DETAILED_FUNCTION_DOCUMENTATION.md
+*.txt
+*.pdf
+edit.pdf 
