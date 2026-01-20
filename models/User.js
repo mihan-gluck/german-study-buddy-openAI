@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   registeredAt: { type: Date, default: Date.now },
-  studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "DROPPED"], required: function() { return this.role === "STUDENT"; } },
+  studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "WITHDREW"], required: function() { return this.role === "STUDENT"; } },
 
   // ✅ move these inside schema
   courseProgress: [{
