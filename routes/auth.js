@@ -130,7 +130,7 @@ router.get("/teachersByMedium", async (req, res) => {
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, role, subscription, level, batch, medium, conversationId, elevenLabsWidgetLink, elevenLabsApiKey, assignedCourses, assignedBatches, assignedTeacher } = req.body;
+    const { name, email, role, subscription, level, batch, medium, studentStatus, conversationId, elevenLabsWidgetLink, elevenLabsApiKey, assignedCourses, assignedBatches, assignedTeacher } = req.body;
 
     const regNo = await generateRegNo(role);  
     const password = await generatePassword(role, regNo); // generate random password
