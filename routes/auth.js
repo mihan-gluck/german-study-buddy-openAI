@@ -153,7 +153,7 @@ router.post("/signup", async (req, res) => {
       user.level = level;
       user.batch = batch;
       user.medium = medium;
-      user.studentStatus = "UNCERTAIN";
+      user.studentStatus = studentStatus;
       
       // 🔍 Teacher assignment
       if (assignedTeacher) {
