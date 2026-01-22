@@ -33,7 +33,7 @@ header {
   letter-spacing: -0.5px;
 }
 
-/* ========== Nav Menu (Desktop) ========== */
+/* ========== Nav Menu ========== */
 nav {
   flex: 1;
   display: flex;
@@ -62,18 +62,24 @@ nav a {
   font-size: 14px;
   border-radius: 8px;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: inline-flex;
+  align-items: center;  /* vertical center */
+  gap: 6px;             /* spacing between icon & text */
   white-space: nowrap;
   cursor: pointer;
 }
 
 nav a i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
   font-size: 14px;
   opacity: 0.8;
 }
 
+/* Hover & Active */
 nav a:hover:not(.logout-button) {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
@@ -145,7 +151,7 @@ nav a.active::after {
     padding: 8px 12px;
     font-size: 13px;
   }
-  
+
   nav a i {
     font-size: 13px;
   }
@@ -155,12 +161,12 @@ nav a.active::after {
   header {
     padding: 10px 16px;
   }
-  
+
   nav a {
     padding: 8px 10px;
     font-size: 12px;
   }
-  
+
   .logo-text {
     font-size: 18px;
   }
@@ -183,12 +189,15 @@ nav a.active::after {
     top: 100%;
     left: 0;
     width: 100%;
+    max-height: calc(100vh - 60px); /* ensures it never overflows screen */
+    overflow-y: auto;               /* scroll if menu too long */
     background: linear-gradient(135deg, #000e89 0%, #1a237e 100%);
     display: none;
     flex-direction: column;
     align-items: stretch;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 999;
   }
 
   nav.active {
@@ -230,6 +239,13 @@ nav a.active::after {
     font-size: 15px;
     border-radius: 0;
     justify-content: flex-start;
+    gap: 8px; /* spacing between icon & text */
+  }
+
+  nav a i {
+    font-size: 16px;
+    line-height: 1;
+    vertical-align: middle;
   }
 
   nav a:hover:not(.logout-button) {

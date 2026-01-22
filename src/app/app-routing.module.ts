@@ -154,6 +154,8 @@ export const routes: Routes = [
   // Audio Test Route (for students and teachers to test microphone and speakers)
   { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER'] } },
 
+  { path: 'student-logs', loadComponent: () => import('./components/student-logs/student-logs.component').then(m => m.StudentLogsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }
 ];

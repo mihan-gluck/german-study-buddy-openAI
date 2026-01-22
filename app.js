@@ -36,6 +36,7 @@ const moduleTrashRoutes = require('./routes/moduleTrash');
 const adminAnalyticsRoutes = require('./routes/adminAnalytics');
 const zoomRoutes = require('./routes/zoom');
 const upgradeRequestsRoutes = require('./routes/upgradeRequests');
+const studentLogRoutes = require('./routes/studentLog');
 
 
 const app = express();
@@ -90,6 +91,7 @@ app.use('/api/module-trash', moduleTrashRoutes);
 app.use('/api/admin-analytics', adminAnalyticsRoutes);
 app.use('/api/zoom', zoomRoutes);
 app.use('/api/upgrade-requests', upgradeRequestsRoutes);
+app.use('/api/studentLog', studentLogRoutes);
 
 
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {

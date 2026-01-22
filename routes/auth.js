@@ -3,10 +3,13 @@
 require('dotenv').config();  // Load environment variables
 
 const express = require("express");
+const axios = require("axios");
+const cron = require("node-cron");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Course = require("../models/Course");
+const StudentLogs = require("../models/StudentLogs");
 const router = express.Router();
 const transporter = require("../config/emailConfig");
 
@@ -14,6 +17,151 @@ const transporter = require("../config/emailConfig");
 const { verifyToken, isAdmin } = require('../middleware/auth'); 
 const checkRole = require("../middleware/checkRole");
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Read CRM data from Monday.com and create users
+cron.schedule(
+  "50 23 * * *", // ✅ Every day at 11:50 PM
+  async () => {
+    console.log("🕒 Running Monday CRM sync at 11:50 PM");
+
+    try {
+      const BOARD_ID = process.env.MONDAY_BOARD_ID;
+
+      const today = new Date().toLocaleDateString("en-CA", {
+        timeZone: "Asia/Colombo"
+      }); // YYYY-MM-DD
+
+      const query = `
+        query ($boardId: [ID!]) {
+          boards(ids: $boardId) {
+            items_page(limit: 500) {
+              items {
+                id
+                name
+                column_values(
+                  ids: [
+                    "date_mkzs9xr7",
+                    "text_mkw3spks",
+                    "dropdown_mkw09h9j",
+                    "color_mky3jxt1",
+                    "dropdown_mkxx6cfp",
+                    "dropdown_mkxwsaxq",
+                    "dropdown_mkzshj5a"
+                  ]
+                ) {
+                  id
+                  text
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await axios.post(
+        "https://api.monday.com/v2",
+        { query, variables: { boardId: [BOARD_ID] } },
+        {
+          headers: {
+            Authorization: process.env.MONDAY_API_KEY,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const items = response.data.data.boards[0].items_page.items;
+
+      const todayItems = items.filter(item => {
+        const dateText = item.column_values.find(
+          c => c.id === "date_mkzs9xr7"
+        )?.text;
+        return dateText === today;
+      });
+
+      let created = [];
+      let skipped = [];
+
+      for (const item of todayItems) {
+        const get = id =>
+          item.column_values.find(c => c.id === id)?.text || "";
+
+        const name          = item.name;
+        const email         = get("text_mkw3spks");
+        const medium        = get("dropdown_mkw09h9j");
+        const subscription  = get("color_mky3jxt1");
+        const batch         = get("dropdown_mkxx6cfp");
+        const studentStatus = get("dropdown_mkxwsaxq");
+        const level         = get("dropdown_mkzshj5a");
+
+        if (!email) {
+          skipped.push({ name, reason: "No email" });
+          continue;
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          skipped.push({ name, email, reason: "Already exists" });
+          continue;
+        }
+
+        const regNo = await generateRegNo("STUDENT");
+        const passwordPlain = await generatePassword("STUDENT", regNo);
+        const hashedPassword = await bcrypt.hash(passwordPlain, 10);
+
+        const newUser = new User({
+          name,
+          email,
+          regNo,
+          password: hashedPassword,
+          role: "STUDENT",
+          subscription,
+          level,
+          medium,
+          batch,
+          studentStatus
+        });
+
+        await newUser.save();
+
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: "Welcome to Glück Global Student Portal 🎉",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #000000; line-height: 1.6;">
+              <p>Hello ${name},</p>
+
+              <p>You have successfully registered to the <strong>Glück Global Student Portal</strong>. Here are your login credentials:</p>
+
+              <ul>
+                <li><strong>Web App ID:</strong> ${regNo}</li>
+                <li><strong>Password:</strong> ${passwordPlain}</li>
+              </ul>
+
+              <p>Please keep this information safe and do not share it with anyone.</p>
+
+              <p>You can access the Portal at: <a href="https://gluckstudentsportal.com" target="_blank">https://gluckstudentsportal.com</a></p>
+
+              <p>Best regards,<br>
+              <strong>Glück Global Pvt Ltd</strong></p>
+            </div>
+          `
+        });
+
+        console.log("✅ Monday CRM sync completed");
+      }
+
+    } catch (err) {
+      console.error("CRM sync error:", err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+  {
+    timezone: "Asia/Colombo" // ✅ Set timezone to Sri Lanka
+  }
+);
+
+
 
 // ✅ Reg No generation for different roles
 async function generateRegNo(role) {
@@ -126,7 +274,7 @@ router.get("/teachersByMedium", async (req, res) => {
   }
 });
 
-
+  
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
@@ -334,6 +482,31 @@ router.get("/:id", async (req, res) => {
 // ✅ Update user by ID
 router.put("/:id", async (req, res) => {
   try {
+    // 1️⃣ Get existing user (OLD data)
+    const existingUser = await User.findById(req.params.id);
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // 2️⃣ Log OLD data into StudentLogs (if STUDENT)
+    if (existingUser.role === "STUDENT") {
+      const logEntry = new StudentLogs({
+        action: "UPDATE",
+        studentId: existingUser._id,
+        levelAtUpdate: existingUser.level,
+        batchAtUpdate: existingUser.batch,
+        assignedTeacherAtUpdate: existingUser.assignedTeacher,
+        statusAtUpdate: existingUser.studentStatus,
+        subscriptionAtUpdate: existingUser.subscription,
+        mediumAtUpdate: existingUser.medium
+      });
+
+      await logEntry.save();
+      console.log("✅ Student log created for user:", existingUser._id);
+    }
+
+    // 3️⃣ Update user with NEW data
     const {
       name,
       email,

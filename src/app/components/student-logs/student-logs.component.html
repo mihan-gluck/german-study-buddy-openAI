@@ -1,0 +1,132 @@
+<div class="admin-analytics">
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="container-fluid">
+      <h1 class="admin-title"><i class="fas fa-user-graduate"></i> Student Logs</h1>
+      <p class="admin-subtitle">Track updates and actions performed for students</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section mb-4">
+    <div class="row">
+      <div class="col-md-2">
+        <label class="form-label">Registration No</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filters.regNo">
+          <option value="">All</option>
+          <option *ngFor="let regNo of regNo" [value]="regNo">{{ regNo }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Level</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filters.levelAtUpdate">
+          <option value="">All</option>
+          <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Batch</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filters.batchAtUpdate">
+          <option value="">All</option>
+          <option *ngFor="let batch of batches" [value]="batch">{{ batch }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Subscription</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filters.subscriptionAtUpdate">
+          <option value="">All</option>
+          <option *ngFor="let sub of subscriptions" [value]="sub">{{ sub }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Medium</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filters.mediumAtUpdate">
+          <option value="">All</option>
+          <option *ngFor="let medium of mediums" [value]="medium">{{ medium }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Assigned Teacher</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filters.assignTeacherAtUpdate">
+          <option value="">All</option>
+          <option *ngFor="let teacher of teachers" [value]="teacher">{{ teacher }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="row mt-2">
+        <div class="col-auto">
+        <button class="btn btn-primary btn-sm" (click)="applyFilters()">
+            <i class="fas fa-filter"></i> Apply Filters
+        </button>
+        </div>
+
+        <div class="col-auto">
+        <button class="btn btn-secondary btn-sm" (click)="clearFilters()">
+            <i class="fas fa-times"></i> Clear Filters
+        </button>
+        </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <div *ngIf="isLoading" class="text-center py-4">
+      <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+      <p class="mt-2">Loading student logs...</p>
+    </div>
+
+    <div *ngIf="!isLoading && paginatedData.length === 0" class="text-center py-4">
+      <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
+      <h5>No Logs Available</h5>
+      <p class="text-muted">No student logs found for the selected filters.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!isLoading && paginatedData.length > 0">
+      <table class="table table-hover table-sm">
+        <thead class="table-dark">
+          <tr>
+            <th>Registration No</th>
+            <th>Student</th>
+            <th>Level</th>
+            <th>Batch</th>
+            <th>Subscription</th>
+            <th>Medium</th>
+            <th>Assigned Teacher</th>
+            <th>Last Updated Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of paginatedData">
+            <td>{{ log.studentId.regNo }}</td>
+            <td>{{ log.studentId.name }} ({{ log.studentId.regNo }})</td>
+            <td>{{ log.levelAtUpdate }}</td>
+            <td>{{ log.batchAtUpdate }}</td>
+            <td>{{ log.subscriptionAtUpdate }}</td>
+            <td>{{ log.mediumAtUpdate }}</td>
+            <td>{{ log.assignedTeacherAtUpdate?.name}}</td>
+            <td>{{ formatDateTime(log.updatedAt ? log.updatedAt.toString() : '') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <nav *ngIf="totalPages > 1" class="d-flex justify-content-center mt-4">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <button class="page-link" (click)="goToPage(currentPage - 1)">Previous</button>
+      </li>
+      <li class="page-item" 
+          *ngFor="let page of [].constructor(totalPages); let i = index" 
+          [class.active]="currentPage === i + 1">
+        <button class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</button>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === totalPages">
+        <button class="page-link" (click)="goToPage(currentPage + 1)">Next</button>
+      </li>
+    </ul>
+  </nav>
+</div>

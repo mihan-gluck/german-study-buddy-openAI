@@ -19,18 +19,22 @@
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/student-dashboard'); closeMenu()">Dashboard</a>
       </li>
+
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/student/meetings'); closeMenu()" 
            [class.active]="isCurrentRoute('/student/meetings')">
           <i class="fas fa-video"></i> My Classes
         </a>
       </li>
+
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
       </li>
+
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/student-progress'); closeMenu()">My Progress</a>
       </li>
+
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/performance-history'); closeMenu()">Performance History</a>
       </li>
@@ -39,6 +43,7 @@
       <li *ngIf="isLoggedIn() && userRole === 'TEACHER'">
         <a (click)="navigateTo('/teacher-dashboard'); closeMenu()">Dashboard</a>
       </li>
+
       <li *ngIf="isLoggedIn() && userRole === 'TEACHER'">
         <a (click)="navigateTo('/teacher/meetings'); closeMenu()" 
            [class.active]="isCurrentRoute('/teacher/meetings')">
@@ -68,6 +73,7 @@
           <i class="fas fa-chart-bar"></i> Analytics
         </a>
       </li>
+      
       <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
         <a (click)="navigateTo('/admin-trash'); closeMenu()" 
            [class.active]="isCurrentRoute('/admin-trash')">
@@ -111,13 +117,9 @@
         </a>
       </li>
       <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
-        <a (click)="openInternalReports(); closeMenu()">
-          <i class="fas fa-chart-line"></i> Internal Reports
-        </a>
-      </li>
-      <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
-        <a (click)="openStudentReports(); closeMenu()">
-          <i class="fas fa-user-graduate"></i> Student Reports
+        <a (click)="navigateTo('/student-logs'); closeMenu()" 
+           [class.active]="isCurrentRoute('/student-logs')">
+          <i class="fas fa-user-graduate"></i> Student Logs
         </a>
       </li>
       <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
