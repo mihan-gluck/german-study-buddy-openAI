@@ -227,7 +227,10 @@
           <i class="fas" [class.fa-user]="message.role === 'student'" [class.fa-robot]="message.role === 'tutor'"></i>
         </div>
         
-        <div class="message-bubble" [class.minimal-bubble]="transcriptMode === 'minimal'">
+        <div class="message-bubble" 
+             [class.minimal-bubble]="transcriptMode === 'minimal'"
+             [class.celebration-message]="message.metadata?.isCelebration"
+             [class.summary-message]="message.metadata?.isSummary">
           <div class="message-header" *ngIf="(message.messageType !== 'text' || message.metadata?.inputMethod) && transcriptMode !== 'minimal'">
             <span class="message-type-icon">{{ getMessageTypeIcon(message.messageType) }}</span>
             <span class="message-type">{{ message.messageType | titlecase }}</span>
@@ -371,6 +374,34 @@
         <i class="fas fa-microphone"></i>
         <strong>Speech captured:</strong> "{{currentMessage}}"
         <br><small>Tap the microphone button to stop and send this message</small>
+      </div>
+    </div>
+    
+    <!-- No Speech Detected Warning -->
+    <div class="speech-warning-feedback" *ngIf="isListening && (!currentMessage || !currentMessage.trim())">
+      <div class="alert alert-warning">
+        <i class="fas fa-microphone-slash"></i>
+        <strong>Listening...</strong> No speech detected yet. Please speak clearly.
+        <br><small>Make sure your microphone is working and you're speaking loud enough</small>
+      </div>
+    </div>
+    
+    <!-- Speech Error Feedback (after stopping with no speech) -->
+    <div class="speech-error-feedback" *ngIf="showSpeechError && !isListening">
+      <div class="alert alert-danger">
+        <button type="button" class="btn-close" (click)="showSpeechError = false" aria-label="Close"></button>
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>No speech detected</strong>
+        <br><small>Please try again and speak clearly after clicking the microphone button.</small>
+        <div class="error-tips">
+          <small><strong>Common issues:</strong></small>
+          <ul>
+            <li><small>Speaking too quickly after starting</small></li>
+            <li><small>Microphone not working or muted</small></li>
+            <li><small>Background noise interfering</small></li>
+            <li><small>Network connection issues</small></li>
+          </ul>
+        </div>
       </div>
     </div>
     

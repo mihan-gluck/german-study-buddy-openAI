@@ -83,6 +83,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   isListening: boolean = false;
   isSpeaking: boolean = false;
   voiceEnabled: boolean = true;
+  showSpeechError: boolean = false; // Track speech error state for inline display
   
   private subscriptions: Subscription[] = [];
 
@@ -946,7 +947,8 @@ Keep practicing! 🌟`,
       this.speechRecognition = new SpeechRecognition();
       
       this.speechRecognition.continuous = true; // Keep listening until manually stopped
-      this.speechRecognition.interimResults = false;
+      this.speechRecognition.interimResults = true; // Get interim results for better UX
+      this.speechRecognition.maxAlternatives = 1; // Only need the best match
       
       // Set language based on module's target language
       if (this.module?.targetLanguage === 'English') {
@@ -961,9 +963,19 @@ Keep practicing! 🌟`,
       };
       
       this.speechRecognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        const confidence = event.results[0][0].confidence || 0.8; // Default confidence
-        console.log('🎤 Speech captured:', transcript, 'Confidence:', confidence);
+        // Get the latest result (last one in the results array)
+        const resultIndex = event.results.length - 1;
+        const transcript = event.results[resultIndex][0].transcript;
+        const confidence = event.results[resultIndex][0].confidence || 0.8; // Default confidence
+        const isFinal = event.results[resultIndex].isFinal;
+        
+        console.log('🎤 Speech captured:', {
+          transcript,
+          confidence,
+          isFinal,
+          resultIndex,
+          totalResults: event.results.length
+        });
         
         // Apply confidence threshold
         if (confidence < 0.6) {
@@ -975,11 +987,20 @@ Keep practicing! 🌟`,
         const normalizedTranscript = this.normalizeText(transcript);
         
         // Store the captured speech but DON'T send it yet
-        this.currentMessage = normalizedTranscript;
-        this.isProcessingSpeech = false;
-        
-        console.log('🎤 Speech stored (not sent yet):', normalizedTranscript);
-        console.log('🎤 User must manually stop microphone to send message');
+        // Always update with the latest transcript (even if not final)
+        if (normalizedTranscript && normalizedTranscript.trim()) {
+          this.currentMessage = normalizedTranscript;
+          this.isProcessingSpeech = false;
+          
+          console.log('🎤 Speech stored (not sent yet):', normalizedTranscript);
+          console.log('🎤 Is final result:', isFinal);
+          console.log('🎤 User must manually stop microphone to send message');
+          
+          // Force UI update to show captured text
+          this.cdr.detectChanges();
+        } else {
+          console.log('🎤 Empty transcript, waiting for more speech...');
+        }
         
         // Show what was captured in the UI but don't send
         // The user will manually stop the mic when ready to send
@@ -1029,6 +1050,10 @@ Keep practicing! 🌟`,
   // Start listening for speech input
   startListening(): void {
     if (this.speechRecognition && !this.isListening) {
+      // Clear any previous error messages
+      this.showSpeechError = false;
+      this.currentMessage = ''; // Clear previous message
+      
       this.speechRecognition.start();
     }
   }
@@ -1036,19 +1061,38 @@ Keep practicing! 🌟`,
   // Stop listening and send the captured message
   stopListening(): void {
     if (this.speechRecognition && this.isListening) {
+      console.log('🎤 Stopping microphone, current message:', this.currentMessage);
+      
       this.speechRecognition.stop();
       
-      // If there's a captured message, send it now
-      if (this.currentMessage && this.currentMessage.trim()) {
-        console.log('🎤 Microphone stopped - sending captured message:', this.currentMessage);
-        
-        // Send the message that was captured during listening
-        setTimeout(() => {
+      // Wait a bit longer to ensure speech recognition has fully processed
+      setTimeout(() => {
+        // If there's a captured message, send it now
+        if (this.currentMessage && this.currentMessage.trim()) {
+          console.log('🎤 Microphone stopped - sending captured message:', this.currentMessage);
+          
+          // Send the message that was captured during listening
           this.sendMessage(true); // true indicates speech input
-        }, 500); // Small delay to ensure mic has stopped
-      } else {
-        console.log('🎤 Microphone stopped - no message to send');
-      }
+        } else {
+          console.log('🎤 Microphone stopped - no message to send');
+          console.warn('⚠️ Speech was not captured. This might be due to:');
+          console.warn('   - Speaking too quickly after starting');
+          console.warn('   - Network issues');
+          console.warn('   - Browser speech recognition limitations');
+          console.warn('   - Low audio quality or background noise');
+          
+          // Show non-intrusive inline error message instead of alert popup
+          this.showSpeechError = true;
+          
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            this.showSpeechError = false;
+            this.cdr.detectChanges();
+          }, 5000);
+          
+          this.cdr.detectChanges();
+        }
+      }, 800); // Increased delay from 500ms to 800ms to ensure processing completes
     }
   }
 
@@ -2053,6 +2097,39 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     const conversationCount = this.getStudentMessageCount();
     const vocabularyUsed = this.getVocabularyUsedList();
     
+    // STAGE 1: Show celebration message (10 seconds)
+    const celebrationMessage: TutorMessage = {
+      role: 'tutor',
+      content: `🎉✨ CONGRATULATIONS! ✨🎉
+
+🌟 Module Completed Successfully! 🌟
+
+You've done an amazing job!`,
+      messageType: 'text',
+      timestamp: new Date(),
+      metadata: { 
+        isCelebration: true,
+        autoCompleted: true 
+      } as any
+    };
+    
+    // Add celebration message to chat
+    this.aiTutorService.addMessageToCurrentSession(celebrationMessage);
+    this.localMessages.push(celebrationMessage);
+    this.messages = [...this.localMessages];
+    this.cdr.detectChanges();
+    
+    // Scroll to show celebration message
+    setTimeout(() => this.scrollToBottom(), 100);
+    
+    // STAGE 2: After 10 seconds, show detailed summary (stays for 60 seconds)
+    setTimeout(() => {
+      this.showDetailedCompletionSummary(duration, conversationCount, vocabularyUsed);
+    }, 10000); // 10 seconds delay
+  }
+
+  // Show detailed completion summary after celebration
+  private showDetailedCompletionSummary(duration: number, conversationCount: number, vocabularyUsed: string[]): void {
     // Prepare session data for database storage
     const sessionData = {
       sessionId: this.sessionId,
@@ -2089,40 +2166,43 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       }
     });
     
-    // Add auto-completion message to chat
-    const autoCompletionMessage: TutorMessage = {
+    // Add detailed summary message to chat
+    const summaryMessage: TutorMessage = {
       role: 'tutor',
-      content: `🎉 Module Automatically Completed!
-
-The AI tutor has indicated that your learning session is complete.
+      content: `📊 Session Summary
 
 💬 Conversations: ${conversationCount}
 ⏱️ Time Spent: ${duration} minutes
 📚 Vocabulary Used: ${vocabularyUsed.length > 0 ? vocabularyUsed.join(', ') : 'Practice completed'}
+🎯 Total Score: ${sessionData.summary.totalScore} points
 
 ✅ **Module Status: COMPLETED**
+
 🌟 Excellent work! You've successfully completed this module!
 
 You can now move on to the next challenge or review your progress in the performance history.`,
       messageType: 'text',
       timestamp: new Date(),
-      metadata: { autoCompleted: true } as any
+      metadata: { 
+        isSummary: true,
+        autoCompleted: true 
+      } as any
     };
     
-    // Add completion message to chat
-    this.aiTutorService.addMessageToCurrentSession(autoCompletionMessage);
-    this.localMessages.push(autoCompletionMessage);
+    // Add summary message to chat
+    this.aiTutorService.addMessageToCurrentSession(summaryMessage);
+    this.localMessages.push(summaryMessage);
     this.messages = [...this.localMessages];
     this.cdr.detectChanges();
     
-    // Scroll to show completion message
+    // Scroll to show summary message
     setTimeout(() => this.scrollToBottom(), 100);
     
-    // Automatically redirect to summary after showing completion message
+    // Auto-redirect after 60 seconds (summary stays visible for 1 minute)
     setTimeout(() => {
-      console.log('🔄 Automatically redirecting to session summary (auto-completion)...');
+      console.log('🔄 Automatically redirecting after summary display...');
       this.navigateToSummary();
-    }, 30000); // Wait 30 seconds to let user read the completion message
+    }, 60000); // 60 seconds = 1 minute
     
     // End the backend session
     this.aiTutorService.endSession(this.sessionId).subscribe({

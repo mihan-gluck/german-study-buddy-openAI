@@ -987,6 +987,141 @@
   margin-top: 0.25rem;
 }
 
+/* Speech Captured Feedback - Success State */
+.speech-captured-feedback {
+  margin-bottom: 1rem;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.speech-captured-feedback .alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4caf50;
+  color: #2e7d32;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.speech-captured-feedback .alert i {
+  font-size: 1.5rem;
+  color: #4caf50;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Speech Warning Feedback - Listening but no speech */
+.speech-warning-feedback {
+  margin-bottom: 1rem;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.speech-warning-feedback .alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 2px solid #ff9800;
+  color: #e65100;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.speech-warning-feedback .alert i {
+  font-size: 1.5rem;
+  color: #ff9800;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Speech Error Feedback - No speech detected after stopping */
+.speech-error-feedback {
+  margin-bottom: 1rem;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.speech-error-feedback .alert {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border: 2px solid #f44336;
+  color: #c62828;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+.speech-error-feedback .alert .btn-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.speech-error-feedback .alert .btn-close:hover {
+  opacity: 1;
+}
+
+.speech-error-feedback .alert > i {
+  font-size: 1.5rem;
+  color: #f44336;
+  margin-right: 0.5rem;
+}
+
+.speech-error-feedback .alert strong {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.speech-error-feedback .error-tips {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.5rem;
+  border-left: 3px solid #f44336;
+}
+
+.speech-error-feedback .error-tips ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.speech-error-feedback .error-tips li {
+  margin: 0.25rem 0;
+  color: #d32f2f;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
 /* Speech Captured Input Styling */
 .form-control.speech-captured {
   background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
@@ -1987,4 +2122,148 @@
 
 .message-subtitle {
   animation: subtitleFadeIn 0.3s ease-out;
+}
+
+
+/* ========================================
+   CELEBRATION & SUMMARY MESSAGE STYLES
+   ======================================== */
+
+/* Celebration message styling - Big animated celebration */
+.message-bubble.celebration-message {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  padding: 3rem 2rem !important;
+  text-align: center;
+  font-size: 1.8rem !important;
+  font-weight: bold;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 12px 48px rgba(102, 126, 234, 0.5) !important;
+  animation: celebrationPulse 2s ease-in-out infinite, celebrationSlideIn 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+  max-width: 95% !important;
+  margin: 1rem auto !important;
+}
+
+.message-bubble.celebration-message::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: celebrationShine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.message-bubble.celebration-message .message-text {
+  position: relative;
+  z-index: 1;
+  line-height: 1.8;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  white-space: pre-line;
+}
+
+/* Summary message styling - Detailed stats display */
+.message-bubble.summary-message {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  color: white !important;
+  padding: 2rem 1.5rem !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 8px 32px rgba(240, 147, 251, 0.4) !important;
+  animation: summarySlideIn 0.5s ease-out;
+  max-width: 95% !important;
+  margin: 1rem auto !important;
+}
+
+.message-bubble.summary-message .message-text {
+  line-height: 2;
+  font-size: 1.1rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  white-space: pre-line;
+}
+
+/* Celebration animations */
+@keyframes celebrationPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.5);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 16px 64px rgba(102, 126, 234, 0.7);
+  }
+}
+
+@keyframes celebrationSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes celebrationShine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes summarySlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Confetti effect overlay (optional enhancement) */
+.celebration-confetti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .message-bubble.celebration-message {
+    font-size: 1.4rem !important;
+    padding: 2rem 1.5rem !important;
+  }
+  
+  .message-bubble.summary-message {
+    font-size: 1rem;
+    padding: 1.5rem 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-bubble.celebration-message {
+    font-size: 1.2rem !important;
+    padding: 1.5rem 1rem !important;
+  }
+  
+  .message-bubble.summary-message {
+    font-size: 0.95rem;
+  }
 }

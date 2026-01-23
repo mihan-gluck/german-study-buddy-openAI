@@ -22,6 +22,9 @@ export interface TutorMessage {
     options?: string[];
     exerciseType?: string;
     inputMethod?: 'speech' | 'text';
+    isCelebration?: boolean;  // For celebration message styling
+    isSummary?: boolean;       // For summary message styling
+    autoCompleted?: boolean;   // Indicates auto-completion
   };
 }
 
