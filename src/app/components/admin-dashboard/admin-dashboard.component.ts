@@ -71,6 +71,11 @@ interface FeedbackEntry {
   suggestedImprovement: string;
 }
 
+interface TeacherResponse {
+  success: boolean;
+  data: any[];
+}
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -125,6 +130,14 @@ export class AdminDashboardComponent implements OnInit {
   characterLimit = 0;
   remainingMinutes = 0;
   planUpgradeDate: string | null = null;
+
+  assignBatchNo: string = '';
+  assignTeacherId: string = '';
+  showAssignTeacherByBatch = false;
+
+  batchTeachers: any[] = [];
+  loadingTeachers = false;
+
 
   constructor(
     private authService: AuthService,
@@ -491,4 +504,44 @@ export class AdminDashboardComponent implements OnInit {
       });
     }
   }
+
+  updateAssignedTeacherByBatchNo(batchNo: string, teacherId: string): void {
+    this.authService.updateAssignedTeacherByBatchNo(batchNo, teacherId).subscribe({
+      next: (response) => {
+        alert('Assigned teacher updated successfully for batch ' + batchNo);
+        this.fetchStudents(); // Refresh your user list after update
+      },
+      error: (error) => {
+        alert('Failed to update assigned teacher: ' + (error.error?.message || 'Please try again.'));
+      }
+    });
+  }
+
+  openAssignTeacherByBatchModal(): void {
+    this.showAssignTeacherByBatch = !this.showAssignTeacherByBatch;
+  }
+
+  onBatchChange(batchValue: number | string): void {
+    if (!batchValue) {
+      this.batchTeachers = [];
+      return;
+    }
+
+    // ensure string because DB stores "1", "30", etc.
+    const batch = String(batchValue);
+
+    this.loadingTeachers = true;
+
+    this.authService.getTeachersByBatch(batch).subscribe({
+      next: (res) => {
+        this.batchTeachers = res || [];
+        this.loadingTeachers = false;
+      },
+      error: () => {
+        this.batchTeachers = [];
+        this.loadingTeachers = false;
+      }
+    });
+  }
+
 }

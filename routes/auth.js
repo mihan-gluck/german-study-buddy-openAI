@@ -478,6 +478,57 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// ✅ Get teachers by batch
+router.get("/teachers-by-batch/:batch", async (req, res) => {
+  try {
+    const batch = req.params.batch; 
+    console.log("🔍 Fetching teachers for batch:", batch);
+
+    if (!batch) {
+      return res.status(400).json({ message: "Batch is required." });
+    }
+
+    const teachers = await User.find({
+      role: "TEACHER",
+      assignedBatches: { $in: [batch] } 
+    }).select("name");
+
+    teachers.forEach(teacher => {
+      console.log("👨‍🏫 Found teacher:", teacher.name);
+    });
+
+    // ✅ Always return 200 with array
+    res.status(200).json(teachers);
+
+  } catch (error) {
+    console.error("❌ Error fetching teachers by batch:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+
+// Update assigned teacher by batch
+router.put("/update-teacher-by-batch", async (req, res) => {
+  try {
+    const { batch, newTeacherId } = req.body;
+
+    if (!batch || !newTeacherId) {
+      return res.status(400).json({ message: "Batch and newTeacherId are required." });
+    }
+
+    const result = await User.updateMany(
+      { role: "STUDENT", batch: batch },
+      { assignedTeacher: newTeacherId }
+    );
+
+    res.status(200).json({ message: `Assigned teacher updated for ${result.nModified} students.` });
+    
+  } catch (error) {
+    console.error("❌ Error updating assigned teacher by batch:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
 
 // ✅ Update user by ID
 router.put("/:id", async (req, res) => {
@@ -521,6 +572,7 @@ router.put("/:id", async (req, res) => {
       elevenLabsApiKey,
       assignedCourses,
       assignedTeacher,
+      assignedBatches,
       studentStatus
     } = req.body;
 
@@ -540,6 +592,7 @@ router.put("/:id", async (req, res) => {
         elevenLabsApiKey,
         assignedCourses,
         assignedTeacher,
+        assignedBatches,
         studentStatus
       },
       { new: true } // Return updated document
@@ -573,8 +626,6 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
-
-
 
 // ✅ Protected role-based routes
 router.get("/protected", verifyToken, (req, res) => {

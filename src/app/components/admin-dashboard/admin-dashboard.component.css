@@ -74,6 +74,14 @@
   box-shadow: 0 2px 4px rgba(102, 126, 234, 0.25);
 }
 
+.btn-assign-teacher-by-batch {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.25);
+}
+
+
 /* ====== Filters Card ====== */
 .filters-card {
   margin-bottom: 1.5rem;
@@ -414,3 +422,33 @@
 .table tbody td:first-child {
   text-align: center;
 }
+
+/* ====== Add User and Assign Teacher Button – Responsive ====== */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .btn-add-user,
+  .btn-assign-teacher-by-batch {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+  .btn-add-user,
+  .btn-assign-teacher-by-batch {
+    width: 100%;
+    padding: 0.75rem;
+    padding-bottom: 1rem;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.75rem; /* ADD THIS LINE */
+  }
+
+  /* Optional: remove last button margin */
+  .btn-assign-teacher-by-batch:last-child {
+    margin-bottom: 0;
+  }
+}
+

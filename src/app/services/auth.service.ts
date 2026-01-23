@@ -36,7 +36,6 @@ interface User {
 export class AuthService {
   // Change backend API URL to your EC2 URL or keep localhost for development
   private apiUrl = environment.apiUrl;  // Base API URL
-  //getUserId: any;
 
   // ✅ Holds logged-in user state
   private currentUserSubject = new BehaviorSubject<any | null>(null);
@@ -90,36 +89,16 @@ export class AuthService {
   
   // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
-    console.log('🔍 AuthService: Fetching user profile...');
-    return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true }).pipe(
-      tap({
-        next: (user: any) => console.log('✅ AuthService: Profile fetched:', (user as any)?.email, (user as any)?.role),
-        error: (err) => console.error('❌ AuthService: Profile fetch failed:', err)
-      })
-    );
+    return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true });
   }
-
 
   // ✅ Helper: refresh user profile and update BehaviorSubject
   refreshUserProfile(): Observable<any> {
-    console.log('🔄 AuthService: Refreshing user profile...');
-    return this.getUserProfile().pipe(
-      tap({
-        next: (user: any) => {
-          console.log('✅ AuthService: Profile refreshed, updating state:', (user as any)?.email);
-          this.currentUserSubject.next(user);
-        },
-        error: (err) => {
-          console.error('❌ AuthService: Profile refresh failed:', err);
-          this.currentUserSubject.next(null);
-        }
-      })
-    );
+    return this.getUserProfile();
   }
 
   isLoggedIn(): boolean {
     const loggedIn = this.currentUserSubject.value !== null;
-    console.log('🔍 AuthService: isLoggedIn check:', loggedIn, 'Current user:', this.currentUserSubject.value?.email);
     return loggedIn;
   }
 
@@ -170,6 +149,19 @@ export class AuthService {
 
   deleteUser(id: string) {
     return this.http.delete(`${this.apiUrl}/auth/${id}`, { withCredentials: true });
+  }
+
+  updateAssignedTeacherByBatchNo(batchNo: string, teacherId: string) {
+    return this.http.put(`${this.apiUrl}/auth/update-teacher-by-batch`,
+      {
+        batch: batchNo,
+        newTeacherId: teacherId
+      },
+      { withCredentials: true });
+  }
+
+  getTeachersByBatch(batchNo: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/auth/teachers-by-batch/${batchNo}`, { withCredentials: true});
   }
 
 }

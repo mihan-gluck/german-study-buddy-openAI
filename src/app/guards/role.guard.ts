@@ -12,27 +12,22 @@ export class RoleGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     const expectedRole = route.data['role'];
-    console.log('🛡️ RoleGuard: Checking role access for:', expectedRole);
 
     return this.authService.getUserProfile().pipe(
       map(user => {
-        console.log("🛡️ RoleGuard received user:", user?.email, "role:", user?.role, "expected:", expectedRole);
 
         // Handle array of roles
         if (Array.isArray(expectedRole)) {
           if (expectedRole.includes(user?.role)) {
-            console.log('✅ RoleGuard: Access granted (array match)');
             return true;
           }
         } else {
           // ✅ allow if role matches
           if (user?.role === expectedRole) {
-            console.log('✅ RoleGuard: Access granted (exact match)');
             return true;
           }
         }
 
-        console.log('❌ RoleGuard: Access denied, redirecting...');
         // ❌ wrong role → redirect them to their correct dashboard
         if (user?.role === 'STUDENT') {
           this.router.navigate(['/student-dashboard']);
@@ -47,7 +42,6 @@ export class RoleGuard implements CanActivate {
         return false;
       }),
       catchError(err => {
-        console.error("❌ RoleGuard error:", err);
         this.router.navigate(['/login']);
         return of(false);
       })
