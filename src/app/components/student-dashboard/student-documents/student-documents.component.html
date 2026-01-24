@@ -1,0 +1,349 @@
+<!-- src/app/components/student-dashboard/student-documents/student-documents.component.html -->
+<div class="student-documents-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <i class="fas fa-file-upload"></i>
+        My Documents
+      </h1>
+      <p class="subtitle">Upload and manage your certificates and documents</p>
+    </div>
+    <button class="btn btn-primary" (click)="toggleUploadForm()" *ngIf="!showUploadForm">
+      <i class="fas fa-plus"></i> Upload Document
+    </button>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon bg-primary">
+        <i class="fas fa-file-alt"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.totalDocuments }}</h3>
+        <p>Total Documents</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-success">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.verifiedDocuments }}</h3>
+        <p>Verified</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-warning">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.pendingDocuments }}</h3>
+        <p>Pending Review</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-info">
+        <i class="fas fa-tasks"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.completionPercentage }}%</h3>
+        <p>Completion</p>
+        <small>{{ stats.requiredDocumentsUploaded }}/{{ stats.totalRequiredDocuments }} required</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Form -->
+  <div class="upload-form-section" *ngIf="showUploadForm">
+    <div class="form-card">
+      <div class="form-header">
+        <h3><i class="fas fa-upload"></i> Upload New Document</h3>
+        <button class="btn-close" (click)="toggleUploadForm()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="form-body">
+        <div class="form-group">
+          <label class="required">Document Type</label>
+          <select class="form-control" [(ngModel)]="selectedDocumentType" [disabled]="isUploading">
+            <option value="">Select document type...</option>
+            <option *ngFor="let req of requirements" [value]="req.type">
+              {{ req.label }} {{ req.required ? '(Required)' : '(Optional)' }}
+            </option>
+          </select>
+          <small class="form-text" *ngIf="selectedDocumentType">
+            {{ getRequirementDescription(selectedDocumentType) }}
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label class="required">Document Name</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="documentName"
+            placeholder="e.g., O Level Certificate 2020"
+            [disabled]="isUploading">
+        </div>
+
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <textarea 
+            class="form-control" 
+            [(ngModel)]="documentDescription"
+            placeholder="Add any additional notes about this document..."
+            rows="3"
+            [disabled]="isUploading"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="required">Select File</label>
+          <div class="file-input-wrapper">
+            <input 
+              type="file" 
+              id="fileInput"
+              class="file-input"
+              (change)="onFileSelected($event)"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              [disabled]="isUploading">
+            <label for="fileInput" class="file-input-label">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span *ngIf="!selectedFile">Choose file or drag here</span>
+              <span *ngIf="selectedFile">{{ selectedFile.name }}</span>
+            </label>
+          </div>
+          <small class="form-text">
+            Accepted formats: PDF, JPG, PNG, DOC, DOCX (Max 10MB)
+          </small>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            class="btn btn-secondary" 
+            (click)="toggleUploadForm()"
+            [disabled]="isUploading">
+            Cancel
+          </button>
+          <button 
+            class="btn btn-primary" 
+            (click)="uploadDocument()"
+            [disabled]="isUploading || !selectedFile || !selectedDocumentType || !documentName">
+            <span *ngIf="!isUploading">
+              <i class="fas fa-upload"></i> Upload Document
+            </span>
+            <span *ngIf="isUploading">
+              <i class="fas fa-spinner fa-spin"></i> Uploading...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Requirements Checklist -->
+  <div class="requirements-section">
+    <h3><i class="fas fa-clipboard-list"></i> Document Requirements</h3>
+    <div class="requirements-grid">
+      <div 
+        *ngFor="let req of requirements" 
+        class="requirement-card"
+        [class.completed]="isRequiredDocumentUploaded(req.type)"
+        [class.required]="req.required">
+        <div class="requirement-header">
+          <div class="requirement-icon">
+            <i class="fas" [class.fa-check-circle]="isRequiredDocumentUploaded(req.type)"
+               [class.fa-circle]="!isRequiredDocumentUploaded(req.type)"></i>
+          </div>
+          <div class="requirement-info">
+            <h4>{{ req.label }}</h4>
+            <span class="badge" [class.bg-danger]="req.required" [class.bg-secondary]="!req.required">
+              {{ req.required ? 'Required' : 'Optional' }}
+            </span>
+          </div>
+        </div>
+        <p class="requirement-description">{{ req.description }}</p>
+        <div class="requirement-status">
+          <span *ngIf="isRequiredDocumentUploaded(req.type)" class="text-success">
+            <i class="fas fa-check"></i> {{ getDocumentCountByType(req.type) }} uploaded
+          </span>
+          <span *ngIf="!isRequiredDocumentUploaded(req.type)" class="text-muted">
+            <i class="fas fa-times"></i> Not uploaded
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>Status</label>
+        <select class="form-control" [(ngModel)]="filterStatus">
+          <option value="ALL">All Status</option>
+          <option value="PENDING">Pending</option>
+          <option value="VERIFIED">Verified</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Document Type</label>
+        <select class="form-control" [(ngModel)]="filterType">
+          <option value="ALL">All Types</option>
+          <option *ngFor="let type of uploadedDocumentTypes" [value]="type">
+            {{ getRequirementLabel(type) }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group search-group">
+        <label>Search</label>
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="searchQuery"
+            placeholder="Search documents...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents List -->
+  <div class="documents-section">
+    <h3>
+      <i class="fas fa-folder-open"></i> 
+      Uploaded Documents ({{ filteredDocuments.length }})
+    </h3>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin fa-3x"></i>
+      <p>Loading documents...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && filteredDocuments.length === 0">
+      <i class="fas fa-folder-open fa-3x"></i>
+      <h4>No Documents Found</h4>
+      <p *ngIf="documents.length === 0">You haven't uploaded any documents yet.</p>
+      <p *ngIf="documents.length > 0">No documents match your filters.</p>
+      <button class="btn btn-primary" (click)="toggleUploadForm()" *ngIf="documents.length === 0">
+        <i class="fas fa-plus"></i> Upload Your First Document
+      </button>
+    </div>
+
+    <!-- Documents Grid -->
+    <div class="documents-grid" *ngIf="!isLoading && filteredDocuments.length > 0">
+      <div *ngFor="let doc of filteredDocuments" class="document-card">
+        <div class="document-header">
+          <div class="document-icon">
+            <i class="fas" [ngClass]="getFileIcon(doc.mimeType)"></i>
+          </div>
+          <div class="document-status">
+            <span class="badge" [ngClass]="getStatusBadgeClass(doc.status)">
+              <i class="fas" [ngClass]="getStatusIcon(doc.status)"></i>
+              {{ doc.status }}
+            </span>
+          </div>
+        </div>
+        <div class="document-body">
+          <h4>{{ doc.documentName }}</h4>
+          <p class="document-type">{{ doc.documentTypeDisplay }}</p>
+          <p class="document-description" *ngIf="doc.description">{{ doc.description }}</p>
+          <div class="document-meta">
+            <span><i class="fas fa-calendar"></i> {{ formatDate(doc.uploadedAt) }}</span>
+            <span><i class="fas fa-file"></i> {{ doc.formattedFileSize }}</span>
+          </div>
+          <div class="verification-info" *ngIf="doc.status === 'REJECTED' && doc.verificationNotes">
+            <div class="alert alert-danger">
+              <strong>Rejection Reason:</strong> {{ doc.verificationNotes }}
+            </div>
+          </div>
+        </div>
+        <div class="document-actions">
+          <button class="btn btn-sm btn-outline-primary" (click)="viewDocumentDetails(doc)">
+            <i class="fas fa-eye"></i> View
+          </button>
+          <button class="btn btn-sm btn-outline-success" (click)="downloadDocument(doc)">
+            <i class="fas fa-download"></i> Download
+          </button>
+          <button 
+            class="btn btn-sm btn-outline-danger" 
+            (click)="deleteDocument(doc._id)"
+            [disabled]="doc.status === 'VERIFIED'"
+            [title]="doc.status === 'VERIFIED' ? 'Cannot delete verified documents. Contact admin if you need to update.' : 'Delete document'">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Details Modal -->
+  <div class="modal-overlay" *ngIf="showDocumentDetails" (click)="closeDocumentDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-file-alt"></i> Document Details</h3>
+        <button class="btn-close" (click)="closeDocumentDetails()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedDocument">
+        <div class="detail-row">
+          <label>Document Name:</label>
+          <span>{{ selectedDocument.documentName }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Document Type:</label>
+          <span>{{ selectedDocument.documentTypeDisplay }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Status:</label>
+          <span class="badge" [ngClass]="getStatusBadgeClass(selectedDocument.status)">
+            <i class="fas" [ngClass]="getStatusIcon(selectedDocument.status)"></i>
+            {{ selectedDocument.status }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <label>File Name:</label>
+          <span>{{ selectedDocument.fileName }}</span>
+        </div>
+        <div class="detail-row">
+          <label>File Size:</label>
+          <span>{{ selectedDocument.formattedFileSize }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Uploaded Date:</label>
+          <span>{{ formatDate(selectedDocument.uploadedAt) }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedDocument.description">
+          <label>Description:</label>
+          <span>{{ selectedDocument.description }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedDocument.verificationNotes">
+          <label>Verification Notes:</label>
+          <span>{{ selectedDocument.verificationNotes }}</span>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-success" (click)="downloadDocument(selectedDocument)">
+            <i class="fas fa-download"></i> Download
+          </button>
+          <button class="btn btn-secondary" (click)="closeDocumentDetails()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

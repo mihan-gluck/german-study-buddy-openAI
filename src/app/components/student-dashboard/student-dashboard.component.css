@@ -1,0 +1,224 @@
+/* src/app/components/student-dashboard/student-dashboard.component.css */
+
+.student-dashboard-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Header */
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Loading & Error */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 20px;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 16px;
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.error-container p {
+  color: #666;
+  font-size: 16px;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+/* Cards */
+mat-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+mat-card-header {
+  margin-bottom: 16px;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+mat-card-title mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #667eea;
+}
+
+/* Quick Actions */
+.quick-actions-card {
+  grid-column: 1 / -1;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.action-buttons button {
+  height: 56px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.action-buttons button mat-icon {
+  margin-right: 8px;
+}
+
+/* Progress Card */
+.progress-card {
+  grid-column: span 1;
+}
+
+.progress-item {
+  margin-bottom: 24px;
+}
+
+.progress-item:last-child {
+  margin-bottom: 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.course-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.progress-percentage {
+  font-size: 14px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+mat-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.progress-footer {
+  margin-top: 6px;
+}
+
+.last-updated {
+  font-size: 12px;
+  color: #999;
+}
+
+/* Profile Card */
+.profile-card {
+  grid-column: span 1;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.info-item mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #667eea;
+}
+
+.info-item span {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .student-dashboard-container {
+    padding: 16px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions-card {
+    grid-column: 1;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-card,
+  .profile-card {
+    grid-column: 1;
+  }
+}
+
+/* Material overrides */
+::ng-deep .mat-mdc-card {
+  padding: 20px;
+}
+
+::ng-deep .mat-mdc-progress-bar {
+  border-radius: 4px;
+}

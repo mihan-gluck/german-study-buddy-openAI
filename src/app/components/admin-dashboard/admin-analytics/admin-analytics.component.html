@@ -31,9 +31,16 @@
   <ul class="nav nav-tabs mb-4">
     <li class="nav-item">
       <button class="nav-link" 
+              [class.active]="activeTab === 'ai-usage'"
+              (click)="setActiveTab('ai-usage')">
+        <i class="fas fa-robot"></i> AI Usage Analytics
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" 
               [class.active]="activeTab === 'module-usage'"
               (click)="setActiveTab('module-usage')">
-        <i class="fas fa-book"></i> Module Usage Analytics
+        <i class="fas fa-book"></i> Module Usage
       </button>
     </li>
     <li class="nav-item">
@@ -41,13 +48,6 @@
               [class.active]="activeTab === 'teacher-performance'"
               (click)="setActiveTab('teacher-performance')">
         <i class="fas fa-chalkboard-teacher"></i> Teacher Performance
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" 
-              [class.active]="activeTab === 'detailed-usage'"
-              (click)="setActiveTab('detailed-usage')">
-        <i class="fas fa-list-alt"></i> Detailed Usage
       </button>
     </li>
   </ul>
@@ -146,13 +146,13 @@
           <label class="form-label">Actions</label>
           <div class="d-flex gap-1">
             <button class="btn btn-primary btn-sm" (click)="applyModuleUsageFilters()">
-              <i class="fas fa-search"></i>
+              <i class="fas fa-search"></i> Apply
             </button>
             <button class="btn btn-secondary btn-sm" (click)="clearModuleUsageFilters()">
-              <i class="fas fa-times"></i>
+              <i class="fas fa-times"></i> Clear
             </button>
             <button class="btn btn-success btn-sm" (click)="exportModuleUsage()">
-              <i class="fas fa-download"></i>
+              <i class="fas fa-download"></i> Export
             </button>
           </div>
         </div>
@@ -457,48 +457,145 @@
     </div>
   </div>
 
-  <!-- Detailed Usage Tab -->
-  <div *ngIf="activeTab === 'detailed-usage'" class="tab-content">
+  <!-- AI Usage Analytics Tab -->
+  <div *ngIf="activeTab === 'ai-usage'" class="tab-content">
+    <!-- Info Alert -->
+    <div class="alert alert-info mb-4">
+      <i class="fas fa-info-circle me-2"></i>
+      <strong>Student AI Usage Analytics:</strong> This page shows only students who have used the AI tutor. Teachers and admins are excluded from this view.
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="stat-card bg-primary text-white">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-content">
+            <h3>{{ totalStudentsUsingAI }}</h3>
+            <p>Students Using AI</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-success text-white">
+          <div class="stat-icon"><i class="fas fa-comments"></i></div>
+          <div class="stat-content">
+            <h3>{{ totalAISessionsCount }}</h3>
+            <p>Total AI Sessions</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-info text-white">
+          <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          <div class="stat-content">
+            <h3>{{ totalAITimeHours }}h</h3>
+            <p>Total Time Spent</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-warning text-white">
+          <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="stat-content">
+            <h3>{{ averageSessionDuration }}m</h3>
+            <p>Avg Session Duration</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="chart-card">
+          <div class="chart-container" style="height: 300px;">
+            <canvas *ngIf="studentEngagementChart" 
+                    baseChart
+                    [data]="studentEngagementChart"
+                    [options]="studentEngagementOptions"
+                    [type]="'bar'">
+            </canvas>
+          </div>
+          <p class="chart-description">
+            <i class="fas fa-info-circle text-primary"></i>
+            Shows how students are categorized by their total AI usage time.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="chart-card">
+          <div class="chart-container" style="height: 300px;">
+            <canvas *ngIf="modulePopularityChart" 
+                    baseChart
+                    [data]="modulePopularityChart"
+                    [options]="modulePopularityOptions"
+                    [type]="'doughnut'">
+            </canvas>
+          </div>
+          <p class="chart-description">
+            <i class="fas fa-info-circle text-primary"></i>
+            Top 6 most used AI modules by number of sessions.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="chart-card">
+          <div class="chart-container" style="height: 300px;">
+            <canvas *ngIf="completionRateChart" 
+                    baseChart
+                    [data]="completionRateChart"
+                    [options]="completionRateOptions"
+                    [type]="'bar'">
+            </canvas>
+          </div>
+          <p class="chart-description">
+            <i class="fas fa-info-circle text-primary"></i>
+            Distribution of students across CEFR levels (A1-C2).
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- Filters -->
     <div class="filters-section mb-4">
       <div class="row">
-        <div class="col-md-3">
-          <label class="form-label">Module</label>
-          <select class="form-select form-select-sm" [(ngModel)]="detailedUsageFilters.moduleId">
-            <option value="">All Modules</option>
-            <option *ngFor="let module of availableModules" [value]="module._id">
-              {{ module.title }} ({{ module.level }})
-            </option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Teacher</label>
-          <select class="form-select form-select-sm" [(ngModel)]="detailedUsageFilters.teacherId">
-            <option value="">All Teachers</option>
-            <option *ngFor="let teacher of availableTeachers" [value]="teacher._id">
-              {{ teacher.name }}
-            </option>
-          </select>
-        </div>
         <div class="col-md-2">
           <label class="form-label">Batch</label>
-          <select class="form-select form-select-sm" [(ngModel)]="detailedUsageFilters.batch">
+          <select class="form-select form-select-sm" [(ngModel)]="moduleUsageFilters.batch">
             <option value="">All Batches</option>
             <option *ngFor="let batch of availableBatches" [value]="batch">
               {{ batch }}
             </option>
           </select>
         </div>
+        <div class="col-md-2">
+          <label class="form-label">Level</label>
+          <select class="form-select form-select-sm" [(ngModel)]="moduleUsageFilters.level">
+            <option value="">All Levels</option>
+            <option *ngFor="let level of availableLevels" [value]="level">
+              {{ level }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Date From</label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="moduleUsageFilters.dateFrom">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Date To</label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="moduleUsageFilters.dateTo">
+        </div>
         <div class="col-md-4">
           <label class="form-label">Actions</label>
           <div class="d-flex gap-1">
-            <button class="btn btn-primary btn-sm" (click)="applyDetailedUsageFilters()">
+            <button class="btn btn-primary btn-sm" (click)="loadAIUsageData()">
               <i class="fas fa-search"></i> Apply
             </button>
-            <button class="btn btn-secondary btn-sm" (click)="clearDetailedUsageFilters()">
+            <button class="btn btn-secondary btn-sm" (click)="moduleUsageFilters.batch=''; moduleUsageFilters.level=''; moduleUsageFilters.dateFrom=''; moduleUsageFilters.dateTo=''; loadAIUsageData()">
               <i class="fas fa-times"></i> Clear
             </button>
-            <button class="btn btn-success btn-sm" (click)="exportDetailedUsage()">
+            <button class="btn btn-success btn-sm" (click)="exportAIUsageData()">
               <i class="fas fa-download"></i> Export
             </button>
           </div>
@@ -506,64 +603,72 @@
       </div>
     </div>
 
-    <!-- Detailed Usage Table -->
+    <!-- Student Usage Table -->
     <div class="table-section">
+      <h5 class="mb-3">
+        <i class="fas fa-users"></i> Student AI Usage Details
+      </h5>
       <div class="table-responsive">
-        <table class="table table-hover table-sm">
+        <table class="table table-hover">
           <thead class="table-dark">
             <tr>
-              <th (click)="sortData('studentName')" class="sortable">
-                Student <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th (click)="sortData('moduleName')" class="sortable">
-                Module <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th>Teacher</th>
-              <th (click)="sortData('durationMinutes')" class="sortable">
-                Duration <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th>Score</th>
-              <th>Status</th>
-              <th (click)="sortData('createdAt')" class="sortable">
-                Date <i class="fas fa-sort ms-1"></i>
-              </th>
+              <th>Student</th>
+              <th>Batch</th>
+              <th>Level</th>
+              <th>Sessions</th>
+              <th>Time Spent</th>
+              <th>Completion Rate</th>
+              <th>Avg Score</th>
+              <th>Vocabulary</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let session of paginatedData" class="data-row">
+            <tr *ngFor="let student of studentUsageData" class="data-row">
               <td>
                 <div class="student-info">
-                  <strong>{{ session.studentName }}</strong>
-                  <small class="d-block text-muted">{{ session.studentBatch }} - {{ session.studentLevel }}</small>
+                  <strong>{{ student.studentName }}</strong>
+                  <small class="d-block text-muted">{{ student.studentEmail }}</small>
                 </div>
               </td>
               <td>
-                <div class="module-info">
-                  <strong>{{ session.moduleName }}</strong>
-                  <small class="d-block text-muted">{{ session.moduleLevel }} - {{ session.moduleCategory }}</small>
+                <span class="badge" [class.bg-secondary]="student.studentBatch === 'Not assigned'" [class.bg-info]="student.studentBatch !== 'Not assigned'">
+                  {{ student.studentBatch }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [class.bg-secondary]="student.studentLevel === 'Not set'" [class.bg-primary]="student.studentLevel !== 'Not set'">
+                  {{ student.studentLevel }}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-primary">{{ student.totalSessions }}</span>
+                <small class="d-block text-muted">{{ student.completedSessions }} completed</small>
+              </td>
+              <td>
+                <strong>{{ formatTimeAI(student.totalTimeMinutes) }}</strong>
+              </td>
+              <td>
+                <div class="progress" style="height: 20px;">
+                  <div class="progress-bar" 
+                       [style.width.%]="student.completionRate"
+                       [style.background-color]="getCompletionRateColorAI(student.completionRate)">
+                    {{ student.completionRate | number:'1.0-0' }}%
+                  </div>
                 </div>
               </td>
               <td>
-                <small>{{ session.teacherName }}</small>
-              </td>
-              <td>
-                <strong>{{ formatTimeSpent(session.durationMinutes) }}</strong>
-              </td>
-              <td>
-                <span [class]="getScoreColor(session.summary?.totalScore || 0)">
-                  {{ session.summary?.totalScore || 0 }}
+                <span [class]="getScoreColor(student.averageScore)">
+                  {{ student.averageScore | number:'1.1-1' }}
                 </span>
               </td>
               <td>
-                <span class="badge" 
-                      [class.bg-success]="session.sessionState === 'completed'"
-                      [class.bg-warning]="session.sessionState === 'manually_ended'"
-                      [class.bg-danger]="session.sessionState === 'abandoned'">
-                  {{ session.sessionState }}
-                </span>
+                <span class="badge bg-success">{{ student.vocabularyLearned }}</span>
               </td>
               <td>
-                <small>{{ formatDateTime(session.createdAt) }}</small>
+                <button class="btn btn-sm btn-outline-primary" (click)="viewStudentDetails(student)">
+                  <i class="fas fa-eye"></i> View
+                </button>
               </td>
             </tr>
           </tbody>
@@ -571,18 +676,101 @@
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="isLoadingDetailedUsage" class="text-center py-4">
+      <div *ngIf="isLoadingAIUsage" class="text-center py-4">
         <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-2">Loading detailed usage data...</p>
+        <p class="mt-2">Loading AI usage analytics...</p>
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!isLoadingDetailedUsage && detailedUsageData.length === 0" class="text-center py-4">
-        <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
-        <h5>No Data Available</h5>
-        <p class="text-muted">No detailed usage data found for the selected filters.</p>
+      <div *ngIf="!isLoadingAIUsage && studentUsageData.length === 0" class="text-center py-4">
+        <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+        <h5>No AI Usage Data</h5>
+        <p class="text-muted">No students have used the AI tutor yet, or no data matches your filters.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Details Modal -->
+  <div *ngIf="showDetailedView" class="modal-overlay" (click)="closeDetailedView()">
+    <div class="modal-content-custom" (click)="$event.stopPropagation()">
+      <div class="modal-header-custom">
+        <h4>
+          <i class="fas fa-user-graduate"></i>
+          {{ selectedStudent?.studentName }} - Detailed Sessions
+        </h4>
+        <button class="btn-close-custom" (click)="closeDetailedView()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body-custom">
+        <div class="student-summary mb-4">
+          <div class="row">
+            <div class="col-md-3">
+              <small class="text-muted">Email</small>
+              <div><strong>{{ selectedStudent?.studentEmail }}</strong></div>
+            </div>
+            <div class="col-md-3">
+              <small class="text-muted">Batch</small>
+              <div><strong>{{ selectedStudent?.studentBatch }}</strong></div>
+            </div>
+            <div class="col-md-3">
+              <small class="text-muted">Level</small>
+              <div><strong>{{ selectedStudent?.studentLevel }}</strong></div>
+            </div>
+            <div class="col-md-3">
+              <small class="text-muted">Total Time</small>
+              <div><strong>{{ formatTimeAI(selectedStudent?.totalTimeMinutes) }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="mb-3">Session History</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let session of studentDetailedSessions">
+                <td>
+                  <strong>{{ session.moduleName }}</strong>
+                  <small class="d-block text-muted">{{ session.moduleLevel }}</small>
+                </td>
+                <td>{{ formatDateTime(session.createdAt) }}</td>
+                <td>{{ formatTimeSpent(session.durationMinutes) }}</td>
+                <td>
+                  <span [class]="getScoreColor(session.summary?.totalScore || 0)">
+                    {{ session.summary?.totalScore || 0 }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="session.sessionState === 'completed'"
+                        [class.bg-warning]="session.sessionState === 'manually_ended'"
+                        [class.bg-danger]="session.sessionState === 'abandoned'">
+                    {{ session.sessionState }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Loading State for Details -->
+        <div *ngIf="isLoadingAIDetails" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Loading session details...</p>
+        </div>
       </div>
     </div>
   </div>

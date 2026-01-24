@@ -1,0 +1,108 @@
+<!-- src/app/components/student-dashboard/student-dashboard.component.html -->
+
+<div class="student-dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>Welcome, {{ basicUser?.name || 'Student' }}!</h1>
+    <p class="subtitle" *ngIf="basicUser?.level">Level: {{ basicUser.level }}</p>
+  </div>
+
+  <!-- Meeting Notifications Widget -->
+  <app-meeting-notifications></app-meeting-notifications>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading your dashboard...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && !error" class="dashboard-content">
+    
+    <!-- Quick Actions -->
+    <mat-card class="quick-actions-card">
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" routerLink="/student/meetings">
+            <mat-icon>event</mat-icon>
+            My Classes
+          </button>
+          <button mat-raised-button color="accent" routerLink="/student/learning-modules">
+            <mat-icon>school</mat-icon>
+            Learning Modules
+          </button>
+          <button mat-raised-button routerLink="/student/ai-tutor">
+            <mat-icon>psychology</mat-icon>
+            AI Tutor
+          </button>
+          <button mat-raised-button routerLink="/profile">
+            <mat-icon>person</mat-icon>
+            My Profile
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Course Progress -->
+    <mat-card class="progress-card" *ngIf="courseProgressList && courseProgressList.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>trending_up</mat-icon>
+          Course Progress
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngFor="let progress of courseProgressList" class="progress-item">
+          <div class="progress-header">
+            <span class="course-name">{{ progress.courseId?.name || 'Course' }}</span>
+            <span class="progress-percentage">{{ progress.progressPercentage }}%</span>
+          </div>
+          <mat-progress-bar 
+            mode="determinate" 
+            [value]="progress.progressPercentage"
+            [color]="getProgressColor(progress.progressPercentage)">
+          </mat-progress-bar>
+          <div class="progress-footer">
+            <span class="last-updated">Last updated: {{ progress.lastUpdated | date:'short' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- User Profile Summary -->
+    <mat-card class="profile-card" *ngIf="userProfile">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>account_circle</mat-icon>
+          Profile Summary
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="profile-info">
+          <div class="info-item">
+            <mat-icon>email</mat-icon>
+            <span>{{ userProfile.email }}</span>
+          </div>
+          <div class="info-item" *ngIf="userProfile.subscription">
+            <mat-icon>card_membership</mat-icon>
+            <span>{{ userProfile.subscription }}</span>
+          </div>
+          <div class="info-item" *ngIf="userProfile.registeredAt">
+            <mat-icon>event</mat-icon>
+            <span>Member since {{ userProfile.registeredAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

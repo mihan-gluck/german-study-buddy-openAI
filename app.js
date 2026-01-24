@@ -37,6 +37,8 @@ const adminAnalyticsRoutes = require('./routes/adminAnalytics');
 const zoomRoutes = require('./routes/zoom');
 const upgradeRequestsRoutes = require('./routes/upgradeRequests');
 const studentLogRoutes = require('./routes/studentLog');
+const studentDocumentsRoutes = require('./routes/studentDocuments');
+const documentRequirementsRoutes = require('./routes/documentRequirements');
 
 
 const app = express();
@@ -92,6 +94,8 @@ app.use('/api/admin-analytics', adminAnalyticsRoutes);
 app.use('/api/zoom', zoomRoutes);
 app.use('/api/upgrade-requests', upgradeRequestsRoutes);
 app.use('/api/studentLog', studentLogRoutes);
+app.use('/api/student-documents', studentDocumentsRoutes);
+app.use('/api/document-requirements', documentRequirementsRoutes);
 
 
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {

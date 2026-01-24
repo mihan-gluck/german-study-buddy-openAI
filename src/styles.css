@@ -27,9 +27,8 @@
     padding: 15px;
   }
   
+  /* Footer positioning removed - handled by app.component.css */
   footer {
-    position: fixed;
-    bottom: 0;
     width: 100%;
     text-align: center;
     font-size: 0.8rem;

@@ -27,6 +27,8 @@ export class AppComponent implements OnInit {
     ).subscribe((event: NavigationEnd) => {
       // Hide header on Home or Login routes
       this.showHeader = event.urlAfterRedirects !== '/home' && event.urlAfterRedirects !== '/login';
+      console.log('🔍 Current URL:', event.urlAfterRedirects);
+      console.log('🔍 Show Header:', this.showHeader);
     });
   }
 

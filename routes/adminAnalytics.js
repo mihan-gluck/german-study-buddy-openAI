@@ -21,8 +21,11 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
       level, 
       dateFrom, 
       dateTo,
-      groupBy = 'module' // module, teacher, batch, student
+      groupBy = 'module', // module, teacher, batch, student
+      studentsOnly = false // NEW: Filter to show only students
     } = req.query;
+    
+    console.log('🔍 studentsOnly parameter:', studentsOnly, 'Type:', typeof studentsOnly);
     
     // Build match criteria
     const matchCriteria = {};
@@ -59,6 +62,9 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
       // Unwind arrays
       { $unwind: '$student' },
       { $unwind: '$module' },
+      
+      // NEW: Filter to show only STUDENTS (exclude TEACHER and ADMIN roles)
+      ...(studentsOnly === 'true' ? [{ $match: { 'student.role': 'STUDENT' } }] : []),
       
       // Filter by additional criteria
       ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
@@ -119,6 +125,16 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
     
     const results = await SessionRecord.aggregate(pipeline);
     
+    console.log('✅ Query results count:', results.length);
+    if (results.length > 0 && groupBy === 'student') {
+      console.log('📋 Sample student data:', {
+        name: results[0]._id?.studentName,
+        email: results[0]._id?.studentEmail,
+        batch: results[0]._id?.studentBatch,
+        level: results[0]._id?.studentLevel
+      });
+    }
+    
     // Get summary statistics
     const summaryPipeline = [
       { $match: matchCriteria },
@@ -131,6 +147,8 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
         }
       },
       { $unwind: '$student' },
+      // NEW: Apply studentsOnly filter to summary as well
+      ...(studentsOnly === 'true' ? [{ $match: { 'student.role': 'STUDENT' } }] : []),
       ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
       ...(level ? [{ $match: { 'student.level': level } }] : []),
       ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
@@ -562,6 +580,7 @@ function getGroupByField(groupBy) {
       return {
         studentId: '$studentId',
         studentName: '$student.name',
+        studentEmail: '$student.email', // NEW: Include email
         studentBatch: '$student.batch',
         studentLevel: '$student.level'
       };

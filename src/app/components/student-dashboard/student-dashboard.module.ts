@@ -11,6 +11,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MaterialModule } from '../../shared/material.module';
 import { NgChartsModule } from 'ng2-charts';
+import { MeetingNotificationsComponent } from './meeting-notifications.component';
 
 
 const routes: Routes = [
@@ -28,6 +29,7 @@ const routes: Routes = [
             RouterModule.forChild(routes),
             MaterialModule,
             NgChartsModule,
+            MeetingNotificationsComponent,  // Import standalone component
             //StudentRoutingModule
         ],
   exports: [StudentDashboardComponent],

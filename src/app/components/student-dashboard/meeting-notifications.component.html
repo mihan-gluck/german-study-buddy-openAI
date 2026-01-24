@@ -1,0 +1,111 @@
+<!-- src/app/components/student-dashboard/meeting-notifications.component.html -->
+
+<mat-card class="meeting-notifications-card">
+  <!-- Header -->
+  <div class="notification-header">
+    <div class="header-title">
+      <mat-icon [matBadge]="getTotalNotifications()" 
+                [matBadgeHidden]="getTotalNotifications() === 0"
+                matBadgeColor="warn"
+                matBadgeSize="small">
+        notifications_active
+      </mat-icon>
+      <h3>Upcoming Classes</h3>
+    </div>
+    <button mat-icon-button (click)="loadMeetings()" matTooltip="Refresh">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <mat-icon class="spin">hourglass_empty</mat-icon>
+    <span>Loading...</span>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Ongoing Meetings (Priority Alert) -->
+  <div *ngIf="!loading && !error && ongoingMeetings.length > 0" class="ongoing-alerts">
+    <div *ngFor="let meeting of ongoingMeetings" class="meeting-alert ongoing">
+      <div class="alert-icon">
+        <mat-icon class="pulse">videocam</mat-icon>
+      </div>
+      <div class="alert-content">
+        <div class="alert-title">
+          <strong>{{ meeting.topic }}</strong>
+          <span class="live-badge">LIVE</span>
+        </div>
+        <div class="alert-details">
+          <span><mat-icon>person</mat-icon>{{ meeting.teacher.name }}</span>
+          <span><mat-icon>schedule</mat-icon>{{ formatTime(meeting.startTime) }}</span>
+        </div>
+      </div>
+      <button mat-raised-button color="warn" class="join-btn" (click)="joinMeeting(meeting)">
+        <mat-icon>videocam</mat-icon>
+        Join
+      </button>
+    </div>
+  </div>
+
+  <!-- Upcoming Meetings (Next 24 Hours) -->
+  <div *ngIf="!loading && !error && upcomingMeetings.length > 0" class="upcoming-list">
+    <div *ngFor="let meeting of upcomingMeetings" 
+         class="meeting-item"
+         [class.urgent]="isUrgent(meeting)">
+      <div class="meeting-time">
+        <div class="time-badge" [class.urgent]="isUrgent(meeting)">
+          <div class="date">{{ formatDate(meeting.startTime) }}</div>
+          <div class="time">{{ formatTime(meeting.startTime) }}</div>
+        </div>
+        <div class="countdown" *ngIf="isUrgent(meeting)">
+          <mat-icon>alarm</mat-icon>
+          {{ getTimeUntilStart(meeting) }}
+        </div>
+      </div>
+      
+      <div class="meeting-info">
+        <div class="meeting-title">{{ meeting.topic }}</div>
+        <div class="meeting-meta">
+          <span><mat-icon>person</mat-icon>{{ meeting.teacher.name }}</span>
+          <span><mat-icon>class</mat-icon>{{ meeting.batch }}</span>
+        </div>
+        <div class="meeting-countdown" *ngIf="!isUrgent(meeting)">
+          {{ getTimeUntilStart(meeting) }}
+        </div>
+      </div>
+
+      <div class="meeting-actions">
+        <button mat-icon-button 
+                [disabled]="!meeting.canJoin"
+                (click)="joinMeeting(meeting)"
+                [matTooltip]="meeting.canJoin ? 'Join class' : 'Not yet available'">
+          <mat-icon [color]="meeting.canJoin ? 'primary' : ''">
+            {{ meeting.canJoin ? 'videocam' : 'schedule' }}
+          </mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && getTotalNotifications() === 0" class="empty-state">
+    <mat-icon>event_available</mat-icon>
+    <p>No classes in the next 24 hours</p>
+    <button mat-button color="primary" (click)="viewAllMeetings()">
+      View All Classes
+    </button>
+  </div>
+
+  <!-- View All Button -->
+  <div *ngIf="!loading && !error && getTotalNotifications() > 0" class="footer-actions">
+    <button mat-button color="primary" (click)="viewAllMeetings()">
+      <mat-icon>event</mat-icon>
+      View All Classes ({{ getTotalNotifications() }})
+    </button>
+  </div>
+</mat-card>

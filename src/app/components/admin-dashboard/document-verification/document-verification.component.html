@@ -1,0 +1,578 @@
+<div class="document-verification-container">
+  <!-- Header -->
+  <div class="header">
+    <h2>📄 Document Management</h2>
+    <p class="subtitle">Manage student documents and requirements</p>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group>
+    <!-- Tab 1: Student Document Verification -->
+    <mat-tab label="Student Document Verification">
+      <div class="tab-content">
+        <!-- Action Buttons -->
+        <div class="action-buttons-row">
+          <button mat-raised-button color="primary" (click)="openBulkUploadDialog()">
+            <mat-icon>cloud_upload</mat-icon>
+            Bulk Upload for Students
+          </button>
+          <button mat-raised-button style="background-color: #4caf50; color: white;" (click)="openMarkVerifiedDialog()">
+            <mat-icon>verified</mat-icon>
+            Mark as Verified (No Upload)
+          </button>
+          <button mat-raised-button color="accent" (click)="bulkVerifySelected()" [disabled]="selectedDocuments.length === 0">
+            <mat-icon>check_circle</mat-icon>
+            Verify Selected ({{ selectedDocuments.length }})
+          </button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon total">
+          <mat-icon>description</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.totalDocuments }}</h3>
+          <p>Total Documents</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon pending">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.pendingDocuments }}</h3>
+          <p>Pending Review</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon verified">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.verifiedDocuments }}</h3>
+          <p>Verified</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon rejected">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.rejectedDocuments }}</h3>
+          <p>Rejected</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon students">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.totalStudents }}</h3>
+          <p>Students</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+            <mat-option value="ALL">All Status</mat-option>
+            <mat-option value="PENDING">Pending</mat-option>
+            <mat-option value="VERIFIED">Verified</mat-option>
+            <mat-option value="REJECTED">Rejected</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Document Type</mat-label>
+          <mat-select [(ngModel)]="selectedDocumentType" (selectionChange)="applyFilters()">
+            <mat-option value="ALL">All Types</mat-option>
+            <mat-option *ngFor="let type of documentTypes" [value]="type.value">
+              {{ type.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field search-field">
+          <mat-label>Search</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (input)="applyFilters()" 
+                 placeholder="Student name, email, or document name">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <button mat-raised-button color="accent" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Clear Filters
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Documents Table -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading documents...</p>
+      </div>
+
+      <div *ngIf="!loading && paginatedDocuments.length === 0" class="no-data">
+        <mat-icon>folder_open</mat-icon>
+        <p>No documents found</p>
+      </div>
+
+      <div *ngIf="!loading && paginatedDocuments.length > 0" class="table-container">
+        <table mat-table [dataSource]="paginatedDocuments" class="documents-table">
+          
+          <!-- Checkbox Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox 
+                (change)="toggleSelectAll()"
+                [checked]="allSelected"
+                [indeterminate]="selectedDocuments.length > 0 && !allSelected">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let doc">
+              <mat-checkbox 
+                *ngIf="doc.status === 'PENDING'"
+                (change)="toggleDocumentSelection(doc._id)"
+                [checked]="isDocumentSelected(doc._id)"
+                (click)="$event.stopPropagation()">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+          
+          <!-- Student Name Column -->
+          <ng-container matColumnDef="studentName">
+            <th mat-header-cell *matHeaderCellDef>Student</th>
+            <td mat-cell *matCellDef="let doc">
+              <div class="student-info">
+                <strong>{{ doc.studentName }}</strong>
+                <small>{{ doc.studentEmail }}</small>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Document Type Column -->
+          <ng-container matColumnDef="documentType">
+            <th mat-header-cell *matHeaderCellDef>Document Type</th>
+            <td mat-cell *matCellDef="let doc">
+              {{ doc.documentTypeDisplay || doc.documentType }}
+            </td>
+          </ng-container>
+
+          <!-- Document Name Column -->
+          <ng-container matColumnDef="documentName">
+            <th mat-header-cell *matHeaderCellDef>Document Name</th>
+            <td mat-cell *matCellDef="let doc">{{ doc.documentName }}</td>
+          </ng-container>
+
+          <!-- File Size Column -->
+          <ng-container matColumnDef="fileSize">
+            <th mat-header-cell *matHeaderCellDef>Size</th>
+            <td mat-cell *matCellDef="let doc">{{ doc.formattedFileSize }}</td>
+          </ng-container>
+
+          <!-- Uploaded At Column -->
+          <ng-container matColumnDef="uploadedAt">
+            <th mat-header-cell *matHeaderCellDef>Uploaded</th>
+            <td mat-cell *matCellDef="let doc">{{ formatDate(doc.uploadedAt) }}</td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let doc">
+              <mat-chip [color]="getStatusColor(doc.status)" selected>
+                <mat-icon>{{ getStatusIcon(doc.status) }}</mat-icon>
+                {{ doc.status }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let doc">
+              <div class="action-buttons">
+                <button mat-icon-button color="primary" 
+                        (click)="downloadDocument(doc)"
+                        [disabled]="doc.fileName === 'NO_FILE_UPLOADED'"
+                        [matTooltip]="doc.fileName === 'NO_FILE_UPLOADED' ? 'No file available - verified without upload' : 'Download'">
+                  <mat-icon>download</mat-icon>
+                </button>
+                
+                <button mat-icon-button color="accent" 
+                        (click)="openVerificationDialog(doc, 'VERIFIED')"
+                        [disabled]="doc.status === 'VERIFIED'"
+                        matTooltip="Verify">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                
+                <button mat-icon-button color="warn" 
+                        (click)="openVerificationDialog(doc, 'REJECTED')"
+                        [disabled]="doc.status === 'REJECTED'"
+                        matTooltip="Reject">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+                
+                <button mat-icon-button 
+                        *ngIf="doc.status === 'VERIFIED'"
+                        (click)="unlockDocument(doc)"
+                        matTooltip="Unlock for student to update"
+                        style="color: #ff9800;">
+                  <mat-icon>lock_open</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Pagination -->
+        <mat-paginator 
+          [length]="totalDocuments"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 50, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Required Documents -->
+    <mat-tab label="Required Documents">
+      <div class="tab-content">
+        <div class="requirements-header">
+          <h3>📋 Manage Required Document Types</h3>
+          <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="openRequirementForm()">
+              <mat-icon>add</mat-icon>
+              Add Document Type
+            </button>
+          </div>
+        </div>
+
+        <mat-card class="requirements-card">
+          <mat-card-content>
+            <div class="requirements-list">
+              <div *ngFor="let req of requirements" class="requirement-item" [class.inactive]="!req.active">
+                <div class="requirement-info">
+                  <div class="requirement-header">
+                    <h4>{{ req.label }}</h4>
+                    <div class="requirement-badges">
+                      <span class="badge badge-category">{{ req.category }}</span>
+                      <span class="badge badge-required" *ngIf="req.required">Required</span>
+                      <span class="badge badge-optional" *ngIf="!req.required">Optional</span>
+                      <span class="badge badge-inactive" *ngIf="!req.active">Inactive</span>
+                    </div>
+                  </div>
+                  <p class="requirement-description">{{ req.description }}</p>
+                  <small class="requirement-meta">Type: {{ req.type }} | Order: {{ req.order }}</small>
+                </div>
+                <div class="requirement-actions">
+                  <button mat-icon-button color="primary" (click)="openRequirementForm(req)" matTooltip="Edit">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteRequirement(req)" matTooltip="Delete">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="requirements.length === 0" class="no-requirements">
+                <mat-icon>folder_open</mat-icon>
+                <p>No document requirements found</p>
+                <button mat-raised-button color="primary" (click)="openRequirementForm()">
+                  <mat-icon>add</mat-icon>
+                  Add First Document Type
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<!-- Verification Dialog -->
+<div class="verification-dialog-overlay" *ngIf="showVerificationDialog" (click)="closeVerificationDialog()">
+  <div class="verification-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>
+        <mat-icon [color]="verificationAction === 'VERIFIED' ? 'accent' : 'warn'">
+          {{ verificationAction === 'VERIFIED' ? 'check_circle' : 'cancel' }}
+        </mat-icon>
+        {{ verificationAction === 'VERIFIED' ? 'Verify' : 'Reject' }} Document
+      </h3>
+      <button mat-icon-button (click)="closeVerificationDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="dialog-content" *ngIf="selectedDocument">
+      <div class="document-details">
+        <p><strong>Student:</strong> {{ selectedDocument.studentName }}</p>
+        <p><strong>Document:</strong> {{ selectedDocument.documentName }}</p>
+        <p><strong>Type:</strong> {{ selectedDocument.documentTypeDisplay }}</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>
+          {{ verificationAction === 'VERIFIED' ? 'Verification Notes (Optional)' : 'Rejection Reason (Required)' }}
+        </mat-label>
+        <textarea matInput [(ngModel)]="verificationNotes" 
+                  rows="4"
+                  [placeholder]="verificationAction === 'VERIFIED' ? 'Add any notes about this verification...' : 'Please provide a reason for rejection...'">
+        </textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-button (click)="closeVerificationDialog()">Cancel</button>
+      <button mat-raised-button 
+              [color]="verificationAction === 'VERIFIED' ? 'accent' : 'warn'"
+              (click)="confirmVerification()"
+              [disabled]="verificationAction === 'REJECTED' && !verificationNotes.trim()">
+        {{ verificationAction === 'VERIFIED' ? 'Verify' : 'Reject' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Requirement Form Dialog -->
+<div class="verification-dialog-overlay" *ngIf="showRequirementForm" (click)="closeRequirementForm()">
+  <div class="verification-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>
+        <mat-icon>{{ editingRequirement ? 'edit' : 'add' }}</mat-icon>
+        {{ editingRequirement ? 'Edit' : 'Add' }} Document Requirement
+      </h3>
+      <button mat-icon-button (click)="closeRequirementForm()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="dialog-content">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Document Label</mat-label>
+        <input matInput [(ngModel)]="requirementForm.label" placeholder="e.g., Passport">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" *ngIf="!editingRequirement">
+        <mat-label>Document Type (auto-generated if empty)</mat-label>
+        <input matInput [(ngModel)]="requirementForm.type" placeholder="e.g., PASSPORT">
+        <mat-hint>Leave empty to auto-generate from label</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput [(ngModel)]="requirementForm.description" rows="3"
+                  placeholder="Describe what this document is and any specific requirements"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Category</mat-label>
+        <mat-select [(ngModel)]="requirementForm.category">
+          <mat-option *ngFor="let cat of categories" [value]="cat.value">
+            {{ cat.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" style="flex: 1;">
+          <mat-label>Display Order</mat-label>
+          <input matInput type="number" [(ngModel)]="requirementForm.order">
+        </mat-form-field>
+
+        <mat-checkbox [(ngModel)]="requirementForm.required" style="margin-left: 20px;">
+          Required Document
+        </mat-checkbox>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-button (click)="closeRequirementForm()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveRequirement()">
+        {{ editingRequirement ? 'Update' : 'Create' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bulk Upload Dialog -->
+<div class="verification-dialog-overlay" *ngIf="showBulkUploadDialog" (click)="closeBulkUploadDialog()">
+  <div class="verification-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>
+        <mat-icon>cloud_upload</mat-icon>
+        Bulk Upload Documents for Student
+      </h3>
+      <button mat-icon-button (click)="closeBulkUploadDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="dialog-content">
+      <p class="info-text">Upload multiple documents on behalf of a student</p>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Search Student</mat-label>
+        <input matInput 
+               [formControl]="studentSearchControl"
+               [matAutocomplete]="autoStudent"
+               placeholder="Type name, email, or reg no...">
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-autocomplete #autoStudent="matAutocomplete" (optionSelected)="selectStudent($event.option.value)">
+          <mat-option *ngFor="let student of filteredStudents" [value]="student">
+            <div class="student-option">
+              <strong>{{ student.name }}</strong>
+              <small>{{ student.email }}</small>
+              <small *ngIf="student.regNo">Reg: {{ student.regNo }}</small>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Document Type</mat-label>
+        <mat-select [(ngModel)]="bulkUploadForm.documentType">
+          <mat-option *ngFor="let type of documentTypes" [value]="type.value">
+            {{ type.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="file-upload-section">
+        <label class="file-upload-label">
+          <mat-icon>attach_file</mat-icon>
+          Select Files (Multiple)
+        </label>
+        <input 
+          type="file" 
+          multiple
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          (change)="onBulkFilesSelected($event)"
+          style="display: none;"
+          #bulkFileInput>
+        <button mat-raised-button (click)="bulkFileInput.click()">
+          <mat-icon>folder_open</mat-icon>
+          Choose Files
+        </button>
+        <p *ngIf="bulkUploadForm.files.length > 0" class="files-selected">
+          {{ bulkUploadForm.files.length }} file(s) selected
+        </p>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-button (click)="closeBulkUploadDialog()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="uploadBulkDocuments()">
+        <mat-icon>cloud_upload</mat-icon>
+        Upload All
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Mark as Verified Without Upload Dialog -->
+<div class="verification-dialog-overlay" *ngIf="showMarkVerifiedDialog" (click)="closeMarkVerifiedDialog()">
+  <div class="verification-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>
+        <mat-icon style="color: #4caf50;">verified</mat-icon>
+        Mark Document as Verified (Without Upload)
+      </h3>
+      <button mat-icon-button (click)="closeMarkVerifiedDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="dialog-content">
+      <p class="info-text">
+        Use this to mark documents as verified that were collected physically or through other means.
+        No file will be uploaded, but the document will be recorded as VERIFIED in the system.
+      </p>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Search Student</mat-label>
+        <input matInput 
+               [formControl]="markVerifiedStudentControl"
+               [matAutocomplete]="autoMarkStudent"
+               placeholder="Type name, email, or reg no...">
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-autocomplete #autoMarkStudent="matAutocomplete" (optionSelected)="selectMarkVerifiedStudent($event.option.value)">
+          <mat-option *ngFor="let student of markVerifiedFilteredStudents" [value]="student">
+            <div class="student-option">
+              <strong>{{ student.name }}</strong>
+              <small>{{ student.email }}</small>
+              <small *ngIf="student.regNo">Reg: {{ student.regNo }}</small>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Document Type</mat-label>
+        <mat-select [(ngModel)]="markVerifiedForm.documentType">
+          <mat-option *ngFor="let type of documentTypes" [value]="type.value">
+            {{ type.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Document Name</mat-label>
+        <input matInput [(ngModel)]="markVerifiedForm.documentName" 
+               placeholder="e.g., Passport - John Doe">
+        <mat-hint>Enter a descriptive name for this document</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Verification Notes</mat-label>
+        <textarea matInput [(ngModel)]="markVerifiedForm.verificationNotes" rows="3"
+                  placeholder="e.g., Document collected physically on 2024-01-15"></textarea>
+        <mat-hint>Optional: Add notes about how/when this document was verified</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-button (click)="closeMarkVerifiedDialog()">Cancel</button>
+      <button mat-raised-button style="background-color: #4caf50; color: white;" (click)="markAsVerifiedWithoutUpload()">
+        <mat-icon>verified</mat-icon>
+        Mark as Verified
+      </button>
+    </div>
+  </div>
+</div>

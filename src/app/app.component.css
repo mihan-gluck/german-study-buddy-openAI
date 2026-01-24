@@ -12,12 +12,14 @@ app-header {
   z-index: 1000; /* keep it above content */
 }
 
-/* Main content should grow */
+/* Main content should grow and have proper padding */
 .main-content {
   flex: 1;
-  padding-bottom: 50px;
+  padding-bottom: 80px; /* Increased padding to prevent footer overlap with pagination */
   box-sizing: border-box;
   background: #f9f9f9; /* optional */
+  overflow-y: auto; /* Allow scrolling if content is long */
+  min-height: calc(100vh - 60px - 80px); /* Ensure minimum height (viewport - header - footer) */
 }
 
 /* Footer just stays at bottom naturally */

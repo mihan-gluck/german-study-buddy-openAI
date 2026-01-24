@@ -295,6 +295,8 @@
 /* Pagination */
 .pagination-section {
   margin-top: 3rem;
+  margin-bottom: 4rem; /* Add bottom margin to prevent footer overlap */
+  padding-bottom: 2rem; /* Extra padding for safety */
 }
 
 .page-link {

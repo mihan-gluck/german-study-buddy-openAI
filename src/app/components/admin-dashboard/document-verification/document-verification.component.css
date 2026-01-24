@@ -1,0 +1,547 @@
+.document-verification-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.header h2 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Statistics Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  cursor: default;
+}
+
+.stat-card mat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px !important;
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.stat-icon.total {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-icon.pending {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-icon.verified {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-icon.rejected {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-icon.students {
+  background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
+
+.stat-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Filters */
+.filters-card {
+  margin-bottom: 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  flex: 0 0 200px;
+}
+
+.search-field {
+  flex: 1 1 300px;
+}
+
+/* Table */
+.table-card {
+  margin-bottom: 20px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 20px;
+}
+
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.no-data mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 15px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.documents-table {
+  width: 100%;
+  background: white;
+}
+
+.documents-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-info strong {
+  color: #333;
+}
+
+.student-info small {
+  color: #666;
+  font-size: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+mat-chip {
+  font-size: 12px;
+  min-height: 28px;
+}
+
+mat-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+/* Verification Dialog */
+.verification-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.verification-dialog {
+  background: white;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  color: #333;
+}
+
+.dialog-header mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.dialog-content {
+  padding: 24px;
+}
+
+.document-details {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.document-details p {
+  margin: 8px 0;
+  color: #333;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-field,
+  .search-field {
+    flex: 1 1 100%;
+  }
+  
+  .documents-table {
+    font-size: 12px;
+  }
+  
+  .action-buttons button {
+    padding: 4px;
+  }
+}
+
+/* Disabled button styling */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+
+/* Tab Content */
+.tab-content {
+  padding: 20px 0;
+}
+
+/* Requirements Management */
+.requirements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.requirements-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.requirements-card {
+  margin-bottom: 20px;
+}
+
+.requirements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.requirement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.requirement-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.requirement-item.inactive {
+  opacity: 0.6;
+  background: #f5f5f5;
+}
+
+.requirement-info {
+  flex: 1;
+}
+
+.requirement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.requirement-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.requirement-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-category {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.badge-required {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.badge-optional {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.badge-inactive {
+  background: #fafafa;
+  color: #757575;
+}
+
+.requirement-description {
+  margin: 10px 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.requirement-meta {
+  color: #999;
+  font-size: 12px;
+}
+
+.requirement-actions {
+  display: flex;
+  gap: 5px;
+  margin-left: 15px;
+}
+
+.no-requirements {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.no-requirements mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 15px;
+}
+
+.no-requirements p {
+  margin-bottom: 20px;
+}
+
+/* Form Row */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .requirements-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .header-actions button {
+    width: 100%;
+  }
+  
+  .requirement-item {
+    flex-direction: column;
+  }
+  
+  .requirement-actions {
+    margin-left: 0;
+    margin-top: 15px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* Action Buttons Row */
+.action-buttons-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* File Upload Section */
+.file-upload-section {
+  margin: 20px 0;
+  padding: 20px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-weight: 500;
+  color: #666;
+}
+
+.files-selected {
+  margin-top: 10px;
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.info-text {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Checkbox styling */
+mat-checkbox {
+  margin-right: 8px;
+}
+
+/* Student Autocomplete Option */
+.student-option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.student-option strong {
+  color: #333;
+  font-size: 14px;
+}
+
+.student-option small {
+  color: #666;
+  font-size: 12px;
+}

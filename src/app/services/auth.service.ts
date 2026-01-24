@@ -78,10 +78,14 @@ export class AuthService {
   }
 
   login(user: { regNo: string, password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/login`, user, { withCredentials: true })
+    return this.http.post<any>(`${this.apiUrl}/auth/login`, user, { withCredentials: true })
       .pipe(
-        tap(() => {
-          // ✅ Immediately fetch and update user after login
+        tap((response: any) => {
+          // ✅ Update user state immediately with login response
+          if (response && response.user) {
+            this.currentUserSubject.next(response.user);
+          }
+          // ✅ Also fetch full profile to ensure we have all data
           this.refreshUserProfile().subscribe();
         })
       );
@@ -94,7 +98,11 @@ export class AuthService {
 
   // ✅ Helper: refresh user profile and update BehaviorSubject
   refreshUserProfile(): Observable<any> {
-    return this.getUserProfile();
+    return this.getUserProfile().pipe(
+      tap((user) => {
+        this.currentUserSubject.next(user); // ✅ Broadcast user data to all subscribers
+      })
+    );
   }
 
   isLoggedIn(): boolean {

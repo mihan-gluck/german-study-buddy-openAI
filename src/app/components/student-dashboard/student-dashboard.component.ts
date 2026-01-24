@@ -10,6 +10,7 @@ import { FeedbackService } from '../../services/feedback.service';
 import { CourseProgressService } from '../../services/course-progress.service';
 import { ChartOptions, ChartConfiguration, ChartType } from 'chart.js';
 import { Router } from '@angular/router';
+import { MeetingNotificationsComponent } from './meeting-notifications.component';
 
 interface Student {
   _id: string;
