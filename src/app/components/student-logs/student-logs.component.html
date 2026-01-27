@@ -88,19 +88,19 @@
         <thead class="table-dark">
           <tr>
             <th>Registration No</th>
-            <th>Student</th>
-            <th>Level</th>
-            <th>Batch</th>
-            <th>Subscription</th>
-            <th>Medium</th>
-            <th>Assigned Teacher</th>
+            <th>Student Name</th>
+            <th>Level At Update</th>
+            <th>Batch At Update</th>
+            <th>Plan At Update</th>
+            <th>Medium At Update</th>
+            <th>Assigned Teacher At Update</th>
             <th>Last Updated Date</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let log of paginatedData">
             <td>{{ log.studentId.regNo }}</td>
-            <td>{{ log.studentId.name }} ({{ log.studentId.regNo }})</td>
+            <td>{{ log.studentId.name }}</td>
             <td>{{ log.levelAtUpdate }}</td>
             <td>{{ log.batchAtUpdate }}</td>
             <td>{{ log.subscriptionAtUpdate }}</td>

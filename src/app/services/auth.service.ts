@@ -27,6 +27,11 @@ interface User {
   assignedTeacher?: string;      // for STUDENT (teacher _id)
   profilePhotoUrl?: string;      // URL to profile photo
   studentStatus?: string;        // for STUDENT (UNCERTAIN, ONGOING, COMPLETED, DROPPED)
+  phoneNumber?: string;
+  address?: string;
+  age?: number;
+  programEnrolled?: string;
+  leadSource?: string;
   [key: string]: any;            // Allow additional properties
 }
 
@@ -73,6 +78,11 @@ export class AuthService {
     assignedCourses?: string[],   // for TEACHER
     assignedTeacher?: string      // for STUDENT (teacher _id)
     studentStatus?: string      // for STUDENT (UNCERTAIN, ONGOING, COMPLETED, DROPPED)
+    phoneNumber?: string;     // for STUDENT
+    address?: string;   // for STUDENT
+    age?: number;   // for STUDENT
+    programEnrolled?: string; // for STUDENT
+    leadSource?: string; // for STUDENT
   }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user, { withCredentials: true });
   }

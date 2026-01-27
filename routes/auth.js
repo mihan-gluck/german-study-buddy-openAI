@@ -22,7 +22,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 cron.schedule(
   "50 23 * * *", // ✅ Every day at 11:50 PM
   async () => {
-    console.log("🕒 Running Monday CRM sync at 11:50 PM");
 
     try {
       const BOARD_ID = process.env.MONDAY_BOARD_ID;
@@ -46,7 +45,12 @@ cron.schedule(
                     "color_mky3jxt1",
                     "dropdown_mkxx6cfp",
                     "dropdown_mkxwsaxq",
-                    "dropdown_mkzshj5a"
+                    "dropdown_mkzshj5a",
+                    "text_mkw2wpvr",
+                    "text_mkv080k2",
+                    "text_mkw38wse",
+                    "text_mkwz1j6q",
+                    "text_mkvdkw8g"
                   ]
                 ) {
                   id
@@ -92,6 +96,11 @@ cron.schedule(
         const batch         = get("dropdown_mkxx6cfp");
         const studentStatus = get("dropdown_mkxwsaxq");
         const level         = get("dropdown_mkzshj5a");
+        const phoneNumber   = get("text_mkw2wpvr");
+        const address       = get("text_mkv080k2");
+        const age           = get("text_mkw38wse");
+        const programEnrolled = get("text_mkwz1j6q");
+        const leadSource    = get("text_mkvdkw8g");
 
         if (!email) {
           skipped.push({ name, reason: "No email" });
@@ -118,7 +127,12 @@ cron.schedule(
           level,
           medium,
           batch,
-          studentStatus
+          studentStatus,
+          phoneNumber,
+          address,
+          age: age ? parseInt(age) : null,
+          programEnrolled,
+          leadSource
         });
 
         await newUser.save();
@@ -278,7 +292,7 @@ router.get("/teachersByMedium", async (req, res) => {
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, role, subscription, level, batch, medium, studentStatus, conversationId, elevenLabsWidgetLink, elevenLabsApiKey, assignedCourses, assignedBatches, assignedTeacher } = req.body;
+    const { name, email, role, subscription, level, batch, medium, studentStatus, assignedCourses, assignedBatches, assignedTeacher, phoneNumber, address, age, programEnrolled, leadSource } = req.body;
 
     const regNo = await generateRegNo(role);  
     const password = await generatePassword(role, regNo); // generate random password
@@ -302,6 +316,11 @@ router.post("/signup", async (req, res) => {
       user.batch = batch;
       user.medium = medium;
       user.studentStatus = studentStatus;
+      user.phoneNumber = phoneNumber;
+      user.address = address;
+      user.age = age;
+      user.programEnrolled = programEnrolled;
+      user.leadSource = leadSource;
       
       // 🔍 Teacher assignment
       if (assignedTeacher) {
@@ -573,7 +592,12 @@ router.put("/:id", async (req, res) => {
       assignedCourses,
       assignedTeacher,
       assignedBatches,
-      studentStatus
+      studentStatus,
+      phoneNumber,
+      address,
+      age,
+      programEnrolled,
+      leadSource
     } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -593,7 +617,12 @@ router.put("/:id", async (req, res) => {
         assignedCourses,
         assignedTeacher,
         assignedBatches,
-        studentStatus
+        studentStatus,
+        phoneNumber,
+        address,
+        age,
+        programEnrolled,
+        leadSource
       },
       { new: true } // Return updated document
     );

@@ -25,6 +25,11 @@ export class SignupComponent {
   subscription: string = '';
   level: string = 'A1'; // default level
   studentStatus: string = 'UNCERTAIN'; // default status
+  phoneNumber: string = '';
+  address: string = '';
+  age: number | null = null;
+  programEnrolled: string = '';
+  leadSource: string = '';
   
   // Teacher assignment
   assignedTeacher: string = '';   // ✅ selected teacher ID
@@ -93,6 +98,11 @@ export class SignupComponent {
           this.assignedTeacher = data.assignedTeacher || '';
           this.conversationId = data.conversationId || '';
           this.studentStatus = data.studentStatus || 'UNCERTAIN';
+          this.phoneNumber = data.phoneNumber || '';
+          this.address = data.address || '';
+          this.age = data.age || null;
+          this.programEnrolled = data.programEnrolled || '';
+          this.leadSource = data.leadSource || '';
           this.loadTeachers(); // load teachers for selected level + medium
         }
       },
@@ -139,6 +149,11 @@ export class SignupComponent {
       user.level = this.level;
       user.assignedTeacher = this.assignedTeacher;
       user.studentStatus = this.studentStatus;
+      user.phoneNumber = this.phoneNumber;
+      user.address = this.address;
+      user.age = this.age;
+      user.programEnrolled = this.programEnrolled;
+      user.leadSource = this.leadSource;
     }
 
     if (this.role === 'TEACHER') {

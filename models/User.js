@@ -22,6 +22,11 @@ const UserSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
   registeredAt: { type: Date, default: Date.now },
   studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "WITHDREW"], required: function() { return this.role === "STUDENT"; } },
+  phoneNumber: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
+  address: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
+  age: { type: Number, default: null, function() { return this.role === "STUDENT"; }  },
+  programEnrolled: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
+  leadSource: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
 
   // ✅ move these inside schema
   courseProgress: [{
