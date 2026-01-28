@@ -47,9 +47,14 @@ export class LoginComponent {
       error: (err) => {
         this.loading = false;
         console.error('Login failed', err);
-        if (err.status === 401 || err.status === 400) {
+
+        if (err.status === 403) {
+          this.errorMessage = 'Access denied. Your student account has been withdrawn.';
+        }
+        else if (err.status === 401 || err.status === 400) {
           this.errorMessage = 'Invalid username or password!';
-        } else {
+        } 
+        else {
           this.errorMessage = 'Server error. Please try again later.';
         }
       }

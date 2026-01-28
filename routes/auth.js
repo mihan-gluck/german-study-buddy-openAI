@@ -414,11 +414,22 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ regNo });
     if (!user) return res.status(400).json({ msg: "Invalid credentials" });
 
+    // 🔴 BLOCK WITHDREW STUDENTS
+    if (user.role === "STUDENT" && user.studentStatus === "WITHDREW") {
+      return res.status(403).json({
+        msg: "Your student account has been withdrawn. Access denied."
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role, name: user.name },  // include name in token payload
+      { 
+        id: user._id, 
+        role: user.role, 
+        name: user.name 
+      },  
       JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -532,18 +543,46 @@ router.put("/update-teacher-by-batch", async (req, res) => {
     const { batch, newTeacherId } = req.body;
 
     if (!batch || !newTeacherId) {
-      return res.status(400).json({ message: "Batch and newTeacherId are required." });
+      return res.status(400).json({ 
+        message: "Batch and newTeacherId are required." 
+      });
     }
+
+    const students = await User.find({
+      role: "STUDENT",
+      batch: batch
+    });
+
+    if (students.length === 0) {
+      return res.status(404).json({ 
+        message: "No students found for the specified batch." 
+      });
+    }
+
+    const logs = students.map(student => ({
+      action: "UPDATE",
+      studentId: student._id,
+      levelAtUpdate: student.level,
+      batchAtUpdate: student.batch,
+      assignedTeacherAtUpdate: student.assignedTeacher,
+      statusAtUpdate: student.studentStatus,
+      subscriptionAtUpdate: student.subscription,
+      mediumAtUpdate: student.medium
+    }));
+
+    await StudentLogs.insertMany(logs);
+    console.log(`✅ Created ${logs.length} student log entries for teacher update by batch.`);
 
     const result = await User.updateMany(
       { role: "STUDENT", batch: batch },
       { assignedTeacher: newTeacherId }
     );
 
-    res.status(200).json({ message: `Assigned teacher updated for ${result.nModified} students.` });
+    res.status(200).json({ 
+      message: `Assigned teacher updated for ${result.nModified} students.` 
+    });
     
   } catch (error) {
-    console.error("❌ Error updating assigned teacher by batch:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -573,7 +612,6 @@ router.put("/:id", async (req, res) => {
       });
 
       await logEntry.save();
-      console.log("✅ Student log created for user:", existingUser._id);
     }
 
     // 3️⃣ Update user with NEW data
@@ -631,10 +669,9 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    console.log("✅ User updated:", updatedUser);
     res.status(200).json({ message: "User updated successfully.", data: updatedUser });
+
   } catch (error) {
-    console.error("❌ Error updating user:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -647,11 +684,8 @@ router.delete("/:id", async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found." });
     }
-
-    console.log("🗑️ User deleted:", deletedUser);
     res.status(200).json({ message: "User deleted successfully." });
   } catch (error) {
-    console.error("❌ Error deleting user:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
