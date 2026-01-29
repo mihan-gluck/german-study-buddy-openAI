@@ -32,6 +32,16 @@ interface User {
   age?: number;
   programEnrolled?: string;
   leadSource?: string;
+  languageLevelOpted?: string;
+  dateWithdrew?: Date;
+  reasonForWithdrawing?: string;
+  courseCompletionDates?: {
+    A1CompletionDate?: Date;
+    A2CompletionDate?: Date;
+    B1CompletionDate?: Date;
+    B2CompletionDate?: Date;
+  };
+  qualifications?: string;
   [key: string]: any;            // Allow additional properties
 }
 
@@ -83,6 +93,16 @@ export class AuthService {
     age?: number;   // for STUDENT
     programEnrolled?: string; // for STUDENT
     leadSource?: string; // for STUDENT
+    languageLevelOpted?: string;
+    dateWithdrew?: Date;
+    reasonForWithdrawing?: string;
+    courseCompletionDates?: {
+      A1CompletionDate?: Date;
+      A2CompletionDate?: Date;
+      B1CompletionDate?: Date;
+      B2CompletionDate?: Date;
+    };
+    qualifications?: string;
   }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/signup`, user, { withCredentials: true });
   }

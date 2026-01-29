@@ -1,4 +1,12 @@
 const mongoose = require("mongoose");
+const { readBuilderProgram } = require("typescript");
+
+const completionDates = new mongoose.Schema({
+  A1CompletionDate: { type: Date },
+  A2CompletionDate: { type: Date },
+  B1CompletionDate: { type: Date },
+  B2CompletionDate: { type: Date }
+}, { _id: false });
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -22,11 +30,16 @@ const UserSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
   registeredAt: { type: Date, default: Date.now },
   studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "WITHDREW"], required: function() { return this.role === "STUDENT"; } },
-  phoneNumber: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
-  address: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
-  age: { type: Number, default: null, function() { return this.role === "STUDENT"; }  },
-  programEnrolled: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
-  leadSource: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
+  phoneNumber: { type: String, default: "", required: function() { return this.role === "STUDENT"; } },
+  address: { type: String, default: "", required: function() { return this.role === "STUDENT"; } },
+  age: { type: Number, default: null, required: function() { return this.role === "STUDENT"; } },
+  programEnrolled: { type: String, default: "", required: function() { return this.role === "STUDENT"; } },
+  leadSource: { type: String, default: "", required: function() { return this.role === "STUDENT"; } },
+  languageLevelOpted: { type: String, default: "", required: function() { return this.role === "STUDENT"; } },
+  dateWithdrew: { type: Date, default: null, function() { return this.role === "STUDENT" && this.studentStatus === "WITHDREW"; }  },
+  reasonForWithdrawing: { type: String, default: "", function() { return this.role === "STUDENT" && this.studentStatus === "WITHDREW"; }  },
+  courseCompletionDates: {type: completionDates, default: () => ({}) , function() { return this.role === "STUDENT"; }  },
+  qualifications: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
 
   // ✅ move these inside schema
   courseProgress: [{
@@ -34,14 +47,6 @@ const UserSchema = new mongoose.Schema({
     progressPercent: { type: Number, default: 0 },
     lastUpdated: { type: Date, default: Date.now }
   }],
-
-  // assignedCourses: [
-  //   {
-  //     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-  //     assignedAt: Date,
-  //     progress: { type: Number, default: 0 }
-  //   }
-  // ]
 });
 
 module.exports = mongoose.model("User", UserSchema);

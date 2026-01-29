@@ -1,236 +1,304 @@
-/* ========== General Page Styling ========== */
-body {
-  background: linear-gradient(135deg, #e0e7ff, #f0f4ff);
-  font-family: 'Poppins', sans-serif;
-  margin: 0;
-  padding: 0;
+/* ========== Signup Form - Modern Admin Style ========== */
+:host {
+  display: block;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 80px);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ========== Signup Card Container ========== */
-.signup-container,
-.container .card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  max-width: 450px;
-  margin: 3rem auto;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.signup-container:hover,
-.container .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
-}
-
-/* ========== Heading ========== */
-.signup-container h2,
-.container .card h2 {
-  text-align: center;
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #405980;
-  margin-bottom: 1.5rem;
-}
-
-/* ========== Form ========== */
-form {
+/* ========== Main Wrapper ========== */
+.signup-wrapper {
+  min-height: calc(100vh - 80px);
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
 }
 
-/* ========== Labels ========== */
-label {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #333;
+/* ========== Card ========== */
+.signup-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 480px;
+  border: none;
+  overflow: hidden;
+  position: relative;
 }
 
-/* ========== Inputs & Selects ========== */
-input,
-select {
+.signup-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ========== Typography ========== */
+.signup-card h2 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+/* ========== Form Elements ========== */
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-control,
+.form-select {
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
-  border: 1px solid #ccc;
+  border: 1px solid #dee2e6;
   border-radius: 8px;
-  background-color: #f8f9fa;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+  transition: all 0.2s ease;
+  font-family: inherit;
 }
 
-input:focus,
-select:focus {
-  border-color: #405980;
-  box-shadow: 0 0 0 3px rgba(64, 89, 128, 0.15);
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
   outline: none;
+  background: #fff;
 }
 
-/* ========== Assign Courses Section (Teacher Only) ========== */
+.form-control::placeholder {
+  color: #adb5bd;
+}
+
+/* ========== Course Assignment Section ========== */
 .assign-courses-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.assign-courses-section .form-label {
   margin-bottom: 1rem;
 }
 
-.course-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
 .course-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.8rem;
-  background-color: #f8f9fa;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #fff;
   border-radius: 8px;
-  transition: background-color 0.3s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e9ecef;
 }
 
 .course-item:hover {
-  background-color: #eef2ff;
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-color: #667eea;
 }
 
-/* Checkbox alignment */
-.course-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #405980;
+.course-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
   cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 4px;
 }
 
-.course-item label {
+.course-checkbox:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.course-label {
   margin: 0;
-  font-size: 0.95rem;
   font-weight: 500;
-  color: #333;
+  color: #495057;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
-/* ========== Buttons ========== */
-button[type="submit"] {
-  background-color: #000e89;
-  color: #fff;
+/* ========== Course Dates Grid ========== */
+.course-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-field .form-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ========== Submit Button ========== */
+.btn-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   font-size: 1rem;
   font-weight: 600;
-  padding: 0.75rem;
+  padding: 0.875rem 1.5rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.25);
 }
 
-button[type="submit"]:hover {
-  background-color: #0012b3;
-  transform: translateY(-2px);
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
 }
 
-button[type="submit"]:disabled {
-  background-color: #9ca3af;
+.btn-submit:disabled {
+  background: #adb5bd;
   cursor: not-allowed;
-}
-
-/* ========== Form Footer Links ========== */
-.form-footer {
-  text-align: center;
-  margin-top: 1.2rem;
-}
-
-.form-footer a {
-  color: #405980;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.3s;
-}
-
-.form-footer a:hover {
-  color: #314466;
+  transform: none;
+  box-shadow: none;
 }
 
 /* ========== Responsive Design ========== */
 
-/* ----- Mobile (up to 576px) ----- */
+/* Mobile (up to 576px) */
 @media (max-width: 576px) {
-  .container .card,
-  .signup-container {
-    max-width: 90%;
-    padding: 1.5rem;
-    margin-bottom: 150px;
+  .signup-wrapper {
+    padding: 1rem 0.5rem;
   }
-
-  h2 {
+  
+  .signup-card {
+    padding: 1.75rem 1.25rem;
+    margin: 0 1rem;
+    border-radius: 8px;
+  }
+  
+  .signup-card h2 {
     font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
-
-  input,
-  select,
-  button {
-    font-size: 0.9rem;
-    padding: 0.65rem;
+  
+  .course-grid {
+    grid-template-columns: 1fr;
+    max-height: 180px;
+    padding: 0.75rem;
   }
-
-  label {
-    font-size: 0.85rem;
-  }
-
-  /* Courses section */
-  .course-list {
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .course-item {
-    width: 100%;
-    padding: 0.5rem;
+  
+  .form-control,
+  .form-select {
+    padding: 0.75rem;
     font-size: 0.9rem;
   }
-
-  .course-item input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-  }
-
-  .course-item label {
-    font-size: 0.9rem;
+  
+  .course-dates-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 }
 
-/* ----- Tablets (577px - 992px) ----- */
-@media (min-width: 577px) and (max-width: 992px) {
-  .container .card,
-  .signup-container {
-    max-width: 500px;
+/* Tablet (577px - 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .signup-card {
+    padding: 2.25rem 1.75rem;
+    max-width: 420px;
+  }
+  
+  .course-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+}
+
+/* Small Desktop (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .signup-wrapper {
     padding: 2rem;
   }
-
-  h2 {
-    font-size: 1.7rem;
-  }
-
-  .course-list {
-    flex-wrap: wrap;
-  }
-
-  .course-item {
-    flex: 1 1 48%; /* Two items per row */
+  
+  .signup-card {
+    padding: 3rem 2.5rem;
+    max-width: 500px;
   }
 }
 
-/* ----- Large Screens (993px and above) ----- */
-@media (min-width: 993px) {
-  .container .card {
-    max-width: 500px;
+/* Large Desktop (1025px+) */
+@media (min-width: 1025px) {
+  .signup-wrapper {
+    padding: 3rem 2rem;
   }
+  
+  .signup-card {
+    padding: 3rem 2.75rem;
+    max-width: 520px;
+  }
+}
 
-  .course-list {
-    flex-wrap: wrap;
-  }
+/* ====== Animations ====== */
+.signup-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-  .course-item {
-    flex: 1 1 45%; /* Nice grid layout */
-  }
+.signup-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.course-item,
+.btn-submit {
+  transition: all 0.2s ease;
+}
+
+/* ====== Form Helpers ====== */
+small.text-muted {
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.fw-semibold {
+  font-weight: 600;
+}
+
+/* ====== Loading States (if needed) ====== */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(248, 249, 250, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
 }

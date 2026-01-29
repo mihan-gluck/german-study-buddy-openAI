@@ -292,7 +292,29 @@ router.get("/teachersByMedium", async (req, res) => {
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, role, subscription, level, batch, medium, studentStatus, assignedCourses, assignedBatches, assignedTeacher, phoneNumber, address, age, programEnrolled, leadSource } = req.body;
+    const { 
+      name, 
+      email, 
+      role, 
+      subscription, 
+      level, 
+      batch, 
+      medium, 
+      studentStatus, 
+      assignedCourses, 
+      assignedBatches, 
+      assignedTeacher, 
+      phoneNumber, 
+      address, 
+      age, 
+      programEnrolled, 
+      leadSource,
+      languageLevelOpted,
+      dateWithdrew,
+      reasonForWithdrewing,
+      courseCompletionDates,
+      qualifications
+     } = req.body;
 
     const regNo = await generateRegNo(role);  
     const password = await generatePassword(role, regNo); // generate random password
@@ -321,6 +343,11 @@ router.post("/signup", async (req, res) => {
       user.age = age;
       user.programEnrolled = programEnrolled;
       user.leadSource = leadSource;
+      user.languageLevelOpted = languageLevelOpted;
+      user.dateWithdrew = dateWithdrew;
+      user.reasonForWithdrawing = reasonForWithdrewing;
+      user.courseCompletionDates = courseCompletionDates;
+      user.qualifications = qualifications;
       
       // 🔍 Teacher assignment
       if (assignedTeacher) {
@@ -344,13 +371,6 @@ router.post("/signup", async (req, res) => {
         } else {
           return res.status(400).json({ msg: "No teacher found for this level and medium" });
         }
-      }
-
-
-      if (user.subscription === "PLATINUM") {
-        user.conversationId = conversationId;
-        user.elevenLabsWidgetLink = elevenLabsWidgetLink;
-        user.elevenLabsApiKey = elevenLabsApiKey;
       }
     }
 
@@ -614,7 +634,7 @@ router.put("/:id", async (req, res) => {
       await logEntry.save();
     }
 
-    // 3️⃣ Update user with NEW data
+    // 3️⃣ Extract NEW data
     const {
       name,
       email,
@@ -623,10 +643,6 @@ router.put("/:id", async (req, res) => {
       level,
       batch,
       medium,
-      plan,
-      conversationId,
-      elevenLabsWidgetLink,
-      elevenLabsApiKey,
       assignedCourses,
       assignedTeacher,
       assignedBatches,
@@ -635,46 +651,63 @@ router.put("/:id", async (req, res) => {
       address,
       age,
       programEnrolled,
-      leadSource
+      leadSource,
+      languageLevelOpted,
+      dateWithdrew,
+      courseCompletionDates,
+      reasonForWithdrawing,
+      qualifications
     } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        email,
-        role,
-        subscription,
-        level,
-        batch,
-        medium,
-        plan,
-        conversationId,
-        elevenLabsWidgetLink,
-        elevenLabsApiKey,
-        assignedCourses,
-        assignedTeacher,
-        assignedBatches,
-        studentStatus,
-        phoneNumber,
-        address,
-        age,
-        programEnrolled,
-        leadSource
-      },
-      { new: true } // Return updated document
-    );
+    // 4️⃣ Build update object
+    const updateData = {
+      name,
+      email,
+      role,
+      subscription,
+      level,
+      batch,
+      medium,
+      assignedCourses,
+      assignedTeacher,
+      assignedBatches,
+      studentStatus,
+      phoneNumber,
+      address,
+      age,
+      programEnrolled,
+      leadSource,
+      languageLevelOpted,
+      dateWithdrew,
+      reasonForWithdrawing,
+      courseCompletionDates,
+      qualifications
+    };
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found." });
+    // 5️⃣ Clear withdraw data if not withdrew
+    if (studentStatus !== "WITHDREW") {
+      updateData.dateWithdrew = null;
+      updateData.reasonForWithdrawing = "";
     }
 
-    res.status(200).json({ message: "User updated successfully.", data: updatedUser });
+    // 6️⃣ Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      message: "User updated successfully.",
+      data: updatedUser
+    });
 
   } catch (error) {
+    console.error("Update error:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
+
 
 // ✅ Delete user by ID
 router.delete("/:id", async (req, res) => {

@@ -30,6 +30,16 @@ export class SignupComponent {
   age: number | null = null;
   programEnrolled: string = '';
   leadSource: string = '';
+  languageLevelOpted: string = '';
+  dateWithdrew: Date | null = null;
+  reasonForWithdrawing: string = '';
+  courseCompletionDates: {
+    A1CompletionDate?: string | null;
+    A2CompletionDate?: string | null;
+    B1CompletionDate?: string | null;
+    B2CompletionDate?: string | null;
+  } = {};
+  qualifications: string = '';
   
   // Teacher assignment
   assignedTeacher: string = '';   // ✅ selected teacher ID
@@ -103,6 +113,25 @@ export class SignupComponent {
           this.age = data.age || null;
           this.programEnrolled = data.programEnrolled || '';
           this.leadSource = data.leadSource || '';
+          this.languageLevelOpted = data.languageLevelOpted || '';
+          this.dateWithdrew = data.dateWithdrew || null;
+          this.reasonForWithdrawing = data.reasonForWithdrawing || '';
+          this.courseCompletionDates = {
+            A1CompletionDate: data.courseCompletionDates?.A1CompletionDate
+              ? new Date(data.courseCompletionDates.A1CompletionDate).toISOString().split('T')[0]
+              : null,
+            A2CompletionDate: data.courseCompletionDates?.A2CompletionDate
+              ? new Date(data.courseCompletionDates.A2CompletionDate).toISOString().split('T')[0]
+              : null,
+            B1CompletionDate: data.courseCompletionDates?.B1CompletionDate
+              ? new Date(data.courseCompletionDates.B1CompletionDate).toISOString().split('T')[0]
+              : null,
+            B2CompletionDate: data.courseCompletionDates?.B2CompletionDate
+              ? new Date(data.courseCompletionDates.B2CompletionDate).toISOString().split('T')[0]
+              : null
+          };
+
+          this.qualifications = data.qualifications || '';
           this.loadTeachers(); // load teachers for selected level + medium
         }
       },
@@ -154,6 +183,11 @@ export class SignupComponent {
       user.age = this.age;
       user.programEnrolled = this.programEnrolled;
       user.leadSource = this.leadSource;
+      user.languageLevelOpted = this.languageLevelOpted;
+      user.dateWithdrew = this.dateWithdrew;
+      user.reasonForWithdrawing = this.reasonForWithdrawing;
+      user.courseCompletionDates = this.courseCompletionDates;
+      user.qualifications = this.qualifications;
     }
 
     if (this.role === 'TEACHER') {

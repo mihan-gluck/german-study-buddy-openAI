@@ -1,7 +1,7 @@
-<!-- signup.component.html -->
+<!-- signup.component.html - FULL RESPONSIVE VERSION -->
 
-<div class="container min-vh-100 d-flex justify-content-center align-items-center px-4">
-  <div class="card shadow-lg p-4 w-100" style="max-width: 450px;">
+<div class="signup-wrapper">
+  <div class="signup-card" role="main">
     <h2 class="text-center text-primary mb-4">Create an Account</h2>
 
     <form (ngSubmit)="onSubmit()" #signupForm="ngForm">
@@ -61,6 +61,7 @@
           name="phoneNumber"
           [(ngModel)]="phoneNumber"
           class="form-control"
+          placeholder="+94 77 123 4567"
         />
       </div>
 
@@ -73,6 +74,7 @@
           name="address"
           [(ngModel)]="address"
           class="form-control"
+          placeholder="Enter your full address"
         />
       </div>
 
@@ -84,6 +86,8 @@
           id="age"
           name="age"
           [(ngModel)]="age"
+          min="13"
+          max="100"
           class="form-control"
         />
       </div>
@@ -100,6 +104,43 @@
         />
       </div>
 
+      <!-- Qualifications -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="qualifications" class="form-label">Qualifications</label>
+        <input
+          type="text"
+          id="qualifications"
+          name="qualifications"
+          [(ngModel)]="qualifications"
+          class="form-control"
+          placeholder="e.g., O/L, A/L, Degree"
+        />
+      </div>
+
+      <!-- Language Level Opted -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="languageLevelOpted" class="form-label">Language Level Opted</label>
+        <select
+          id="languageLevelOpted"
+          name="languageLevelOpted"
+          [(ngModel)]="languageLevelOpted"
+          required
+          class="form-select"
+        >
+          <option value="">Select level</option>
+          <option value="A1">A1</option>
+          <option value="A1-A2">A1-A2</option>
+          <option value="A1-B1">A1-B1</option>
+          <option value="A1-B2">A1-B2</option>
+          <option value="A2">A2</option>
+          <option value="A2-B1">A2-B1</option>
+          <option value="A2-B2">A2-B2</option>
+          <option value="B1">B1</option>
+          <option value="B1-B2">B1-B2</option>
+          <option value="B2">B2</option>
+        </select>
+      </div>
+
       <!-- Batch -->
       <div class="mb-3" *ngIf="role === 'STUDENT'">
         <label for="batch" class="form-label">Batch</label>
@@ -110,24 +151,26 @@
           [(ngModel)]="batch"
           required
           class="form-control"
+          placeholder="e.g., Batch 2024-01"
         />
       </div>
 
       <!-- Assign Courses for Teacher -->
       <div *ngIf="role === 'TEACHER'" class="assign-courses-section">
-        <label class="form-label mb-2">Assign Courses</label>
-        <div class="course-list">
+        <label class="form-label mb-3 fw-semibold">Assign Courses</label>
+        <div class="course-grid">
           <div class="course-item" *ngFor="let course of courses">
             <input 
               type="checkbox"
               [value]="course._id"
               (change)="onCourseChange($event, course._id)"
-              id="{{course._id}}"
+              [id]="course._id"
+              class="course-checkbox"
             />
-            <label [for]="course._id">{{ course.title }}</label>
+            <label [for]="course._id" class="course-label">{{ course.title }}</label>
           </div>
         </div>
-        <small class="text-muted">Select one or more courses</small>
+        <small class="text-muted mt-2 d-block">Select one or more courses</small>
       </div>
 
       <!-- Assigned Batches -->
@@ -143,6 +186,80 @@
           placeholder="e.g., 1, 2, 5"
           class="form-control"
         />
+      </div>
+
+      <!-- Medium for STUDENT (single select) -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="medium" class="form-label">Medium</label>
+        <select
+          id="medium"
+          name="medium"
+          [(ngModel)]="medium"
+          (change)="loadTeachers()"
+          required
+          class="form-select"
+        >
+          <option value="">Select medium</option>
+          <option value="Tamil">Tamil</option>
+          <option value="Sinhala">Sinhala</option>
+          <option value="Malayalam">Malayalam</option>
+        </select>
+      </div>
+
+      <!-- Medium for TEACHER (multi-select) -->
+      <div class="mb-3" *ngIf="role === 'TEACHER'">
+        <label for="teacherMedium" class="form-label">Medium (Select Multiple)</label>
+        <select
+          id="teacherMedium"
+          name="medium"
+          [(ngModel)]="medium"
+          required
+          class="form-select"
+          multiple
+          size="3"
+        >
+          <option value="Tamil">Tamil</option>
+          <option value="Sinhala">Sinhala</option>
+          <option value="Malayalam">Malayalam</option>
+        </select>
+        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple</small>
+      </div>
+
+      <!-- Subscription -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="subscription" class="form-label">Subscription Plan</label>
+        <select
+          id="subscription"
+          name="subscription"
+          [(ngModel)]="subscription"
+          required
+          class="form-select"
+        >
+          <option value="">Select plan</option>
+          <option value="SILVER">Silver</option>
+          <option value="PLATINUM">Platinum</option>
+        </select>
+      </div>
+
+      <!-- Level -->
+      <div class="mb-3" *ngIf="role === 'STUDENT'">
+        <label for="level" class="form-label">CEFR Level</label>
+        <select
+          id="level"
+          name="level"
+          [(ngModel)]="level"
+          (change)="loadTeachers()"
+          required
+          class="form-select"
+        >
+          <option value="">Select level</option>
+          <option value="A1">A1</option>
+          <option value="A2">A2</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
+          <option value="C1">C1</option>
+          <option value="C2">C2</option>
+        </select>
       </div>
 
       <!-- Status for STUDENT (single select) -->
@@ -162,83 +279,85 @@
         </select>
       </div>
 
-      <!-- Medium for STUDENT (single select) -->
-      <div class="mb-3" *ngIf="role === 'STUDENT'">
-        <label for="medium" class="form-label">Medium</label>
-        <select
-          id="medium"
-          name="medium"
-          [(ngModel)]="medium"
-          (change)="loadTeachers()"
-          required
-          class="form-select"
-        >
-          <option value="Tamil">Tamil</option>
-          <option value="Sinhala">Sinhala</option>
-          <option value="Malayalam">Malayalam</option>
-        </select>
+      <!-- Date Withdrew -->
+      <div class="mb-3" *ngIf="role === 'STUDENT' && studentStatus === 'WITHDREW'">
+        <label for="dateWithdrew" class="form-label">Date Withdrew</label>
+        <input
+          type="date"
+          id="dateWithdrew"
+          name="dateWithdrew"
+          [(ngModel)]="dateWithdrew"
+          class="form-control"
+        />
       </div>
 
-      <!-- Medium for TEACHER (multi-select) -->
-      <div class="mb-3" *ngIf="role === 'TEACHER'">
-        <label for="medium" class="form-label">Medium (Select Multiple)</label>
-        <select
-          id="medium"
-          name="medium"
-          [(ngModel)]="medium"
-          required
-          class="form-select"
-          multiple
-        >
-          <option value="Tamil">Tamil</option>
-          <option value="Sinhala">Sinhala</option>
-          <option value="Malayalam">Malayalam</option>
-        </select>
-        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple</small>
+      <!-- Reason for Withdrawing -->
+      <div class="mb-3" *ngIf="role === 'STUDENT' && studentStatus === 'WITHDREW'">
+        <label for="reasonForWithdrawing" class="form-label">Reason for Withdrawing</label>
+        <input
+          type="text"
+          id="reasonForWithdrawing"
+          name="reasonForWithdrawing"
+          [(ngModel)]="reasonForWithdrawing"
+          class="form-control"
+          placeholder="Enter reason for withdrawal"
+        />
       </div>
 
+      <!-- Course Completion Dates for STUDENT -->
+      <div class="course-dates-grid mb-4" *ngIf="role === 'STUDENT'">
+        <div class="date-field" *ngIf="level === 'A1' || level === 'A2' || level === 'B1' || level === 'B2'">
+          <label class="form-label small">A1 Completed On</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="courseCompletionDates.A1CompletionDate"
+            name="A1CompletionDate"
+          />
+        </div>
 
-      <!-- Subscription -->
-      <div class="mb-3" *ngIf="role === 'STUDENT'">
-        <label for="subscription" class="form-label">Subscription Plan</label>
-        <select
-          id="subscription"
-          name="subscription"
-          [(ngModel)]="subscription"
-          required
-          class="form-select"
-        >
-          <option value="SILVER">Silver</option>
-          <option value="PLATINUM">Platinum</option>
-        </select>
+        <div class="date-field" *ngIf="level === 'A2' || level === 'B1' || level === 'B2'">
+          <label class="form-label small">A2 Completed On</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="courseCompletionDates.A2CompletionDate"
+            name="A2CompletionDate"
+          />
+        </div>
 
+        <div class="date-field" *ngIf="level === 'B1' || level === 'B2'">
+          <label class="form-label small">B1 Completed On</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="courseCompletionDates.B1CompletionDate"
+            name="B1CompletionDate"
+          />
+        </div>
+
+        <div class="date-field" *ngIf="level === 'B2'">
+          <label class="form-label small">B2 Completed On</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="courseCompletionDates.B2CompletionDate"
+            name="B2CompletionDate"
+          />
+        </div>
       </div>
-
-      <!-- Level -->
-      <div class="mb-3" *ngIf="role === 'STUDENT'">
-        <label for="level" class="form-label">CEFR Level</label>
-        <select
-          id="level"
-          name="level"
-          [(ngModel)]="level"
-          (change)="loadTeachers()"
-          required
-          class="form-select"
-        >
-          <option value="A1">A1</option>
-          <option value="A2">A2</option>
-          <option value="B1">B1</option>
-          <option value="B2">B2</option>
-          <option value="C1">C1</option>
-          <option value="C2">C2</option>
-        </select>
-      </div>
-
 
       <!-- Select Teacher (only for Students) -->
-      <div class="mb-3" *ngIf="role === 'STUDENT'">
-        <label for="teacher" class="form-label">Assign Teacher</label>
-        <select id="assignedTeacher" [(ngModel)]="assignedTeacher" name="assignedTeacher" required class="form-select">
+      <div class="mb-4" *ngIf="role === 'STUDENT'">
+        <label for="assignedTeacher" class="form-label">Assign Teacher</label>
+        <select 
+          id="assignedTeacher" 
+          [(ngModel)]="assignedTeacher" 
+          name="assignedTeacher" 
+          required 
+          class="form-select"
+        >
+          <option value="">Select teacher</option>
           <option *ngFor="let teacher of teachers" [value]="teacher._id">
             {{ teacher.name }} ({{ teacher.regNo }})
           </option>
@@ -246,7 +365,7 @@
       </div>
 
       <!-- Lead Source -->
-      <div class="mb-3" *ngIf="role === 'STUDENT'">
+      <div class="mb-4" *ngIf="role === 'STUDENT'">
         <label for="leadSource" class="form-label">Lead Source</label>
         <input
           type="text"
@@ -254,6 +373,7 @@
           name="leadSource"
           [(ngModel)]="leadSource"
           class="form-control"
+          placeholder="e.g., Facebook, Walk-in, Referral"
         />
       </div>
 
@@ -261,7 +381,7 @@
       <button
         type="submit"
         [disabled]="!signupForm.form.valid"
-        class="btn btn-primary w-100 py-2"
+        class="btn-submit"
       >
         {{ isEditMode ? 'Update' : 'Register' }}
       </button>
