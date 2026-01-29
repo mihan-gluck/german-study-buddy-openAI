@@ -90,9 +90,10 @@ class ZoomService {
           // Registration and approval settings
           approval_type: 2, // Registration required (cannot join without registering)
           registration_type: 1, // Email verification required
-          // Email notifications
-          registrants_email_notification: true, // Send email to registrants when added
-          registrants_confirmation_email: true  // Send confirmation email to registrants
+          // ✅ DISABLE Zoom's email notifications (we'll use our own)
+          registrants_email_notification: false, // ❌ Disabled - using our email system
+          registrants_confirmation_email: false, // ❌ Disabled - using our email system
+          alternative_hosts_email_notification: false // ❌ Disabled
         }
       };
 
@@ -264,12 +265,12 @@ class ZoomService {
     try {
       const token = await this.getAccessToken();
 
-      // Ensure email notifications are enabled for updates
+      // ✅ DISABLE Zoom's email notifications (we use our own email system)
       if (updateData.settings) {
-        updateData.settings.registrants_email_notification = true;
+        updateData.settings.registrants_email_notification = false; // ❌ Disabled
       } else {
         updateData.settings = {
-          registrants_email_notification: true
+          registrants_email_notification: false // ❌ Disabled
         };
       }
 
@@ -284,7 +285,7 @@ class ZoomService {
         }
       );
 
-      console.log('✅ Meeting updated successfully - Email notifications sent to registrants');
+      console.log('✅ Meeting updated successfully');
       return { success: true };
     } catch (error) {
       console.error('❌ Error updating meeting:', error.response?.data || error.message);
@@ -301,10 +302,10 @@ class ZoomService {
     try {
       const token = await this.getAccessToken();
 
-      // Prepare query parameters
+      // ✅ DISABLE Zoom's cancellation emails (we send our own)
       const params = {
-        schedule_for_reminder: options.sendNotification !== false, // Send cancellation email (default: true)
-        cancel_meeting_reminder: options.sendNotification !== false // Send reminder about cancellation
+        schedule_for_reminder: false, // ❌ Don't send Zoom cancellation email
+        cancel_meeting_reminder: false // ❌ Don't send Zoom reminder
       };
 
       await axios.delete(
@@ -317,7 +318,7 @@ class ZoomService {
         }
       );
 
-      console.log('✅ Meeting deleted successfully - Cancellation emails sent to registrants');
+      console.log('✅ Meeting deleted successfully');
       return { success: true };
     } catch (error) {
       console.error('❌ Error deleting meeting:', error.response?.data || error.message);

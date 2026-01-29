@@ -2,7 +2,7 @@
 // Service to check user subscription levels and restrict access
 
 import { Injectable } from '@angular/core';
-import { Observable, of, map } from 'rxjs';
+import { Observable, of, map, take } from 'rxjs';
 import { AuthService } from './auth.service';
 
 export interface SubscriptionStatus {
@@ -23,6 +23,7 @@ export class SubscriptionGuardService {
   // Check if user has required subscription level
   checkSubscriptionAccess(requiredSubscription: 'SILVER' | 'PLATINUM'): Observable<SubscriptionStatus> {
     return this.authService.currentUser$.pipe(
+      take(1), // Take only the first emission to ensure completion
       map(currentUser => {
         if (!currentUser) {
           return {

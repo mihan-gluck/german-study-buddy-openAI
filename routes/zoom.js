@@ -129,6 +129,253 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
 
     console.log('✅ Meeting saved to database');
 
+    // ✅ SEND EMAIL INVITATIONS TO STUDENTS using your email system
+    try {
+      const transporter = require('../config/emailConfig');
+      
+      console.log(`📧 Sending meeting invitations to ${students.length} students...`);
+      
+      for (const student of students) {
+        try {
+          const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: student.email,
+            subject: '🎓 Zoom Meeting Invitation - Glück Global',
+            html: `
+              <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
+                <div style="max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                  
+                  <div style="background:#000e89; border-radius:8px; padding:20px;">
+                    <h2 style="color:white; margin:0;">Glück Global - Meeting Invitation</h2>
+                  </div>
+
+                  <p style="margin-top:20px;">Hello <strong>${student.name}</strong>,</p>
+                  
+                  <p>You have been invited to join a Zoom meeting:</p>
+
+                  <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin:20px 0;">
+                    <h3 style="color:#000e89; margin:0 0 10px 0;">${meeting.topic}</h3>
+                    <p style="margin:5px 0;"><strong>📅 Date:</strong> ${new Date(meeting.startTime).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      timeZone: 'Asia/Colombo'
+                    })}</p>
+                    <p style="margin:5px 0;"><strong>🕐 Time:</strong> ${new Date(meeting.startTime).toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      timeZone: 'Asia/Colombo'
+                    })}</p>
+                    <p style="margin:5px 0;"><strong>⏱️ Duration:</strong> ${meeting.duration} minutes</p>
+                    <p style="margin:5px 0;"><strong>👥 Batch:</strong> ${batch}</p>
+                  </div>
+
+                  ${agenda ? `<p style="color:#666; font-style:italic;">${agenda}</p>` : ''}
+
+                  <div style="margin:30px 0;">
+                    <a href="${meeting.joinUrl}" target="_blank" 
+                      style="display:inline-block; background-color:#000e89; color:#fff; 
+                            text-decoration:none; padding:15px 30px; border-radius:6px; font-size:16px; font-weight:bold;">
+                      🎥 Join Zoom Meeting
+                    </a>
+                  </div>
+
+                  ${meeting.password ? `
+                    <div style="background:#fff3cd; border:1px solid #ffc107; padding:10px; border-radius:6px; margin:20px 0;">
+                      <p style="margin:0; color:#856404;">
+                        <strong>🔒 Meeting Password:</strong> <code style="background:#fff; padding:5px 10px; border-radius:4px; font-size:16px;">${meeting.password}</code>
+                      </p>
+                    </div>
+                  ` : ''}
+
+                  <div style="background:#e7f3ff; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
+                    <p style="margin:0 0 10px 0; font-weight:bold; color:#000e89;">📝 Meeting Details:</p>
+                    <p style="margin:5px 0; font-size:14px;"><strong>Meeting ID:</strong> ${meeting.id}</p>
+                    <p style="margin:5px 0; font-size:14px;"><strong>Join URL:</strong> <a href="${meeting.joinUrl}" style="color:#000e89; word-break:break-all;">${meeting.joinUrl}</a></p>
+                  </div>
+
+                  <div style="background:#f8f9fa; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
+                    <p style="margin:0 0 10px 0; font-weight:bold;">💡 Tips for joining:</p>
+                    <ul style="margin:0; padding-left:20px; text-align:left; font-size:14px; color:#666;">
+                      <li>Click the "Join Zoom Meeting" button above</li>
+                      <li>You can join 10 minutes before the scheduled time</li>
+                      <li>Make sure your camera and microphone are working</li>
+                      <li>Join from a quiet place with good internet connection</li>
+                      <li>Keep this email for future reference</li>
+                    </ul>
+                  </div>
+
+                  <p style="margin-top:30px; color:#666; font-size:13px;">
+                    If you have any questions, please contact your teacher.
+                  </p>
+
+                  <hr style="border:none; border-top:1px solid #ddd; margin:30px 0;">
+
+                  <p style="font-size:13px; color:#888;">
+                    Best regards,<br>
+                    <strong>Glück Global Pvt Ltd</strong><br>
+                    German Language Learning Platform
+                  </p>
+                </div>
+              </div>
+            `
+          };
+
+          await transporter.sendMail(mailOptions);
+          console.log(`✅ Invitation email sent to ${student.name} (${student.email})`);
+        } catch (emailError) {
+          console.error(`❌ Failed to send email to ${student.email}:`, emailError.message);
+          // Continue with other students even if one fails
+        }
+      }
+
+      console.log(`✅ Meeting invitation emails sent to ${students.length} students`);
+    } catch (emailError) {
+      console.error('⚠️ Error sending invitation emails (non-critical):', emailError.message);
+      // Don't fail the meeting creation if email sending fails
+    }
+
+    // ✅ AUTO-LINK TO TIMETABLE: Find or create timetable slot
+    try {
+      const TimeTable = require('../models/TimeTable');
+      const meetingDate = new Date(meeting.startTime);
+      
+      // Get day of week (lowercase: monday, tuesday, etc.)
+      const dayOfWeek = meetingDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        timeZone: 'Asia/Colombo' 
+      }).toLowerCase();
+      
+      // Get time in HH:MM format
+      const meetingTime = meetingDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Colombo'
+      });
+
+      // Calculate end time (meeting start + duration)
+      const endDate = new Date(meetingDate.getTime() + meeting.duration * 60000);
+      const endTime = endDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Colombo'
+      });
+
+      console.log('🔍 Looking for timetable slot:', {
+        batch,
+        dayOfWeek,
+        meetingTime,
+        endTime,
+        meetingDate: meetingDate.toISOString()
+      });
+
+      // Find timetable that covers this date
+      let timetable = await TimeTable.findOne({
+        batch: batch,
+        weekStartDate: { $lte: meetingDate },
+        weekEndDate: { $gte: meetingDate }
+      });
+
+      if (!timetable) {
+        // ✅ NO TIMETABLE EXISTS - CREATE ONE AUTOMATICALLY
+        console.log('📅 No timetable found - creating new timetable automatically...');
+        
+        // Calculate week start (Monday) and end (Sunday)
+        const dayOfWeekNum = meetingDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const daysToMonday = dayOfWeekNum === 0 ? -6 : 1 - dayOfWeekNum;
+        
+        const weekStartDate = new Date(meetingDate);
+        weekStartDate.setDate(meetingDate.getDate() + daysToMonday);
+        weekStartDate.setHours(0, 0, 0, 0);
+        
+        const weekEndDate = new Date(weekStartDate);
+        weekEndDate.setDate(weekStartDate.getDate() + 6);
+        weekEndDate.setHours(23, 59, 59, 999);
+
+        // Get teacher info for timetable
+        const teacher = await User.findById(req.user.id);
+        
+        // Get student info to determine medium and plan
+        const firstStudent = students[0];
+        
+        timetable = new TimeTable({
+          batch: batch,
+          medium: firstStudent.medium?.[0] || 'English', // Use first medium or default
+          plan: firstStudent.subscription || 'PLATINUM',
+          weekStartDate: weekStartDate,
+          weekEndDate: weekEndDate,
+          assignedTeacher: req.user.id,
+          [dayOfWeek]: [{
+            start: meetingTime,
+            end: endTime,
+            classStatus: 'Scheduled',
+            zoomMeetingId: meeting.id,
+            zoomJoinUrl: meeting.joinUrl,
+            zoomPassword: meeting.password,
+            meetingLinked: true
+          }]
+        });
+
+        await timetable.save();
+        console.log('✅ New timetable created automatically:', timetable._id);
+        console.log('   Week:', weekStartDate.toDateString(), 'to', weekEndDate.toDateString());
+        console.log('   Slot:', dayOfWeek, meetingTime, '-', endTime);
+        console.log('   Meeting linked automatically!');
+      } else {
+        // TIMETABLE EXISTS - FIND OR CREATE SLOT
+        console.log('✅ Found existing timetable:', timetable._id);
+        
+        // Check if this day has time slots
+        let daySlots = timetable[dayOfWeek];
+        
+        if (!daySlots || !Array.isArray(daySlots)) {
+          daySlots = [];
+          timetable[dayOfWeek] = daySlots;
+        }
+
+        // Find matching time slot
+        const slotIndex = daySlots.findIndex(slot => {
+          const slotTime = slot.start;
+          return slotTime === meetingTime || 
+                 Math.abs(new Date(`1970-01-01T${slotTime}`) - new Date(`1970-01-01T${meetingTime}`)) < 300000; // 5 min tolerance
+        });
+
+        if (slotIndex !== -1) {
+          // SLOT EXISTS - UPDATE IT
+          timetable[dayOfWeek][slotIndex].zoomMeetingId = meeting.id;
+          timetable[dayOfWeek][slotIndex].zoomJoinUrl = meeting.joinUrl;
+          timetable[dayOfWeek][slotIndex].zoomPassword = meeting.password;
+          timetable[dayOfWeek][slotIndex].meetingLinked = true;
+          
+          await timetable.save();
+          console.log('✅ Existing timetable slot updated with Zoom meeting info');
+        } else {
+          // NO MATCHING SLOT - CREATE NEW SLOT
+          console.log('📅 No matching slot found - adding new slot to timetable...');
+          
+          timetable[dayOfWeek].push({
+            start: meetingTime,
+            end: endTime,
+            classStatus: 'Scheduled',
+            zoomMeetingId: meeting.id,
+            zoomJoinUrl: meeting.joinUrl,
+            zoomPassword: meeting.password,
+            meetingLinked: true
+          });
+          
+          await timetable.save();
+          console.log('✅ New slot added to timetable:', dayOfWeek, meetingTime, '-', endTime);
+          console.log('   Meeting linked automatically!');
+        }
+      }
+    } catch (linkError) {
+      console.error('⚠️ Error linking to timetable (non-critical):', linkError.message);
+      // Don't fail the meeting creation if timetable linking fails
+    }
+
     res.status(201).json({
       success: true,
       message: `Zoom meeting created successfully with ${students.length} attendees`,
@@ -442,6 +689,98 @@ router.put('/meeting/:id/attendees', verifyToken, async (req, res) => {
           email: student.email
         });
       });
+
+      // ✅ SEND EMAIL INVITATIONS TO NEW STUDENTS
+      try {
+        const transporter = require('../config/emailConfig');
+        
+        console.log(`📧 Sending meeting invitations to ${newStudents.length} new students...`);
+        
+        for (const student of newStudents) {
+          try {
+            const mailOptions = {
+              from: process.env.EMAIL_USER,
+              to: student.email,
+              subject: '🎓 Zoom Meeting Invitation - Glück Global',
+              html: `
+                <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
+                  <div style="max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                    
+                    <div style="background:#000e89; border-radius:8px; padding:20px;">
+                      <h2 style="color:white; margin:0;">Glück Global - Meeting Invitation</h2>
+                    </div>
+
+                    <p style="margin-top:20px;">Hello <strong>${student.name}</strong>,</p>
+                    
+                    <p>You have been added to a Zoom meeting:</p>
+
+                    <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin:20px 0;">
+                      <h3 style="color:#000e89; margin:0 0 10px 0;">${meeting.topic}</h3>
+                      <p style="margin:5px 0;"><strong>📅 Date:</strong> ${new Date(meeting.startTime).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        timeZone: 'Asia/Colombo'
+                      })}</p>
+                      <p style="margin:5px 0;"><strong>🕐 Time:</strong> ${new Date(meeting.startTime).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        timeZone: 'Asia/Colombo'
+                      })}</p>
+                      <p style="margin:5px 0;"><strong>⏱️ Duration:</strong> ${meeting.duration} minutes</p>
+                      <p style="margin:5px 0;"><strong>👥 Batch:</strong> ${meeting.batch}</p>
+                    </div>
+
+                    <div style="margin:30px 0;">
+                      <a href="${meeting.joinUrl}" target="_blank" 
+                        style="display:inline-block; background-color:#000e89; color:#fff; 
+                              text-decoration:none; padding:15px 30px; border-radius:6px; font-size:16px; font-weight:bold;">
+                        🎥 Join Zoom Meeting
+                      </a>
+                    </div>
+
+                    ${meeting.zoomPassword ? `
+                      <div style="background:#fff3cd; border:1px solid #ffc107; padding:10px; border-radius:6px; margin:20px 0;">
+                        <p style="margin:0; color:#856404;">
+                          <strong>🔒 Meeting Password:</strong> <code style="background:#fff; padding:5px 10px; border-radius:4px; font-size:16px;">${meeting.zoomPassword}</code>
+                        </p>
+                      </div>
+                    ` : ''}
+
+                    <div style="background:#e7f3ff; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
+                      <p style="margin:0 0 10px 0; font-weight:bold; color:#000e89;">📝 Meeting Details:</p>
+                      <p style="margin:5px 0; font-size:14px;"><strong>Meeting ID:</strong> ${meeting.zoomMeetingId}</p>
+                      <p style="margin:5px 0; font-size:14px;"><strong>Join URL:</strong> <a href="${meeting.joinUrl}" style="color:#000e89; word-break:break-all;">${meeting.joinUrl}</a></p>
+                    </div>
+
+                    <p style="margin-top:30px; color:#666; font-size:13px;">
+                      If you have any questions, please contact your teacher.
+                    </p>
+
+                    <hr style="border:none; border-top:1px solid #ddd; margin:30px 0;">
+
+                    <p style="font-size:13px; color:#888;">
+                      Best regards,<br>
+                      <strong>Glück Global Pvt Ltd</strong><br>
+                      German Language Learning Platform
+                    </p>
+                  </div>
+                </div>
+              `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log(`✅ Invitation email sent to ${student.name} (${student.email})`);
+          } catch (emailError) {
+            console.error(`❌ Failed to send email to ${student.email}:`, emailError.message);
+          }
+        }
+
+        console.log(`✅ Meeting invitation emails sent to ${newStudents.length} new students`);
+      } catch (emailError) {
+        console.error('⚠️ Error sending invitation emails (non-critical):', emailError.message);
+      }
     }
 
     // Remove students
@@ -483,6 +822,150 @@ router.delete('/meeting/:id', verifyToken, async (req, res) => {
         success: false,
         message: 'Meeting not found'
       });
+    }
+
+    // ✅ UNLINK FROM TIMETABLE: Remove Zoom meeting info from timetable slot
+    try {
+      const TimeTable = require('../models/TimeTable');
+      const meetingDate = new Date(meeting.startTime);
+      
+      // Get day of week
+      const dayOfWeek = meetingDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        timeZone: 'Asia/Colombo' 
+      }).toLowerCase();
+
+      console.log('🔍 Unlinking meeting from timetable:', {
+        batch: meeting.batch,
+        dayOfWeek,
+        zoomMeetingId: meeting.zoomMeetingId
+      });
+
+      // Find timetable that covers this date
+      const timetable = await TimeTable.findOne({
+        batch: meeting.batch,
+        weekStartDate: { $lte: meetingDate },
+        weekEndDate: { $gte: meetingDate }
+      });
+
+      if (timetable) {
+        const daySlots = timetable[dayOfWeek];
+        
+        if (daySlots && Array.isArray(daySlots)) {
+          // Find slot with this Zoom meeting ID
+          const slotIndex = daySlots.findIndex(slot => 
+            slot.zoomMeetingId === meeting.zoomMeetingId
+          );
+
+          if (slotIndex !== -1) {
+            // Remove Zoom meeting info from slot
+            timetable[dayOfWeek][slotIndex].zoomMeetingId = undefined;
+            timetable[dayOfWeek][slotIndex].zoomJoinUrl = undefined;
+            timetable[dayOfWeek][slotIndex].zoomPassword = undefined;
+            timetable[dayOfWeek][slotIndex].meetingLinked = false;
+            
+            await timetable.save();
+            console.log('✅ Timetable slot unlinked from Zoom meeting');
+          }
+        }
+      }
+    } catch (unlinkError) {
+      console.error('⚠️ Error unlinking from timetable (non-critical):', unlinkError.message);
+      // Don't fail the meeting deletion if timetable unlinking fails
+    }
+
+    // ✅ SEND CANCELLATION EMAILS TO STUDENTS
+    try {
+      const transporter = require('../config/emailConfig');
+      
+      // Populate student details if not already populated
+      const meetingWithStudents = await MeetingLink.findById(id)
+        .populate('attendees.studentId', 'name email');
+      
+      const students = meetingWithStudents.attendees
+        .filter(a => a.studentId) // Only students with valid IDs
+        .map(a => ({
+          name: a.studentId.name || a.name,
+          email: a.studentId.email || a.email
+        }));
+
+      if (students.length > 0) {
+        console.log(`📧 Sending cancellation emails to ${students.length} students...`);
+        
+        for (const student of students) {
+          try {
+            const mailOptions = {
+              from: process.env.EMAIL_USER,
+              to: student.email,
+              subject: '❗ Meeting Cancelled - Glück Global',
+              html: `
+                <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
+                  <div style="max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                    
+                    <div style="background:#dc3545; border-radius:8px; padding:20px;">
+                      <h2 style="color:white; margin:0;">⚠️ Meeting Cancelled</h2>
+                    </div>
+
+                    <p style="margin-top:20px;">Hello <strong>${student.name}</strong>,</p>
+                    
+                    <p>We regret to inform you that the following Zoom meeting has been <strong>cancelled</strong>:</p>
+
+                    <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin:20px 0; border-left:4px solid #dc3545;">
+                      <h3 style="color:#dc3545; margin:0 0 10px 0;">${meeting.topic}</h3>
+                      <p style="margin:5px 0;"><strong>📅 Date:</strong> ${new Date(meeting.startTime).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        timeZone: 'Asia/Colombo'
+                      })}</p>
+                      <p style="margin:5px 0;"><strong>🕐 Time:</strong> ${new Date(meeting.startTime).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        timeZone: 'Asia/Colombo'
+                      })}</p>
+                      <p style="margin:5px 0;"><strong>👥 Batch:</strong> ${meeting.batch}</p>
+                    </div>
+
+                    <div style="background:#fff3cd; border:1px solid #ffc107; padding:15px; border-radius:6px; margin:20px 0;">
+                      <p style="margin:0; color:#856404;">
+                        <strong>📢 Important:</strong> This meeting has been cancelled due to unforeseen circumstances. 
+                        We apologize for any inconvenience this may cause.
+                      </p>
+                    </div>
+
+                    <p style="margin-top:20px;">
+                      Please check your timetable for the next scheduled class. 
+                      If you have any questions, please contact your teacher.
+                    </p>
+
+                    <p style="margin-top:30px; color:#666; font-size:13px;">
+                      Regular classes will continue as per the normal schedule.
+                    </p>
+
+                    <hr style="border:none; border-top:1px solid #ddd; margin:30px 0;">
+
+                    <p style="font-size:13px; color:#888;">
+                      Best regards,<br>
+                      <strong>Glück Global Pvt Ltd</strong><br>
+                      German Language Learning Platform
+                    </p>
+                  </div>
+                </div>
+              `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log(`✅ Cancellation email sent to ${student.name} (${student.email})`);
+          } catch (emailError) {
+            console.error(`❌ Failed to send cancellation email to ${student.email}:`, emailError.message);
+          }
+        }
+
+        console.log(`✅ Cancellation emails sent to ${students.length} students`);
+      }
+    } catch (emailError) {
+      console.error('⚠️ Error sending cancellation emails (non-critical):', emailError.message);
     }
 
     // Delete from Zoom

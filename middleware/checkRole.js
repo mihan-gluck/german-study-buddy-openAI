@@ -1,15 +1,18 @@
-//middleware/checkRole,js
+//middleware/checkRole.js
 
-module.exports = function (requiredRole) {
+module.exports = function (requiredRoles) {
     return (req, res, next) => {
       // Ensure user information is available from the auth middleware
       if (!req.user) {
-        return res.status(401).json({ msg: "User not authenticated" });
+        return res.status(401).json({ message: "User not authenticated" });
       }
   
-      // Check if the user's role matches the required role
-      if (req.user.role !== requiredRole) {
-        return res.status(403).json({ msg: "Access denied" });
+      // Convert single role to array for consistent handling
+      const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+      
+      // Check if the user's role matches any of the required roles
+      if (!rolesArray.includes(req.user.role)) {
+        return res.status(403).json({ message: "Access denied. Insufficient permissions." });
       }
   
       next();  // User has the required role, proceed to the route handler

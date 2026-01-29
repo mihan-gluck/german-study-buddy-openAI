@@ -88,7 +88,52 @@
                            [ngClass]="{'cancelled': slot.classStatus === 'Cancelled'}">
                         
                         <!-- Get meeting for this slot -->
-                        <ng-container *ngIf="getMeetingForSlot(getDateForDay(tt.weekStartDate, dayIndex), slot.start, tt.batch) as meeting; else noMeeting">
+                        <ng-container *ngIf="slot.meetingLinked && slot.zoomJoinUrl; else checkZoomMeetings">
+                          
+                          <!-- Slot has linked Zoom meeting from timetable -->
+                          <div class="slot-with-meeting">
+                            <div class="slot-header">
+                              <div class="slot-icon">
+                                <i class="fas fa-video"></i>
+                              </div>
+                              <div class="slot-details">
+                                <div class="slot-time">
+                                  <i class="fas fa-clock"></i>
+                                  {{ slot.start }} - {{ slot.end }}
+                                </div>
+                                <div class="meeting-topic">Zoom Class</div>
+                              </div>
+                            </div>
+                            
+                            <!-- Meeting Status Badge -->
+                            <div class="meeting-status-badge upcoming">
+                              <span class="status-upcoming">
+                                <i class="fas fa-check-circle"></i> Meeting Linked
+                              </span>
+                            </div>
+                            
+                            <!-- Join Button -->
+                            <button 
+                              class="btn-join-meeting"
+                              (click)="joinZoomMeeting(slot.zoomJoinUrl)">
+                              <i class="fas fa-video"></i>
+                              <span>Join Class</span>
+                            </button>
+                            
+                            <!-- Password Display -->
+                            <div class="meeting-meta" *ngIf="slot.zoomPassword">
+                              <span class="meta-password">
+                                <i class="fas fa-lock"></i>
+                                Password: {{ slot.zoomPassword }}
+                              </span>
+                            </div>
+                          </div>
+                          
+                        </ng-container>
+                        
+                        <!-- Check for separate Zoom meetings if not linked -->
+                        <ng-template #checkZoomMeetings>
+                          <ng-container *ngIf="getMeetingForSlot(getDateForDay(tt.weekStartDate, dayIndex), slot.start, tt.batch) as meeting; else noMeeting">
                           
                           <!-- Meeting exists -->
                           <div class="slot-with-meeting">
@@ -161,6 +206,8 @@
                               </div>
                             </div>
                           </div>
+                        </ng-template>
+                        
                         </ng-template>
                         
                       </div>

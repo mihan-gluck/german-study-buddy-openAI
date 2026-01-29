@@ -353,5 +353,12 @@ export class TimeTableViewComponent implements OnInit, OnDestroy {
       window.open(meeting.joinUrl, '_blank');
     }
   }
+  
+  // Join Zoom meeting from timetable slot
+  joinZoomMeeting(joinUrl: string): void {
+    if (joinUrl) {
+      window.open(joinUrl, '_blank');
+    }
+  }
 
 }

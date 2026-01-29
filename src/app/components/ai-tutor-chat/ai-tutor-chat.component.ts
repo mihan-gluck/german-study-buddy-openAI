@@ -9,7 +9,7 @@ import { AiTutorService, TutorMessage } from '../../services/ai-tutor.service';
 import { LearningModulesService } from '../../services/learning-modules.service';
 import { SubscriptionGuardService } from '../../services/subscription-guard.service';
 import { Subscription } from 'rxjs';
-import { timeout } from 'rxjs/operators';
+import { timeout, take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 // Speech Recognition interface
@@ -105,7 +105,8 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Get route parameters first to check for test mode
-    this.route.queryParams.subscribe(params => {
+    // Use take(1) to only check once and prevent re-triggering during the lesson
+    this.route.queryParams.pipe(take(1)).subscribe(params => {
       this.isTeacherTestMode = params['testMode'] === 'true';
       this.moduleId = params['moduleId'];
       this.sessionType = params['sessionType'] || 'practice';
@@ -121,8 +122,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       if (!this.isTeacherTestMode) {
         console.log('👤 Regular mode - checking subscription access...');
         
-        // Add timeout to prevent hanging
+        // Add timeout to prevent hanging and take(1) to complete after first emission
         const subscriptionCheck = this.subscriptionGuard.checkPlatinumAccess().pipe(
+          take(1), // Complete after first emission
           timeout(5000) // 5 second timeout
         );
         

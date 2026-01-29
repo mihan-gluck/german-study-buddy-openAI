@@ -7,7 +7,12 @@ const timeRangeSchema = new mongoose.Schema({
     type: String, 
     enum: ["Scheduled", "Cancelled"], 
     default: "Scheduled" 
-  }
+  },
+  // ✅ Zoom meeting integration fields
+  zoomMeetingId: { type: String }, // Zoom meeting ID
+  zoomJoinUrl: { type: String },   // Join URL for students
+  zoomPassword: { type: String },  // Meeting password
+  meetingLinked: { type: Boolean, default: false } // Flag to indicate Zoom meeting is linked
 }, { _id: false }); // _id not needed for subdocuments
 
 const TimeTableSchema = new mongoose.Schema({
