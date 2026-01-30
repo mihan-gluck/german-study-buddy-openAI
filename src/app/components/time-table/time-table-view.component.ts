@@ -40,6 +40,7 @@ interface UserProfile {
 interface ZoomMeeting {
   _id: string;
   batch: string;
+  plan: 'SILVER' | 'PLATINUM';
   topic: string;
   startTime: Date;
   duration: number;
@@ -125,7 +126,7 @@ export class TimeTableViewComponent implements OnInit, OnDestroy {
     if (this.userRole === 'STUDENT') {
       this.zoomService.getStudentMeetings().subscribe({
         next: (response) => {
-          this.zoomMeetings = response.meetings || [];
+          this.zoomMeetings = response.data || [];
           this.meetingsLoaded = true;
         },
         error: (error) => {

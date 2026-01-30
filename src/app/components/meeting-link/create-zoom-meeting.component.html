@@ -72,13 +72,32 @@
               <select 
                 class="form-select" 
                 formControlName="batch"
-                (change)="onBatchChange()"
+                (change)="onFilterChange()"
                 [class.is-invalid]="meetingForm.get('batch')?.invalid && meetingForm.get('batch')?.touched">
                 <option value="">Select Batch</option>
                 <option *ngFor="let batch of batches" [value]="batch">{{ batch }}</option>
               </select>
               <div class="invalid-feedback">
                 Batch is required
+              </div>
+            </div>
+
+            <!-- Plan -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Plan <span class="text-danger">*</span>
+              </label>
+              <select 
+                class="form-select" 
+                formControlName="plan"
+                (change)="onFilterChange()"
+                [class.is-invalid]="meetingForm.get('plan')?.invalid && meetingForm.get('plan')?.touched">
+                <option value="">Select Plan</option>
+                <option value="SILVER">SILVER</option>
+                <option value="PLATINUM">PLATINUM</option>
+              </select>
+              <div class="invalid-feedback">
+                Plan is required
               </div>
             </div>
 

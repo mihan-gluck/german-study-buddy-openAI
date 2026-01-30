@@ -30,6 +30,7 @@ export class CreateZoomMeetingComponent implements OnInit {
   
   // Filter options
   batches: string[] = [];
+  plan: 'SILVER' | 'PLATINUM' | '' = '';
   levels: string[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
   
   // Search
@@ -54,6 +55,7 @@ export class CreateZoomMeetingComponent implements OnInit {
     
     this.meetingForm = this.fb.group({
       batch: ['', Validators.required],
+      plan: ['', Validators.required],
       topic: ['', [Validators.required, Validators.minLength(3)]],
       startTime: [this.formatDateTimeLocal(tomorrow), Validators.required],
       duration: [60, [Validators.required, Validators.min(15), Validators.max(300)]],
@@ -94,23 +96,28 @@ export class CreateZoomMeetingComponent implements OnInit {
     });
   }
 
-  onBatchChange(): void {
-    const selectedBatch = this.meetingForm.get('batch')?.value;
-    if (selectedBatch) {
-      this.filterStudents();
-    }
+  onFilterChange(): void {
+    // const selectedBatch = this.meetingForm.get('batch')?.value;
+    // if (selectedBatch) {
+    this.selectedStudents = [];
+    this.filterStudents();
+    //}
   }
 
   filterStudents(): void {
     const batch = this.meetingForm.get('batch')?.value;
-    
+    const plan = this.meetingForm.get('plan')?.value;
+
     this.filteredStudents = this.allStudents.filter(student => {
       const matchesBatch = !batch || student.batch === batch;
-      const matchesSearch = !this.searchTerm || 
+      const matchesPlan = !plan || student.subscription === plan;
+      const matchesStatus = student.studentStatus === 'ONGOING'; // ✅ filter only ongoing students
+
+      const matchesSearch = !this.searchTerm ||
         student.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
-      return matchesBatch && matchesSearch;
+
+      return matchesBatch && matchesPlan && matchesStatus && matchesSearch;
     });
   }
 
@@ -177,6 +184,7 @@ export class CreateZoomMeetingComponent implements OnInit {
 
     const meetingData = {
       batch: formValue.batch,
+      plan: formValue.plan,
       topic: formValue.topic,
       startTime: startTime,
       duration: formValue.duration,

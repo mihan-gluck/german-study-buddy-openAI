@@ -15,6 +15,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
   try {
     const {
       batch,
+      plan,
       topic,
       startTime,
       duration,
@@ -27,10 +28,10 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
     console.log('👥 Selected students:', studentIds);
 
     // Validate required fields
-    if (!batch || !topic || !startTime || !studentIds || studentIds.length === 0) {
+    if (!batch || !plan || !topic || !startTime || !studentIds || studentIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: batch, topic, startTime, and studentIds are required'
+        message: 'Missing required fields: batch, plan, topic, startTime, and studentIds are required'
       });
     }
 
@@ -45,6 +46,16 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
 
     console.log('👨‍🏫 Teacher:', teacher.name, '(' + teacher.email + ')');
 
+    const mediumDoc = await User.findOne({
+      batch: batch,
+      subscription: plan,
+      role: 'STUDENT'
+    }).select('medium');
+
+    const medium = mediumDoc?.medium?.[0] || null;
+
+    console.log('🌐 Medium for batch/plan:', medium?.medium || 'N/A');
+
     // Find students by IDs or names
     let students = [];
     
@@ -56,7 +67,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       students = await User.find({
         _id: { $in: studentIds },
         role: 'STUDENT'
-      }).select('name email batch level');
+      }).select('name email batch level subscription');
     }
 
     if (students.length === 0) {
@@ -104,6 +115,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
     // Save meeting to database
     const meetingLink = new MeetingLink({
       batch,
+      plan,
       platform: 'Zoom',
       link: meeting.joinUrl,
       topic: meeting.topic,
@@ -168,7 +180,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
                       timeZone: 'Asia/Colombo'
                     })}</p>
                     <p style="margin:5px 0;"><strong>⏱️ Duration:</strong> ${meeting.duration} minutes</p>
-                    <p style="margin:5px 0;"><strong>👥 Batch:</strong> ${batch}</p>
+                    <p style="margin:5px 0;"><strong>👥 Batch:</strong> ${batch} - ${plan}</p>
                   </div>
 
                   ${agenda ? `<p style="color:#666; font-style:italic;">${agenda}</p>` : ''}
@@ -266,6 +278,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
 
       console.log('🔍 Looking for timetable slot:', {
         batch,
+        plan,
         dayOfWeek,
         meetingTime,
         endTime,
@@ -275,6 +288,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       // Find timetable that covers this date
       let timetable = await TimeTable.findOne({
         batch: batch,
+        plan: plan,
         weekStartDate: { $lte: meetingDate },
         weekEndDate: { $gte: meetingDate }
       });
@@ -300,11 +314,12 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
         
         // Get student info to determine medium and plan
         const firstStudent = students[0];
+        console.log('👨‍🎓 Using first student for medium/plan:', firstStudent.name, firstStudent.medium, firstStudent.subscription);
         
         timetable = new TimeTable({
           batch: batch,
-          medium: firstStudent.medium?.[0] || 'English', // Use first medium or default
-          plan: firstStudent.subscription || 'PLATINUM',
+          medium: medium,
+          plan: plan,
           weekStartDate: weekStartDate,
           weekEndDate: weekEndDate,
           assignedTeacher: req.user.id,
@@ -427,10 +442,11 @@ router.get('/meetings', verifyToken, async (req, res) => {
 
     if (status) query.status = status;
     if (batch) query.batch = batch;
+    if (req.query.plan) query.plan = req.query.plan;
 
     const meetings = await MeetingLink.find(query)
       .populate('createdBy', 'name email role')
-      .populate('attendees.studentId', 'name email batch level')
+      .populate('attendees.studentId', 'name email batch level subscription')
       .sort({ startTime: -1 });
 
     res.status(200).json({
@@ -512,11 +528,24 @@ router.get('/student-meetings', verifyToken, async (req, res) => {
   try {
     const studentId = req.user.id;
 
-    // Find all meetings where this student is an attendee
+    const student = await User.findById(studentId)
+    .select('batch subscription');
+
+    if(!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // Find meetings for student's batch & plan
     const meetings = await MeetingLink.find({
-      'attendees.studentId': studentId
+      //'attendees.studentId': studentId,
+      batch: student.batch,
+      plan: student.subscription
     })
       .populate('createdBy', 'name email')
+      //.populate('attendees.studentId', 'name email batch level subscription')
       .sort({ startTime: -1 });
 
     // Calculate meeting status for each meeting
@@ -548,6 +577,7 @@ router.get('/student-meetings', verifyToken, async (req, res) => {
         _id: meeting._id,
         topic: meeting.topic,
         batch: meeting.batch,
+        plan: meeting.plan,
         startTime: meeting.startTime,
         duration: meeting.duration,
         teacher: {
