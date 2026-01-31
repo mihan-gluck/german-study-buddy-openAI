@@ -70,10 +70,10 @@ router.get("/", async (req, res) => {
 // ==========================
 router.get("/forStudent", async (req, res) => {
   try {
-    const { batch } = req.query;  // Only filter by batch
+    const { batch, plan } = req.query; 
     const query = {};
     if (batch) query.batch = batch;
-    // Don't filter by medium or plan - all students in batch see same timetable
+    if (plan) query.plan = plan;
 
     const timeTables = await TimeTable.find(query);
     res.status(200).json(timeTables);

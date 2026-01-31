@@ -71,15 +71,30 @@ router.get("/", async (req, res) => {
 router.get("/forStudent", async (req, res) => {
   try {
     const { batch, medium, plan } = req.query;
+
     const query = {};
+
     if (batch) query.batch = batch;
-    if (medium) query.medium = medium;
     if (plan) query.plan = plan;
 
+    // ✅ medium is an array in DB
+    if (medium) {
+      query.medium = { $in: [medium] };
+    }
+
     const timeTables = await TimeTable.find(query);
-    res.status(200).json(timeTables);
+
+    res.status(200).json({
+      success: true,
+      count: timeTables.length,
+      data: timeTables
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("❌ Error fetching timetable for student:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 

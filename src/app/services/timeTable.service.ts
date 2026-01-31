@@ -48,8 +48,8 @@ export class TimeTableService {
   }
 
   // Fetch timetable for student
-  getTimeTablesbyBatchMediumPlan(batch: string, medium: string, plan: string): Observable<TimeTable[]> {
-    const params = { batch, medium, plan };
+  getTimeTablesbyBatchAndPlan(batch: string, plan: string): Observable<TimeTable[]> {
+    const params = { batch, plan };
     return this.http.get<TimeTable[]>(`${this.apiUrl}/forStudent`, { params, withCredentials: true });
   }
 

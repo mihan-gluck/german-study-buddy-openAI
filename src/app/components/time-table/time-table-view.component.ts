@@ -33,6 +33,7 @@ interface UserProfile {
   batch?: string;
   medium?: string;
   subscription?: string;
+  studentStatus?: string;
   _id?: string;
   [key: string]: any;
 }
@@ -100,8 +101,8 @@ export class TimeTableViewComponent implements OnInit, OnDestroy {
         this.userProfile = profile;
         this.userRole = profile.role;
 
-        if (this.userRole === 'STUDENT') {
-          this.loadTimeTablesforStudent(profile.batch!, profile.medium!, profile.subscription!);
+        if (this.userRole === 'STUDENT' && profile.studentStatus === 'ONGOING') {
+          this.loadTimeTablesforStudent(profile.batch!, profile.subscription!);
         } else if (this.userRole === 'ADMIN') {
           this.loadTimeTables();
         } else if (this.userRole === 'TEACHER') {
@@ -173,8 +174,8 @@ export class TimeTableViewComponent implements OnInit, OnDestroy {
   }
 
   // Student - only their timetable (✅ filtered by current month)
-  private loadTimeTablesforStudent(batch: string, medium: string, plan: string): void {
-    this.timeTableService.getTimeTablesbyBatchMediumPlan(batch, medium, plan).subscribe(
+  private loadTimeTablesforStudent(batch: string, subscription: string): void {
+    this.timeTableService.getTimeTablesbyBatchAndPlan(batch, subscription).subscribe(
       (data: TimeTable[]) => {
         
         const currentDate = new Date();
