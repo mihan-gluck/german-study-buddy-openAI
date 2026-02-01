@@ -81,15 +81,15 @@ class ZoomService {
           // Enforce video settings - participants join with video on
           host_video: true,
           participant_video: true,
-          // No waiting room - direct entry for all participants
+          // No waiting room - direct entry for registered participants
           waiting_room: false,
           // Allow joining before host (teacher can start meeting)
           join_before_host: true,
           // Mute on entry (but video stays on)
           mute_upon_entry: true,
-          // Registration and approval settings
-          approval_type: 2, // Registration required (cannot join without registering)
-          registration_type: 1, // Email verification required
+          // ✅ REGISTRATION SETTINGS - CRITICAL FOR UNIQUE URLS
+          approval_type: 0, // Automatically approve all registrants
+          registration_type: 1, // Attendees register once and can attend any occurrence
           // ✅ DISABLE Zoom's email notifications (we'll use our own)
           registrants_email_notification: false, // ❌ Disabled - using our email system
           registrants_confirmation_email: false, // ❌ Disabled - using our email system
@@ -143,10 +143,11 @@ class ZoomService {
 
       console.log('✅ Zoom meeting created successfully:', meeting.id);
 
-      // Add registrants if provided
+      // Add registrants if provided and capture unique join URLs
+      let registrantResults = [];
       if (attendees && attendees.length > 0) {
         console.log(`👥 Adding ${attendees.length} attendees to meeting...`);
-        await this.addRegistrants(meeting.id, attendees);
+        registrantResults = await this.addRegistrants(meeting.id, attendees);
       }
 
       return {
@@ -158,14 +159,15 @@ class ZoomService {
           startTime: meeting.start_time,
           duration: meeting.duration,
           timezone: meeting.timezone,
-          joinUrl: meeting.join_url,
+          joinUrl: meeting.join_url, // Generic meeting join URL
           startUrl: meeting.start_url,
           password: meeting.password,
           hostEmail: meeting.host_email,
           agenda: meeting.agenda,
           status: meeting.status,
           createdAt: meeting.created_at
-        }
+        },
+        registrants: registrantResults // Include registrant data with unique join URLs
       };
     } catch (error) {
       console.error('❌ Error creating Zoom meeting:', error.response?.data || error.message);
@@ -429,6 +431,15 @@ class ZoomService {
     } catch (error) {
       console.error('❌ Error getting participant QoS:', error.response?.data || error.message);
       
+      // Handle account limitation gracefully
+      if (error.response?.data?.code === 200 && 
+          error.response?.data?.message?.includes('Business or higher accounts')) {
+        console.log('ℹ️ QoS data requires Business+ Zoom account - using basic engagement estimation');
+        
+        // Return estimated engagement based on participation duration
+        return this.estimateBasicEngagement(participantId);
+      }
+      
       // Return default values if QoS data not available
       return {
         participantId: participantId,
@@ -436,9 +447,31 @@ class ZoomService {
         cameraOnMinutes: 0,
         micOnSeconds: 0,
         micOnMinutes: 0,
-        dataAvailable: false
+        dataAvailable: false,
+        accountLimitation: true
       };
     }
+  }
+
+  /**
+   * Estimate basic engagement when QoS data is not available
+   * @param {String} participantId - Participant ID
+   */
+  async estimateBasicEngagement(participantId) {
+    // For accounts without Dashboard access, provide estimated engagement
+    // This is a fallback that assumes reasonable engagement levels
+    
+    return {
+      participantId: participantId,
+      cameraOnSeconds: 0,
+      cameraOnMinutes: 0,
+      micOnSeconds: 0,
+      micOnMinutes: 0,
+      estimated: true,
+      dataAvailable: false,
+      accountLimitation: true,
+      message: 'Engagement metrics require Zoom Business+ account with Dashboard feature'
+    };
   }
 
   /**
@@ -452,44 +485,38 @@ class ZoomService {
       // Get basic participant data
       const participants = await this.getMeetingParticipants(meetingId);
 
-      // Get QoS data for each participant
-      const engagementData = await Promise.all(
-        participants.map(async (participant) => {
-          try {
-            const qos = await this.getParticipantQoS(meetingId, participant.id);
+      // For accounts without Dashboard access, skip QoS calls and provide basic engagement
+      console.log('ℹ️ Using basic engagement metrics (QoS requires Business+ account)');
+      
+      const engagementData = participants.map(participant => {
+        // Calculate basic engagement based on participation duration
+        const totalMeetingMinutes = 60; // Default assumption, could be passed as parameter
+        const participationRate = participant.durationMinutes / totalMeetingMinutes;
+        const engagementScore = Math.min(Math.round(participationRate * 100), 100);
+        
+        return {
+          ...participant,
+          engagement: {
+            // Basic engagement estimation
+            cameraOnMinutes: 0,
+            cameraOnSeconds: 0,
+            micOnMinutes: 0,
+            micOnSeconds: 0,
+            cameraOnPercentage: 0,
+            micOnPercentage: 0,
             
-            return {
-              ...participant,
-              engagement: {
-                cameraOnMinutes: qos.cameraOnMinutes,
-                cameraOnSeconds: qos.cameraOnSeconds,
-                micOnMinutes: qos.micOnMinutes,
-                micOnSeconds: qos.micOnSeconds,
-                cameraOnPercentage: participant.duration > 0 
-                  ? Math.round((qos.cameraOnSeconds / participant.duration) * 100)
-                  : 0,
-                micOnPercentage: participant.duration > 0
-                  ? Math.round((qos.micOnSeconds / participant.duration) * 100)
-                  : 0
-              }
-            };
-          } catch (error) {
-            console.error(`Failed to get QoS for participant ${participant.name}:`, error.message);
-            return {
-              ...participant,
-              engagement: {
-                cameraOnMinutes: 0,
-                cameraOnSeconds: 0,
-                micOnMinutes: 0,
-                micOnSeconds: 0,
-                cameraOnPercentage: 0,
-                micOnPercentage: 0,
-                dataAvailable: false
-              }
-            };
+            // Participation-based engagement
+            participationRate: participationRate,
+            engagementScore: engagementScore,
+            
+            // Account limitation flags
+            accountLimitation: true,
+            estimated: true,
+            dataAvailable: false,
+            message: 'Detailed engagement metrics require Zoom Business+ account with Dashboard feature'
           }
-        })
-      );
+        };
+      });
 
       return engagementData;
     } catch (error) {

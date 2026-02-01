@@ -8,6 +8,189 @@ const User = require('../models/User');
 const { verifyToken } = require('../middleware/auth');
 
 /**
+ * Enhanced participant matching algorithm
+ * Matches registered students with Zoom participants using multiple strategies
+ */
+function findBestParticipantMatch(attendee, participants) {
+  console.log(`🔍 Finding match for: ${attendee.name} (${attendee.email})`);
+  
+  if (!participants || participants.length === 0) {
+    console.log('❌ No participants data available');
+    return { match: null, confidence: 0, method: 'no_participants' };
+  }
+
+  console.log(`📊 Available participants: ${participants.length}`);
+  participants.forEach((p, i) => {
+    console.log(`  ${i + 1}. ${p.name} (${p.email || 'no email'})`);
+  });
+
+  let bestMatch = null;
+  let bestConfidence = 0;
+  let bestMethod = 'no_match';
+
+  for (const participant of participants) {
+    // Skip if participant already matched (prevent double matching)
+    if (participant._matched) continue;
+
+    console.log(`🔍 Checking participant: ${participant.name} (${participant.email || 'no email'})`);
+
+    // Strategy 1: Exact Email Match (Highest Priority - 100% confidence)
+    if (participant.email && attendee.email && 
+        participant.email.toLowerCase() === attendee.email.toLowerCase()) {
+      console.log('✅ EXACT EMAIL MATCH found!');
+      return { 
+        match: { ...participant, _matched: true }, 
+        confidence: 100, 
+        method: 'email' 
+      };
+    }
+
+    // Strategy 2: Exact Name Match (90% confidence)
+    if (participant.name && attendee.name &&
+        participant.name.toLowerCase().trim() === attendee.name.toLowerCase().trim()) {
+      console.log('✅ EXACT NAME MATCH found!');
+      if (90 > bestConfidence) {
+        bestMatch = participant;
+        bestConfidence = 90;
+        bestMethod = 'exact_name';
+      }
+      continue;
+    }
+
+    // Strategy 3: Partial Name Match (60-80% confidence)
+    if (participant.name && attendee.name) {
+      const confidence = calculatePartialNameMatch(attendee.name, participant.name);
+      console.log(`🔍 Partial name match confidence: ${confidence}%`);
+      if (confidence > bestConfidence && confidence >= 60) {
+        bestMatch = participant;
+        bestConfidence = confidence;
+        bestMethod = 'partial_name';
+      }
+    }
+
+    // Strategy 4: Fuzzy Name Match (40-70% confidence)
+    if (participant.name && attendee.name) {
+      const similarity = calculateStringSimilarity(attendee.name, participant.name);
+      const confidence = Math.round(similarity * 70);
+      console.log(`🔍 Fuzzy name match confidence: ${confidence}%`);
+      if (confidence > bestConfidence && confidence >= 40) {
+        bestMatch = participant;
+        bestConfidence = confidence;
+        bestMethod = 'fuzzy_name';
+      }
+    }
+  }
+
+  // Mark the best match as used to prevent double matching
+  if (bestMatch) {
+    bestMatch._matched = true;
+    console.log(`✅ Best match found: ${bestMatch.name} (${bestConfidence}% confidence, ${bestMethod})`);
+  } else {
+    console.log('❌ No match found');
+  }
+
+  return { 
+    match: bestMatch, 
+    confidence: bestConfidence, 
+    method: bestMethod 
+  };
+}
+
+/**
+ * Calculate partial name matching confidence
+ * Handles cases like "John Smith" vs "John" or "J. Smith"
+ */
+function calculatePartialNameMatch(registeredName, zoomName) {
+  const registered = registeredName.toLowerCase().trim().split(/\s+/);
+  const zoom = zoomName.toLowerCase().trim().split(/\s+/);
+  
+  let matchedParts = 0;
+  let totalParts = registered.length;
+
+  for (const regPart of registered) {
+    for (const zoomPart of zoom) {
+      // Exact part match
+      if (regPart === zoomPart) {
+        matchedParts++;
+        break;
+      }
+      // Partial match (for initials like "J." matching "John")
+      if (regPart.startsWith(zoomPart) || zoomPart.startsWith(regPart)) {
+        if (Math.min(regPart.length, zoomPart.length) >= 2) {
+          matchedParts += 0.8;
+          break;
+        }
+      }
+      // Initial match (like "J" matching "John")
+      if ((regPart[0] === zoomPart[0]) && (regPart.length === 1 || zoomPart.length === 1)) {
+        matchedParts += 0.5;
+        break;
+      }
+    }
+  }
+
+  // Calculate confidence based on matched parts
+  const baseConfidence = (matchedParts / totalParts) * 80;
+  
+  // Bonus for having same number of name parts
+  const lengthBonus = registered.length === zoom.length ? 5 : 0;
+  
+  return Math.min(Math.round(baseConfidence + lengthBonus), 80);
+}
+
+/**
+ * Calculate string similarity using Levenshtein distance
+ * Returns similarity score between 0 and 1
+ */
+function calculateStringSimilarity(str1, str2) {
+  if (!str1 || !str2) return 0;
+  
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+  
+  if (s1 === s2) return 1;
+  
+  const longer = s1.length > s2.length ? s1 : s2;
+  const shorter = s1.length > s2.length ? s2 : s1;
+  
+  if (longer.length === 0) return 1;
+  
+  const distance = levenshteinDistance(longer, shorter);
+  return (longer.length - distance) / longer.length;
+}
+
+/**
+ * Calculate Levenshtein distance between two strings
+ */
+function levenshteinDistance(str1, str2) {
+  const matrix = [];
+  
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+  
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+  
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
+}
+
+/**
  * Create a Zoom meeting with selected students
  * POST /api/zoom/create-meeting
  */
@@ -101,8 +284,9 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
         participant_video: true,
         join_before_host: false,
         mute_upon_entry: true,
-        waiting_room: true,
-        approval_type: 0 // Auto-approve
+        waiting_room: false, // No waiting room for registered participants
+        approval_type: 0, // Auto-approve registrants
+        registration_type: 1 // Registration required for unique URLs
       }
     });
 
@@ -111,13 +295,31 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
     }
 
     const meeting = zoomResult.meeting;
+    const registrants = zoomResult.registrants || [];
 
-    // Save meeting to database
+    console.log('✅ Zoom meeting created with registrants:', {
+      meetingId: meeting.id,
+      registrantCount: registrants.length,
+      sampleRegistrant: registrants[0] ? {
+        email: registrants[0].email,
+        hasUniqueUrl: !!registrants[0].joinUrl
+      } : null
+    });
+
+    // Create a map of email to unique join URL for easy lookup
+    const registrantUrlMap = {};
+    registrants.forEach(reg => {
+      if (reg.email && reg.joinUrl) {
+        registrantUrlMap[reg.email.toLowerCase()] = reg.joinUrl;
+      }
+    });
+
+    // Save meeting to database with registrant URLs
     const meetingLink = new MeetingLink({
       batch,
       plan,
       platform: 'Zoom',
-      link: meeting.joinUrl,
+      link: meeting.joinUrl, // Generic meeting URL
       topic: meeting.topic,
       agenda: meeting.agenda,
       startTime: new Date(meeting.startTime),
@@ -127,12 +329,15 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
       zoomPassword: meeting.password,
       hostEmail: meeting.hostEmail,
       startUrl: meeting.startUrl,
-      joinUrl: meeting.joinUrl,
+      joinUrl: meeting.joinUrl, // Generic URL for fallback
       createdBy: req.user.id,
       attendees: students.map(student => ({
         studentId: student._id,
         name: student.name,
-        email: student.email
+        email: student.email,
+        // Store unique registrant URL for each student
+        joinUrl: registrantUrlMap[student.email.toLowerCase()] || meeting.joinUrl,
+        registrantId: registrants.find(r => r.email?.toLowerCase() === student.email.toLowerCase())?.registrantId
       })),
       status: 'scheduled'
     });
@@ -142,13 +347,29 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
     console.log('✅ Meeting saved to database');
 
     // ✅ SEND EMAIL INVITATIONS TO STUDENTS using your email system
+    // Track email sending status
+    const emailResults = {
+      attempted: 0,
+      successful: 0,
+      failed: 0,
+      errors: [],
+      failedStudents: []
+    };
+
     try {
       const transporter = require('../config/emailConfig');
       
       console.log(`📧 Sending meeting invitations to ${students.length} students...`);
       
       for (const student of students) {
+        emailResults.attempted++;
+        
         try {
+          // Get unique registrant URL for this student
+          const studentJoinUrl = registrantUrlMap[student.email.toLowerCase()] || meeting.joinUrl;
+          
+          console.log(`📧 Sending email to ${student.name} with URL: ${studentJoinUrl.substring(0, 50)}...`);
+          
           const mailOptions = {
             from: process.env.EMAIL_USER,
             to: student.email,
@@ -186,7 +407,7 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
                   ${agenda ? `<p style="color:#666; font-style:italic;">${agenda}</p>` : ''}
 
                   <div style="margin:30px 0;">
-                    <a href="${meeting.joinUrl}" target="_blank" 
+                    <a href="${studentJoinUrl}" target="_blank" 
                       style="display:inline-block; background-color:#000e89; color:#fff; 
                             text-decoration:none; padding:15px 30px; border-radius:6px; font-size:16px; font-weight:bold;">
                       🎥 Join Zoom Meeting
@@ -204,7 +425,17 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
                   <div style="background:#e7f3ff; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
                     <p style="margin:0 0 10px 0; font-weight:bold; color:#000e89;">📝 Meeting Details:</p>
                     <p style="margin:5px 0; font-size:14px;"><strong>Meeting ID:</strong> ${meeting.id}</p>
-                    <p style="margin:5px 0; font-size:14px;"><strong>Join URL:</strong> <a href="${meeting.joinUrl}" style="color:#000e89; word-break:break-all;">${meeting.joinUrl}</a></p>
+                    <p style="margin:5px 0; font-size:14px;"><strong>Your Personal Join URL:</strong> <a href="${studentJoinUrl}" style="color:#000e89; word-break:break-all;">${studentJoinUrl}</a></p>
+                  </div>
+
+                  <div style="background:#d4edda; border:1px solid #c3e6cb; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
+                    <p style="margin:0 0 10px 0; font-weight:bold; color:#155724;">✅ Important - Personal Registration:</p>
+                    <ul style="margin:0; padding-left:20px; text-align:left; font-size:14px; color:#155724;">
+                      <li>This is your <strong>personal registration link</strong> - it's unique to you</li>
+                      <li>Using this link helps us track your attendance accurately</li>
+                      <li>Please don't share this link with other students</li>
+                      <li>If you use the teacher's generic link, your attendance may not be recorded properly</li>
+                    </ul>
                   </div>
 
                   <div style="background:#f8f9fa; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
@@ -235,18 +466,42 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
           };
 
           await transporter.sendMail(mailOptions);
+          emailResults.successful++;
           console.log(`✅ Invitation email sent to ${student.name} (${student.email})`);
         } catch (emailError) {
+          emailResults.failed++;
+          emailResults.failedStudents.push({
+            name: student.name,
+            email: student.email,
+            error: emailError.message
+          });
           console.error(`❌ Failed to send email to ${student.email}:`, emailError.message);
           // Continue with other students even if one fails
         }
       }
 
-      console.log(`✅ Meeting invitation emails sent to ${students.length} students`);
+      if (emailResults.successful > 0) {
+        console.log(`✅ Meeting invitation emails sent to ${emailResults.successful}/${students.length} students`);
+      }
+      if (emailResults.failed > 0) {
+        console.log(`⚠️ Failed to send ${emailResults.failed}/${students.length} emails`);
+      }
     } catch (emailError) {
       console.error('⚠️ Error sending invitation emails (non-critical):', emailError.message);
+      emailResults.errors.push(emailError.message);
       // Don't fail the meeting creation if email sending fails
     }
+
+    // Save email status to database
+    meetingLink.emailNotificationStatus = {
+      attempted: emailResults.attempted,
+      successful: emailResults.successful,
+      failed: emailResults.failed,
+      allSent: emailResults.failed === 0 && emailResults.successful === students.length,
+      failedStudents: emailResults.failedStudents,
+      lastAttempt: new Date()
+    };
+    await meetingLink.save();
 
     // ✅ AUTO-LINK TO TIMETABLE: Find or create timetable slot
     try {
@@ -405,6 +660,16 @@ router.post('/create-meeting', verifyToken, async (req, res) => {
         password: meeting.password,
         attendeesCount: students.length,
         attendees: students.map(s => ({ name: s.name, email: s.email }))
+      },
+      emailStatus: {
+        attempted: emailResults.attempted,
+        successful: emailResults.successful,
+        failed: emailResults.failed,
+        allSent: emailResults.failed === 0 && emailResults.successful === students.length,
+        partialFailure: emailResults.failed > 0 && emailResults.successful > 0,
+        totalFailure: emailResults.failed === students.length,
+        failedStudents: emailResults.failedStudents,
+        errors: emailResults.errors
       }
     });
 
@@ -568,10 +833,15 @@ router.get('/student-meetings', verifyToken, async (req, res) => {
         canJoin = true;
       }
 
-      // Find student's join URL
+      // Find student's personal join URL
       const studentAttendee = meeting.attendees.find(
         a => a.studentId && a.studentId.toString() === studentId
       );
+
+      // Use personal join URL if available, otherwise fall back to generic URL
+      const personalJoinUrl = studentAttendee?.joinUrl || meeting.joinUrl;
+      
+      console.log(`🔗 Student ${studentId} join URL: ${personalJoinUrl ? 'Personal' : 'Generic'}`);
 
       return {
         _id: meeting._id,
@@ -584,7 +854,7 @@ router.get('/student-meetings', verifyToken, async (req, res) => {
           name: meeting.createdBy?.name || 'Unknown',
           email: meeting.createdBy?.email || ''
         },
-        joinUrl: studentAttendee?.joinUrl || meeting.joinUrl,
+        joinUrl: personalJoinUrl, // Use personal URL
         password: meeting.zoomPassword,
         status: meeting.status,
         currentStatus: currentStatus,
@@ -592,7 +862,8 @@ router.get('/student-meetings', verifyToken, async (req, res) => {
         isOngoing: currentStatus === 'ongoing',
         hasEnded: currentStatus === 'ended',
         timeUntilStart: timeUntilStart,
-        agenda: meeting.agenda
+        agenda: meeting.agenda,
+        isPersonalUrl: !!studentAttendee?.joinUrl // Flag to indicate if using personal URL
       };
     });
 
@@ -708,19 +979,29 @@ router.put('/meeting/:id/attendees', verifyToken, async (req, res) => {
         name: student.name
       }));
 
-      // Add to Zoom
-      await zoomService.addRegistrants(meeting.zoomMeetingId, attendees);
+      // Add to Zoom and capture unique registration URLs
+      const registrantResults = await zoomService.addRegistrants(meeting.zoomMeetingId, attendees);
 
-      // Add to database
+      // Create email-to-URL mapping
+      const registrantUrlMap = {};
+      registrantResults.forEach(reg => {
+        if (reg.email && reg.joinUrl && reg.success) {
+          registrantUrlMap[reg.email.toLowerCase()] = reg.joinUrl;
+        }
+      });
+
+      // Add to database with unique URLs
       newStudents.forEach(student => {
         meeting.attendees.push({
           studentId: student._id,
           name: student.name,
-          email: student.email
+          email: student.email,
+          joinUrl: registrantUrlMap[student.email.toLowerCase()] || meeting.joinUrl,
+          registrantId: registrantResults.find(r => r.email?.toLowerCase() === student.email.toLowerCase())?.registrantId
         });
       });
 
-      // ✅ SEND EMAIL INVITATIONS TO NEW STUDENTS
+      // ✅ SEND EMAIL INVITATIONS TO NEW STUDENTS with unique URLs
       try {
         const transporter = require('../config/emailConfig');
         
@@ -728,6 +1009,9 @@ router.put('/meeting/:id/attendees', verifyToken, async (req, res) => {
         
         for (const student of newStudents) {
           try {
+            // Get unique registrant URL for this student
+            const studentJoinUrl = registrantUrlMap[student.email.toLowerCase()] || meeting.joinUrl;
+            
             const mailOptions = {
               from: process.env.EMAIL_USER,
               to: student.email,
@@ -763,7 +1047,7 @@ router.put('/meeting/:id/attendees', verifyToken, async (req, res) => {
                     </div>
 
                     <div style="margin:30px 0;">
-                      <a href="${meeting.joinUrl}" target="_blank" 
+                      <a href="${studentJoinUrl}" target="_blank" 
                         style="display:inline-block; background-color:#000e89; color:#fff; 
                               text-decoration:none; padding:15px 30px; border-radius:6px; font-size:16px; font-weight:bold;">
                         🎥 Join Zoom Meeting
@@ -781,7 +1065,16 @@ router.put('/meeting/:id/attendees', verifyToken, async (req, res) => {
                     <div style="background:#e7f3ff; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
                       <p style="margin:0 0 10px 0; font-weight:bold; color:#000e89;">📝 Meeting Details:</p>
                       <p style="margin:5px 0; font-size:14px;"><strong>Meeting ID:</strong> ${meeting.zoomMeetingId}</p>
-                      <p style="margin:5px 0; font-size:14px;"><strong>Join URL:</strong> <a href="${meeting.joinUrl}" style="color:#000e89; word-break:break-all;">${meeting.joinUrl}</a></p>
+                      <p style="margin:5px 0; font-size:14px;"><strong>Your Personal Join URL:</strong> <a href="${studentJoinUrl}" style="color:#000e89; word-break:break-all;">${studentJoinUrl}</a></p>
+                    </div>
+
+                    <div style="background:#d4edda; border:1px solid #c3e6cb; padding:15px; border-radius:6px; margin:20px 0; text-align:left;">
+                      <p style="margin:0 0 10px 0; font-weight:bold; color:#155724;">✅ Important - Personal Registration:</p>
+                      <ul style="margin:0; padding-left:20px; text-align:left; font-size:14px; color:#155724;">
+                        <li>This is your <strong>personal registration link</strong> - it's unique to you</li>
+                        <li>Using this link helps us track your attendance accurately</li>
+                        <li>Please don't share this link with other students</li>
+                      </ul>
                     </div>
 
                     <p style="margin-top:30px; color:#666; font-size:13px;">
@@ -833,6 +1126,274 @@ router.put('/meeting/:id/attendees', verifyToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update attendees'
+    });
+  }
+});
+
+/**
+ * Update meeting details (topic, time, duration, agenda, etc.)
+ * PUT /api/zoom/meeting/:id
+ */
+router.put('/meeting/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      topic,
+      startTime,
+      duration,
+      timezone,
+      agenda,
+      settings
+    } = req.body;
+
+    // Find meeting in database
+    const meeting = await MeetingLink.findById(id);
+    
+    if (!meeting) {
+      return res.status(404).json({
+        success: false,
+        message: 'Meeting not found'
+      });
+    }
+
+    // Check if user has permission to edit this meeting
+    const user = await User.findById(req.user.id).select('role');
+    if (user.role === 'TEACHER' && meeting.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only edit meetings you created'
+      });
+    }
+
+    // Prepare update data for Zoom
+    const zoomUpdateData = {};
+    
+    if (topic) zoomUpdateData.topic = topic;
+    if (startTime) zoomUpdateData.start_time = startTime;
+    if (duration) zoomUpdateData.duration = duration;
+    if (timezone) zoomUpdateData.timezone = timezone;
+    if (agenda) zoomUpdateData.agenda = agenda;
+    if (settings) zoomUpdateData.settings = {
+      ...settings,
+      // Ensure registration settings remain correct
+      approval_type: 0,
+      registration_type: 1,
+      waiting_room: false,
+      registrants_email_notification: false,
+      registrants_confirmation_email: false
+    };
+
+    // Update meeting in Zoom
+    if (Object.keys(zoomUpdateData).length > 0) {
+      console.log('📝 Updating Zoom meeting:', meeting.zoomMeetingId);
+      await zoomService.updateMeeting(meeting.zoomMeetingId, zoomUpdateData);
+    }
+
+    // Update meeting in database
+    if (topic) meeting.topic = topic;
+    if (startTime) meeting.startTime = new Date(startTime);
+    if (duration) meeting.duration = duration;
+    if (timezone) meeting.timezone = timezone;
+    if (agenda) meeting.agenda = agenda;
+
+    await meeting.save();
+
+    // ✅ UPDATE TIMETABLE if time changed
+    if (startTime) {
+      try {
+        const TimeTable = require('../models/TimeTable');
+        const newMeetingDate = new Date(startTime);
+        
+        // Get new day of week
+        const newDayOfWeek = newMeetingDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          timeZone: 'Asia/Colombo' 
+        }).toLowerCase();
+        
+        // Get new time
+        const newMeetingTime = newMeetingDate.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: 'Asia/Colombo'
+        });
+
+        // Calculate new end time
+        const newEndDate = new Date(newMeetingDate.getTime() + (duration || meeting.duration) * 60000);
+        const newEndTime = newEndDate.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: 'Asia/Colombo'
+        });
+
+        console.log('🔄 Updating timetable for meeting time change:', {
+          batch: meeting.batch,
+          newDayOfWeek,
+          newTime: `${newMeetingTime} - ${newEndTime}`
+        });
+
+        // Find timetable that covers the new date
+        let timetable = await TimeTable.findOne({
+          batch: meeting.batch,
+          plan: meeting.plan,
+          weekStartDate: { $lte: newMeetingDate },
+          weekEndDate: { $gte: newMeetingDate }
+        });
+
+        if (timetable) {
+          // Remove from old slot (find by zoomMeetingId)
+          const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+          for (const day of days) {
+            if (timetable[day] && Array.isArray(timetable[day])) {
+              const slotIndex = timetable[day].findIndex(slot => 
+                slot.zoomMeetingId === meeting.zoomMeetingId
+              );
+              if (slotIndex !== -1) {
+                // Remove from old day
+                timetable[day].splice(slotIndex, 1);
+                break;
+              }
+            }
+          }
+
+          // Add to new day/time
+          if (!timetable[newDayOfWeek]) {
+            timetable[newDayOfWeek] = [];
+          }
+
+          timetable[newDayOfWeek].push({
+            start: newMeetingTime,
+            end: newEndTime,
+            classStatus: 'Scheduled',
+            zoomMeetingId: meeting.zoomMeetingId,
+            zoomJoinUrl: meeting.joinUrl,
+            zoomPassword: meeting.zoomPassword,
+            meetingLinked: true
+          });
+
+          await timetable.save();
+          console.log('✅ Timetable updated for meeting time change');
+        }
+      } catch (timetableError) {
+        console.error('⚠️ Error updating timetable (non-critical):', timetableError.message);
+      }
+    }
+
+    // ✅ SEND UPDATE NOTIFICATION EMAILS TO ATTENDEES
+    if (topic || startTime || duration || agenda) {
+      try {
+        const transporter = require('../config/emailConfig');
+        
+        // Get attendees with populated student data
+        const meetingWithStudents = await MeetingLink.findById(id)
+          .populate('attendees.studentId', 'name email');
+        
+        const students = meetingWithStudents.attendees
+          .filter(a => a.studentId)
+          .map(a => ({
+            name: a.studentId.name || a.name,
+            email: a.studentId.email || a.email,
+            joinUrl: a.joinUrl || meeting.joinUrl
+          }));
+
+        if (students.length > 0) {
+          console.log(`📧 Sending meeting update notifications to ${students.length} students...`);
+          
+          for (const student of students) {
+            try {
+              const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: student.email,
+                subject: '📝 Meeting Updated - Glück Global',
+                html: `
+                  <div style="font-family: Arial, sans-serif; text-align:center; background:#f9f9f9; padding:20px;">
+                    <div style="max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                      
+                      <div style="background:#ffc107; border-radius:8px; padding:20px;">
+                        <h2 style="color:#000; margin:0;">📝 Meeting Updated</h2>
+                      </div>
+
+                      <p style="margin-top:20px;">Hello <strong>${student.name}</strong>,</p>
+                      
+                      <p>The following Zoom meeting has been <strong>updated</strong>:</p>
+
+                      <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin:20px 0; border-left:4px solid #ffc107;">
+                        <h3 style="color:#000e89; margin:0 0 10px 0;">${meeting.topic}</h3>
+                        <p style="margin:5px 0;"><strong>📅 Date:</strong> ${new Date(meeting.startTime).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric',
+                          timeZone: 'Asia/Colombo'
+                        })}</p>
+                        <p style="margin:5px 0;"><strong>🕐 Time:</strong> ${new Date(meeting.startTime).toLocaleTimeString('en-US', { 
+                          hour: '2-digit', 
+                          minute: '2-digit',
+                          timeZone: 'Asia/Colombo'
+                        })}</p>
+                        <p style="margin:5px 0;"><strong>⏱️ Duration:</strong> ${meeting.duration} minutes</p>
+                        <p style="margin:5px 0;"><strong>👥 Batch:</strong> ${meeting.batch}</p>
+                      </div>
+
+                      ${agenda ? `<p style="color:#666; font-style:italic; margin:20px 0;">${agenda}</p>` : ''}
+
+                      <div style="margin:30px 0;">
+                        <a href="${student.joinUrl}" target="_blank" 
+                          style="display:inline-block; background-color:#000e89; color:#fff; 
+                                text-decoration:none; padding:15px 30px; border-radius:6px; font-size:16px; font-weight:bold;">
+                          🎥 Join Updated Meeting
+                        </a>
+                      </div>
+
+                      <div style="background:#fff3cd; border:1px solid #ffc107; padding:15px; border-radius:6px; margin:20px 0;">
+                        <p style="margin:0; color:#856404;">
+                          <strong>📢 Important:</strong> Please note the updated meeting details above. 
+                          Make sure to join at the new time if it has changed.
+                        </p>
+                      </div>
+
+                      <p style="margin-top:30px; color:#666; font-size:13px;">
+                        If you have any questions about the changes, please contact your teacher.
+                      </p>
+
+                      <hr style="border:none; border-top:1px solid #ddd; margin:30px 0;">
+
+                      <p style="font-size:13px; color:#888;">
+                        Best regards,<br>
+                        <strong>Glück Global Pvt Ltd</strong><br>
+                        German Language Learning Platform
+                      </p>
+                    </div>
+                  </div>
+                `
+              };
+
+              await transporter.sendMail(mailOptions);
+              console.log(`✅ Update notification sent to ${student.name} (${student.email})`);
+            } catch (emailError) {
+              console.error(`❌ Failed to send update notification to ${student.email}:`, emailError.message);
+            }
+          }
+
+          console.log(`✅ Meeting update notifications sent to ${students.length} students`);
+        }
+      } catch (emailError) {
+        console.error('⚠️ Error sending update notifications (non-critical):', emailError.message);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Meeting updated successfully',
+      data: meeting
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating meeting:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update meeting'
     });
   }
 });
@@ -1097,33 +1658,69 @@ router.get('/meeting/:id/attendance', verifyToken, async (req, res) => {
     // Fetch attendance from Zoom
     let zoomReport;
     try {
+      console.log('🔍 Fetching Zoom report for meeting:', meeting.zoomMeetingId);
       zoomReport = await zoomService.getMeetingReport(meeting.zoomMeetingId);
+      console.log('✅ Zoom report received:', {
+        success: zoomReport.success,
+        participantCount: zoomReport.participants?.length || 0,
+        meetingDuration: zoomReport.meeting?.duration || 'unknown'
+      });
     } catch (error) {
+      console.error('❌ Failed to get Zoom report:', error.message);
       return res.status(400).json({
         success: false,
         message: 'Attendance data not yet available. Please try again in a few minutes after the meeting ends.'
       });
     }
 
-    // Match Zoom participants with registered students
-    const attendanceData = meeting.attendees.map(attendee => {
-      const participant = zoomReport.participants.find(p => 
-        p.email?.toLowerCase() === attendee.email?.toLowerCase() ||
-        p.name?.toLowerCase().includes(attendee.name?.toLowerCase())
-      );
+    // Enhanced matching with confidence scores
+    console.log('🔍 Starting enhanced matching...');
+    console.log('📊 Meeting attendees:', meeting.attendees.length);
+    console.log('📊 Zoom participants:', zoomReport.participants?.length || 0);
+    
+    if (zoomReport.participants) {
+      console.log('👥 Sample Zoom participant:', zoomReport.participants[0]);
+    }
+    if (meeting.attendees.length > 0) {
+      console.log('👥 Sample meeting attendee:', meeting.attendees[0]);
+    }
 
+    const attendanceData = meeting.attendees.map(attendee => {
+      const matchResult = findBestParticipantMatch(attendee, zoomReport.participants);
+      
+      console.log(`🎯 Matching ${attendee.name}:`, {
+        confidence: matchResult.confidence,
+        method: matchResult.method,
+        matched: !!matchResult.match
+      });
+      
       return {
         studentId: attendee.studentId,
         name: attendee.name,
         email: attendee.email,
-        attended: !!participant,
-        joinTime: participant?.joinTime || null,
-        leaveTime: participant?.leaveTime || null,
-        duration: participant?.duration || 0,
-        durationMinutes: participant?.durationMinutes || 0,
-        status: participant ? 'attended' : 'absent'
+        attended: matchResult.match ? true : false,
+        confidence: matchResult.confidence,
+        matchMethod: matchResult.method,
+        zoomName: matchResult.match?.name || null,
+        zoomEmail: matchResult.match?.email || null,
+        joinTime: matchResult.match?.joinTime || null,
+        leaveTime: matchResult.match?.leaveTime || null,
+        duration: matchResult.match?.duration || 0,
+        durationMinutes: matchResult.match?.durationMinutes || 0,
+        status: matchResult.match ? 'attended' : 'absent',
+        needsReview: matchResult.confidence < 80 && matchResult.confidence > 0
       };
     });
+
+    // Calculate matching statistics
+    const matchingStats = {
+      emailMatches: attendanceData.filter(a => a.matchMethod === 'email').length,
+      exactNameMatches: attendanceData.filter(a => a.matchMethod === 'exact_name').length,
+      partialNameMatches: attendanceData.filter(a => a.matchMethod === 'partial_name').length,
+      fuzzyMatches: attendanceData.filter(a => a.matchMethod === 'fuzzy_name').length,
+      manualReviewRequired: attendanceData.filter(a => a.needsReview).length,
+      highConfidenceMatches: attendanceData.filter(a => a.confidence >= 80).length
+    };
 
     // Update meeting with attendance data
     meeting.attendance = attendanceData;
@@ -1143,6 +1740,7 @@ router.get('/meeting/:id/attendance', verifyToken, async (req, res) => {
         attendedCount: attendanceData.filter(a => a.attended).length,
         absentCount: attendanceData.filter(a => !a.attended).length,
         attendance: attendanceData,
+        matchingStats: matchingStats,
         summary: zoomReport.summary
       }
     });

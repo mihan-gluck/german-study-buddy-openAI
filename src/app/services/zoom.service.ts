@@ -197,4 +197,13 @@ export class ZoomService {
       withCredentials: true
     });
   }
+
+  /**
+   * Update meeting details (topic, time, duration, agenda)
+   */
+  updateMeeting(meetingId: string, updateData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/meeting/${meetingId}`, updateData, {
+      withCredentials: true
+    });
+  }
 }

@@ -61,12 +61,37 @@ const meetingLinkSchema = new mongoose.Schema({
     leaveTime: Date,
     duration: Number, // in seconds
     durationMinutes: Number, // in minutes
-    status: { type: String, enum: ['attended', 'absent', 'late'], default: 'absent' }
+    status: { type: String, enum: ['attended', 'absent', 'late'], default: 'absent' },
+    
+    // Enhanced matching fields
+    confidence: { type: Number, default: 0 }, // 0-100
+    matchMethod: { 
+      type: String, 
+      enum: ['email', 'exact_name', 'partial_name', 'fuzzy_name', 'no_match'], 
+      default: 'no_match' 
+    },
+    zoomName: String, // Name displayed in Zoom
+    zoomEmail: String, // Email from Zoom (if available)
+    needsReview: { type: Boolean, default: false }
   }],
   
   // Attendance metadata
   attendanceRecorded: { type: Boolean, default: false },
   attendanceRecordedAt: Date,
+  
+  // Email notification status
+  emailNotificationStatus: {
+    attempted: { type: Number, default: 0 },
+    successful: { type: Number, default: 0 },
+    failed: { type: Number, default: 0 },
+    allSent: { type: Boolean, default: false },
+    failedStudents: [{
+      name: String,
+      email: String,
+      error: String
+    }],
+    lastAttempt: Date
+  },
   
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
