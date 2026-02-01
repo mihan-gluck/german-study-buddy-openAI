@@ -198,17 +198,43 @@ export class CreateZoomMeetingComponent implements OnInit {
     this.zoomService.createMeeting(meetingData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.successMessage = `✅ Zoom meeting created successfully with ${response.data.attendeesCount} students!`;
-          console.log('✅ Meeting created:', response.data);
+          this.isCreatingMeeting = false;
           
-          // Redirect after 2 seconds
+          // Check email status
+          const emailStatus = response.emailStatus;
+          
+          if (emailStatus.allSent) {
+            // All emails sent successfully
+            this.successMessage = `✅ Zoom meeting created successfully with ${response.data.attendeesCount} students! All invitation emails sent.`;
+          } else if (emailStatus.totalFailure) {
+            // All emails failed
+            this.errorMessage = `⚠️ Meeting created but NO invitation emails were sent to students. Please check your email configuration.`;
+            this.successMessage = `Meeting created successfully but emails failed. Meeting ID: ${response.data.zoomMeetingId}`;
+          } else if (emailStatus.partialFailure) {
+            // Some emails failed
+            this.errorMessage = `⚠️ Meeting created but ${emailStatus.failed} out of ${emailStatus.attempted} invitation emails failed to send.`;
+            this.successMessage = `Meeting created. ${emailStatus.successful} emails sent successfully, ${emailStatus.failed} failed.`;
+          } else {
+            // Default success
+            this.successMessage = `✅ Zoom meeting created successfully with ${response.data.attendeesCount} students!`;
+          }
+          
+          console.log('✅ Meeting created:', response.data);
+          console.log('📧 Email Status:', emailStatus);
+          
+          // Show failed students if any
+          if (emailStatus.failedStudents && emailStatus.failedStudents.length > 0) {
+            console.error('❌ Failed to send emails to:', emailStatus.failedStudents);
+          }
+          
+          // Redirect after 4 seconds (longer to read error message)
           setTimeout(() => {
             this.router.navigate(['/teacher/meetings']);
-          }, 2000);
+          }, 4000);
         } else {
           this.errorMessage = response.message || 'Failed to create meeting';
+          this.isCreatingMeeting = false;
         }
-        this.isCreatingMeeting = false;
       },
       error: (error) => {
         console.error('❌ Error creating meeting:', error);

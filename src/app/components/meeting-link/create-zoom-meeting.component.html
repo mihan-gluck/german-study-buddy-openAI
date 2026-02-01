@@ -26,11 +26,44 @@
   <!-- Success/Error Messages -->
   <div class="row mb-3" *ngIf="successMessage || errorMessage">
     <div class="col-12">
-      <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+      <!-- Success Message -->
+      <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage && !errorMessage">
         <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
         <button type="button" class="btn-close" (click)="successMessage = ''"></button>
       </div>
-      <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage">
+      
+      <!-- Error/Warning Message (Email Issues) -->
+      <div class="alert alert-warning alert-dismissible fade show" *ngIf="errorMessage && successMessage">
+        <div class="d-flex align-items-start">
+          <i class="fas fa-exclamation-triangle me-3 fs-4" style="color: #dc3545;"></i>
+          <div class="flex-grow-1">
+            <h5 class="alert-heading mb-2">
+              <strong>⚠️ Email Notification Issue</strong>
+            </h5>
+            <p class="mb-2"><strong>{{ errorMessage }}</strong></p>
+            <p class="mb-2">{{ successMessage }}</p>
+            <hr>
+            <div class="mt-2">
+              <p class="mb-1"><strong>What this means:</strong></p>
+              <ul class="mb-2">
+                <li>✅ Your Zoom meeting was created successfully</li>
+                <li>✅ Meeting is saved and linked to timetable</li>
+                <li>❌ Students did NOT receive email invitations</li>
+              </ul>
+              <p class="mb-1"><strong>What to do:</strong></p>
+              <ul class="mb-0">
+                <li>Check your email configuration in .env file (EMAIL_USER and EMAIL_PASS)</li>
+                <li>Manually share the meeting link with students</li>
+                <li>Contact system administrator to fix email settings</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="errorMessage = ''; successMessage = ''"></button>
+      </div>
+      
+      <!-- Pure Error Message (Meeting Creation Failed) -->
+      <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage && !successMessage">
         <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
         <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
       </div>
