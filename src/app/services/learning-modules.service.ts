@@ -47,6 +47,8 @@ export interface LearningModule {
   };
   createdBy: any;
   isActive: boolean;
+  visibleToStudents?: boolean;  // ✅ NEW: Controls if students can see this module
+  publishedAt?: Date;           // ✅ NEW: When module was made visible to students
   tags: string[];
   totalEnrollments: number;
   averageCompletionTime: number;
@@ -123,6 +125,14 @@ export class LearningModulesService {
     return this.http.delete(`${this.apiUrl}/${id}`, { 
       withCredentials: true 
     });
+  }
+
+  // ✅ NEW: Toggle module visibility for students (Teachers/Admins only)
+  toggleModuleVisibility(id: string, visibleToStudents: boolean): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/visibility`, 
+      { visibleToStudents }, 
+      { withCredentials: true }
+    );
   }
 
   // Enroll student in module

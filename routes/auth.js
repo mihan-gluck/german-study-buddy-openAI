@@ -457,8 +457,8 @@ router.post("/login", async (req, res) => {
     // ✅ Set cookie instead of sending token
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: false,   // ❌ keep false for localhost, set true in production (HTTPS)
-      sameSite: "Lax", // use "Strict" in production for stronger CSRF protection
+      secure: process.env.NODE_ENV === 'production',   // ✅ true in production (HTTPS), false in development
+      sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax', // Strict in production for better security
       maxAge: 60 * 60 * 1000 // 1 hour
     });
 
@@ -482,8 +482,8 @@ router.post("/login", async (req, res) => {
 router.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
-    secure: false, // set true in production with HTTPS
-    sameSite: "Lax",
+    secure: process.env.NODE_ENV === 'production', // ✅ true in production with HTTPS
+    sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
   });
   return res.json({ msg: "Logged out successfully" });
 });

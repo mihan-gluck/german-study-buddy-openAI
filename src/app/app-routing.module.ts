@@ -55,13 +55,13 @@ export const routes: Routes = [
     data: { role: 'ADMIN' } 
   },
 
-  // Admin module management route
+  // Admin module management route (✅ Updated to allow TEACHER access)
   { 
     path: 'admin-modules', 
     loadComponent: () => import('./components/admin-dashboard/module-management.component')
       .then(m => m.ModuleManagementComponent),
     canActivate: [AuthGuard, RoleGuard], 
-    data: { role: 'ADMIN' } 
+    data: { role: ['ADMIN', 'TEACHER'] }  // ✅ Allow both ADMIN and TEACHER
   },
 
   // Admin analytics route
@@ -69,6 +69,15 @@ export const routes: Routes = [
     path: 'admin-analytics', 
     loadComponent: () => import('./components/admin-dashboard/admin-analytics/admin-analytics.component')
       .then(m => m.AdminAnalyticsComponent),
+    canActivate: [AuthGuard, RoleGuard], 
+    data: { role: 'ADMIN' } 
+  },
+
+  // ✅ NEW: AI Usage Analytics route
+  { 
+    path: 'admin/ai-usage-analytics', 
+    loadComponent: () => import('./components/admin-dashboard/ai-usage-analytics/ai-usage-analytics.component')
+      .then(m => m.AiUsageAnalyticsComponent),
     canActivate: [AuthGuard, RoleGuard], 
     data: { role: 'ADMIN' } 
   },

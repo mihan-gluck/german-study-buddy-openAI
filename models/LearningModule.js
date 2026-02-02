@@ -161,6 +161,16 @@ const LearningModuleSchema = new mongoose.Schema({
     default: true 
   },
   
+  // ✅ NEW: Visibility control for testing modules before making them public
+  visibleToStudents: {
+    type: Boolean,
+    default: false  // Default to hidden from students (draft mode)
+  },
+  publishedAt: {
+    type: Date,
+    default: null  // Set when module is made visible to students
+  },
+  
   // Trash/Soft Delete System
   isDeleted: {
     type: Boolean,

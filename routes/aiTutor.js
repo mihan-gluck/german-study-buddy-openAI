@@ -710,7 +710,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
       sessionId, 
       studentId: userId,
       status: 'active'
-    });
+    }).populate('moduleId', 'title level');
     
     if (!session) {
       return res.status(404).json({ message: 'Active session not found' });
@@ -720,10 +720,87 @@ router.post('/end-session', verifyToken, async (req, res) => {
     session.endTime = new Date();
     await session.save();
     
+    const durationMinutes = Math.round((session.endTime - session.startTime) / 60000);
+    
+    // ✅ NEW: Create/Update SessionRecord for analytics
+    try {
+      const SessionRecord = require('../models/SessionRecord');
+      const User = require('../models/User');
+      
+      const student = await User.findById(userId).select('name email');
+      
+      let sessionRecord = await SessionRecord.findOne({ sessionId });
+      
+      if (sessionRecord) {
+        // Update existing record
+        sessionRecord.endTime = session.endTime;
+        sessionRecord.durationMinutes = durationMinutes;
+        sessionRecord.sessionState = 'completed';
+        sessionRecord.messages = session.messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          messageType: msg.messageType,
+          timestamp: msg.timestamp
+        }));
+        sessionRecord.summary = {
+          conversationCount: session.messages.filter(m => m.role === 'student').length,
+          timeSpentMinutes: durationMinutes,
+          totalScore: session.analytics.sessionScore,
+          correctAnswers: session.analytics.correctAnswers,
+          incorrectAnswers: session.analytics.incorrectAnswers,
+          accuracy: session.analytics.totalMessages > 0 
+            ? Math.round((session.analytics.correctAnswers / (session.analytics.correctAnswers + session.analytics.incorrectAnswers)) * 100) 
+            : 0
+        };
+        
+        await sessionRecord.save();
+        console.log('✅ SessionRecord updated with duration:', durationMinutes, 'minutes');
+      } else {
+        // Create new record
+        sessionRecord = new SessionRecord({
+          sessionId,
+          studentId: userId,
+          studentName: student.name,
+          studentEmail: student.email,
+          moduleId: session.moduleId._id,
+          moduleTitle: session.moduleId.title,
+          moduleLevel: session.moduleId.level,
+          sessionType: session.sessionType,
+          sessionState: 'completed',
+          startTime: session.startTime,
+          endTime: session.endTime,
+          durationMinutes: durationMinutes,
+          messages: session.messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            messageType: msg.messageType,
+            timestamp: msg.timestamp
+          })),
+          summary: {
+            conversationCount: session.messages.filter(m => m.role === 'student').length,
+            timeSpentMinutes: durationMinutes,
+            totalScore: session.analytics.sessionScore,
+            correctAnswers: session.analytics.correctAnswers,
+            incorrectAnswers: session.analytics.incorrectAnswers,
+            accuracy: session.analytics.totalMessages > 0 
+              ? Math.round((session.analytics.correctAnswers / (session.analytics.correctAnswers + session.analytics.incorrectAnswers)) * 100) 
+              : 0
+          },
+          isModuleCompleted: false
+        });
+        
+        await sessionRecord.save();
+        console.log('✅ SessionRecord created with duration:', durationMinutes, 'minutes');
+      }
+    } catch (recordError) {
+      console.error('⚠️ Error saving SessionRecord:', recordError);
+      // Don't fail the request if SessionRecord fails
+    }
+    
     res.json({
       message: 'Session ended successfully',
       summary: {
-        duration: Math.round((session.endTime - session.startTime) / 60000),
+        duration: durationMinutes,
         totalMessages: session.messages.length,
         correctAnswers: session.analytics.correctAnswers,
         incorrectAnswers: session.analytics.incorrectAnswers,

@@ -15,6 +15,8 @@ interface ModuleWithStats {
   category: string;
   difficulty: string;
   isActive: boolean;
+  visibleToStudents?: boolean;  // ✅ NEW
+  publishedAt?: Date;           // ✅ NEW
   createdBy: {
     _id: string;
     name: string;
@@ -222,9 +224,19 @@ interface ModuleWithStats {
                           <span class="badge" [class]="module.isActive ? 'bg-success' : 'bg-danger'">
                             {{ module.isActive ? 'Active' : 'Inactive' }}
                           </span>
+                          <br>
+                          <span class="badge mt-1" [class]="module.visibleToStudents ? 'bg-primary' : 'bg-warning'">
+                            {{ module.visibleToStudents ? '👁️ Visible' : '🔒 Hidden' }}
+                          </span>
                         </td>
                         <td class="text-center">
                           <div class="action-buttons">
+                            <button class="btn btn-sm me-1" 
+                                    [class]="module.visibleToStudents ? 'btn-outline-warning' : 'btn-outline-success'"
+                                    (click)="toggleVisibility(module)" 
+                                    [title]="module.visibleToStudents ? 'Hide from students' : 'Show to students'">
+                              <i class="fas" [class]="module.visibleToStudents ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
                             <button class="btn btn-sm btn-outline-info me-1" (click)="viewHistory(module._id)" title="View History">
                               <i class="fas fa-history"></i>
                             </button>
@@ -788,6 +800,28 @@ export class ModuleManagementComponent implements OnInit {
         error: (error) => {
           console.error(`Error ${action}ing module:`, error);
           alert(`Failed to ${action} module`);
+        }
+      });
+    }
+  }
+
+  // ✅ NEW: Toggle module visibility for students
+  toggleVisibility(module: ModuleWithStats): void {
+    const newVisibility = !module.visibleToStudents;
+    const action = newVisibility ? 'show to' : 'hide from';
+    
+    if (confirm(`Are you sure you want to ${action} students?\n\nModule: ${module.title}`)) {
+      this.learningModulesService.toggleModuleVisibility(module._id, newVisibility).subscribe({
+        next: (response) => {
+          module.visibleToStudents = newVisibility;
+          if (newVisibility && response.module.publishedAt) {
+            module.publishedAt = response.module.publishedAt;
+          }
+          alert(`Module ${newVisibility ? 'published to' : 'hidden from'} students successfully`);
+        },
+        error: (error) => {
+          console.error(`Error toggling module visibility:`, error);
+          alert(`Failed to update module visibility`);
         }
       });
     }

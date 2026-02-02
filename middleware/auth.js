@@ -33,6 +33,14 @@ function isAdmin(req, res, next) {
 // General role-based access control middleware
 const checkRole = (roles) => {
   return (req, res, next) => {
+    console.log('🔐 checkRole middleware:', {
+      requiredRoles: roles,
+      userRole: req.user?.role,
+      userId: req.user?.id,
+      userName: req.user?.name,
+      hasUser: !!req.user
+    });
+    
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required.' });
     }
@@ -41,8 +49,13 @@ const checkRole = (roles) => {
     const allowedRoles = Array.isArray(roles) ? roles : [roles];
     
     if (allowedRoles.includes(req.user.role)) {
+      console.log('✅ Role check passed');
       next();
     } else {
+      console.log('❌ Role check failed:', {
+        required: allowedRoles,
+        actual: req.user.role
+      });
       return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
     }
   };

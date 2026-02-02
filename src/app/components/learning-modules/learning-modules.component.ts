@@ -423,6 +423,56 @@ export class LearningModulesComponent implements OnInit {
     }
   }
 
+  // ✅ NEW: Toggle module visibility for students
+  toggleVisibility(module: LearningModule): void {
+    if (!module._id) return;
+    
+    const newVisibility = !module.visibleToStudents;
+    const action = newVisibility ? 'publish to' : 'hide from';
+    
+    const confirmToggle = confirm(
+      `${newVisibility ? '👁️ Publish' : '🔒 Hide'} Module: "${module.title}"\n\n` +
+      `Are you sure you want to ${action} students?\n\n` +
+      `${newVisibility ? 'Students will be able to see and access this module.' : 'Students will no longer see this module in their list.'}\n\n` +
+      `Click OK to confirm.`
+    );
+    
+    if (confirmToggle) {
+      console.log('🔄 Toggling visibility:', { 
+        id: module._id, 
+        title: module.title,
+        newVisibility 
+      });
+      
+      this.learningModulesService.toggleModuleVisibility(module._id, newVisibility).subscribe({
+        next: (response) => {
+          console.log('✅ Visibility updated:', response);
+          
+          // Update the module in the list
+          module.visibleToStudents = newVisibility;
+          if (newVisibility && response.module?.publishedAt) {
+            module.publishedAt = response.module.publishedAt;
+          }
+          
+          // Show success message
+          alert(`✅ Module "${module.title}" is now ${newVisibility ? 'visible to' : 'hidden from'} students.`);
+        },
+        error: (error) => {
+          console.error('❌ Error toggling visibility:', error);
+          
+          let errorMessage = 'Failed to update module visibility.';
+          if (error.status === 403) {
+            errorMessage = 'You can only modify modules you created.';
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          }
+          
+          alert(`❌ Error: ${errorMessage}`);
+        }
+      });
+    }
+  }
+
   canDeleteModule(module: LearningModule): boolean {
     if (!this.currentUser) return false;
     

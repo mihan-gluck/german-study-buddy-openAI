@@ -9,7 +9,8 @@ const mongoose = require('mongoose');
 const { verifyToken, checkRole } = require('../middleware/auth');
 
 // GET /api/student-progress - Get student's progress across all modules
-router.get('/', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.get('/', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const studentId = req.user.id;
     const { status, level, category } = req.query;
@@ -59,7 +60,8 @@ router.get('/', verifyToken, checkRole(['STUDENT']), async (req, res) => {
 });
 
 // GET /api/student-progress/:moduleId - Get progress for specific module
-router.get('/:moduleId', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.get('/:moduleId', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const { moduleId } = req.params;
     const studentId = req.user.id;
@@ -94,7 +96,8 @@ router.get('/:moduleId', verifyToken, checkRole(['STUDENT']), async (req, res) =
 });
 
 // PUT /api/student-progress/:moduleId/exercise - Update exercise completion
-router.put('/:moduleId/exercise', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.put('/:moduleId/exercise', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const { moduleId } = req.params;
     const { exerciseIndex, score, isCompleted } = req.body;
@@ -171,7 +174,8 @@ router.put('/:moduleId/exercise', verifyToken, checkRole(['STUDENT']), async (re
 });
 
 // PUT /api/student-progress/:moduleId/notes - Update student notes
-router.put('/:moduleId/notes', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.put('/:moduleId/notes', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const { moduleId } = req.params;
     const { notes } = req.body;
@@ -195,7 +199,8 @@ router.put('/:moduleId/notes', verifyToken, checkRole(['STUDENT']), async (req, 
 });
 
 // GET /api/student-progress/analytics/dashboard - Get dashboard analytics
-router.get('/analytics/dashboard', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.get('/analytics/dashboard', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const studentId = req.user.id;
     

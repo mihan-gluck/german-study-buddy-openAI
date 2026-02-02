@@ -366,6 +366,16 @@
                   (click)="editModule(module)">
                   Edit
                 </button>
+                <!-- ✅ NEW: Visibility Toggle Button -->
+                <button 
+                  class="btn btn-sm"
+                  [class.btn-outline-success]="!module.visibleToStudents"
+                  [class.btn-outline-warning]="module.visibleToStudents"
+                  (click)="toggleVisibility(module)"
+                  [title]="module.visibleToStudents ? 'Hide from students' : 'Show to students'">
+                  <i class="fas" [class.fa-eye]="!module.visibleToStudents" [class.fa-eye-slash]="module.visibleToStudents"></i>
+                  {{ module.visibleToStudents ? 'Hide' : 'Publish' }}
+                </button>
                 <button 
                   class="btn btn-success btn-sm"
                   (click)="testModule(module)"
@@ -512,6 +522,16 @@
             class="btn btn-outline-secondary btn-sm"
             (click)="editModule(module)">
             Edit
+          </button>
+          <!-- ✅ NEW: Visibility Toggle Button -->
+          <button 
+            class="btn btn-sm"
+            [class.btn-outline-success]="!module.visibleToStudents"
+            [class.btn-outline-warning]="module.visibleToStudents"
+            (click)="toggleVisibility(module)"
+            [title]="module.visibleToStudents ? 'Hide from students' : 'Show to students'">
+            <i class="fas" [class.fa-eye]="!module.visibleToStudents" [class.fa-eye-slash]="module.visibleToStudents"></i>
+            {{ module.visibleToStudents ? 'Hide' : 'Publish' }}
           </button>
           <button 
             class="btn btn-success btn-sm"

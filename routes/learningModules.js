@@ -25,6 +25,13 @@ router.get('/', verifyToken, async (req, res) => {
     
     // Build filter object
     const filter = { isActive: true, isDeleted: { $ne: true } }; // Exclude deleted items
+    
+    // ✅ NEW: Filter by visibility - Students only see published modules
+    if (req.user.role === 'STUDENT') {
+      filter.visibleToStudents = true;
+    }
+    // Teachers and Admins see all modules (including drafts)
+    
     if (level) filter.level = level;
     if (category) filter.category = category;
     if (difficulty) filter.difficulty = difficulty;
@@ -232,6 +239,59 @@ router.put('/:id', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res
   }
 });
 
+// ✅ NEW: PATCH /api/learning-modules/:id/visibility - Toggle module visibility for students
+router.patch('/:id/visibility', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, res) => {
+  try {
+    const { visibleToStudents } = req.body;
+    
+    if (typeof visibleToStudents !== 'boolean') {
+      return res.status(400).json({ message: 'visibleToStudents must be a boolean value' });
+    }
+    
+    const module = await LearningModule.findById(req.params.id);
+    
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' });
+    }
+    
+    // Check permissions: Teachers can only modify their own modules
+    if (req.user.role === 'TEACHER' && module.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to modify this module' });
+    }
+    
+    // Update visibility
+    module.visibleToStudents = visibleToStudents;
+    
+    // Set publishedAt timestamp when making visible for the first time
+    if (visibleToStudents && !module.publishedAt) {
+      module.publishedAt = new Date();
+    }
+    
+    await module.save();
+    
+    console.log(`✅ Module visibility updated:`, {
+      moduleId: module._id,
+      title: module.title,
+      visibleToStudents: module.visibleToStudents,
+      publishedAt: module.publishedAt,
+      updatedBy: req.user.name
+    });
+    
+    res.json({ 
+      message: `Module ${visibleToStudents ? 'published' : 'hidden from'} students successfully`,
+      module: {
+        _id: module._id,
+        title: module.title,
+        visibleToStudents: module.visibleToStudents,
+        publishedAt: module.publishedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error updating module visibility:', error);
+    res.status(500).json({ message: 'Error updating module visibility' });
+  }
+});
+
 // DELETE /api/learning-modules/:id - Move module to trash (Admins can delete any, Teachers can delete their own)
 router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, res) => {
   try {
@@ -282,7 +342,8 @@ router.delete('/:id', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, 
 });
 
 // POST /api/learning-modules/:id/enroll - Enroll student in module
-router.post('/:id/enroll', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.post('/:id/enroll', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const moduleId = req.params.id;
     const studentId = req.user.id; // Changed from req.user.userId to req.user.id
@@ -469,8 +530,16 @@ router.get('/:id/history', verifyToken, checkRole(['ADMIN']), async (req, res) =
 });
 
 // POST /api/learning-modules/:id/complete - Mark module as completed
-router.post('/:id/complete', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.post('/:id/complete', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
+    console.log('🔍 Complete module request:', {
+      moduleId: req.params.id,
+      userId: req.user.id,
+      userRole: req.user.role,
+      userName: req.user.name
+    });
+    
     const moduleId = req.params.id;
     const studentId = req.user.id;
     const { sessionData } = req.body;
@@ -527,7 +596,8 @@ router.post('/:id/complete', verifyToken, checkRole(['STUDENT']), async (req, re
 });
 
 // POST /api/learning-modules/:id/progress - Update module progress
-router.post('/:id/progress', verifyToken, checkRole(['STUDENT']), async (req, res) => {
+// ✅ Allow both STUDENT and TEACHER (for testing modules)
+router.post('/:id/progress', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
   try {
     const moduleId = req.params.id;
     const studentId = req.user.id;
