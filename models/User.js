@@ -29,6 +29,7 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   registeredAt: { type: Date, default: Date.now },
+  lastCredentialsEmailSent: { type: Date, default: null },
   studentStatus: { type: String, enum: ["UNCERTAIN", "ONGOING", "COMPLETED", "WITHDREW"], required: function() { return this.role === "STUDENT"; } },
   phoneNumber: { type: String, default: "", required: false, function() { return this.role === "STUDENT"; } },
   address: { type: String, default: "", required: false, function() { return this.role === "STUDENT"; } },

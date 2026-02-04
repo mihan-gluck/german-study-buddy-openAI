@@ -42,6 +42,7 @@ interface Student {
   subscription: string;
   level: string;
   studentStatus: string;
+  lastCredentialsEmailSent?: Date | string | null;
   feedbackStats?: {
     currentLevel: string;
     fluency: number;
@@ -137,6 +138,8 @@ export class AdminDashboardComponent implements OnInit {
 
   batchTeachers: any[] = [];
   loadingTeachers = false;
+
+  resendingCredentials: { [key: string]: boolean } = {};
 
 
   constructor(
@@ -542,6 +545,58 @@ export class AdminDashboardComponent implements OnInit {
         this.loadingTeachers = false;
       }
     });
+  }
+
+  resendCredentials(student: Student): void {
+    if (!confirm(`Are you sure you want to resend credentials to ${student.name}?\n\nThis will generate a new password and send it to ${student.email}`)) {
+      return;
+    }
+
+    this.resendingCredentials[student._id] = true;
+
+    this.authService.resendCredentials(student._id).subscribe({
+      next: (response) => {
+        alert(`✅ Credentials email sent successfully to ${student.name}!\n\nThe student will receive their new login details at ${student.email}`);
+        
+        // Update the student's lastCredentialsEmailSent in the local array
+        const studentIndex = this.students.findIndex(s => s._id === student._id);
+        if (studentIndex !== -1) {
+          this.students[studentIndex].lastCredentialsEmailSent = response.lastSent;
+        }
+        
+        // Also update in filtered students
+        const filteredIndex = this.filteredStudents.findIndex(s => s._id === student._id);
+        if (filteredIndex !== -1) {
+          this.filteredStudents[filteredIndex].lastCredentialsEmailSent = response.lastSent;
+        }
+        
+        this.resendingCredentials[student._id] = false;
+      },
+      error: (error) => {
+        console.error('Error resending credentials:', error);
+        alert(`❌ Failed to send credentials email.\n\nError: ${error.error?.msg || error.message || 'Unknown error'}\n\nPlease try again.`);
+        this.resendingCredentials[student._id] = false;
+      }
+    });
+  }
+
+  formatDate(date: Date | string | null | undefined): string {
+    if (!date) return 'Never sent';
+    
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return 'Never sent';
+      
+      return dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Never sent';
+    }
   }
 
 }

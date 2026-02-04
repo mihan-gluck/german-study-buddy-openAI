@@ -200,6 +200,7 @@
                   <th>Batch & Medium</th>
                   <th>Status</th>
                   <th>Assigned Teacher</th>
+                  <th>Last Credentials Sent</th>
                   <th class="text-center">Actions</th>
                 </tr>
               </thead>
@@ -250,20 +251,36 @@
                       {{ student.assignedTeacher?.name || 'Unassigned' }}
                     </div>
                   </td>
+                  <td>
+                    <div class="credentials-sent-info">
+                      <small class="text-muted">
+                        {{ formatDate(student.lastCredentialsEmailSent) }}
+                      </small>
+                    </div>
+                  </td>
                   <td class="text-center">
                     <div class="action-buttons">
                       <button 
                         class="btn btn-sm btn-outline-primary me-1"
                         [routerLink]="['/signup', student._id]"
                         title="Edit Student"
-                      >View
+                      >
                         <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-success me-1"
+                        (click)="resendCredentials(student)"
+                        [disabled]="resendingCredentials[student._id]"
+                        title="Send Credentials Email"
+                      >
+                        <i class="fas fa-envelope" *ngIf="!resendingCredentials[student._id]"></i>
+                        <i class="fas fa-spinner fa-spin" *ngIf="resendingCredentials[student._id]"></i>
                       </button>
                       <button
                         class="btn btn-sm btn-outline-danger"
                         (click)="deleteUser(student._id)"
                         title="Delete Student"
-                      >Delete
+                      >
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>

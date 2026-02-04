@@ -202,4 +202,8 @@ export class AuthService {
     return this.http.get<any[]>(`${this.apiUrl}/auth/teachers-by-batch/${batchNo}`, { withCredentials: true});
   }
 
+  resendCredentials(userId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/resend-credentials/${userId}`, {}, { withCredentials: true });
+  }
+
 }

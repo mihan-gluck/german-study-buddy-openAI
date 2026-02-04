@@ -162,6 +162,10 @@ cron.schedule(
           `
         });
 
+        // Update lastCredentialsEmailSent timestamp
+        newUser.lastCredentialsEmailSent = new Date();
+        await newUser.save();
+
         console.log("✅ Monday CRM sync completed");
       }
 
@@ -415,6 +419,10 @@ router.post("/signup", async (req, res) => {
     try {
       await transporter.sendMail(mailOptions);
       console.log("✅ Email sent to", user.email);
+      
+      // Update lastCredentialsEmailSent timestamp
+      user.lastCredentialsEmailSent = new Date();
+      await user.save();
     } catch (err) {
       console.error("❌ Email sending failed:", err);
   }
@@ -720,6 +728,81 @@ router.delete("/:id", async (req, res) => {
     res.status(200).json({ message: "User deleted successfully." });
   } catch (error) {
     res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// ✅ Resend credentials email to a student
+router.post("/resend-credentials/:userId", verifyToken, checkRole('ADMIN'), async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    // Find the user
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    
+    // Only allow for students
+    if (user.role !== "STUDENT") {
+      return res.status(400).json({ msg: "Credentials can only be resent to students" });
+    }
+    
+    // Generate a new password
+    const passwordPlain = await generatePassword(user.role, user.regNo);
+    const hashedPassword = await bcrypt.hash(passwordPlain, 10);
+    
+    // Update user password and email sent timestamp
+    user.password = hashedPassword;
+    user.lastCredentialsEmailSent = new Date();
+    await user.save();
+    
+    // Send email with credentials
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Your Glück Global Student Portal Credentials 🎉",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #000000; line-height: 1.6;">
+          <p>Hello ${user.name},</p>
+
+          <p>As requested, here are your login credentials for the <strong>Glück Global Student Portal</strong>:</p>
+
+          <ul>
+            <li><strong>Web App ID:</strong> ${user.regNo}</li>
+            <li><strong>Password:</strong> ${passwordPlain}</li>
+          </ul>
+
+          <p>Please keep this information safe and do not share it with anyone.</p>
+
+          <p>You can access the Portal at: <a href="https://gluckstudentsportal.com" target="_blank">https://gluckstudentsportal.com</a></p>
+
+          <p>Best regards,<br>
+          <strong>Glück Global Pvt Ltd</strong></p>
+        </div>
+      `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("✅ Credentials email resent to", user.email);
+      
+      res.json({ 
+        success: true,
+        msg: "Credentials email sent successfully",
+        lastSent: user.lastCredentialsEmailSent
+      });
+    } catch (emailErr) {
+      console.error("❌ Email sending failed:", emailErr);
+      res.status(500).json({ 
+        success: false,
+        msg: "Failed to send email. Please try again." 
+      });
+    }
+    
+  } catch (err) {
+    console.error("Error resending credentials:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 

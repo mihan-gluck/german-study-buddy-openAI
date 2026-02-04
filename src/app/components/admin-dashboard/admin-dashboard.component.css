@@ -235,6 +235,15 @@
   color: #495057;
 }
 
+.credentials-sent-info {
+  font-size: 0.875rem;
+}
+
+.credentials-sent-info small {
+  display: block;
+  line-height: 1.4;
+}
+
 .action-buttons {
   display: flex;
   gap: 0.5rem;
@@ -244,6 +253,22 @@
 .action-buttons .btn {
   border-radius: 6px;
   padding: 0.375rem 0.75rem;
+}
+
+.btn-outline-success {
+  color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-outline-success:hover:not(:disabled) {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-outline-success:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ====== Badge Styling ====== */
