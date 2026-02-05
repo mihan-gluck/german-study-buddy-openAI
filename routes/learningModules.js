@@ -530,8 +530,8 @@ router.get('/:id/history', verifyToken, checkRole(['ADMIN']), async (req, res) =
 });
 
 // POST /api/learning-modules/:id/complete - Mark module as completed
-// ✅ Allow both STUDENT and TEACHER (for testing modules)
-router.post('/:id/complete', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
+// ✅ Allow STUDENT, TEACHER, and ADMIN (for testing modules)
+router.post('/:id/complete', verifyToken, checkRole(['STUDENT', 'TEACHER', 'ADMIN']), async (req, res) => {
   try {
     console.log('🔍 Complete module request:', {
       moduleId: req.params.id,
@@ -596,8 +596,8 @@ router.post('/:id/complete', verifyToken, checkRole(['STUDENT', 'TEACHER']), asy
 });
 
 // POST /api/learning-modules/:id/progress - Update module progress
-// ✅ Allow both STUDENT and TEACHER (for testing modules)
-router.post('/:id/progress', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
+// ✅ Allow STUDENT, TEACHER, and ADMIN (for testing modules)
+router.post('/:id/progress', verifyToken, checkRole(['STUDENT', 'TEACHER', 'ADMIN']), async (req, res) => {
   try {
     const moduleId = req.params.id;
     const studentId = req.user.id;

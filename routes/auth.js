@@ -466,7 +466,9 @@ router.post("/login", async (req, res) => {
     res.cookie("authToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',   // ✅ true in production (HTTPS), false in development
-      sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax', // Strict in production for better security
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // ✅ FIXED: 'None' allows JavaScript requests in production
+      domain: process.env.NODE_ENV === 'production' ? '.gluckstudentsportal.com' : undefined, // ✅ FIXED: Works on all subdomains
+      path: '/', // ✅ FIXED: Cookie accessible from all paths
       maxAge: 60 * 60 * 1000 // 1 hour
     });
 
@@ -491,7 +493,9 @@ router.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // ✅ true in production with HTTPS
-    sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // ✅ FIXED: Match login settings
+    domain: process.env.NODE_ENV === 'production' ? '.gluckstudentsportal.com' : undefined, // ✅ FIXED: Match login settings
+    path: '/' // ✅ FIXED: Match login settings
   });
   return res.json({ msg: "Logged out successfully" });
 });
@@ -821,6 +825,28 @@ router.get("/teacher-dashboard", verifyToken, checkRole('TEACHER'), (req, res) =
 
 router.get("/student-dashboard", verifyToken, checkRole('STUDENT'), (req, res) => {
   res.json({ msg: "Welcome to the student dashboard" });
+});
+
+// ✅ NEW: Get users by role (for unified user management)
+router.get("/users-by-role/:role", verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    const { role } = req.params;
+    
+    // Validate role
+    if (!['ADMIN', 'TEACHER', 'STUDENT'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role specified' });
+    }
+    
+    const users = await User.find({ role })
+      .select('-password')
+      .populate('assignedCourses', 'title')
+      .sort({ createdAt: -1 });
+    
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users by role:', error);
+    res.status(500).json({ message: 'Error fetching users' });
+  }
 });
 
 module.exports = router;
