@@ -222,6 +222,86 @@ class AiTutorService {
 
     return exercises[exerciseType] || exercises['multiple-choice'];
   }
+  
+  // Check if module is actually completed based on learning objectives
+  static checkModuleCompletion(aiResponse, session, context) {
+    const module = context.module;
+    const messages = session.messages;
+    
+    // Check if AI response indicates completion
+    const completionIndicators = [
+      'objectives completed', 'learning goals achieved', 'module finished',
+      'all topics covered', 'practice complete', 'well done completing',
+      'ziele erreicht', 'lernziele abgeschlossen', 'modul beendet',
+      'alle themen behandelt', 'übung abgeschlossen'
+    ];
+    
+    const hasCompletionIndicator = completionIndicators.some(indicator => 
+      aiResponse.content.toLowerCase().includes(indicator.toLowerCase())
+    );
+    
+    // Check if learning objectives are met
+    const objectives = module.learningObjectives || [];
+    const objectivesMet = objectives.length === 0 || // No specific objectives
+      this.checkObjectivesCompletion(objectives, messages, module);
+    
+    // Check minimum interaction threshold
+    const minMessages = 10; // Minimum meaningful conversation
+    const hasMinInteraction = messages.filter(m => m.role === 'student').length >= minMessages;
+    
+    // Check if role-play scenario is completed (for role-play modules)
+    const isRolePlayComplete = module.content?.rolePlayScenario ? 
+      this.checkRolePlayCompletion(messages, module.content.rolePlayScenario) : true;
+    
+    return hasCompletionIndicator && objectivesMet && hasMinInteraction && isRolePlayComplete;
+  }
+  
+  // Check if learning objectives are completed
+  static checkObjectivesCompletion(objectives, messages, module) {
+    if (!objectives || objectives.length === 0) return true;
+    
+    let completedObjectives = 0;
+    const studentMessages = messages.filter(m => m.role === 'student').map(m => m.content.toLowerCase());
+    const conversationText = studentMessages.join(' ');
+    
+    objectives.forEach(objective => {
+      const keywords = objective.keywords || [];
+      const hasKeywords = keywords.some(keyword => 
+        conversationText.includes(keyword.toLowerCase())
+      );
+      
+      if (hasKeywords) {
+        completedObjectives++;
+      }
+    });
+    
+    // At least 70% of objectives should be covered
+    return completedObjectives >= Math.ceil(objectives.length * 0.7);
+  }
+  
+  // Check if role-play scenario is completed
+  static checkRolePlayCompletion(messages, scenario) {
+    const conversationFlow = scenario.conversationFlow || [];
+    if (conversationFlow.length === 0) return true; // No specific flow defined
+    
+    const studentMessages = messages.filter(m => m.role === 'student').map(m => m.content.toLowerCase());
+    const conversationText = studentMessages.join(' ');
+    
+    let completedStages = 0;
+    conversationFlow.forEach(stage => {
+      const expectedResponses = stage.expectedResponses || [];
+      const hasExpectedResponse = expectedResponses.some(response => 
+        conversationText.includes(response.toLowerCase())
+      );
+      
+      if (hasExpectedResponse) {
+        completedStages++;
+      }
+    });
+    
+    // At least 80% of conversation stages should be completed
+    return completedStages >= Math.ceil(conversationFlow.length * 0.8);
+  }
 }
 
 // POST /api/ai-tutor/start-teacher-test - Start teacher test session (TEACHERS/ADMINS ONLY)
@@ -665,8 +745,119 @@ Keep practicing! 🌟`,
         session.analytics.sessionScore += evaluation.points || 0;
       }
     } else {
+      } else {
       // Generate regular AI response
       aiResponse = await AiTutorService.generateResponse(message, context);
+    }
+    
+    // Check for module completion (not just farewell phrases)
+    const isModuleCompleted = AiTutorService.checkModuleCompletion(aiResponse, session, context);
+    
+    // If module is actually completed, ask for confirmation
+    if (isModuleCompleted && !session.pendingCompletion) {
+      session.pendingCompletion = true;
+      
+      const confirmationMessage = {
+        role: 'tutor',
+        content: `${aiResponse.content}\n\n🤔 **Would you like to end this session now?**\n\nType "yes" to complete the module or "continue" to keep practicing.`,
+        messageType: 'completion-confirmation',
+        timestamp: new Date(),
+        metadata: {
+          ...aiResponse.metadata,
+          awaitingConfirmation: true,
+          originalResponse: aiResponse.content
+        }
+      };
+      
+      session.messages.push(confirmationMessage);
+      await session.save();
+      
+      return res.json({
+        message: 'Completion confirmation requested',
+        response: confirmationMessage,
+        suggestions: ['Yes, end session', 'Continue practicing', 'Keep going'],
+        sessionStats: {
+          totalMessages: session.messages.length,
+          correctAnswers: session.analytics.correctAnswers,
+          incorrectAnswers: session.analytics.incorrectAnswers,
+          sessionScore: session.analytics.sessionScore
+        }
+      });
+    }
+    
+    // Handle confirmation responses
+    if (session.pendingCompletion) {
+      const confirmYes = ['yes', 'ja', 'ஆம்', 'ඔව්', 'end', 'finish', 'complete'];
+      const confirmNo = ['no', 'nein', 'இல்லை', 'නැහැ', 'continue', 'keep going', 'more'];
+      
+      if (confirmYes.some(word => lowerMessage.includes(word))) {
+        // User confirmed completion
+        const completionResponse = {
+          content: `🎉 **Module Completed Successfully!**\n\nCongratulations! You've finished this learning module.\n\n**Session Summary:**\n- Practice time: ${Math.round((Date.now() - session.startTime) / 60000)} minutes\n- Total messages: ${session.messages.length}\n- Session score: ${session.analytics.sessionScore}\n\n✅ **Module Status: COMPLETED**\nGreat job! You can now move on to the next module or practice this one again anytime.\n\nKeep up the excellent work! 🌟`,
+          messageType: 'module-completed',
+          metadata: {
+            sessionState: 'completed',
+            sessionEnded: true,
+            moduleCompleted: true
+          }
+        };
+        
+        session.messages.push({
+          role: 'tutor',
+          content: completionResponse.content,
+          messageType: completionResponse.messageType,
+          timestamp: new Date(),
+          metadata: completionResponse.metadata
+        });
+        
+        session.status = 'completed';
+        session.endTime = new Date();
+        session.pendingCompletion = false;
+        await session.save();
+        
+        return res.json({
+          message: 'Module completed successfully',
+          response: session.messages[session.messages.length - 1],
+          suggestions: ['Start new module', 'Practice again', 'View progress'],
+          sessionStats: {
+            totalMessages: session.messages.length,
+            correctAnswers: session.analytics.correctAnswers,
+            incorrectAnswers: session.analytics.incorrectAnswers,
+            sessionScore: session.analytics.sessionScore
+          }
+        });
+      } else if (confirmNo.some(word => lowerMessage.includes(word))) {
+        // User wants to continue
+        session.pendingCompletion = false;
+        
+        const continueResponse = {
+          content: `Great! Let's continue practicing. What would you like to work on next?`,
+          messageType: 'text',
+          metadata: {}
+        };
+        
+        session.messages.push({
+          role: 'tutor',
+          content: continueResponse.content,
+          messageType: continueResponse.messageType,
+          timestamp: new Date(),
+          metadata: continueResponse.metadata
+        });
+        
+        await session.save();
+        
+        return res.json({
+          message: 'Session continued',
+          response: session.messages[session.messages.length - 1],
+          suggestions: ['Ask a question', 'Practice more', 'Try exercises'],
+          sessionStats: {
+            totalMessages: session.messages.length,
+            correctAnswers: session.analytics.correctAnswers,
+            incorrectAnswers: session.analytics.incorrectAnswers,
+            sessionScore: session.analytics.sessionScore
+          }
+        });
+      }
     }
     
     // Add AI response to session

@@ -42,9 +42,6 @@ export class HeaderComponent implements OnInit {
     ).subscribe((event: NavigationEnd) => {
       this.currentRoute = event.urlAfterRedirects;
     });
-
-    // On app start, check if session exists
-    this.authService.refreshUserProfile().subscribe();
   }
 
   // ✅ Logout: clears cookie in backend

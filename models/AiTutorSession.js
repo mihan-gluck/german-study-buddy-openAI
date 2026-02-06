@@ -40,6 +40,12 @@ const AiTutorSessionSchema = new mongoose.Schema({
     default: false
   },
   
+  // Completion confirmation flag
+  pendingCompletion: {
+    type: Boolean,
+    default: false
+  },
+  
   // Conversation data
   messages: [{
     role: { 
