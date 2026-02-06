@@ -745,7 +745,6 @@ Keep practicing! 🌟`,
         session.analytics.sessionScore += evaluation.points || 0;
       }
     } else {
-      } else {
       // Generate regular AI response
       aiResponse = await AiTutorService.generateResponse(message, context);
     }
