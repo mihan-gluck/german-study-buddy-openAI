@@ -47,6 +47,15 @@ const LearningModuleSchema = new mongoose.Schema({
     required: true 
   },
   
+  // ✅ NEW: Minimum time required to complete this module
+  minimumCompletionTime: {
+    type: Number, // in minutes
+    default: 15, // Default 15 minutes for backward compatibility
+    min: 5,
+    max: 60,
+    required: false
+  },
+  
   // Learning objectives and requirements
   learningObjectives: [{
     objective: String,

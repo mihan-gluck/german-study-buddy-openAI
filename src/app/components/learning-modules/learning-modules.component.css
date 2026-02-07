@@ -270,6 +270,37 @@
 .badge-light { background-color: #f8f9fa; color: #212529; }
 .badge-danger { background-color: #dc3545; }
 
+/* Module Type Badge - Role-Play vs Practice */
+.badge.badge-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge.badge-info {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Minimum Completion Time Badge */
+.badge.badge-secondary {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.badge i {
+  font-size: 0.85em;
+}
+
 /* Status Badges */
 .badge-success { background-color: #28a745; }
 .badge-primary { background-color: #007bff; }

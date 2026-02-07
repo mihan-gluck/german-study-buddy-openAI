@@ -253,8 +253,39 @@ export class LearningModulesComponent implements OnInit {
 
   viewModuleDetails(module: LearningModule): void {
     if (!module._id) return;
-    // For now, show module details in an alert
-    alert(`Module: ${module.title}\nLevel: ${module.level}\nCategory: ${module.category}\nDescription: ${module.description}`);
+    
+    // Determine module type
+    const moduleType = module.content?.rolePlayScenario ? '🎭 Role-Play' : '📚 Practice';
+    const minTime = module.minimumCompletionTime || 15;
+    
+    // Build role-play specific details
+    let rolePlayInfo = '';
+    if (module.content?.rolePlayScenario) {
+      const scenario = module.content.rolePlayScenario;
+      rolePlayInfo = `\n\n🎭 Role-Play Details:
+• Situation: ${scenario.situation || 'N/A'}
+• Student Role: ${scenario.studentRole || 'N/A'}
+• AI Role: ${scenario.aiRole || 'N/A'}
+• Setting: ${scenario.setting || 'N/A'}`;
+    }
+    
+    alert(`📋 Module Details
+
+Title: ${module.title}
+Type: ${moduleType}
+Level: ${module.level}
+Category: ${module.category}
+Difficulty: ${module.difficulty}
+⏱️ Minimum Time: ${minTime} minutes
+
+Description: ${module.description}${rolePlayInfo}
+
+Languages:
+• Target: ${module.targetLanguage || 'N/A'}
+• Native: ${module.nativeLanguage || 'N/A'}
+
+📊 Estimated Duration: ${module.estimatedDuration || 30} minutes
+✅ Completion Requirement: Complete objectives AND spend at least ${minTime} minutes`);
   }
 
   getProgressPercentage(module: LearningModule): number {

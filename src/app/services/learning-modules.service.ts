@@ -16,6 +16,7 @@ export interface LearningModule {
   category: 'Grammar' | 'Vocabulary' | 'Conversation' | 'Reading' | 'Writing' | 'Listening';
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   estimatedDuration: number;
+  minimumCompletionTime?: number; // ✅ NEW: Minimum time required to complete (5-60 min)
   learningObjectives: Array<{
     objective: string;
     description: string;
@@ -37,6 +38,34 @@ export interface LearningModule {
       explanation: string;
       points: number;
     }>;
+    // ✅ NEW: Role-play scenario (optional - only for role-play modules)
+    rolePlayScenario?: {
+      situation: string;
+      studentRole: string;
+      aiRole: string;
+      setting?: string;
+      objective?: string;
+      aiPersonality?: string;
+      studentGuidance?: string;
+      aiOpeningLines?: string[];
+      suggestedStudentResponses?: string[];
+    };
+    allowedVocabulary?: Array<{
+      word: string;
+      translation: string;
+      category: string;
+    }>;
+    allowedGrammar?: Array<{
+      structure: string;
+      examples: string[];
+      level: string;
+    }>;
+    conversationFlow?: Array<{
+      stage: string;
+      aiPrompts: string[];
+      expectedResponses: string[];
+      helpfulPhrases: string[];
+    }>;
   };
   aiTutorConfig: {
     personality: string;
@@ -44,11 +73,25 @@ export interface LearningModule {
     commonMistakes: string[];
     helpfulPhrases: string[];
     culturalNotes: string[];
+    allowedVocabulary?: Array<{
+      word: string;
+      translation: string;
+      category: string;
+      usage?: string;
+    }>;
+    rolePlayInstructions?: {
+      aiRole: string;
+      aiPersonality: string;
+      openingLines: string[];
+      studentRole: string;
+      studentGuidance: string;
+      suggestedResponses: string[];
+    };
   };
   createdBy: any;
   isActive: boolean;
-  visibleToStudents?: boolean;  // ✅ NEW: Controls if students can see this module
-  publishedAt?: Date;           // ✅ NEW: When module was made visible to students
+  visibleToStudents?: boolean;  // ✅ Controls if students can see this module
+  publishedAt?: Date;           // ✅ When module was made visible to students
   tags: string[];
   totalEnrollments: number;
   averageCompletionTime: number;

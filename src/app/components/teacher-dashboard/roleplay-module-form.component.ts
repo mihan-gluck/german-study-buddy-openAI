@@ -77,6 +77,17 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
                       CEFR proficiency level - determines content complexity and student access
                     </small>
                   </div>
+                  
+                  <!-- NEW: Minimum Completion Time -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Minimum Completion Time (minutes) *</label>
+                    <input type="number" class="form-control" formControlName="minimumCompletionTime" 
+                           min="5" max="60" placeholder="10">
+                    <small class="form-text text-muted">
+                      ⏱️ Minimum time required to complete this module (5-60 min)
+                      <br><strong>Suggestions:</strong> Quick (5-8 min) | Standard (10-15 min) | Complex (15-20 min)
+                    </small>
+                  </div>
                 </div>
 
                 <!-- Role-Play Scenario -->
@@ -530,6 +541,7 @@ export class RoleplayModuleFormComponent implements OnInit {
       level: ['', Validators.required],
       category: ['Conversation'], // Fixed for role-play
       difficulty: ['Beginner'], // Auto-set based on level
+      minimumCompletionTime: [10, [Validators.required, Validators.min(5), Validators.max(60)]], // NEW: Minimum time to complete
       rolePlayScenario: this.fb.group({
         situation: ['', Validators.required],
         studentRole: ['', Validators.required],
@@ -694,6 +706,7 @@ export class RoleplayModuleFormComponent implements OnInit {
     const moduleData = {
       ...formValue,
       estimatedDuration: 30, // Default value - actual time tracked per session
+      minimumCompletionTime: formValue.minimumCompletionTime || 10, // Use form value or default to 10
       content: {
         introduction: this.generateModuleIntroduction(formValue.targetLanguage, formValue.rolePlayScenario.situation),
         rolePlayScenario: {
@@ -825,6 +838,7 @@ export class RoleplayModuleFormComponent implements OnInit {
       level: module.level || '',
       category: module.category || 'Conversation',
       difficulty: module.difficulty || 'Beginner',
+      minimumCompletionTime: module.minimumCompletionTime || 10, // ✅ Load minimum completion time
       rolePlayScenario: {
         situation: module.content?.rolePlayScenario?.situation || '',
         studentRole: module.content?.rolePlayScenario?.studentRole || '',

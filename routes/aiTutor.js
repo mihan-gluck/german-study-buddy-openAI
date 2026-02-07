@@ -228,7 +228,7 @@ class AiTutorService {
     const module = context.module;
     const messages = session.messages;
     
-    // Check if AI response indicates completion
+    // ✅ RULE 1: Check if AI response indicates completion
     const completionIndicators = [
       'objectives completed', 'learning goals achieved', 'module finished',
       'all topics covered', 'practice complete', 'well done completing',
@@ -239,6 +239,19 @@ class AiTutorService {
     const hasCompletionIndicator = completionIndicators.some(indicator => 
       aiResponse.content.toLowerCase().includes(indicator.toLowerCase())
     );
+    
+    // ✅ RULE 2: Check minimum time requirement (from module configuration)
+    const requiredMinutes = module.minimumCompletionTime || 15; // Default to 15 if not set
+    const sessionDurationMs = Date.now() - session.startTime.getTime();
+    const sessionDurationMinutes = Math.round(sessionDurationMs / 60000);
+    const hasMinimumTime = sessionDurationMinutes >= requiredMinutes;
+    
+    console.log('🕐 Session Duration Check:', {
+      durationMinutes: sessionDurationMinutes,
+      requiredMinutes,
+      hasMinimumTime,
+      moduleTitle: module.title
+    });
     
     // Check if learning objectives are met
     const objectives = module.learningObjectives || [];
@@ -253,7 +266,19 @@ class AiTutorService {
     const isRolePlayComplete = module.content?.rolePlayScenario ? 
       this.checkRolePlayCompletion(messages, module.content.rolePlayScenario) : true;
     
-    return hasCompletionIndicator && objectivesMet && hasMinInteraction && isRolePlayComplete;
+    // ✅ BOTH conditions must be met: completion indicators AND minimum time (from module)
+    const canComplete = hasCompletionIndicator && objectivesMet && hasMinInteraction && isRolePlayComplete && hasMinimumTime;
+    
+    console.log('✅ Module Completion Check:', {
+      hasCompletionIndicator,
+      objectivesMet,
+      hasMinInteraction,
+      isRolePlayComplete,
+      hasMinimumTime,
+      canComplete
+    });
+    
+    return canComplete;
   }
   
   // Check if learning objectives are completed
@@ -749,7 +774,52 @@ Keep practicing! 🌟`,
       aiResponse = await AiTutorService.generateResponse(message, context);
     }
     
-    // Check for module completion (not just farewell phrases)
+    // ✅ Check if AI is trying to end session prematurely (before minimum time)
+    const requiredMinutes = session.moduleId.minimumCompletionTime || 15; // Get from module or default to 15
+    const sessionDurationMs = Date.now() - session.startTime.getTime();
+    const sessionDurationMinutes = Math.round(sessionDurationMs / 60000);
+    const hasMinimumTime = sessionDurationMinutes >= requiredMinutes;
+    
+    // Check if AI response contains completion indicators
+    const completionIndicators = [
+      'objectives completed', 'learning goals achieved', 'module finished',
+      'all topics covered', 'practice complete', 'well done completing',
+      'thank you for practicing', 'see you next time', 'good bye', 'goodbye',
+      'have a fantastic day', 'feel free to reach out',
+      'vielen dank fürs üben', 'auf wiedersehen', 'bis zum nächsten mal', 'tschüss',
+      'ziele erreicht', 'lernziele abgeschlossen', 'modul beendet',
+      'பயிற்சிக்கு நன்றி', 'அடுத்த முறை சந்திப்போம்',
+      'පුහුණුවීමට ස්තූතියි', 'ඊළඟ වතාවේ හමුවෙමු'
+    ];
+    
+    const hasCompletionIndicator = completionIndicators.some(indicator => 
+      aiResponse.content.toLowerCase().includes(indicator.toLowerCase())
+    );
+    
+    // If AI tries to complete before minimum time, override and continue
+    if (hasCompletionIndicator && !hasMinimumTime) {
+      console.log(`⚠️ AI tried to complete session early (${sessionDurationMinutes} min < ${requiredMinutes} min required for "${session.moduleId.title}")`);
+      
+      // Override AI's completion attempt with continuation message
+      const remainingMinutes = requiredMinutes - sessionDurationMinutes;
+      aiResponse = {
+        content: `Great progress! Let's continue practicing to reinforce what you've learned. We have about ${remainingMinutes} more minutes to explore this topic further. What would you like to practice next?`,
+        messageType: 'text',
+        suggestions: [
+          'More practice exercises',
+          'Review what we covered',
+          'Try a harder example',
+          'Ask a question'
+        ],
+        metadata: {
+          earlyCompletionOverridden: true,
+          sessionDurationMinutes,
+          requiredMinutes
+        }
+      };
+    }
+    
+    // Check for module completion (only if minimum time is met)
     const isModuleCompleted = AiTutorService.checkModuleCompletion(aiResponse, session, context);
     
     // If module is actually completed, ask for confirmation

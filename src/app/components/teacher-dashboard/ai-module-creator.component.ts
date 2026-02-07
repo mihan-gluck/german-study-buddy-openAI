@@ -555,6 +555,9 @@ export class AiModuleCreatorComponent implements OnInit {
   }
   
   private validateAndCleanResponse(response: any, formData: any): any {
+    // ✅ Calculate intelligent minimum completion time
+    const minimumCompletionTime = this.calculateMinimumCompletionTime(formData, response);
+    
     // Ensure all required fields exist and are not undefined
     const cleanedResponse = {
       title: response?.title || `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
@@ -565,6 +568,7 @@ export class AiModuleCreatorComponent implements OnInit {
       category: response?.category || formData.category,
       difficulty: response?.difficulty || formData.difficulty,
       estimatedDuration: 30, // Default value - actual time tracked per session
+      minimumCompletionTime: minimumCompletionTime, // ✅ AI-calculated minimum time
       learningObjectives: response?.learningObjectives || [
         {
           objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
@@ -630,6 +634,9 @@ export class AiModuleCreatorComponent implements OnInit {
   }
   
   private createFallbackModule(formData: any): any {
+    // ✅ Calculate intelligent minimum completion time
+    const minimumCompletionTime = this.calculateMinimumCompletionTime(formData, null);
+    
     const baseModule = {
       title: `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
       description: formData.description || 'Learning module created with AI assistance',
@@ -639,6 +646,7 @@ export class AiModuleCreatorComponent implements OnInit {
       category: formData.category,
       difficulty: formData.difficulty,
       estimatedDuration: 30, // Default value - actual time tracked per session
+      minimumCompletionTime: minimumCompletionTime, // ✅ AI-calculated minimum time
       learningObjectives: [
         {
           objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
@@ -777,6 +785,9 @@ export class AiModuleCreatorComponent implements OnInit {
     } catch (error) {
       console.error('❌ Error calling AI generation API:', error);
       
+      // ✅ Calculate intelligent minimum completion time
+      const minimumCompletionTime = this.calculateMinimumCompletionTime(formData, null);
+      
       // Create a fallback response to prevent undefined values
       const fallbackResponse = {
         title: `${formData.targetLanguage} ${formData.category} - ${formData.level}`,
@@ -787,6 +798,7 @@ export class AiModuleCreatorComponent implements OnInit {
         category: formData.category,
         difficulty: formData.difficulty,
         estimatedDuration: 30, // Default value - actual time tracked per session
+        minimumCompletionTime: minimumCompletionTime, // ✅ AI-calculated minimum time
         learningObjectives: [
           {
             objective: `Learn ${formData.category.toLowerCase()} skills in ${formData.targetLanguage}`,
@@ -894,6 +906,94 @@ export class AiModuleCreatorComponent implements OnInit {
       generateConversation: true,
       generateCulturalNotes: false
     });
+  }
+  
+  /**
+   * ✅ Intelligently calculate minimum completion time based on module characteristics
+   */
+  private calculateMinimumCompletionTime(formData: any, response: any): number {
+    let suggestedTime = 15; // Default
+    
+    // Check if it's a role-play module
+    if (formData.moduleType === 'roleplay') {
+      const situation = (formData.rolePlaySituation || response?.content?.rolePlayScenario?.situation || '').toLowerCase();
+      
+      // Quick scenarios (5-8 minutes)
+      const quickScenarios = [
+        'ordering coffee', 'buying ticket', 'asking directions', 
+        'greeting', 'introduction', 'quick chat', 'small talk',
+        'coffee', 'ticket', 'directions', 'hello', 'hi'
+      ];
+      
+      // Standard scenarios (10-15 minutes)
+      const standardScenarios = [
+        'restaurant', 'shopping', 'hotel', 'pharmacy', 
+        'post office', 'bank', 'doctor', 'dentist',
+        'store', 'shop', 'market', 'hospital'
+      ];
+      
+      // Complex scenarios (15-20 minutes)
+      const complexScenarios = [
+        'job interview', 'business meeting', 'negotiation',
+        'complaint', 'problem solving', 'debate', 'presentation',
+        'interview', 'meeting', 'negotiate', 'discuss'
+      ];
+      
+      if (quickScenarios.some(s => situation.includes(s))) {
+        suggestedTime = 7;
+      } else if (standardScenarios.some(s => situation.includes(s))) {
+        suggestedTime = 12;
+      } else if (complexScenarios.some(s => situation.includes(s))) {
+        suggestedTime = 18;
+      } else {
+        // Default for role-play
+        suggestedTime = 12;
+      }
+    } else {
+      // Non-role-play modules - based on category
+      const category = formData.category?.toLowerCase() || '';
+      
+      if (category === 'grammar' || category === 'vocabulary') {
+        suggestedTime = 15; // Standard practice time
+      } else if (category === 'conversation') {
+        suggestedTime = 12; // Conversation practice
+      } else if (category === 'reading' || category === 'writing') {
+        suggestedTime = 20; // More time for reading/writing
+      } else if (category === 'listening') {
+        suggestedTime = 10; // Listening exercises
+      } else {
+        suggestedTime = 15; // Default
+      }
+    }
+    
+    // Adjust based on difficulty level
+    const difficulty = formData.difficulty?.toLowerCase() || '';
+    if (difficulty === 'beginner') {
+      suggestedTime += 2; // Beginners need more time
+    } else if (difficulty === 'advanced') {
+      suggestedTime -= 2; // Advanced learners can be faster
+    }
+    
+    // Adjust based on CEFR level
+    const level = formData.level?.toUpperCase() || '';
+    if (level === 'A1') {
+      suggestedTime += 2; // A1 needs more time
+    } else if (level === 'C1' || level === 'C2') {
+      suggestedTime -= 2; // C1/C2 can be faster
+    }
+    
+    // Ensure time is within valid range (5-60 minutes)
+    suggestedTime = Math.max(5, Math.min(60, suggestedTime));
+    
+    console.log(`🤖 AI calculated minimum completion time: ${suggestedTime} minutes`, {
+      moduleType: formData.moduleType,
+      category: formData.category,
+      difficulty: formData.difficulty,
+      level: formData.level,
+      situation: formData.rolePlaySituation
+    });
+    
+    return suggestedTime;
   }
   
   goBack(): void {
