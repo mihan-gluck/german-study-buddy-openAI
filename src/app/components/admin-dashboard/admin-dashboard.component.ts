@@ -604,4 +604,83 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
+  exportSelectedStudents(): void {
+    if (this.selectedStudentIds.size === 0) {
+      alert('Please select at least one student to export');
+      return;
+    }
+
+    // Get selected students data
+    const selectedStudents = this.students.filter(student => 
+      this.selectedStudentIds.has(student._id)
+    );
+
+    // Define CSV headers (all 13 fields from Monday.com CRM + additional fields)
+    const headers = [
+      'RegNo',
+      'Name',
+      'Email',
+      'Level',
+      'Subscription',
+      'Student Status',
+      'Batch',
+      'Medium',
+      'Phone Number',
+      'Address',
+      'Age',
+      'Program Enrolled',
+      'Lead Source',
+      'Assigned Teacher',
+      'Created At',
+      'Last Credentials Sent'
+    ];
+
+    // Build CSV rows
+    const rows = selectedStudents.map(student => {
+      const teacherName = typeof student.assignedTeacher === 'object' 
+        ? student.assignedTeacher?.name || 'Unassigned'
+        : student.assignedTeacher || 'Unassigned';
+
+      return [
+        student.regNo || 'N/A',
+        student.name || 'N/A',
+        student.email || 'N/A',
+        student.level || 'N/A',
+        student.subscription || 'N/A',
+        student.studentStatus || 'N/A',
+        student.batch || 'N/A',
+        student.medium || 'N/A',
+        (student as any).phoneNumber || 'N/A',
+        (student as any).address || 'N/A',
+        (student as any).age || 'N/A',
+        (student as any).programEnrolled || 'N/A',
+        (student as any).leadSource || 'N/A',
+        teacherName,
+        student.registeredAt ? new Date(student.registeredAt).toLocaleDateString() : 'N/A',
+        this.formatDate(student.lastCredentialsEmailSent)
+      ];
+    });
+
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(value => `"${value}"`).join(','))
+    ].join('\n');
+
+    // Download CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `students_export_${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert(`✅ Successfully exported ${selectedStudents.length} student(s) to CSV`);
+  }
+
 }

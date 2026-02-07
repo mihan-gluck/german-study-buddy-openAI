@@ -97,6 +97,15 @@
               <i class="fas fa-edit"></i>
               Bulk Edit ({{ getSelectedCount() }})
             </button>
+
+            <button 
+              class="btn btn-success ms-2" 
+              (click)="exportSelectedStudents()"
+              [disabled]="getSelectedCount() === 0"
+            >
+              <i class="fas fa-download"></i>
+              Export Selected ({{ getSelectedCount() }})
+            </button>
           </div>
           <div class="col-md-6 text-end">
             <button class="btn btn-outline-secondary" (click)="clearFilters()">
