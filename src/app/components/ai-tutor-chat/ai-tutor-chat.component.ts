@@ -2080,7 +2080,40 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       return;
     }
     
-    console.log('🎯 Auto-completing module based on AI completion signal');
+    // ✅ CHECK MINIMUM TIME REQUIREMENT BEFORE AUTO-COMPLETING
+    const duration = this.calculateSessionDuration();
+    const requiredMinutes = this.module?.minimumCompletionTime || 15;
+    
+    if (duration < requiredMinutes) {
+      const remainingMinutes = requiredMinutes - duration;
+      console.log(`⚠️ Auto-completion blocked: ${duration} min < ${requiredMinutes} min required. Need ${remainingMinutes} more minutes.`);
+      
+      // Send a message to continue practicing
+      const continueMessage: TutorMessage = {
+        role: 'tutor',
+        content: `I appreciate your enthusiasm, but we need to practice a bit more! This module requires at least ${requiredMinutes} minutes of practice time. We've spent ${duration} minutes so far, so let's continue for about ${remainingMinutes} more minutes to ensure you've fully mastered the material. What would you like to practice next?`,
+        messageType: 'text',
+        timestamp: new Date(),
+        metadata: {
+          completionBlocked: true,
+          reason: 'insufficient_time',
+          durationMinutes: duration,
+          requiredMinutes: requiredMinutes,
+          remainingMinutes: remainingMinutes
+        } as any
+      };
+      
+      // Add message to chat
+      this.aiTutorService.addMessageToCurrentSession(continueMessage);
+      this.localMessages.push(continueMessage);
+      this.messages = [...this.localMessages];
+      this.cdr.detectChanges();
+      setTimeout(() => this.scrollToBottom(), 100);
+      
+      return; // Don't complete the module
+    }
+    
+    console.log(`🎯 Auto-completing module based on AI completion signal (${duration} min >= ${requiredMinutes} min required)`);
     
     // Stop any ongoing speech
     this.speechSynthesis.cancel();
@@ -2095,7 +2128,6 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     this.sessionActive = false;
     
     // Calculate session metrics
-    const duration = this.calculateSessionDuration();
     const conversationCount = this.getStudentMessageCount();
     const vocabularyUsed = this.getVocabularyUsedList();
     
