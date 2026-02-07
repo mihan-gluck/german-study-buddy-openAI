@@ -465,10 +465,9 @@ router.post("/login", async (req, res) => {
     // ✅ Set cookie instead of sending token
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',   // ✅ true in production (HTTPS), false in development
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // ✅ FIXED: 'None' allows JavaScript requests in production
-      domain: process.env.NODE_ENV === 'production' ? '.gluckstudentsportal.com' : undefined, // ✅ FIXED: Works on all subdomains
-      path: '/', // ✅ FIXED: Cookie accessible from all paths
+      secure: false,   // ✅ FIXED: false in development
+      sameSite: 'Lax', // ✅ FIXED: 'Lax' for localhost
+      path: '/',
       maxAge: 60 * 60 * 1000 // 1 hour
     });
 

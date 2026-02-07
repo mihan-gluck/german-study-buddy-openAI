@@ -115,8 +115,6 @@ export class AuthService {
           if (response && response.user) {
             this.currentUserSubject.next(response.user);
           }
-          // ✅ Also fetch full profile to ensure we have all data
-          this.refreshUserProfile().subscribe();
         })
       );
   }

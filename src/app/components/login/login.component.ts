@@ -27,9 +27,13 @@ export class LoginComponent {
     this.loading = true;
 
     const user = { regNo: this.regNo, password: this.password };
+    console.log('🔍 Sending to server:', user);
+    console.log('🔍 regNo value:', this.regNo);
+    console.log('🔍 password value:', this.password);
 
     this.authService.login(user).subscribe({
       next: (response) => {
+        console.log('✅ Login successful:', response);
         this.loading = false;
 
         const role = response.user?.role || response.role; 

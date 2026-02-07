@@ -33,14 +33,17 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Try to refresh user profile on app load (if cookies exist)
-    this.authService.refreshUserProfile().subscribe({
-      next: (user) => {
-        console.log('User authenticated on app load:', user);
-      },
-      error: (err) => {
-        console.log('No active session on app load');
-      }
-    });
+    // Only refresh profile if NOT on login/home page
+    const currentUrl = this.router.url;
+    if (currentUrl !== '/login' && currentUrl !== '/home' && currentUrl !== '/') {
+      this.authService.refreshUserProfile().subscribe({
+        next: (user) => {
+          console.log('User authenticated on app load:', user);
+        },
+        error: (err) => {
+          console.log('No active session on app load');
+        }
+      });
+    }
   }
 }
