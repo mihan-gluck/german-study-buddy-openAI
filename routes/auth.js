@@ -848,4 +848,207 @@ router.get("/users-by-role/:role", verifyToken, checkRole(['ADMIN']), async (req
   }
 });
 
+// ✅ NEW: Bulk upload students
+router.post("/bulk-upload-students", verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    const { students, sendEmails = true } = req.body;
+
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Students array is required and must not be empty' 
+      });
+    }
+
+    const results = {
+      successful: [],
+      failed: [],
+      skipped: []
+    };
+
+    for (let i = 0; i < students.length; i++) {
+      const student = students[i];
+      const rowNumber = i + 2; // +2 because row 1 is header, and array is 0-indexed
+
+      try {
+        // Validate required fields
+        if (!student.name || !student.name.trim()) {
+          results.failed.push({
+            row: rowNumber,
+            data: student,
+            reason: 'Name is required'
+          });
+          continue;
+        }
+
+        if (!student.email || !student.email.trim()) {
+          results.failed.push({
+            row: rowNumber,
+            data: student,
+            reason: 'Email is required'
+          });
+          continue;
+        }
+
+        if (!student.subscription || !['SILVER', 'PLATINUM'].includes(student.subscription.toUpperCase())) {
+          results.failed.push({
+            row: rowNumber,
+            data: student,
+            reason: 'Subscription must be SILVER or PLATINUM'
+          });
+          continue;
+        }
+
+        if (!student.level || !['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(student.level.toUpperCase())) {
+          results.failed.push({
+            row: rowNumber,
+            data: student,
+            reason: 'Level must be A1, A2, B1, B2, C1, or C2'
+          });
+          continue;
+        }
+
+        if (!student.studentStatus || !student.studentStatus.trim()) {
+          results.failed.push({
+            row: rowNumber,
+            data: student,
+            reason: 'Student Status is required'
+          });
+          continue;
+        }
+
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: student.email.trim().toLowerCase() });
+        if (existingUser) {
+          results.skipped.push({
+            row: rowNumber,
+            data: student,
+            reason: 'Email already exists',
+            existingRegNo: existingUser.regNo
+          });
+          continue;
+        }
+
+        // Generate RegNo and Password
+        const regNo = await generateRegNo("STUDENT");
+        const passwordPlain = await generatePassword("STUDENT", regNo);
+        const hashedPassword = await bcrypt.hash(passwordPlain, 10);
+
+        // Create new user
+        const newUser = new User({
+          name: student.name.trim(),
+          email: student.email.trim().toLowerCase(),
+          regNo,
+          password: hashedPassword,
+          role: "STUDENT",
+          subscription: student.subscription.toUpperCase(),
+          level: student.level.toUpperCase(),
+          studentStatus: student.studentStatus.trim(),
+          medium: student.medium ? student.medium.trim() : undefined,
+          batch: student.batch ? student.batch.trim() : undefined,
+          phoneNumber: student.phoneNumber ? student.phoneNumber.trim() : undefined,
+          address: student.address ? student.address.trim() : undefined,
+          age: student.age ? parseInt(student.age) : undefined,
+          programEnrolled: student.programEnrolled ? student.programEnrolled.trim() : undefined,
+          leadSource: student.leadSource ? student.leadSource.trim() : undefined
+        });
+
+        await newUser.save();
+
+        // Send welcome email if requested
+        if (sendEmails) {
+          try {
+            await transporter.sendMail({
+              from: process.env.EMAIL_USER,
+              to: newUser.email,
+              subject: "Welcome to Glück Global Student Portal 🎉",
+              html: `
+                <div style="font-family: Arial, sans-serif; color: #000000; line-height: 1.6;">
+                  <p>Hello ${newUser.name},</p>
+
+                  <p>You have successfully registered to the <strong>Glück Global Student Portal</strong>. Here are your login credentials:</p>
+
+                  <ul>
+                    <li><strong>Web App ID:</strong> ${regNo}</li>
+                    <li><strong>Password:</strong> ${passwordPlain}</li>
+                  </ul>
+
+                  <p>Please keep this information safe and do not share it with anyone.</p>
+
+                  <p>You can access the Portal at: <a href="https://gluckstudentsportal.com" target="_blank">https://gluckstudentsportal.com</a></p>
+
+                  <p>Best regards,<br>
+                  <strong>Glück Global Pvt Ltd</strong></p>
+                </div>
+              `
+            });
+
+            // Update lastCredentialsEmailSent timestamp
+            newUser.lastCredentialsEmailSent = new Date();
+            await newUser.save();
+
+            results.successful.push({
+              row: rowNumber,
+              name: newUser.name,
+              email: newUser.email,
+              regNo: newUser.regNo,
+              password: passwordPlain,
+              emailSent: true
+            });
+          } catch (emailError) {
+            console.error(`Email error for ${newUser.email}:`, emailError);
+            results.successful.push({
+              row: rowNumber,
+              name: newUser.name,
+              email: newUser.email,
+              regNo: newUser.regNo,
+              password: passwordPlain,
+              emailSent: false,
+              emailError: 'Failed to send email'
+            });
+          }
+        } else {
+          results.successful.push({
+            row: rowNumber,
+            name: newUser.name,
+            email: newUser.email,
+            regNo: newUser.regNo,
+            password: passwordPlain,
+            emailSent: false
+          });
+        }
+
+      } catch (error) {
+        console.error(`Error processing student at row ${rowNumber}:`, error);
+        results.failed.push({
+          row: rowNumber,
+          data: student,
+          reason: error.message || 'Unknown error'
+        });
+      }
+    }
+
+    // Return summary
+    res.json({
+      success: true,
+      message: 'Bulk upload completed',
+      summary: {
+        total: students.length,
+        successful: results.successful.length,
+        failed: results.failed.length,
+        skipped: results.skipped.length
+      },
+      results
+    });
+
+  } catch (error) {
+    console.error('Bulk upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error during bulk upload',
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
