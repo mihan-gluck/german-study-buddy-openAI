@@ -542,12 +542,33 @@ router.post('/:id/complete', verifyToken, checkRole(['STUDENT', 'TEACHER', 'ADMI
     
     const moduleId = req.params.id;
     const studentId = req.user.id;
-    const { sessionData } = req.body;
+    const { sessionData, autoCompleted } = req.body;
     
     // Check if module exists
     const module = await LearningModule.findById(moduleId);
     if (!module || !module.isActive) {
       return res.status(404).json({ message: 'Module not found or inactive' });
+    }
+    
+    // ✅ VALIDATE MINIMUM TIME REQUIREMENT (unless it's a teacher/admin testing)
+    if (req.user.role === 'STUDENT' && sessionData && sessionData.timeSpentMinutes !== undefined) {
+      const requiredMinutes = module.minimumCompletionTime || 15;
+      const actualMinutes = sessionData.timeSpentMinutes;
+      
+      if (actualMinutes < requiredMinutes) {
+        console.log(`⚠️ Module completion REJECTED: ${actualMinutes} min < ${requiredMinutes} min required`);
+        return res.status(400).json({ 
+          message: 'Insufficient practice time',
+          error: 'INSUFFICIENT_TIME',
+          details: {
+            timeSpent: actualMinutes,
+            timeRequired: requiredMinutes,
+            remainingMinutes: requiredMinutes - actualMinutes
+          }
+        });
+      }
+      
+      console.log(`✅ Time requirement met: ${actualMinutes} min >= ${requiredMinutes} min`);
     }
     
     // Find or create progress record
@@ -583,6 +604,8 @@ router.post('/:id/complete', verifyToken, checkRole(['STUDENT', 'TEACHER', 'ADMI
     }
     
     await progress.save();
+    
+    console.log(`✅ Module marked as completed: ${module.title} (${sessionData?.timeSpentMinutes || 'N/A'} minutes)`);
     
     res.json({ 
       message: 'Module marked as completed successfully', 

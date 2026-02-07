@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { HttpHeaders } from '@angular/common/http';
 import {TeacherService} from '../../services/teacher.service';
 import { environment } from '../../../environments/environment';
+import { BulkStudentUploadComponent } from './bulk-student-upload.component';
 
 const apiUrl = environment.apiUrl;  // Base API URL
 
@@ -88,7 +89,8 @@ interface TeacherResponse {
     MatCardModule,
     MaterialModule,
     NgChartsModule,
-    RouterModule
+    RouterModule,
+    BulkStudentUploadComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
@@ -106,6 +108,9 @@ export class AdminDashboardComponent implements OnInit {
   plan: string[] = ['PLATINUM', 'SILVER'];
   level: string[] = ['A1', 'A2', 'A2', 'B1', 'B2'];
   teachers: any[] = [];
+
+  // Bulk upload
+  showBulkUpload = false;
 
   // Bulk edit properties
   showBulkEditPanel = false;

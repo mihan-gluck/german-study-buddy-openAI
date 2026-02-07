@@ -37,6 +37,11 @@
               Add New Student
             </button>
 
+            <button class="btn btn-success ms-2" (click)="showBulkUpload = !showBulkUpload">
+              <i class="fas fa-upload"></i>
+              Bulk Upload
+            </button>
+
             <button 
               class=" btn btn-secondary ms-2 btn-assign-teacher-by-batch"
               (click)="openAssignTeacherByBatchModal()"
@@ -98,6 +103,11 @@
               <i class="fas fa-times"></i>
               Clear Filters
             </button>
+
+      <!-- Bulk Upload Section -->
+      <div *ngIf="showBulkUpload" class="bulk-upload-section mt-4">
+        <app-bulk-student-upload></app-bulk-student-upload>
+      </div>
           </div>
         </div>
       </div>

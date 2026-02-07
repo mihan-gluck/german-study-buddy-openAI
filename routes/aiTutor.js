@@ -860,14 +860,63 @@ Keep practicing! 🌟`,
       const confirmNo = ['no', 'nein', 'இல்லை', 'නැහැ', 'continue', 'keep going', 'more'];
       
       if (confirmYes.some(word => lowerMessage.includes(word))) {
-        // User confirmed completion
+        // ✅ CHECK MINIMUM TIME BEFORE ALLOWING COMPLETION
+        const requiredMinutes = session.moduleId.minimumCompletionTime || 15;
+        const sessionDurationMs = Date.now() - session.startTime.getTime();
+        const sessionDurationMinutes = Math.round(sessionDurationMs / 60000);
+        const hasMinimumTime = sessionDurationMinutes >= requiredMinutes;
+        
+        if (!hasMinimumTime) {
+          // Reject completion - not enough time spent
+          const remainingMinutes = requiredMinutes - sessionDurationMinutes;
+          
+          const rejectionResponse = {
+            content: `I appreciate your enthusiasm, but we need to practice a bit more! This module requires at least ${requiredMinutes} minutes of practice time. We've spent ${sessionDurationMinutes} minutes so far, so let's continue for about ${remainingMinutes} more minutes to ensure you've fully mastered the material. What would you like to practice next?`,
+            messageType: 'text',
+            metadata: {
+              completionRejected: true,
+              reason: 'insufficient_time',
+              sessionDurationMinutes,
+              requiredMinutes,
+              remainingMinutes
+            }
+          };
+          
+          session.messages.push({
+            role: 'tutor',
+            content: rejectionResponse.content,
+            messageType: rejectionResponse.messageType,
+            timestamp: new Date(),
+            metadata: rejectionResponse.metadata
+          });
+          
+          session.pendingCompletion = false; // Reset pending state
+          await session.save();
+          
+          console.log(`⚠️ Completion rejected: ${sessionDurationMinutes} min < ${requiredMinutes} min required`);
+          
+          return res.json({
+            message: 'Completion rejected - more practice time needed',
+            response: session.messages[session.messages.length - 1],
+            suggestions: ['Continue practicing', 'Ask questions', 'Try exercises'],
+            sessionStats: {
+              totalMessages: session.messages.length,
+              correctAnswers: session.analytics.correctAnswers,
+              incorrectAnswers: session.analytics.incorrectAnswers,
+              sessionScore: session.analytics.sessionScore
+            }
+          });
+        }
+        
+        // User confirmed completion AND minimum time is met
         const completionResponse = {
-          content: `🎉 **Module Completed Successfully!**\n\nCongratulations! You've finished this learning module.\n\n**Session Summary:**\n- Practice time: ${Math.round((Date.now() - session.startTime) / 60000)} minutes\n- Total messages: ${session.messages.length}\n- Session score: ${session.analytics.sessionScore}\n\n✅ **Module Status: COMPLETED**\nGreat job! You can now move on to the next module or practice this one again anytime.\n\nKeep up the excellent work! 🌟`,
+          content: `🎉 **Module Completed Successfully!**\n\nCongratulations! You've finished this learning module.\n\n**Session Summary:**\n- Practice time: ${sessionDurationMinutes} minutes\n- Total messages: ${session.messages.length}\n- Session score: ${session.analytics.sessionScore}\n\n✅ **Module Status: COMPLETED**\nGreat job! You can now move on to the next module or practice this one again anytime.\n\nKeep up the excellent work! 🌟`,
           messageType: 'module-completed',
           metadata: {
             sessionState: 'completed',
             sessionEnded: true,
-            moduleCompleted: true
+            moduleCompleted: true,
+            sessionDurationMinutes
           }
         };
         
