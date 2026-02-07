@@ -62,6 +62,17 @@ interface BulkUploadResult {
               <li>Review the results and download credentials</li>
             </ol>
 
+            <div class="important-note">
+              <h4>📧 Existing Email Handling:</h4>
+              <p>If an email address already exists in the system:</p>
+              <ul>
+                <li>✅ A <strong>new password</strong> will be generated</li>
+                <li>✅ Credentials will be <strong>resent</strong> to that email</li>
+                <li>✅ No duplicate entry will be created</li>
+                <li>✅ The existing student's RegNo will be used</li>
+              </ul>
+            </div>
+
             <div class="required-fields">
               <h4>Required Fields:</h4>
               <ul>
@@ -160,11 +171,19 @@ interface BulkUploadResult {
 
           <!-- Successful Students Table -->
           <div class="results-table" *ngIf="uploadResult && uploadResult.results.successful.length > 0">
-            <h4>✅ Successfully Created ({{ uploadResult.results.successful.length }})</h4>
+            <h4>✅ Successfully Processed ({{ uploadResult.results.successful.length }})</h4>
             <table mat-table [dataSource]="uploadResult.results.successful" class="results-mat-table">
               <ng-container matColumnDef="row">
                 <th mat-header-cell *matHeaderCellDef>Row</th>
                 <td mat-cell *matCellDef="let element">{{ element.row }}</td>
+              </ng-container>
+              <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Action</th>
+                <td mat-cell *matCellDef="let element">
+                  <span [class]="element.isExistingUser ? 'badge-resent' : 'badge-new'">
+                    {{ element.isExistingUser ? '🔄 Credentials Resent' : '✨ New User Created' }}
+                  </span>
+                </td>
               </ng-container>
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -286,6 +305,29 @@ interface BulkUploadResult {
       margin: 10px 0;
     }
 
+    .important-note {
+      margin: 15px 0;
+      padding: 15px;
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      border-radius: 4px;
+    }
+
+    .important-note h4 {
+      margin: 0 0 10px 0;
+      color: #1976d2;
+    }
+
+    .important-note p {
+      margin: 5px 0;
+      color: #333;
+    }
+
+    .important-note ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
     .required-fields {
       margin-top: 15px;
     }
@@ -401,6 +443,26 @@ interface BulkUploadResult {
       color: #ff9800;
     }
 
+    .badge-new {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background-color: #4caf50;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .badge-resent {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background-color: #2196f3;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
     mat-progress-bar {
       margin: 20px 0;
     }
@@ -416,7 +478,7 @@ export class BulkStudentUploadComponent {
   sendEmails = true;
   uploadResult: BulkUploadResult | null = null;
 
-  successColumns = ['row', 'name', 'email', 'regNo', 'password', 'emailSent'];
+  successColumns = ['row', 'action', 'name', 'email', 'regNo', 'password', 'emailSent'];
   failedColumns = ['row', 'name', 'email', 'reason'];
   skippedColumns = ['row', 'name', 'email', 'reason', 'existingRegNo'];
 

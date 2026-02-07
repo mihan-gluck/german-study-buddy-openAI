@@ -920,12 +920,72 @@ router.post("/bulk-upload-students", verifyToken, checkRole(['ADMIN']), async (r
         // Check if email already exists
         const existingUser = await User.findOne({ email: student.email.trim().toLowerCase() });
         if (existingUser) {
-          results.skipped.push({
-            row: rowNumber,
-            data: student,
-            reason: 'Email already exists',
-            existingRegNo: existingUser.regNo
-          });
+          // ✅ RESEND CREDENTIALS instead of skipping
+          if (sendEmails) {
+            try {
+              // Generate new password for existing user
+              const newPasswordPlain = await generatePassword("STUDENT", existingUser.regNo);
+              const newHashedPassword = await bcrypt.hash(newPasswordPlain, 10);
+              
+              // Update password
+              existingUser.password = newHashedPassword;
+              existingUser.lastCredentialsEmailSent = new Date();
+              await existingUser.save();
+
+              // Send credentials email
+              await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: existingUser.email,
+                subject: "Your Glück Global Student Portal Credentials 🔑",
+                html: `
+                  <div style="font-family: Arial, sans-serif; color: #000000; line-height: 1.6;">
+                    <p>Hello ${existingUser.name},</p>
+
+                    <p>Your login credentials for the <strong>Glück Global Student Portal</strong> have been sent as requested:</p>
+
+                    <ul>
+                      <li><strong>Web App ID:</strong> ${existingUser.regNo}</li>
+                      <li><strong>Password:</strong> ${newPasswordPlain}</li>
+                    </ul>
+
+                    <p>Please keep this information safe and do not share it with anyone.</p>
+
+                    <p>You can access the Portal at: <a href="https://gluckstudentsportal.com" target="_blank">https://gluckstudentsportal.com</a></p>
+
+                    <p>Best regards,<br>
+                    <strong>Glück Global Pvt Ltd</strong></p>
+                  </div>
+                `
+              });
+
+              results.successful.push({
+                row: rowNumber,
+                name: existingUser.name,
+                email: existingUser.email,
+                regNo: existingUser.regNo,
+                password: newPasswordPlain,
+                emailSent: true,
+                isExistingUser: true,
+                action: 'credentials_resent'
+              });
+            } catch (emailError) {
+              console.error(`Email error for existing user ${existingUser.email}:`, emailError);
+              results.failed.push({
+                row: rowNumber,
+                data: student,
+                reason: `Failed to resend credentials: ${emailError.message}`,
+                existingRegNo: existingUser.regNo
+              });
+            }
+          } else {
+            // If sendEmails is false, just skip
+            results.skipped.push({
+              row: rowNumber,
+              data: student,
+              reason: 'Email already exists (credentials not resent because sendEmails=false)',
+              existingRegNo: existingUser.regNo
+            });
+          }
           continue;
         }
 
