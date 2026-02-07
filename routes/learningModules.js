@@ -744,86 +744,13 @@ function fixModuleValidationIssues(module) {
   return fixedModule;
 }
 
-// ===== LEVEL-BASED ACCESS CONTROL HELPER FUNCTIONS =====
-
-// CEFR Level hierarchy (lower order = easier level)
-const LEVEL_HIERARCHY = {
-  'A1': { order: 1, name: 'Beginner' },
-  'A2': { order: 2, name: 'Elementary' },
-  'B1': { order: 3, name: 'Intermediate' },
-  'B2': { order: 4, name: 'Upper Intermediate' },
-  'C1': { order: 5, name: 'Advanced' },
-  'C2': { order: 6, name: 'Proficiency' }
-};
-
-// Get levels that a student can access (their level and below)
-function getAccessibleLevels(studentLevel) {
-  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
-  if (!studentLevelInfo) {
-    return []; // Invalid level
-  }
-
-  return Object.keys(LEVEL_HIERARCHY)
-    .filter(level => LEVEL_HIERARCHY[level].order <= studentLevelInfo.order);
-}
-
-// Get recommended levels for a student (current level and one below)
-function getRecommendedLevels(studentLevel) {
-  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
-  if (!studentLevelInfo) {
-    return [];
-  }
-
-  const recommendedOrders = [studentLevelInfo.order];
-  if (studentLevelInfo.order > 1) {
-    recommendedOrders.push(studentLevelInfo.order - 1);
-  }
-
-  return Object.keys(LEVEL_HIERARCHY)
-    .filter(level => recommendedOrders.includes(LEVEL_HIERARCHY[level].order));
-}
-
-// Check if a student can access a module based on level
-function canAccessModule(studentLevel, moduleLevel) {
-  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
-  const moduleLevelInfo = LEVEL_HIERARCHY[moduleLevel];
-
-  if (!studentLevelInfo || !moduleLevelInfo) {
-    return false; // Invalid levels
-  }
-
-  // Student can access modules at their level or below
-  return moduleLevelInfo.order <= studentLevelInfo.order;
-}
-
-// Get access status for a module
-function getModuleAccessStatus(studentLevel, moduleLevel) {
-  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
-  const moduleLevelInfo = LEVEL_HIERARCHY[moduleLevel];
-
-  if (!studentLevelInfo || !moduleLevelInfo) {
-    return {
-      canAccess: false,
-      reason: 'Invalid level information',
-      levelDifference: 0
-    };
-  }
-
-  const levelDifference = moduleLevelInfo.order - studentLevelInfo.order;
-
-  if (levelDifference <= 0) {
-    return {
-      canAccess: true,
-      reason: levelDifference === 0 ? 'Perfect match for your level' : 'Good for review and practice',
-      levelDifference
-    };
-  } else {
-    return {
-      canAccess: false,
-      reason: `Too advanced - requires ${moduleLevelInfo.name} level`,
-      levelDifference
-    };
-  }
-}
+// ===== LEVEL-BASED ACCESS CONTROL =====
+// Import centralized level access control functions
+const {
+  getAccessibleLevels,
+  getRecommendedLevels,
+  canAccessModule,
+  getModuleAccessStatus
+} = require('../utils/levelAccessControl');
 
 module.exports = router;

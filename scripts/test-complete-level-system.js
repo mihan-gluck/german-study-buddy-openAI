@@ -12,35 +12,14 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const LearningModule = require('../models/LearningModule');
 
-// CEFR Level hierarchy
-const LEVEL_HIERARCHY = {
-  'A1': { order: 1, name: 'Beginner' },
-  'A2': { order: 2, name: 'Elementary' },
-  'B1': { order: 3, name: 'Intermediate' },
-  'B2': { order: 4, name: 'Upper Intermediate' },
-  'C1': { order: 5, name: 'Advanced' },
-  'C2': { order: 6, name: 'Proficiency' }
-};
-
-function getAccessibleLevels(studentLevel) {
-  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
-  if (!studentLevelInfo) return [];
-  return Object.keys(LEVEL_HIERARCHY)
-    .filter(level => LEVEL_HIERARCHY[level].order <= studentLevelInfo.order);
-}
-
-function getRecommendedLevels(studentLevel) {
-  const studentLevelInfo = LEVEL_HIERARCHY[studentLevel];
-  if (!studentLevelInfo) return [];
-  
-  const recommendedOrders = [studentLevelInfo.order];
-  if (studentLevelInfo.order > 1) {
-    recommendedOrders.push(studentLevelInfo.order - 1);
-  }
-  
-  return Object.keys(LEVEL_HIERARCHY)
-    .filter(level => recommendedOrders.includes(LEVEL_HIERARCHY[level].order));
-}
+// Import centralized level access control functions
+const {
+  LEVEL_HIERARCHY,
+  getAccessibleLevels,
+  getRecommendedLevels,
+  canAccessModule,
+  getModuleAccessStatus
+} = require('../utils/levelAccessControl');
 
 async function testCompleteLevelSystem() {
   try {
