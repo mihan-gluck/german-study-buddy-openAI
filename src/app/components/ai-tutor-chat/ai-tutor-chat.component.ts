@@ -461,9 +461,14 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     setTimeout(() => this.scrollToBottom(), 50);
     
     // Check for stop commands - end session immediately without AI response
-    const stopCommands = ['stop', 'end', 'finish', 'quit', 'exit'];
+    // Only trigger if the ENTIRE message is a stop command (not part of a sentence)
+    const stopCommands = ['stop', 'end', 'finish', 'quit', 'exit', 'stopp', 'ende', 'beenden', 'aufhören'];
+    const trimmedMessage = messageContent.trim().toLowerCase();
     const isStopCommand = stopCommands.some(cmd => 
-      messageContent.toLowerCase().includes(cmd.toLowerCase())
+      trimmedMessage === cmd.toLowerCase() || // Exact match
+      trimmedMessage === `${cmd.toLowerCase()}.` || // With period
+      trimmedMessage === `${cmd.toLowerCase()}!` || // With exclamation
+      trimmedMessage === `${cmd.toLowerCase()}?`    // With question mark
     );
     
     if (isStopCommand) {
