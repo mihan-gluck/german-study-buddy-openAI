@@ -6,23 +6,28 @@ import { Router } from '@angular/router';
 import { StudentProgressService, DashboardAnalytics } from '../../services/student-progress.service';
 import { LearningModulesService } from '../../services/learning-modules.service';
 import { AiTutorService } from '../../services/ai-tutor.service';
-
+import { StudentAssignmentsComponent } from '../student-assignments/student-assignments.component';
+import { StudentAssignedAssignmentsComponent } from '../student-assigned-assignments/student-assigned-assignments.component';
+import { StudentNotificationsComponent } from '../student-notifications/student-notifications.component';
+import { StudentExamsComponent } from '../student-exams/student-exams.component';
 @Component({
   selector: 'app-student-ai-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StudentNotificationsComponent, StudentAssignmentsComponent, StudentAssignedAssignmentsComponent],
   templateUrl: './student-ai-dashboard.component.html',
   styleUrls: ['./student-ai-dashboard.component.css']
 })
+
 export class StudentAiDashboardComponent implements OnInit {
   analytics: DashboardAnalytics | null = null;
   recentModules: any[] = [];
   isLoading: boolean = true;
-  
-  // Make Math available in template
-  Math = Math;
-  
-  constructor(
+  currentCourseId: string | null = null;
+  currentModuleId: string | null = null;
+// Make Math available in template
+Math = Math;
+
+constructor(
     private studentProgressService: StudentProgressService,
     private learningModulesService: LearningModulesService,
     private aiTutorService: AiTutorService,
@@ -35,9 +40,9 @@ export class StudentAiDashboardComponent implements OnInit {
 
   loadDashboardData(): void {
     this.isLoading = true;
-    
+
     console.log('🔄 Loading dashboard data for student...');
-    
+
     // Load analytics
     this.studentProgressService.getDashboardAnalytics().subscribe({
       next: (analytics) => {
@@ -53,12 +58,12 @@ export class StudentAiDashboardComponent implements OnInit {
           error: error.error
         });
         this.isLoading = false;
-        
+
         // Show error message to user
         alert(`Failed to load dashboard analytics: ${error.message || 'Unknown error'}`);
       }
     });
-    
+
     // Load recent modules
     this.learningModulesService.getModules({ limit: 6 }).subscribe({
       next: (response) => {
@@ -87,6 +92,10 @@ export class StudentAiDashboardComponent implements OnInit {
     this.router.navigate(['/audio-test']);
   }
 
+  navigateToExams(): void {
+    this.router.navigate(['/student-exams']);
+  }
+
   getProgressPercentage(completed: number, total: number): number {
     return this.studentProgressService.calculateCompletionPercentage(completed, total);
   }
@@ -97,10 +106,10 @@ export class StudentAiDashboardComponent implements OnInit {
 
   getWeeklyActivityData(): any[] {
     if (!this.analytics?.weeklyActivity) return [];
-    
+
     // Define days in proper order (starting from Monday for better UX)
     const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
+
     // Create array with proper day order and ensure all days are present
     return daysOrder.map(day => {
       const dayData = this.analytics?.weeklyActivity?.[day] || { sessions: 0, timeSpent: 0 };
@@ -115,7 +124,7 @@ export class StudentAiDashboardComponent implements OnInit {
 
   getLevelProgressData(): any[] {
     if (!this.analytics?.progressByLevel) return [];
-    
+
     return Object.entries(this.analytics.progressByLevel).map(([level, data]: [string, any]) => ({
       level,
       completed: data.completed,
@@ -126,7 +135,7 @@ export class StudentAiDashboardComponent implements OnInit {
 
   getCategoryProgressData(): any[] {
     if (!this.analytics?.progressByCategory) return [];
-    
+
     return Object.entries(this.analytics.progressByCategory).map(([category, data]: [string, any]) => ({
       category,
       completed: data.completed,
@@ -134,4 +143,5 @@ export class StudentAiDashboardComponent implements OnInit {
       percentage: this.getProgressPercentage(data.completed, data.total)
     }));
   }
+
 }

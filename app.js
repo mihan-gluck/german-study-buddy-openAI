@@ -2,6 +2,7 @@
 
 require("dotenv").config();
 const express = require("express");
+const app = express();
 const path = require('path');
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -27,7 +28,7 @@ const profilePicUploadRoutes = require('./routes/profile');
 const timeTableRoutes = require('./routes/timeTable');
 const courseMaterialRoutes = require('./routes/courseMaterial');
 const learningModulesRoutes = require('./routes/learningModules');
-const aiTutorRoutes = require('./routes/aiTutor');
+//const aiTutorRoutes = require('./routes/aiTutor');
 const studentProgressRoutes = require('./routes/studentProgress');
 const aiModuleGeneratorRoutes = require('./routes/aiModuleGenerator');
 const sessionRecordsRoutes = require('./routes/sessionRecords');
@@ -40,11 +41,21 @@ const studentLogRoutes = require('./routes/studentLog');
 const studentDocumentsRoutes = require('./routes/studentDocuments');
 const documentRequirementsRoutes = require('./routes/documentRequirements');
 
+const assignmentRoutes = require('./routes/assignments');
+const assignmentTemplatesRoutes = require('./routes/assignmentTemplates');
+const notificationRoutes = require('./routes/notifications');
 
-const app = express();
+const gradingRoutes = require("./routes/grading");
+const { gradeAssignment } = require("./services/grading.service");
+
+// Multer setup for file uploads
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
 const cookieParser = require('cookie-parser');
 
 app.set('trust proxy', true); // trust first proxy (if behind a proxy like Nginx or Heroku)
+
 
 // Middleware
 app.use(express.json());
@@ -58,16 +69,41 @@ app.use(cors({
 
 app.use(cookieParser()); // Add cookie parser middleware
 
-// Connect to MongoDB
+// Connect to MongoDB with environment-based URI
+const mongoUri =
+  process.env.NODE_ENV === 'production'
+    ? process.env.MONGO_URI
+    : process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/Updated-Gluck-Portal';
+
+mongoose.connect(mongoUri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => {
+    console.log(`✅ Connected to MongoDB (${process.env.NODE_ENV || 'development'})`);
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+  });
+
+/* Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch(err => console.error('❌ Error connecting to MongoDB Atlas:', err));
+*/
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+/* Connect to local MongoDB for development
+mongoose.connect("mongodb://127.0.0.1:27017/Updated-Gluck-Portal", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log('✅ Connected to LOCAL MongoDB'))
+  .catch(err => console.error('❌ Error connecting to MongoDB:', err));
+*/
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -84,7 +120,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/timeTable', timeTableRoutes);
 app.use('/api/courseMaterial', courseMaterialRoutes);
 app.use('/api/learning-modules', learningModulesRoutes);
-app.use('/api/ai-tutor', aiTutorRoutes);
+//app.use('/api/ai-tutor', aiTutorRoutes);
 app.use('/api/student-progress', studentProgressRoutes);
 app.use('/api/ai', aiModuleGeneratorRoutes);
 app.use('/api/session-records', sessionRecordsRoutes);
@@ -97,7 +133,11 @@ app.use('/api/studentLog', studentLogRoutes);
 app.use('/api/student-documents', studentDocumentsRoutes);
 app.use('/api/document-requirements', documentRequirementsRoutes);
 
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/assignment-templates', assignmentTemplatesRoutes);
+app.use('/api/notifications', notificationRoutes);
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -125,8 +165,25 @@ app.get("*", (req, res) => {
 // Student feedback route
 app.use('/api/feedback', feedbackRoutes);
 
+// Grading route
+app.use('/api/grading', gradingRoutes);
+app.post('/api/grade-assignment', async (req, res) => {
+  try {
+    const { assignmentId, studentId, level, taskType, submissionText } = req.body;
+    const result = await gradeAssignment({ assignmentId, studentId, level, taskType, submissionText });
+    res.json(result);
+  } catch (err) {
+    console.error('Error grading assignment:', err);
+    res.status(500).json({ error: 'Failed to grade assignment' });
+  } finally {
+    // Optional: Clean up uploaded files if needed
+    // fs.unlink(req.file.path, (err) => {
+    //   if (err) console.error('Error deleting uploaded file:', err);
+    // });
+  }
+});
 
 // Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); 
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 

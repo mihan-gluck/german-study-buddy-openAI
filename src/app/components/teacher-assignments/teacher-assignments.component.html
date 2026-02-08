@@ -1,0 +1,85 @@
+<!-- src/app/components/teacher-assignments/teacher-assignments.component.html -->
+<div class="teacher-assignments-container">
+    <h2>Student Assignments</h2>
+  
+    <div class="filter-bar">
+      <button class="btn btn-outline-secondary" (click)="loadSubmissions()">All</button>
+      <button class="btn btn-outline-secondary" (click)="loadSubmissions('SUBMITTED')">Submitted</button>
+      <button class="btn btn-outline-secondary" (click)="loadSubmissions('CORRECTED')">Corrected</button>
+    </div>
+  
+    <div *ngIf="loading">Loading submissions...</div>
+    <p class="text-danger" *ngIf="error">{{ error }}</p>
+  
+    <div class="assignments-layout" *ngIf="!loading">
+      <!-- List -->
+      <div class="assignment-list">
+        <table class="table table-hover" *ngIf="submissions.length; else noSubmissions">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Marks</th>
+              <th>Submitted at</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let s of submissions"
+              (click)="selectSubmission(s)"
+              [class.table-active]="selected?._id === s._id"
+            >
+              <td>{{ s.studentId?.name }} ({{ s.studentId?.regNo }})</td>
+              <td>{{ s.title || 'Untitled' }}</td>
+              <td>{{ s.status }}</td>
+              <td>{{ s.marks ?? '-' }}</td>
+              <td>{{ s.createdAt | date: 'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <ng-template #noSubmissions>
+          <p>No submissions found.</p>
+        </ng-template>
+      </div>
+  
+      <!-- Detail / marking panel -->
+      <div class="assignment-detail" *ngIf="selected">
+        <h3>Correct assignment</h3>
+  
+        <p><strong>Student:</strong> {{ selected.studentId?.name }} ({{ selected.studentId?.regNo }})</p>
+        <p><strong>Title:</strong> {{ selected.title || 'Untitled' }}</p>
+        <p><strong>Status:</strong> {{ selected.status }}</p>
+  
+        <div *ngIf="selected.files?.length">
+          <p><strong>Files:</strong></p>
+          <ul>
+            <li *ngFor="let f of selected.files">
+              <a [href]="getFileUrl(f)" target="_blank" rel="noopener">
+                {{ f.originalName }}
+              </a>
+            </li>
+          </ul>
+        </div>
+  
+        <div class="form-group">
+          <label>Marks</label>
+          <input type="number" [(ngModel)]="editMarks" class="form-control" />
+        </div>
+  
+        <div class="form-group">
+          <label>Feedback</label>
+          <textarea [(ngModel)]="editFeedback" rows="4" class="form-control"></textarea>
+        </div>
+  
+        <button class="btn btn-primary" (click)="saveCorrection()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save correction' }}
+        </button>
+  
+        <p class="text-success" *ngIf="message">{{ message }}</p>
+        <p class="text-danger" *ngIf="error">{{ error }}</p>
+      </div>
+    </div>
+  </div>
+  

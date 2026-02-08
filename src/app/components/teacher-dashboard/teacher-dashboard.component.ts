@@ -5,11 +5,18 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TeacherService } from '../../services/teacher.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { TeacherAssignmentsComponent } from '../teacher-assignments/teacher-assignments.component';
+import { TeacherNotificationsComponent } from '../teacher-notifications/teacher-notifications.component';
+import { TeacherAssignmentTemplatesComponent } from '../teacher-assignment-templates/teacher-assignment-templates.component';
+
 
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TeacherAssignmentsComponent, TeacherNotificationsComponent, TeacherAssignmentTemplatesComponent],
   templateUrl: './teacher-dashboard.component.html',
   styleUrls: ['./teacher-dashboard.component.css']
 })

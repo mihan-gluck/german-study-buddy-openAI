@@ -1,0 +1,84 @@
+<!-- src/app/components/teacher-assignment-templates/teacher-assignment-templates.component.html -->
+
+<div class="teacher-assignment-templates-card">
+  <h2>Create assignment / exam paper</h2>
+
+  <div class="template-form">
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" [(ngModel)]="title" class="form-control" placeholder="Midterm exam A1 module 3">
+    </div>
+
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea [(ngModel)]="description" rows="2" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Course ID (optional)</label>
+      <input type="text" [(ngModel)]="courseId" class="form-control" placeholder="courseId or leave empty">
+    </div>
+
+    <div class="form-group">
+      <label>Module ID (optional)</label>
+      <input type="text" [(ngModel)]="moduleId" class="form-control" placeholder="moduleId or leave empty">
+    </div>
+
+    <div class="form-group">
+      <label>Due date (optional)</label>
+      <input type="date" [(ngModel)]="dueDate" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label>Attach question paper file(s)</label>
+      <input type="file" (change)="onFileChange($event)" class="form-control" multiple>
+      <small *ngIf="selectedFiles.length">Selected: {{ selectedFiles.length }} file(s)</small>
+    </div>
+
+    <button class="btn btn-primary" (click)="createTemplate()" [disabled]="loadingCreate">
+      {{ loadingCreate ? 'Creating...' : 'Create assignment' }}
+    </button>
+
+    <p class="text-success" *ngIf="createMessage">{{ createMessage }}</p>
+    <p class="text-danger" *ngIf="createError">{{ createError }}</p>
+  </div>
+
+  <hr>
+
+  <h3>Existing assignments</h3>
+
+  <div *ngIf="loadingList">Loading assignments...</div>
+  <p class="text-danger" *ngIf="listError">{{ listError }}</p>
+
+  <div *ngIf="!loadingList && !templates.length">
+    No assignments created yet.
+  </div>
+
+  <table *ngIf="!loadingList && templates.length" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Created at</th>
+        <th>Due date</th>
+        <th>Files</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of templates">
+        <td>{{ t.title }}</td>
+        <td>{{ t.createdAt | date:'short' }}</td>
+        <td>{{ t.dueDate ? (t.dueDate | date:'shortDate') : '-' }}</td>
+        <td>
+          <ng-container *ngIf="t.files?.length">
+            <a *ngFor="let f of t.files"
+              [href]="getFileUrl(f)"
+              target="_blank"
+              rel="noopener">
+              {{ f.originalName }}
+            </a>
+          </ng-container>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

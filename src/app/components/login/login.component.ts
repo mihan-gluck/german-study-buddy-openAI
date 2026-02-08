@@ -41,7 +41,7 @@ export class LoginComponent {
         console.log('✅ Login successful:', response);
         this.loading = false;
 
-        const role = response.user?.role || response.role; 
+        const role = response.user?.role || response.role;
 
         if (role === 'ADMIN') {
           this.router.navigate(['/admin-dashboard']);
@@ -62,7 +62,7 @@ export class LoginComponent {
         }
         else if (err.status === 401 || err.status === 400) {
           this.errorMessage = 'Invalid username or password!';
-        } 
+        }
         else {
           this.errorMessage = 'Server error. Please try again later.';
         }

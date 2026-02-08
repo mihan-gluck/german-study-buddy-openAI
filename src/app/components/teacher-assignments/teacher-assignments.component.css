@@ -1,0 +1,123 @@
+/* src/app/components/teacher-assignments/teacher-assignments.component.css */
+
+.teacher-assignments-container {
+  margin-top: 1rem;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Layout */
+.assignments-layout {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 1.5rem;
+}
+
+/* Panels */
+.assignment-list,
+.assignment-detail {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.assignment-list {
+  margin-bottom: 1.5rem;
+}
+
+/* Section headings */
+.assignment-list h3,
+.assignment-detail h3 {
+  margin: 0 0 0.9rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Assignment detail form */
+.assignment-detail .form-group {
+  margin-bottom: 1rem;
+}
+
+/* Table styles */
+.assignment-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.assignment-list th {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid #e9ecef;
+  color: #495057;
+  font-weight: 600;
+}
+
+.assignment-list td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.assignment-list tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Table helpers */
+.table-hover tbody tr {
+  cursor: pointer;
+}
+
+.table-active {
+  background-color: #f0f4ff;
+}
+
+/* Notification meta */
+.notification-list .meta .timestamp {
+  font-style: italic;
+}
+
+.notification-list .meta .type {
+  text-transform: capitalize;
+}
+
+/* Notification type colors */
+.notification-list .meta .type.update,
+.notification-list .meta .type.news {
+  color: #17a2b8;
+}
+
+.notification-list .meta .type.alert {
+  color: #dc3545;
+}
+
+.notification-list .meta .type.announcement {
+  color: #007bff;
+}
+
+.notification-list .meta .type.reminder {
+  color: #28a745;
+}
+
+.notification-list .meta .type.event {
+  color: #ffc107;
+}
+
+.notification-list .meta .type.general,
+.notification-list .meta .type.other {
+  color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .assignments-layout {
+    grid-template-columns: 1fr;
+  }
+}

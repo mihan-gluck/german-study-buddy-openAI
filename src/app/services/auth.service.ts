@@ -55,6 +55,7 @@ export class AuthService {
   // ✅ Holds logged-in user state
   private currentUserSubject = new BehaviorSubject<any | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
+  router: any;
 
   constructor(private http: HttpClient) {}
 
@@ -74,17 +75,17 @@ export class AuthService {
   }
 
 
-  signup(user: { 
-    name: string, 
-    email: string, 
-    role: string, 
-    batch?: string, 
-    medium?: string, 
+  signup(user: {
+    name: string,
+    email: string,
+    role: string,
+    batch?: string,
+    medium?: string,
     subscription?: string,
-    level?: string, 
+    level?: string,
     conversationId?: string,
-    elevenLabsWidgetLink?: string, 
-    elevenLabsApiKey?: string 
+    elevenLabsWidgetLink?: string,
+    elevenLabsApiKey?: string
     assignedCourses?: string[],   // for TEACHER
     assignedTeacher?: string      // for STUDENT (teacher _id)
     studentStatus?: string      // for STUDENT (UNCERTAIN, ONGOING, COMPLETED, DROPPED)
@@ -118,7 +119,16 @@ export class AuthService {
         })
       );
   }
-  
+
+  // saveToken(token: string) {
+  //   localStorage.setItem('authToken', token);
+  // }
+
+  // getToken(): string | null {
+  //   return localStorage.getItem('authToken');
+  // }
+
+
   // Fetch user profile (with photo URL included)
   getUserProfile(): Observable<any> {
     return this.http.get(`${this.apiUrl}/auth/profile`, { withCredentials: true });
@@ -200,8 +210,19 @@ export class AuthService {
     return this.http.get<any[]>(`${this.apiUrl}/auth/teachers-by-batch/${batchNo}`, { withCredentials: true});
   }
 
-  resendCredentials(userId: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/resend-credentials/${userId}`, {}, { withCredentials: true });
+  // Method to perform authenticated request
+  fetchProtectedData(endpoint: string): Observable<any> {
+    const token = this.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get(endpoint, { headers }); // Make GET request with the token in the header
+  }
+  getToken() {
+    throw new Error('Method not implemented.');
   }
 
+  // Log out the user: Clears the token and redirects to login page
+  logOut() {
+    localStorage.removeItem('authToken');
+    this.router.navigate(['/login']); // Redirect to login page after logout
+  }
 }

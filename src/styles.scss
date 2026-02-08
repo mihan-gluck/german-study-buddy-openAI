@@ -1,42 +1,32 @@
 /* src/styles.scss */
 
-/* Import material core (MDC-based) */
 @use '@angular/material' as mat;
 @use 'sass:map';
-
-//@use '@angular/material/core' as core;
 
 /* ============================= */
 /* Angular Material Theme Setup  */
 /* ============================= */
 
-// 1. Define palettes
 $my-primary-base: mat.m2-define-palette(mat.$m2-indigo-palette, 500);
-
-// If you want a custom color later:
 $my-primary: map.merge($my-primary-base, (500: #405980));
 
-
-$my-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
+$my-accent: mat.m2-define-palette(mat.$m2-amber-palette, A200, A100, A400);
 $my-warn:   mat.m2-define-palette(mat.$m2-red-palette);
 
-// 2. Define theme
 $my-theme: mat.m2-define-light-theme((
   color: (
     primary: $my-primary,
     accent: $my-accent,
     warn: $my-warn
   )
-  // typography: mat.define-typography-config()
 ));
 
-// 3. Include core styles **after defining theme**
 @include mat.core();
-
-// 4. Apply the theme to all components
 @include mat.all-component-themes($my-theme);
 
-/* App color variables */
+/* ============================= */
+/* App color variables           */
+/* ============================= */
 :root {
   --app-primary: #405980;
   --app-on-primary: #ffffff;
@@ -45,7 +35,6 @@ $my-theme: mat.m2-define-light-theme((
   --app-accent: #ffb300;
   --app-warn: #e53935;
 
-  /* Material variables */
   --mdc-theme-primary: var(--app-primary);
   --mdc-theme-on-primary: var(--app-on-primary);
   --mdc-theme-background: var(--app-background);
@@ -54,18 +43,17 @@ $my-theme: mat.m2-define-light-theme((
   --mdc-theme-error: var(--app-warn);
 }
 
-
 /* ============================= */
-/*   Global Styles from styles.css   */
+/* Global layout & typography    */
 /* ============================= */
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -73,25 +61,28 @@ body {
   font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--app-background);
   line-height: 1.6;
-  color: #000;
+  color: #1c1e21;
 }
 
 a {
   text-decoration: none;
+  color: inherit;
 }
 
 ul {
   list-style-type: none;
 }
 
-header, footer {
+/* Header / footer shell (if used) */
+header,
+footer {
   background-color: var(--app-primary);
   color: white;
   padding: 15px;
 }
 
 footer {
-  position: fixed;
+  position: relative;
   bottom: 0;
   width: 100%;
   text-align: center;
@@ -107,6 +98,7 @@ footer {
   .nav-links {
     flex-direction: column;
     align-items: center;
+    gap: 0.75rem;
   }
 
   .cta p {
@@ -114,48 +106,85 @@ footer {
   }
 }
 
-/* Buttons */
-button {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
 /* ============================= */
-/*   Angular Material Overrides  */
+/* Buttons & CTAs                */
 /* ============================= */
-.header-shade {
-  background: var(--app-primary);
-  color: var(--app-on-primary);
-  padding: 12px;
+button,
+.btn,
+.mat-raised-button,
+.mat-flat-button {
+  border-radius: 999px;
+  padding: 0.55rem 1.3rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.mat-raised-button {
+button,
+.btn-primary,
+.mat-raised-button.mat-primary {
   background-color: var(--app-primary);
   color: var(--app-on-primary);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.1s ease;
 }
 
-.mat-raised-button:hover {
-  background-color: color-mix(in srgb, var(--app-primary) 70%, black 30%);
+button:hover,
+.btn-primary:hover,
+.mat-raised-button.mat-primary:hover {
+  background-color: #2f4362;
+  box-shadow: 0 4px 10px rgba(64, 89, 128, 0.35);
+  transform: translateY(-1px);
 }
 
-.mat-card {
-  background: var(--app-surface);
-  color: #000;
+button:disabled,
+.btn:disabled,
+.mat-raised-button:disabled {
+  background-color: #c0c4cc;
+  color: #f5f5f5;
+  box-shadow: none;
+  cursor: default;
 }
 
+/* Secondary / text buttons */
+.btn-outline,
+.mat-stroked-button {
+  border-radius: 999px;
+  border-color: var(--app-primary);
+  color: var(--app-primary);
+}
+
+/* ============================= */
+/* Angular Material overrides    */
+/* ============================= */
+.header-shade,
 .mat-toolbar {
   background: var(--app-primary);
   color: var(--app-on-primary);
 }
+
+.mat-card {
+  background: var(--app-surface);
+  color: #1c1e21;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+}
+
+.mat-form-field {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0 0.35rem;
+}
+
+/* Utility spacing */
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

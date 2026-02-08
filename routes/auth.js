@@ -14,7 +14,7 @@ const router = express.Router();
 const transporter = require("../config/emailConfig");
 
 //const auth = require("../middleware/auth");
-const { verifyToken, isAdmin } = require('../middleware/auth'); 
+const { verifyToken, isAdmin } = require('../middleware/auth');
 const checkRole = require("../middleware/checkRole");
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -292,26 +292,26 @@ router.get("/teachersByMedium", async (req, res) => {
   }
 });
 
-  
+
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { 
-      name, 
-      email, 
-      role, 
-      subscription, 
-      level, 
-      batch, 
-      medium, 
-      studentStatus, 
-      assignedCourses, 
-      assignedBatches, 
-      assignedTeacher, 
-      phoneNumber, 
-      address, 
-      age, 
-      programEnrolled, 
+    const {
+      name,
+      email,
+      role,
+      subscription,
+      level,
+      batch,
+      medium,
+      studentStatus,
+      assignedCourses,
+      assignedBatches,
+      assignedTeacher,
+      phoneNumber,
+      address,
+      age,
+      programEnrolled,
       leadSource,
       languageLevelOpted,
       dateWithdrew,
@@ -320,9 +320,9 @@ router.post("/signup", async (req, res) => {
       qualifications
      } = req.body;
 
-    const regNo = await generateRegNo(role);  
+    const regNo = await generateRegNo(role);
     const password = await generatePassword(role, regNo); // generate random password
-    
+
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: "User already exists" });
 
@@ -352,7 +352,7 @@ router.post("/signup", async (req, res) => {
       user.reasonForWithdrawing = reasonForWithdrewing;
       user.courseCompletionDates = courseCompletionDates;
       user.qualifications = qualifications;
-      
+
       // 🔍 Teacher assignment
       if (assignedTeacher) {
         // case 1: frontend provided teacher id
@@ -388,8 +388,8 @@ router.post("/signup", async (req, res) => {
 
     // ✉️ Send email
     const passwordPlain = password; // Store plain password temporarily for email
-    
- 
+
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email,
@@ -419,7 +419,7 @@ router.post("/signup", async (req, res) => {
     try {
       await transporter.sendMail(mailOptions);
       console.log("✅ Email sent to", user.email);
-      
+
       // Update lastCredentialsEmailSent timestamp
       user.lastCredentialsEmailSent = new Date();
       await user.save();
@@ -453,11 +453,11 @@ router.post("/login", async (req, res) => {
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
     const token = jwt.sign(
-      { 
-        id: user._id, 
-        role: user.role, 
-        name: user.name 
-      },  
+      {
+        id: user._id,
+        role: user.role,
+        name: user.name
+      },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -472,7 +472,7 @@ router.post("/login", async (req, res) => {
     });
 
     // ✅ Send user info only (no token in response)
-    res.json({
+    return res.json({
       user: {
         name: user.name,
         email: user.email,
@@ -507,7 +507,7 @@ router.get("/profile", verifyToken, async (req, res) => {
 
     // If the logged-in user is a student → populate teacher info
     if (req.user.role === "STUDENT") {
-      query = query.populate("assignedTeacher", "name email"); 
+      query = query.populate("assignedTeacher", "name email");
       // 👆 populate assignedTeacher with only name & email fields
     }
 
@@ -542,7 +542,7 @@ router.get("/:id", async (req, res) => {
 // ✅ Get teachers by batch
 router.get("/teachers-by-batch/:batch", async (req, res) => {
   try {
-    const batch = req.params.batch; 
+    const batch = req.params.batch;
     console.log("🔍 Fetching teachers for batch:", batch);
 
     if (!batch) {
@@ -551,7 +551,7 @@ router.get("/teachers-by-batch/:batch", async (req, res) => {
 
     const teachers = await User.find({
       role: "TEACHER",
-      assignedBatches: { $in: [batch] } 
+      assignedBatches: { $in: [batch] }
     }).select("name");
 
     teachers.forEach(teacher => {
@@ -574,8 +574,8 @@ router.put("/update-teacher-by-batch", async (req, res) => {
     const { batch, newTeacherId } = req.body;
 
     if (!batch || !newTeacherId) {
-      return res.status(400).json({ 
-        message: "Batch and newTeacherId are required." 
+      return res.status(400).json({
+        message: "Batch and newTeacherId are required."
       });
     }
 
@@ -585,8 +585,8 @@ router.put("/update-teacher-by-batch", async (req, res) => {
     });
 
     if (students.length === 0) {
-      return res.status(404).json({ 
-        message: "No students found for the specified batch." 
+      return res.status(404).json({
+        message: "No students found for the specified batch."
       });
     }
 
@@ -609,10 +609,10 @@ router.put("/update-teacher-by-batch", async (req, res) => {
       { assignedTeacher: newTeacherId }
     );
 
-    res.status(200).json({ 
-      message: `Assigned teacher updated for ${result.nModified} students.` 
+    res.status(200).json({
+      message: `Assigned teacher updated for ${result.nModified} students.`
     });
-    
+
   } catch (error) {
     res.status(500).json({ message: "Internal server error." });
   }
@@ -715,6 +715,15 @@ router.put("/:id", async (req, res) => {
 
   } catch (error) {
     console.error("Update error:", error);
+
+    // ✅ Handle duplicate key error specifically
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists. Please use a different ${field}.`
+      });
+    }
+
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -738,28 +747,28 @@ router.delete("/:id", async (req, res) => {
 router.post("/resend-credentials/:userId", verifyToken, checkRole('ADMIN'), async (req, res) => {
   try {
     const userId = req.params.userId;
-    
+
     // Find the user
     const user = await User.findById(userId);
-    
+
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
-    
+
     // Only allow for students
     if (user.role !== "STUDENT") {
       return res.status(400).json({ msg: "Credentials can only be resent to students" });
     }
-    
+
     // Generate a new password
     const passwordPlain = await generatePassword(user.role, user.regNo);
     const hashedPassword = await bcrypt.hash(passwordPlain, 10);
-    
+
     // Update user password and email sent timestamp
     user.password = hashedPassword;
     user.lastCredentialsEmailSent = new Date();
     await user.save();
-    
+
     // Send email with credentials
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -789,20 +798,20 @@ router.post("/resend-credentials/:userId", verifyToken, checkRole('ADMIN'), asyn
     try {
       await transporter.sendMail(mailOptions);
       console.log("✅ Credentials email resent to", user.email);
-      
-      res.json({ 
+
+      res.json({
         success: true,
         msg: "Credentials email sent successfully",
         lastSent: user.lastCredentialsEmailSent
       });
     } catch (emailErr) {
       console.error("❌ Email sending failed:", emailErr);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        msg: "Failed to send email. Please try again." 
+        msg: "Failed to send email. Please try again."
       });
     }
-    
+
   } catch (err) {
     console.error("Error resending credentials:", err);
     res.status(500).json({ error: err.message });
@@ -830,17 +839,17 @@ router.get("/student-dashboard", verifyToken, checkRole('STUDENT'), (req, res) =
 router.get("/users-by-role/:role", verifyToken, checkRole(['ADMIN']), async (req, res) => {
   try {
     const { role } = req.params;
-    
+
     // Validate role
     if (!['ADMIN', 'TEACHER', 'STUDENT'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role specified' });
     }
-    
+
     const users = await User.find({ role })
       .select('-password')
       .populate('assignedCourses', 'title')
       .sort({ createdAt: -1 });
-    
+
     res.json(users);
   } catch (error) {
     console.error('Error fetching users by role:', error);
@@ -854,9 +863,9 @@ router.post("/bulk-upload-students", verifyToken, checkRole(['ADMIN']), async (r
     const { students, sendEmails = true } = req.body;
 
     if (!students || !Array.isArray(students) || students.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Students array is required and must not be empty' 
+      return res.status(400).json({
+        success: false,
+        message: 'Students array is required and must not be empty'
       });
     }
 
@@ -926,7 +935,7 @@ router.post("/bulk-upload-students", verifyToken, checkRole(['ADMIN']), async (r
               // Generate new password for existing user
               const newPasswordPlain = await generatePassword("STUDENT", existingUser.regNo);
               const newHashedPassword = await bcrypt.hash(newPasswordPlain, 10);
-              
+
               // Update password
               existingUser.password = newHashedPassword;
               existingUser.lastCredentialsEmailSent = new Date();
@@ -1103,10 +1112,10 @@ router.post("/bulk-upload-students", verifyToken, checkRole(['ADMIN']), async (r
 
   } catch (error) {
     console.error('Bulk upload error:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Server error during bulk upload',
-      error: error.message 
+      error: error.message
     });
   }
 });

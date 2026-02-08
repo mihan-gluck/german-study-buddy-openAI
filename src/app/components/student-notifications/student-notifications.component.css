@@ -1,0 +1,105 @@
+/* src/app/components/student-notifications/student-notifications.component.css */
+
+.student-notifications-card {
+  background: #ffffff;
+  padding: 1.4rem 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.student-notifications-card .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.student-notifications-card h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-list li {
+  padding: 0.8rem 0.3rem;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.notification-list li.unread {
+  background-color: #f0f4ff;
+  font-weight: 500;
+}
+
+.notification-list li:hover {
+  background-color: #f8f9fa;
+}
+
+.notification-list li:last-child {
+  border-bottom: none;
+}
+
+.notification-list .message {
+  margin-bottom: 0.2rem;
+  color: #2c3e50;
+  font-size: 0.92rem;
+}
+
+.notification-list .meta {
+  font-size: 0.8rem;
+  color: #6c757d;
+  display: flex;
+  justify-content: space-between;
+}
+.notification-list .meta .timestamp {
+  font-style: italic;
+  text-decoration: underline;
+}
+.notification-list .meta .type {
+  text-transform: capitalize;
+}
+.notification-list .meta .type.announcement {
+  color: #007bff;
+}
+.notification-list .meta .type.reminder {
+  color: #28a745;
+}
+.notification-list .meta .type.alert {
+  color: #dc3545;
+}
+.notification-list .meta .type.update {
+  color: #17a2b8;
+}
+.notification-list .meta .type.other {
+  color: #6c757d;
+}
+.empty-notifications {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+.load-more-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
+}
+.load-more-btn:hover {
+  background-color: #0056b3;
+}
+

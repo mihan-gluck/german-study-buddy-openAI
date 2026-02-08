@@ -5,10 +5,22 @@ const router = express.Router();
 const { verifyToken, checkRole } = require('../middleware/auth');
 const OpenAI = require('openai');
 
+
+let openai = null;
+
+if (process.env.OPENAI_API_KEY) {
+  const OpenAI = require("openai");
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+}
+
+
+
 // Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+//const openai = new OpenAI({
+  //apiKey: process.env.OPENAI_API_KEY
+//});
 
 // POST /api/ai/generate-module - Generate module using AI
 router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), async (req, res) => {
@@ -22,7 +34,7 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       description,
       estimatedDuration,
       moduleType,
-      
+
       // Role-play specific fields
       rolePlaySituation,
       rolePlaySetting,
@@ -31,13 +43,26 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       rolePlayObjective,
       aiPersonality,
       studentGuidance,
-      
+
       // Generation options
       generateVocabulary,
       generateExercises,
       generateConversation,
       generateCulturalNotes
     } = req.body;
+
+    // openaoi disabled stub
+    if (!openai) {
+      return res.json({
+        error: "AI disabled in local environment"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "AI module disabled (temporary stub)"
+    });
+
 
     console.log('🤖 AI Module Generation Request:', {
       targetLanguage,
@@ -92,10 +117,10 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       generatedModule = JSON.parse(aiResponse);
     } catch (parseError) {
       console.error('❌ Error parsing AI response:', parseError);
-      
+
       // Try to extract JSON from markdown code blocks
       let jsonContent = aiResponse;
-      
+
       // Remove markdown code blocks if present
       if (aiResponse.includes('```json')) {
         const jsonMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
@@ -114,7 +139,7 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
           jsonContent = jsonMatch[0];
         }
       }
-      
+
       try {
         generatedModule = JSON.parse(jsonContent);
         console.log('✅ Successfully extracted JSON from AI response');
@@ -141,13 +166,13 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
       // Fix common issues
       const fixedModule = fixModuleValidationIssues(enhancedModule);
       console.log('✅ Module validation issues fixed');
-      
+
       // Final check for undefined values after fixing
       const finalUndefinedFields = findUndefinedFields(fixedModule);
       if (finalUndefinedFields.length > 0) {
         console.log('❌ Still have undefined fields after fixing:', finalUndefinedFields);
       }
-      
+
       res.json(fixedModule);
     } else {
       console.log('✅ Module generated successfully:', enhancedModule.title);
@@ -156,10 +181,10 @@ router.post('/generate-module', verifyToken, checkRole(['TEACHER', 'ADMIN']), as
 
   } catch (error) {
     console.error('❌ Error generating module:', error);
-    
+
     // Provide fallback response
     const fallbackModule = createFallbackModule(req.body, req.user.id);
-    
+
     res.status(200).json(fallbackModule);
   }
 });
@@ -468,10 +493,10 @@ function enhanceGeneratedModule(generatedModule, originalRequest, userId) {
     averageScore: 0,
     version: 1,
     updateHistory: [],
-    
+
     // Ensure required fields exist
     prerequisites: generatedModule.prerequisites || [],
-    
+
     // Enhance AI tutor config
     aiTutorConfig: {
       personality: generatedModule.aiTutorConfig?.personality || originalRequest.aiPersonality || `friendly and encouraging ${originalRequest.targetLanguage} tutor`,
@@ -479,26 +504,26 @@ function enhanceGeneratedModule(generatedModule, originalRequest, userId) {
       helpfulPhrases: generatedModule.aiTutorConfig?.helpfulPhrases || [],
       commonMistakes: generatedModule.aiTutorConfig?.commonMistakes || [],
       culturalNotes: generatedModule.aiTutorConfig?.culturalNotes || [],
-      
+
       // CRITICAL: AI Tutor Vocabulary Control - words the AI will use in conversations
-      allowedVocabulary: generatedModule.aiTutorConfig?.allowedVocabulary || 
+      allowedVocabulary: generatedModule.aiTutorConfig?.allowedVocabulary ||
                         generatedModule.content?.allowedVocabulary || [],
-      
+
       // Add role-play instructions if it's a role-play module
       ...(originalRequest.moduleType === 'roleplay' && {
         rolePlayInstructions: {
           aiRole: originalRequest.aiRole || 'Teacher',
           aiPersonality: originalRequest.aiPersonality || 'Friendly and encouraging teacher',
-          openingLines: generatedModule.aiTutorConfig?.rolePlayInstructions?.openingLines || 
+          openingLines: generatedModule.aiTutorConfig?.rolePlayInstructions?.openingLines ||
                        generatedModule.content?.rolePlayScenario?.aiOpeningLines || [],
           studentRole: originalRequest.studentRole || 'Student',
           studentGuidance: originalRequest.studentGuidance || 'Be natural and don\'t worry about making mistakes',
-          suggestedResponses: generatedModule.aiTutorConfig?.rolePlayInstructions?.suggestedResponses || 
+          suggestedResponses: generatedModule.aiTutorConfig?.rolePlayInstructions?.suggestedResponses ||
                              generatedModule.content?.rolePlayScenario?.suggestedStudentResponses || []
         }
       })
     },
-    
+
     // Ensure content structure
     content: {
       introduction: generatedModule.content?.introduction || '',
@@ -507,7 +532,7 @@ function enhanceGeneratedModule(generatedModule, originalRequest, userId) {
       allowedGrammar: generatedModule.content?.allowedGrammar || [],
       examples: generatedModule.content?.examples || [],
       exercises: generatedModule.content?.exercises || [],
-      
+
       // Add role-play scenario if it's a role-play module
       ...(originalRequest.moduleType === 'roleplay' && {
         rolePlayScenario: generateRolePlayScenario(generatedModule, originalRequest)
@@ -533,16 +558,16 @@ function generateRolePlayScenario(generatedModule, originalRequest) {
       suggestedStudentResponses: generatedModule.content.rolePlayScenario.suggestedStudentResponses || []
     };
   }
-  
+
   // Fallback: Generate basic scenario from roles
   // IMPORTANT: Always use provided roles or default to Student/Teacher
   const studentRole = originalRequest.studentRole || 'Student';
   const aiRole = originalRequest.aiRole || 'Teacher';
-  
+
   // Intelligent scenario generation based on roles
   let situation = 'General conversation';
   let setting = 'A friendly learning environment';
-  
+
   if (aiRole.toLowerCase().includes('waiter') || aiRole.toLowerCase().includes('server')) {
     situation = 'At a restaurant';
     setting = 'A busy restaurant with authentic cuisine';
@@ -562,7 +587,7 @@ function generateRolePlayScenario(generatedModule, originalRequest) {
     situation = 'Language learning session';
     setting = 'A comfortable classroom or study environment';
   }
-  
+
   return {
     situation,
     setting,
@@ -596,7 +621,7 @@ function generateLanguageSpecificIntroduction(targetLanguage, category) {
       'Listening': 'Welcome to this listening module! We will improve your ability to understand spoken English.'
     }
   };
-  
+
   // Get language-specific introduction or fall back to English
   const languageIntros = introductions[targetLanguage] || introductions['English'];
   return languageIntros[category] || languageIntros['Conversation'] || 'Welcome to this learning module!';
@@ -660,23 +685,23 @@ function validateGeneratedModule(module) {
   if (!module.title || module.title.length > 60) {
     errors.push('Title is required and must be under 60 characters');
   }
-  
+
   if (!allowedTargetLanguages.includes(module.targetLanguage)) {
     errors.push(`Invalid target language: ${module.targetLanguage}`);
   }
-  
+
   if (!allowedNativeLanguages.includes(module.nativeLanguage)) {
     errors.push(`Invalid native language: ${module.nativeLanguage}`);
   }
-  
+
   if (!allowedLevels.includes(module.level)) {
     errors.push(`Invalid level: ${module.level}`);
   }
-  
+
   if (!allowedCategories.includes(module.category)) {
     errors.push(`Invalid category: ${module.category}`);
   }
-  
+
   if (!allowedDifficulties.includes(module.difficulty)) {
     errors.push(`Invalid difficulty: ${module.difficulty}`);
   }
@@ -687,11 +712,11 @@ function validateGeneratedModule(module) {
       if (!allowedExerciseTypes.includes(exercise.type)) {
         errors.push(`Invalid exercise type at index ${index}: ${exercise.type}`);
       }
-      
+
       if (exercise.type === 'multiple-choice' && (!exercise.options || exercise.options.length !== 4)) {
         errors.push(`Multiple choice exercise at index ${index} must have exactly 4 options`);
       }
-      
+
       if (!exercise.question || !exercise.correctAnswer) {
         errors.push(`Exercise at index ${index} missing question or correctAnswer`);
       }
@@ -774,24 +799,24 @@ function fixModuleValidationIssues(module) {
     module.content.exercises = module.content.exercises.map(exercise => {
       // Store original type for logging
       const originalType = exercise.type;
-      
+
       // Fix invalid exercise types
       if (!allowedExerciseTypes.includes(exercise.type)) {
         const mappedType = exerciseTypeMapping[exercise.type] || 'multiple-choice';
         console.log(`🔧 Fixed exercise type: ${exercise.type} → ${mappedType}`);
         exercise.type = mappedType;
       }
-      
+
       // Ensure multiple choice has 4 options BEFORE setting correctAnswer
       if (exercise.type === 'multiple-choice') {
         if (!exercise.options || exercise.options.length < 4) {
           exercise.options = exercise.options || [];
-          
+
           // If we have a correctAnswer but no options, use it as first option
           if (exercise.correctAnswer && exercise.options.length === 0) {
             exercise.options.push(exercise.correctAnswer);
           }
-          
+
           // Fill remaining options
           while (exercise.options.length < 4) {
             exercise.options.push(`Option ${exercise.options.length + 1}`);
@@ -800,17 +825,17 @@ function fixModuleValidationIssues(module) {
         if (exercise.options.length > 4) {
           exercise.options = exercise.options.slice(0, 4);
         }
-        
+
         // NOW ensure correctAnswer is one of the options
         if (!exercise.correctAnswer || !exercise.options.includes(exercise.correctAnswer)) {
           exercise.correctAnswer = exercise.options[0];
           console.log(`🔧 Fixed correctAnswer for multiple-choice exercise: "${exercise.correctAnswer}"`);
         }
       }
-      
+
       // Ensure required fields for all exercise types
       exercise.question = exercise.question || 'Sample question';
-      
+
       // Set correctAnswer based on exercise type if still undefined
       if (!exercise.correctAnswer) {
         if (exercise.type === 'multiple-choice' && exercise.options && exercise.options.length > 0) {
@@ -820,10 +845,10 @@ function fixModuleValidationIssues(module) {
         }
         console.log(`🔧 Set missing correctAnswer: "${exercise.correctAnswer}"`);
       }
-      
+
       exercise.explanation = exercise.explanation || 'Explanation for the correct answer';
       exercise.points = exercise.points || 1;
-      
+
       return exercise;
     });
   }
@@ -834,18 +859,18 @@ function fixModuleValidationIssues(module) {
 // Helper function to find undefined fields recursively
 function findUndefinedFields(obj, path = '') {
   const undefinedFields = [];
-  
+
   if (obj === null || obj === undefined) {
     return [path || 'root'];
   }
-  
+
   if (typeof obj !== 'object') {
     return [];
   }
-  
+
   for (const [key, value] of Object.entries(obj)) {
     const currentPath = path ? `${path}.${key}` : key;
-    
+
     if (value === undefined) {
       undefinedFields.push(currentPath);
     } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
@@ -860,7 +885,7 @@ function findUndefinedFields(obj, path = '') {
       });
     }
   }
-  
+
   return undefinedFields;
 }
 

@@ -1,0 +1,150 @@
+<!-- src/app/components/student-assigned-assignments/student-assigned-assignments.component.html
+<div class="assigned-assignments-card">
+  <h3>Assigned Exams & Papers</h3>
+
+  <ul class="assigned-list">
+    <li *ngFor="let assignment of assignedAssignments">
+      <div class="title-row">
+        <div class="title">
+          {{ assignment.title }}
+        </div>
+
+        <!-- Download button on the right
+        <button
+          class="download-btn"
+          *ngIf="assignment.fileUrl"
+          (click)="downloadAssignment(assignment)"
+        >
+          Download: {{ assignment.title }}
+        </button>
+      </div>
+
+      <div class="meta">
+        <span>Due: {{ assignment.dueDate | date: 'mediumDate' }}</span>
+        <span>From: {{ assignment.teacherName }}</span>
+      </div>
+
+      <p class="description" *ngIf="assignment.description">
+        {{ assignment.description }}
+      </p>
+
+      <!-- if you already render files, keep them below as-is 
+      <div class="files" *ngIf="assignment.files?.length">
+        <a
+          *ngFor="let f of assignment.files"
+          [href]="f.url"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ f.originalName }}
+        </a>
+      </div>
+
+      <div class="status" *ngIf="assignment.status">
+        {{ assignment.status }}
+      </div>
+    </li>
+  </ul>
+
+
+<div class="assigned-assignments-card">
+  <h3>Assigned Exams & Papers</h3>
+
+  <ul class="assigned-list">
+    <li *ngFor="let assignment of assignedAssignments">
+      <div class="title-row">
+        <div class="title">
+          {{ assignment.title }}
+        </div>
+
+        <button
+          class="download-btn"
+          *ngIf="assignment.fileUrl"
+          (click)="downloadAssignment(assignment)"
+        >
+          View / Download
+        </button>
+      </div>
+
+      <div class="meta">
+        <span>Due: {{ assignment.dueDate | date: 'mediumDate' }}</span>
+        <span>From: {{ assignment.teacherName }}</span>
+      </div>
+
+      <p class="description" *ngIf="assignment.description">
+        {{ assignment.description }}
+      </p>
+
+      <div class="status" *ngIf="assignment.status">
+        {{ assignment.status }}
+      </div>
+    </li>
+  </ul>
+
+  <div *ngIf="assignedAssignments.length === 0">
+    No exams or papers assigned yet.
+  </div>
+</div>
+
+</div>  -->
+
+
+<div class="assigned-assignments-card">
+  <h3>Assigned Exams & Assignments</h3>
+
+  <div *ngIf="loading">Loading assigned work...</div>
+  <p class="text-danger" *ngIf="error">{{ error }}</p>
+
+  <div *ngIf="!loading && templates.length === 0">
+    No exams or assignments assigned yet.
+  </div>
+
+  <ul class="assigned-list" *ngIf="!loading && templates.length">
+    <li *ngFor="let t of templates">
+      <div class="title-row">
+        <span class="title">{{ t.title }}</span>
+
+        <!-- Download button -->
+        <a
+          *ngIf="t.files.length"
+          class="download-btn"
+          [href]="getFileUrl(t.files[0])"
+          target="_blank"
+          rel="noopener"
+          download
+        >
+          Download "{{ t.title }}"
+        </a>
+      </div>
+
+      <div class="meta">
+        <span *ngIf="t.dueDate">
+          Due: {{ t.dueDate | date:'mediumDate' }}
+        </span>
+        <span *ngIf="t.teacherId">
+          By: {{ t.teacherId.name }}
+        </span>
+      </div>
+
+      <p class="description" *ngIf="t.description">
+        {{ t.description }}
+      </p>
+
+      <!-- Optional: show all files -->
+      <div class="files" *ngIf="t.files.length">
+        <span>Files:</span>
+        <a
+          *ngFor="let f of t.files"
+          [href]="getFileUrl(f)"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ f.originalName }}
+        </a>
+      </div>
+    </li>
+  </ul>
+</div>
+
+
+

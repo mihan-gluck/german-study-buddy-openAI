@@ -1,0 +1,36 @@
+<!-- src/app/components/teacher-notifications/teacher-notifications.component.html -->
+
+<div class="teacher-notifications-card">
+    <div class="header">
+      <h3>Notifications</h3>
+      <button class="btn btn-sm btn-link" (click)="markAllAsRead()">Mark all as read</button>
+    </div>
+  
+    <div *ngIf="loading">Loading notifications...</div>
+    <p class="text-danger" *ngIf="error">{{ error }}</p>
+  
+    <ul class="notification-list" *ngIf="!loading && notifications.length">
+      <li
+        *ngFor="let n of notifications"
+        [class.unread]="!n.read"
+        (click)="markAsRead(n)"
+      >
+        <div class="message">
+          {{ n.message }}
+        </div>
+        <div class="meta">
+          <span *ngIf="n.actorId">
+            From: {{ n.actorId.name }} ({{ n.actorId.regNo }})
+          </span>
+          <span class="time">
+            {{ n.createdAt | date:'short' }}
+          </span>
+        </div>
+      </li>
+    </ul>
+  
+    <p *ngIf="!loading && !notifications.length">
+      No notifications yet.
+    </p>
+  </div>
+  

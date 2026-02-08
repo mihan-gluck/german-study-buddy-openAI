@@ -28,7 +28,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-md-3">
         <div class="stat-card">
           <div class="stat-icon success">
@@ -40,7 +40,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-md-3">
         <div class="stat-card">
           <div class="stat-icon info">
@@ -52,7 +52,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-md-3">
         <div class="stat-card">
           <div class="stat-icon warning">
@@ -78,7 +78,7 @@
             <span class="progress-percentage">{{ levelData.percentage }}%</span>
           </div>
           <div class="progress">
-            <div 
+            <div
               class="progress-bar bg-primary"
               [style.width.%]="levelData.percentage">
             </div>
@@ -102,7 +102,7 @@
             <div class="chart-item" *ngFor="let dayData of getWeeklyActivityData()">
               <div class="day-label">{{ dayData.dayShort }}</div>
               <div class="activity-bar">
-                <div 
+                <div
                   class="bar sessions"
                   [style.height.px]="Math.max(dayData.sessions * 15, 2)"
                   [title]="dayData.sessions + ' sessions on ' + dayData.day">
@@ -122,8 +122,8 @@
         <div class="activity-card">
           <h3>Recent Sessions</h3>
           <div class="recent-sessions">
-            <div 
-              class="session-item" 
+            <div
+              class="session-item"
               *ngFor="let session of analytics.recentSessions.slice(0, 5)">
               <div class="session-info">
                 <h5>{{ session.moduleTitle }}</h5>
@@ -134,7 +134,7 @@
                 <small>points</small>
               </div>
             </div>
-            
+
             <div class="empty-sessions" *ngIf="analytics.recentSessions.length === 0">
               <p>No recent sessions. Start your first AI tutoring session!</p>
               <button class="btn btn-primary btn-sm" (click)="navigateToModules()">
@@ -154,7 +154,7 @@
       <div class="category-item" *ngFor="let categoryData of getCategoryProgressData()">
         <div class="category-header">
           <span class="category-icon">
-            {{ categoryData.category === 'Grammar' ? '📚' : 
+            {{ categoryData.category === 'Grammar' ? '📚' :
                categoryData.category === 'Vocabulary' ? '📝' :
                categoryData.category === 'Conversation' ? '💬' :
                categoryData.category === 'Reading' ? '📖' :
@@ -165,7 +165,7 @@
         </div>
         <div class="category-progress">
           <div class="progress">
-            <div 
+            <div
               class="progress-bar bg-success"
               [style.width.%]="categoryData.percentage">
             </div>
@@ -189,7 +189,7 @@
         <h4>Browse Modules</h4>
         <p>Explore available learning modules</p>
       </div>
-      
+
       <div class="action-card" (click)="viewProgress()">
         <div class="action-icon">
           <i class="fas fa-chart-line"></i>
@@ -197,7 +197,7 @@
         <h4>View Progress</h4>
         <p>Check your detailed learning progress</p>
       </div>
-      
+
       <div class="action-card" (click)="viewPerformanceHistory()">
         <div class="action-icon">
           <i class="fas fa-history"></i>
@@ -205,7 +205,7 @@
         <h4>Performance History</h4>
         <p>See all your session attempts and improvements</p>
       </div>
-      
+
       <div class="action-card" (click)="testAudio()">
         <div class="action-icon">
           <i class="fas fa-microphone-alt"></i>
@@ -213,9 +213,32 @@
         <h4>Audio Test</h4>
         <p>Test your microphone and speakers</p>
       </div>
+
+      <!-- Exams / Assignments tile -->
+      <div class="action-card" (click)="navigateToExams()">
+        <div class="action-icon">
+            <i class="fas fa-file-alt"></i>
+        </div>
+      <h4>Exams & Assignments</h4>
+      <p>Download and submit your exam papers</p>
     </div>
   </div>
 </div>
+
+
+
+
+
+<section class="quick-actions-section">
+  <!-- existing quick actions ... -->
+  <div class="actions-grid">
+    <!-- existing cards -->
+    <div class="action-card">
+      <app-student-notifications></app-student-notifications>
+    </div>
+  </div>
+</section>
+
 
 <!-- Loading State -->
 <div class="loading-container" *ngIf="isLoading">
@@ -237,7 +260,6 @@
         <i class="fas fa-refresh"></i> Retry
       </button>
     </div>
-    
     <!-- Show basic navigation even when analytics fail -->
     <div class="quick-actions-section mt-4">
       <h3>Quick Actions</h3>
@@ -249,7 +271,7 @@
           <h4>Browse Modules</h4>
           <p>Explore available learning modules</p>
         </div>
-        
+
         <div class="action-card" (click)="viewProgress()">
           <div class="action-icon">
             <i class="fas fa-chart-line"></i>
@@ -257,7 +279,7 @@
           <h4>View Progress</h4>
           <p>Check your detailed learning progress</p>
         </div>
-        
+
         <div class="action-card" (click)="viewPerformanceHistory()">
           <div class="action-icon">
             <i class="fas fa-history"></i>
@@ -265,7 +287,7 @@
           <h4>Performance History</h4>
           <p>See all your session attempts and improvements</p>
         </div>
-        
+
         <div class="action-card" (click)="testAudio()">
           <div class="action-icon">
             <i class="fas fa-microphone-alt"></i>
@@ -273,7 +295,16 @@
           <h4>Audio Test</h4>
           <p>Test your microphone and speakers</p>
         </div>
-      </div>
+
+        <!-- Exams / Assignments tile -->
+        <div class="action-card" (click)="navigateToExams()">
+          <div class="action-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <h4>Exams & Assignments</h4>
+          <p>Download and submit your exam papers</p>
+        </div>
+
     </div>
   </div>
 </div>

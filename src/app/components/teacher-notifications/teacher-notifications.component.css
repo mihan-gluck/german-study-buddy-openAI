@@ -1,0 +1,156 @@
+/* src/app/components/teacher-notifications/teacher-notifications.component.css */
+
+/* Card */
+.teacher-notifications-card {
+  margin-bottom: 1.5rem;
+  padding: 1.4rem 1.5rem;
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+.teacher-notifications-card .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.teacher-notifications-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.teacher-notifications-card .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Notification list */
+.notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notification-list li {
+  padding: 0.75rem 0.4rem;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.notification-list li:last-child {
+  border-bottom: none;
+}
+
+.notification-list li:hover {
+  background-color: #f8f9fa;
+}
+
+.notification-list li.unread {
+  background-color: #f0f4ff;
+  font-weight: 500;
+}
+
+/* Content */
+.notification-list .message {
+  margin-bottom: 0.25rem;
+  font-size: 0.92rem;
+  color: #2c3e50;
+}
+
+.notification-list .meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.notification-list .meta .timestamp {
+  font-style: italic;
+  text-decoration: underline;
+}
+
+.notification-list .meta .type {
+  text-transform: capitalize;
+}
+
+/* Meta type colors */
+.notification-list .meta .type.announcement {
+  color: #007bff;
+}
+
+.notification-list .meta .type.reminder {
+  color: #28a745;
+}
+
+.notification-list .meta .type.alert {
+  color: #dc3545;
+}
+
+.notification-list .meta .type.update {
+  color: #17a2b8;
+}
+
+.notification-list .meta .type.other {
+  color: #6c757d;
+}
+
+/* Optional badges */
+.notification-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.notification-type-badge.info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.notification-type-badge.warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.notification-type-badge.alert {
+  background-color: #fdecea;
+  color: #b71c1c;
+}
+
+/* Empty state */
+.empty-notifications {
+  padding: 2rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+/* Load more */
+.load-more-btn {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.load-more-btn:hover {
+  background-color: #0056b3;
+}
