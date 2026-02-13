@@ -209,6 +209,10 @@ export class AuthService {
   getTeachersByBatch(batchNo: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/auth/teachers-by-batch/${batchNo}`, { withCredentials: true});
   }
+  // Resend credentials to a student
+  resendCredentials(studentId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/resend-credentials/${studentId}`, {}, { withCredentials: true });
+  }
 
   // Method to perform authenticated request
   fetchProtectedData(endpoint: string): Observable<any> {

@@ -212,6 +212,94 @@ router.post('/bulk-update', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+// Bulk delete students
+router.post('/bulk-delete', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { studentIds } = req.body;
+
+    // Validate input
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Student IDs are required' 
+      });
+    }
+
+    console.log(`🗑️ Bulk delete request for ${studentIds.length} students`);
+
+    // Import related models for cascade delete
+    const CourseProgress = require('../models/CourseProgress');
+    const Feedback = require('../models/Feedback');
+    const StudentProgress = require('../models/StudentProgress');
+    const SessionRecord = require('../models/SessionRecord');
+    const StudentDocument = require('../models/StudentDocument');
+    const StudentLogs = require('../models/StudentLogs');
+    const AiTutorSession = require('../models/AiTutorSession');
+    const AssignmentSubmission = require('../models/AssignmentSubmission');
+    const GradingResult = require('../models/GradingResult');
+
+    // Delete related data first (cascade delete)
+    const deletePromises = [
+      CourseProgress.deleteMany({ studentId: { $in: studentIds } }),
+      Feedback.deleteMany({ studentId: { $in: studentIds } }),
+      StudentProgress.deleteMany({ studentId: { $in: studentIds } }),
+      SessionRecord.deleteMany({ studentId: { $in: studentIds } }),
+      StudentDocument.deleteMany({ studentId: { $in: studentIds } }),
+      StudentLogs.deleteMany({ studentId: { $in: studentIds } }),
+      AiTutorSession.deleteMany({ studentId: { $in: studentIds } }),
+      AssignmentSubmission.deleteMany({ studentId: { $in: studentIds } }),
+      GradingResult.deleteMany({ studentId: { $in: studentIds } })
+    ];
+
+    // Execute all deletions
+    const relatedResults = await Promise.all(deletePromises);
+    
+    console.log('🗑️ Deleted related data:', {
+      courseProgress: relatedResults[0].deletedCount,
+      feedback: relatedResults[1].deletedCount,
+      studentProgress: relatedResults[2].deletedCount,
+      sessionRecords: relatedResults[3].deletedCount,
+      studentDocuments: relatedResults[4].deletedCount,
+      studentLogs: relatedResults[5].deletedCount,
+      aiTutorSessions: relatedResults[6].deletedCount,
+      assignmentSubmissions: relatedResults[7].deletedCount,
+      gradingResults: relatedResults[8].deletedCount
+    });
+
+    // Finally, delete the students themselves (only those with STUDENT role for safety)
+    const result = await User.deleteMany(
+      { _id: { $in: studentIds }, role: 'STUDENT' }
+    );
+
+    console.log(`✅ Deleted ${result.deletedCount} students`);
+
+    res.json({ 
+      success: true, 
+      message: `Successfully deleted ${result.deletedCount} student(s) and all related data`,
+      deletedCount: result.deletedCount,
+      relatedDataDeleted: {
+        courseProgress: relatedResults[0].deletedCount,
+        feedback: relatedResults[1].deletedCount,
+        studentProgress: relatedResults[2].deletedCount,
+        sessionRecords: relatedResults[3].deletedCount,
+        studentDocuments: relatedResults[4].deletedCount,
+        studentLogs: relatedResults[5].deletedCount,
+        aiTutorSessions: relatedResults[6].deletedCount,
+        assignmentSubmissions: relatedResults[7].deletedCount,
+        gradingResults: relatedResults[8].deletedCount
+      }
+    });
+
+  } catch (err) {
+    console.error('Bulk delete error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete students',
+      error: err.message 
+    });
+  }
+});
+
 
 module.exports = router;
 

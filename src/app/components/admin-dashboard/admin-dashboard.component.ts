@@ -304,6 +304,46 @@ export class AdminDashboardComponent implements OnInit {
     };
   }
 
+  bulkDeleteStudents(): void {
+    if (this.selectedStudentIds.size === 0) {
+      alert('Please select at least one student to delete');
+      return;
+    }
+
+    const studentIds = Array.from(this.selectedStudentIds);
+    const count = studentIds.length;
+
+    const confirmMessage = `⚠️ WARNING: You are about to permanently delete ${count} student(s).\n\nThis action cannot be undone and will remove:\n- Student account\n- All progress data\n- All session records\n- All associated data\n\nAre you absolutely sure you want to continue?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Double confirmation for safety
+    const doubleConfirm = confirm(`Final confirmation: Delete ${count} student(s)?`);
+    if (!doubleConfirm) {
+      return;
+    }
+
+    console.log('🗑️ [BULK DELETE] Deleting students:', studentIds);
+
+    this.http.post(`${apiUrl}/admin/bulk-delete`, { studentIds }, { withCredentials: true })
+      .subscribe({
+        next: (res: any) => {
+          console.log('✅ [BULK DELETE] SUCCESS:', res);
+          alert(`✅ Successfully deleted ${count} student(s)`);
+          this.selectedStudentIds.clear();
+          this.selectAll = false;
+          this.fetchStudents();
+        },
+        error: (err: any) => {
+          console.error('❌ [BULK DELETE] FAILED:', err);
+          const errorMessage = err.error?.message || err.message || 'Bulk delete failed';
+          alert(`❌ Bulk Delete Failed:\n\n${errorMessage}`);
+        }
+      });
+  }
+
   applyBulkUpdate(): void {
     const studentIds = Array.from(this.selectedStudentIds);
     
@@ -560,7 +600,7 @@ export class AdminDashboardComponent implements OnInit {
     this.resendingCredentials[student._id] = true;
 
     this.authService.resendCredentials(student._id).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         alert(`✅ Credentials email sent successfully to ${student.name}!\n\nThe student will receive their new login details at ${student.email}`);
         
         // Update the student's lastCredentialsEmailSent in the local array
@@ -577,7 +617,7 @@ export class AdminDashboardComponent implements OnInit {
         
         this.resendingCredentials[student._id] = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error resending credentials:', error);
         alert(`❌ Failed to send credentials email.\n\nError: ${error.error?.msg || error.message || 'Unknown error'}\n\nPlease try again.`);
         this.resendingCredentials[student._id] = false;

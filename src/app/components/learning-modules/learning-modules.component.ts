@@ -64,8 +64,17 @@ export class LearningModulesComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeFilterOptions();
-    this.loadCurrentUser();
-    this.loadModules();
+    
+    // Load user first, then load modules
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      console.log('👤 Current user loaded:', user);
+      
+      // Only load modules after user is loaded
+      if (user) {
+        this.loadModules();
+      }
+    });
     
     // Refresh modules when user returns from AI tutor
     document.addEventListener('visibilitychange', () => {
@@ -85,17 +94,18 @@ export class LearningModulesComponent implements OnInit {
     this.nativeLanguages = this.learningModulesService.getAvailableNativeLanguages();
   }
 
-  loadCurrentUser(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
-  }
-
   loadModules(): void {
     this.isLoading = true;
     
+    console.log('📚 loadModules() called');
+    console.log('👤 Current user:', this.currentUser);
+    console.log('📖 User level:', this.currentUser?.level);
+    console.log('🎭 User role:', this.currentUser?.role);
+    
     // For students, use level-based access control
     if (this.currentUser?.role === 'STUDENT') {
+      console.log(`🔒 Loading accessible modules for ${this.currentUser.level} level student`);
+      
       this.learningModulesService.getAccessibleModules(this.currentUser.level, this.filters).subscribe({
         next: (response) => {
           this.modules = response.modules;
@@ -103,10 +113,11 @@ export class LearningModulesComponent implements OnInit {
           this.pagination = response.pagination;
           this.isLoading = false;
           
-          console.log(`🔒 Loaded ${response.modules.length} accessible modules for ${this.currentUser.level} level student`);
+          console.log(`✅ Loaded ${response.modules.length} accessible modules`);
+          console.log('📊 Modules:', response.modules.map(m => ({ title: m.title, level: m.level })));
         },
         error: (error) => {
-          console.error('Error loading accessible modules:', error);
+          console.error('❌ Error loading accessible modules:', error);
           this.isLoading = false;
           alert('Failed to load learning modules');
         }
@@ -541,7 +552,18 @@ Languages:
       return true; // Teachers and admins can access all modules
     }
     
-    return this.levelAccessService.canAccessModule(this.currentUser.level, module.level);
+    const canAccess = this.levelAccessService.canAccessModule(this.currentUser.level, module.level);
+    
+    // Debug logging
+    if (!canAccess) {
+      console.log(`🔒 Access denied for module "${module.title}":`, {
+        studentLevel: this.currentUser.level,
+        moduleLevel: module.level,
+        studentName: this.currentUser.name
+      });
+    }
+    
+    return canAccess;
   }
 
   // Get access status for a module

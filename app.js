@@ -44,9 +44,13 @@ const documentRequirementsRoutes = require('./routes/documentRequirements');
 const assignmentRoutes = require('./routes/assignments');
 const assignmentTemplatesRoutes = require('./routes/assignmentTemplates');
 const notificationRoutes = require('./routes/notifications');
+const metaLeadsRoutes = require('./routes/metaLeads');
 
 const gradingRoutes = require("./routes/grading");
 const { gradeAssignment } = require("./services/grading.service");
+
+// Import and schedule Meta to Monday.com sync job
+const { scheduleMetaToMondaySync } = require('./jobs/metaToMondaySync');
 
 // Multer setup for file uploads
 const multer = require('multer');
@@ -136,6 +140,7 @@ app.use('/api/document-requirements', documentRequirementsRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/assignment-templates', assignmentTemplatesRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/meta-leads', metaLeadsRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {
@@ -185,5 +190,11 @@ app.post('/api/grade-assignment', async (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  
+  // Initialize Meta to Monday.com sync cron job
+  scheduleMetaToMondaySync();
+});
+
 
