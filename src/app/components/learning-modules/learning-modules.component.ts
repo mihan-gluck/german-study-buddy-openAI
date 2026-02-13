@@ -114,7 +114,7 @@ export class LearningModulesComponent implements OnInit {
           this.isLoading = false;
           
           console.log(`✅ Loaded ${response.modules.length} accessible modules`);
-          console.log('📊 Modules:', response.modules.map(m => ({ title: m.title, level: m.level })));
+          console.log('📊 Modules:', response.modules.map((m: LearningModule) => ({ title: m.title, level: m.level })));
         },
         error: (error) => {
           console.error('❌ Error loading accessible modules:', error);
