@@ -39,19 +39,31 @@ export class LoginComponent {
     this.authService.login(user).subscribe({
       next: (response) => {
         console.log('✅ Login successful:', response);
-        this.loading = false;
+        
+        // Ensure user profile is refreshed before navigation
+        this.authService.refreshUserProfile().subscribe({
+          next: (user) => {
+            console.log('✅ User profile refreshed:', user);
+            this.loading = false;
 
-        const role = response.user?.role || response.role;
+            const role = user?.role || response.user?.role || response.role;
 
-        if (role === 'ADMIN') {
-          this.router.navigate(['/admin-dashboard']);
-        } else if (role === 'TEACHER') {
-          this.router.navigate(['/teacher-dashboard']);
-        } else if (role === 'STUDENT') {
-          this.router.navigate(['/student-dashboard']);
-        } else {
-          this.errorMessage = 'Unknown user role.';
-        }
+            if (role === 'ADMIN') {
+              this.router.navigate(['/admin-dashboard']);
+            } else if (role === 'TEACHER') {
+              this.router.navigate(['/teacher-dashboard']);
+            } else if (role === 'STUDENT') {
+              this.router.navigate(['/student-dashboard']);
+            } else {
+              this.errorMessage = 'Unknown user role.';
+            }
+          },
+          error: (err) => {
+            console.error('❌ Error refreshing profile:', err);
+            this.loading = false;
+            this.errorMessage = 'Failed to load user profile.';
+          }
+        });
       },
       error: (err) => {
         this.loading = false;
