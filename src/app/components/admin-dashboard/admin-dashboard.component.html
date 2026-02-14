@@ -27,12 +27,12 @@
         <div class="col-12">
           <ul class="nav nav-tabs">
             <li class="nav-item">
-              <a class="nav-link active" data-bs-toggle="tab" href="#students-tab">
+              <a class="nav-link" [class.active]="activeTab === 'students'" (click)="activeTab = 'students'" style="cursor: pointer;">
                 <i class="fas fa-user-graduate"></i> Students
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="tab" href="#roles-tab">
+              <a class="nav-link" [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'" style="cursor: pointer;">
                 <i class="fas fa-user-shield"></i> User Roles
               </a>
             </li>
@@ -46,7 +46,7 @@
   <div class="tab-content">
     
     <!-- Students Tab -->
-    <div class="tab-pane fade show active" id="students-tab">
+    <div class="tab-pane fade" [class.show]="activeTab === 'students'" [class.active]="activeTab === 'students'" *ngIf="activeTab === 'students'">
 
   <!-- Main Content Area -->
   <div class="admin-content">
@@ -350,7 +350,7 @@
     <!-- End Students Tab -->
     
     <!-- User Roles Tab -->
-    <div class="tab-pane fade" id="roles-tab">
+    <div class="tab-pane fade" [class.show]="activeTab === 'roles'" [class.active]="activeTab === 'roles'" *ngIf="activeTab === 'roles'">
       <div class="admin-content">
         <div class="container-fluid">
           

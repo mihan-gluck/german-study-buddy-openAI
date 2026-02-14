@@ -101,6 +101,7 @@ export class AdminDashboardComponent implements OnInit {
   filteredStudents: any[] = [];  // shown in table
   selectedStudentIds = new Set<string>();
   selectAll = false;
+  activeTab: string = 'students'; // Track active tab
 
   loading = false;
   error = '';
