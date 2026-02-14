@@ -4,12 +4,21 @@ const router = express.Router();
 const { verifyToken, isAdmin } = require('../middleware/auth');
 const { fetchMetaLeads, parseMetaLead, getPageAccessToken } = require('../services/metaLeadsService');
 
+// Helper function to get Meta configuration
+function getMetaConfig() {
+  const accessToken = process.env.META_ACCESS_TOKEN;
+  const pageId = process.env.META_PAGE_ID;
+  const formId = process.env.META_FORM_ID && process.env.META_FORM_ID.trim() !== '' && process.env.META_FORM_ID !== 'your_lead_form_id_here' 
+    ? process.env.META_FORM_ID 
+    : null; // null means fetch from all forms
+  
+  return { accessToken, pageId, formId };
+}
+
 // Get leads from today
 router.get('/today', verifyToken, isAdmin, async (req, res) => {
   try {
-    const accessToken = process.env.META_ACCESS_TOKEN;
-    const pageId = process.env.META_PAGE_ID;
-    const formId = process.env.META_FORM_ID;
+    const { accessToken, pageId, formId } = getMetaConfig();
 
     if (!accessToken || !pageId) {
       return res.status(400).json({
@@ -47,9 +56,7 @@ router.get('/today', verifyToken, isAdmin, async (req, res) => {
 // Get leads from last N days
 router.get('/last-days/:days', verifyToken, isAdmin, async (req, res) => {
   try {
-    const accessToken = process.env.META_ACCESS_TOKEN;
-    const pageId = process.env.META_PAGE_ID;
-    const formId = process.env.META_FORM_ID;
+    const { accessToken, pageId, formId } = getMetaConfig();
     const days = parseInt(req.params.days) || 7;
 
     if (!accessToken || !pageId) {
@@ -99,9 +106,7 @@ router.get('/last-days/:days', verifyToken, isAdmin, async (req, res) => {
 // Get lead statistics
 router.get('/stats', verifyToken, isAdmin, async (req, res) => {
   try {
-    const accessToken = process.env.META_ACCESS_TOKEN;
-    const pageId = process.env.META_PAGE_ID;
-    const formId = process.env.META_FORM_ID;
+    const { accessToken, pageId, formId } = getMetaConfig();
 
     if (!accessToken || !pageId) {
       return res.status(400).json({
@@ -163,9 +168,7 @@ router.get('/stats', verifyToken, isAdmin, async (req, res) => {
 // Manual sync endpoint (existing)
 router.post('/sync', verifyToken, isAdmin, async (req, res) => {
   try {
-    const accessToken = process.env.META_ACCESS_TOKEN;
-    const pageId = process.env.META_PAGE_ID;
-    const formId = process.env.META_FORM_ID;
+    const { accessToken, pageId, formId } = getMetaConfig();
 
     if (!accessToken || !pageId) {
       return res.status(400).json({
@@ -201,14 +204,15 @@ router.post('/sync', verifyToken, isAdmin, async (req, res) => {
 // Get sync status
 router.get('/status', verifyToken, isAdmin, async (req, res) => {
   try {
-    const hasCredentials = !!(process.env.META_ACCESS_TOKEN && process.env.META_PAGE_ID);
+    const { accessToken, pageId, formId } = getMetaConfig();
+    const hasCredentials = !!(accessToken && pageId);
     
     res.json({
       success: true,
       configured: hasCredentials,
-      pageId: process.env.META_PAGE_ID || 'Not configured',
-      formId: process.env.META_FORM_ID || 'All forms',
-      mondayConfigured: !!(process.env.MONDAY_API_KEY && process.env.MONDAY_BOARD_ID)
+      pageId: pageId || 'Not configured',
+      formId: formId || 'All forms (syncing from all 25 forms)',
+      mondayConfigured: !!(process.env.MONDAY_API_TOKEN && process.env.MONDAY_BOARD_ID)
     });
 
   } catch (error) {

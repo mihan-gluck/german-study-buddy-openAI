@@ -24,20 +24,28 @@ async function addLeadToMonday(apiToken, boardId, leadData) {
     `;
 
     // Prepare column values based on your Monday.com board structure
+    // Map Meta lead fields to Monday columns
     const columnValues = {
-      email: leadData.email || '',
-      phone: leadData.phone || '',
-      text: leadData.metaLeadId || '',
-      date4: leadData.createdTime ? new Date(leadData.createdTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+      // Basic contact info
+      text_mkw3spks: leadData.email || '',           // Email column
+      text_mkw2wpvr: leadData.phone || '',           // Phone Number column
+      phone_mkv0a5mm: leadData.phone || '',          // WhatsApp Number column
+      
+      // Meta lead tracking
+      text_mkw0n3t5: leadData.metaLeadId || '',      // META LEAD ID column (actual lead ID)
+      text_mkvwk3h9: leadData.formId || '',          // ad_id column (using Form ID - best available)
+      date_mkw2jae2: leadData.createdTime ? new Date(leadData.createdTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0], // Date column
+      text_mkvdkw8g: 'Facebook Lead Ad',             // Lead Source column
+      text_mkvwwp5t: leadData.formName || 'Unknown Form',  // ad_name column (Form Name)
+      
+      // Additional fields from Meta form
+      text_mkw38wse: leadData.customFields['how_old_are_you?'] || '',  // Age column
+      text_mkw32n6r: leadData.customFields['may_we_know_your_highest_level_of_education?'] || '',  // Qualification column
+      text_mkv080k2: leadData.customFields['your_degree/diploma_field'] || '',  // Client Address (using for field of study)
+      
+      // Comment from Meta - Note: Meta Lead Ads API does not provide platform, campaign, or ad set info
+      text_mkv7nzpn: `Platform: Meta Lead Ad (FB/IG - not specified by API)\nForm ID: ${leadData.formId || 'N/A'}\nLead ID: ${leadData.metaLeadId || 'N/A'}\n\nNote: Meta API does not provide campaign name or ad set name for lead ads.\n\nForm Data:\n${JSON.stringify(leadData.customFields, null, 2)}`
     };
-
-    // Add custom fields if they exist
-    if (leadData.customFields) {
-      Object.keys(leadData.customFields).forEach(key => {
-        // Map custom fields to Monday columns as needed
-        // You'll need to adjust these based on your actual Monday board structure
-      });
-    }
 
     const variables = {
       boardId: boardId,
@@ -120,7 +128,7 @@ async function checkLeadExists(apiToken, boardId, email) {
     
     // Check if any item has matching email
     return items.some(item => {
-      const emailColumn = item.column_values.find(col => col.id === 'email');
+      const emailColumn = item.column_values.find(col => col.id === 'text_mkw3spks'); // Your Email column ID
       return emailColumn && emailColumn.text === email;
     });
   } catch (error) {

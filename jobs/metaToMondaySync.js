@@ -12,7 +12,9 @@ async function syncMetaLeadsToMonday() {
   try {
     const metaAccessToken = process.env.META_ACCESS_TOKEN;
     const metaPageId = process.env.META_PAGE_ID;
-    const metaFormId = process.env.META_FORM_ID;
+    const metaFormId = process.env.META_FORM_ID && process.env.META_FORM_ID.trim() !== '' && process.env.META_FORM_ID !== 'your_lead_form_id_here' 
+      ? process.env.META_FORM_ID 
+      : null; // null means fetch from all forms
     const mondayApiToken = process.env.MONDAY_API_TOKEN;
     const mondayBoardId = process.env.MONDAY_BOARD_ID;
 
@@ -26,7 +28,8 @@ async function syncMetaLeadsToMonday() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     
-    console.log(`📥 Fetching Meta leads since ${yesterday.toISOString()}...`);
+    const formInfo = metaFormId ? `form ${metaFormId}` : 'all forms';
+    console.log(`📥 Fetching Meta leads from ${formInfo} since ${yesterday.toISOString()}...`);
     const rawLeads = await fetchMetaLeads(metaAccessToken, metaPageId, metaFormId, yesterday);
     
     console.log(`✅ Found ${rawLeads.length} leads from Meta`);
