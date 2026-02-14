@@ -249,9 +249,9 @@ router.get("/teachers", async (req, res) => {
       return res.status(404).json({ msg: "No course found for this level" });
     }
 
-    // 2️⃣ Find teachers who teach this course & match medium
+    // 2️⃣ Find teachers (including TEACHER_ADMIN) who teach this course & match medium
     const teachers = await User.find({
-      role: "TEACHER",
+      role: { $in: ["TEACHER", "TEACHER_ADMIN"] },
       medium: { $in: [medium] },
       assignedCourses: course._id
     }).select("name email regNo medium assignedCourses");
@@ -277,7 +277,7 @@ router.get("/teachersByMedium", async (req, res) => {
     }
 
     const teachers = await User.find({
-      role: "TEACHER",
+      role: { $in: ["TEACHER", "TEACHER_ADMIN"] },
       medium: { $in: [medium] }
     }).select("name email regNo medium assignedCourses");
 
@@ -563,7 +563,7 @@ router.get("/teachers-by-batch/:batch", async (req, res) => {
     }
 
     const teachers = await User.find({
-      role: "TEACHER",
+      role: { $in: ["TEACHER", "TEACHER_ADMIN"] },
       assignedBatches: { $in: [batch] }
     }).select("name");
 

@@ -698,9 +698,9 @@ router.get('/meetings', verifyToken, async (req, res) => {
     
     const query = {};
     
-    // If user is TEACHER, only show their meetings
+    // If user is TEACHER or TEACHER_ADMIN, only show their meetings
     // If user is ADMIN, show all meetings
-    if (user.role === 'TEACHER') {
+    if (user.role === 'TEACHER' || user.role === 'TEACHER_ADMIN') {
       query.createdBy = req.user.id;
     }
     // For ADMIN, no createdBy filter - show all meetings
@@ -1158,7 +1158,7 @@ router.put('/meeting/:id', verifyToken, async (req, res) => {
 
     // Check if user has permission to edit this meeting
     const user = await User.findById(req.user.id).select('role');
-    if (user.role === 'TEACHER' && meeting.createdBy.toString() !== req.user.id) {
+    if ((user.role === 'TEACHER' || user.role === 'TEACHER_ADMIN') && meeting.createdBy.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: 'You can only edit meetings you created'
