@@ -136,7 +136,7 @@ export class SignupComponent {
         } else if (this.role === 'TEACHER' || this.role === 'TEACHER_ADMIN') {
           this.medium = data.medium || [];
           this.assignedCourses = data.assignedCourses?.map((c: any) => c._id || c) || [];
-          this.assignedBatches = data.assignedBatches || [];
+          this.assignedBatches = data['assignedBatches'] || [];
         }
       },
       error: (err) => {
