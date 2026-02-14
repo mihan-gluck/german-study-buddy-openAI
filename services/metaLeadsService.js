@@ -2,8 +2,37 @@
 const axios = require('axios');
 
 /**
+ * Get Page Access Token from User Access Token
+ * @param {string} userAccessToken - User access token
+ * @param {string} pageId - Facebook page ID
+ * @returns {Promise<string>} Page access token
+ */
+async function getPageAccessToken(userAccessToken, pageId) {
+  try {
+    const response = await axios.get('https://graph.facebook.com/v18.0/me/accounts', {
+      params: {
+        access_token: userAccessToken
+      }
+    });
+
+    const pages = response.data.data || [];
+    const page = pages.find(p => p.id === pageId || p.id === pageId.replace('act_', ''));
+    
+    if (page && page.access_token) {
+      return page.access_token;
+    }
+    
+    // If not found, return the original token (might already be a page token)
+    return userAccessToken;
+  } catch (error) {
+    console.warn('Could not get page token, using provided token:', error.message);
+    return userAccessToken;
+  }
+}
+
+/**
  * Fetch leads from Meta (Facebook Lead Ads)
- * @param {string} accessToken - Meta access token
+ * @param {string} accessToken - Meta access token (User or Page token)
  * @param {string} pageId - Facebook page ID
  * @param {string} formId - Lead form ID (optional)
  * @param {Date} since - Fetch leads since this date
@@ -11,6 +40,9 @@ const axios = require('axios');
  */
 async function fetchMetaLeads(accessToken, pageId, formId = null, since = null) {
   try {
+    // Try to get page access token if user token provided
+    const pageAccessToken = await getPageAccessToken(accessToken, pageId);
+    
     const sinceTimestamp = since ? Math.floor(since.getTime() / 1000) : Math.floor(Date.now() / 1000) - 86400; // Default: last 24 hours
     
     let url;
@@ -24,7 +56,7 @@ async function fetchMetaLeads(accessToken, pageId, formId = null, since = null) 
 
     const response = await axios.get(url, {
       params: {
-        access_token: accessToken,
+        access_token: pageAccessToken,
         fields: 'id,created_time,field_data',
         filtering: JSON.stringify([{
           field: 'time_created',
@@ -42,7 +74,7 @@ async function fetchMetaLeads(accessToken, pageId, formId = null, since = null) 
       const allLeads = [];
       
       for (const form of forms) {
-        const formLeads = await fetchMetaLeads(accessToken, pageId, form.id, since);
+        const formLeads = await fetchMetaLeads(pageAccessToken, pageId, form.id, since);
         allLeads.push(...formLeads);
       }
       
@@ -94,5 +126,6 @@ function parseMetaLead(lead) {
 
 module.exports = {
   fetchMetaLeads,
-  parseMetaLead
+  parseMetaLead,
+  getPageAccessToken
 };
