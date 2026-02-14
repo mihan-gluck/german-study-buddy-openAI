@@ -26,6 +26,7 @@ interface Teacher {
   name: string;
   regNo: string;
   email: string;
+  role: string;
   assignedCourses: Course[];
   assignedBatches: string[];
   medium: string;
@@ -73,7 +74,7 @@ export class TeachersComponent implements OnInit {
     // ✅ Check user profile from backend (cookie included automatically)
     this.authService.getUserProfile().subscribe({
       next: (user) => {
-        if (user.role !== 'ADMIN') {
+        if (user.role !== 'ADMIN' && user.role !== 'TEACHER_ADMIN') {
           this.router.navigate(['/dashboard']);
           return;
         }

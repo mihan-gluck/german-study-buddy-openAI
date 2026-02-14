@@ -108,6 +108,7 @@
                 <tr>
                   <th>Reg No</th>
                   <th>Teacher Info</th>
+                  <th>Role</th>
                   <th>Assigned Courses</th>
                   <th>Assigned Batches</th>
                   <th>Medium</th>
@@ -124,6 +125,17 @@
                       <div class="teacher-name">{{ teacher.name }}</div>
                       <div class="teacher-email">{{ teacher.email }}</div>
                     </div>
+                  </td>
+                  <td>
+                    <span 
+                      class="badge" 
+                      [ngClass]="{
+                        'bg-success': teacher.role === 'TEACHER_ADMIN',
+                        'bg-info': teacher.role === 'TEACHER'
+                      }"
+                    >
+                      {{ teacher.role === 'TEACHER_ADMIN' ? 'Teacher Admin' : 'Teacher' }}
+                    </span>
                   </td>
                   <td>
                     <div class="courses-list">

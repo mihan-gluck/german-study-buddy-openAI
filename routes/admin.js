@@ -37,7 +37,7 @@ router.get('/students', verifyToken, isAdmin, async (req, res) => {
 // Get all teachers
 router.get('/teachers', verifyToken, isAdmin, async (req, res) => {
   try {
-    const teachers = await User.find({ role: 'TEACHER' })
+    const teachers = await User.find({ role: { $in: ['TEACHER', 'TEACHER_ADMIN'] } })
       .populate('assignedCourses', 'title') // <-- only fetch 'name' field of Course
       .select('-password');
 
@@ -207,6 +207,35 @@ router.post('/bulk-update', verifyToken, isAdmin, async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Failed to update students',
+      error: err.message 
+    });
+  }
+});
+
+// Get course progress for a specific student
+router.get('/course-progress/:studentId', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const CourseProgress = require('../models/CourseProgress');
+    
+    const progress = await CourseProgress.find({ studentId })
+      .populate('courseId', 'title')
+      .sort({ lastUpdated: -1 });
+    
+    // Format the response to match frontend expectations
+    const formattedProgress = progress.map(p => ({
+      courseId: p.courseId?._id,
+      courseName: p.courseId?.title || 'Unknown Course',
+      progressPercentage: p.progressPercentage,
+      lastUpdated: p.lastUpdated
+    }));
+    
+    res.json(formattedProgress);
+  } catch (err) {
+    console.error('Error fetching course progress:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch course progress',
       error: err.message 
     });
   }
