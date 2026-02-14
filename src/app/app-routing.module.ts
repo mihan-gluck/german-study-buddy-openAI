@@ -34,7 +34,7 @@ export const routes: Routes = [
     loadChildren: () => import('./components/teacher-dashboard/teacher-dashboard.module')
       .then(m => m.TeacherDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'TEACHER' }
+    data: { role: ['TEACHER', 'TEACHER_ADMIN'] }
   },
 
   // Student dashboard route with RoleGuard
@@ -142,7 +142,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/time-table/time-table-view.component')
                         .then(m => m.TimeTableViewComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'TEACHER' }
+    data: { role: ['TEACHER', 'TEACHER_ADMIN'] }
   },
 
   { path: 'feedback', loadComponent: () => import('./components/feedback/feedback-form.component').then(m => m.FeedbackFormComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },

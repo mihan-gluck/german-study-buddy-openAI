@@ -118,7 +118,7 @@ router.post(
 router.post(
   '/teacher-upload',
   verifyToken,
-  checkRole('TEACHER'),
+  checkRole(['TEACHER', 'TEACHER_ADMIN']),
   assignmentUpload.array('files', 5),
   async (req, res) => {
     try {
@@ -200,7 +200,7 @@ router.get(
 router.get(
   '/teacher',
   verifyToken,
-  checkRole('TEACHER'),
+  checkRole(['TEACHER', 'TEACHER_ADMIN']),
   async (req, res) => {
     try {
       const teacherId = req.user.id;
@@ -229,7 +229,7 @@ router.get(
 router.put(
   '/:id/mark',
   verifyToken,
-  checkRole('TEACHER'),
+  checkRole(['TEACHER', 'TEACHER_ADMIN']),
   async (req, res) => {
     try {
       const teacherId = req.user.id;
