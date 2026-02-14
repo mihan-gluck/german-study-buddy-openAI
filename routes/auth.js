@@ -524,6 +524,19 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
+// ✅ Get all teachers and admins for role management (MUST be before /:id route)
+router.get("/teachers-and-admins", verifyToken, checkRole(['ADMIN', 'TEACHER_ADMIN']), async (req, res) => {
+  try {
+    const users = await User.find({
+      role: { $in: ['TEACHER', 'TEACHER_ADMIN', 'ADMIN'] }
+    }).select("name email regNo role").sort({ role: 1, name: 1 });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("❌ Error fetching teachers and admins:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
 
 // ✅ Get a user by ID
 router.get("/:id", async (req, res) => {
@@ -567,20 +580,6 @@ router.get("/teachers-by-batch/:batch", async (req, res) => {
   }
 });
 
-
-// ✅ Get all teachers and admins for role management
-router.get("/teachers-and-admins", verifyToken, checkRole(['ADMIN', 'TEACHER_ADMIN']), async (req, res) => {
-  try {
-    const users = await User.find({
-      role: { $in: ['TEACHER', 'TEACHER_ADMIN', 'ADMIN'] }
-    }).select("name email regNo role").sort({ role: 1, name: 1 });
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("❌ Error fetching teachers and admins:", error);
-    res.status(500).json({ message: "Internal server error." });
-  }
-});
 
 // Update assigned teacher by batch
 router.put("/update-teacher-by-batch", async (req, res) => {
