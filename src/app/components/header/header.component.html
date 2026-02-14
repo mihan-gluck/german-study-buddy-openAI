@@ -57,6 +57,14 @@
           <i class="fas fa-calendar-alt"></i> My Meetings
         </a>
       </li>
+      
+      <li *ngIf="isLoggedIn() && (userRole === 'TEACHER' || userRole === 'TEACHER_ADMIN')">
+        <a (click)="navigateTo('/teacher/assignments'); closeMenu()" 
+           [class.active]="isCurrentRoute('/teacher/assignments')">
+          <i class="fas fa-file-alt"></i> Assignments
+        </a>
+      </li>
+      
       <li *ngIf="isLoggedIn() && (userRole === 'TEACHER' || userRole === 'TEACHER_ADMIN' || userRole === 'ADMIN')">
         <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
       </li>

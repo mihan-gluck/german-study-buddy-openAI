@@ -149,6 +149,9 @@ export const routes: Routes = [
 
   { path: 'feedback-list', loadComponent: () => import('./components/feedback/feedback.component').then(m => m.FeedbackListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
+  // Teacher Assignments Route
+  { path: 'teacher/assignments', loadComponent: () => import('./components/teacher-assignments/teacher-assignments-page.component').then(m => m.TeacherAssignmentsPageComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'TEACHER_ADMIN'] } },
+
   // Zoom Meetings Routes (New System)
   { path: 'teacher/meetings', loadComponent: () => import('./components/meeting-link/meetings-list.component').then(m => m.MeetingsListComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
   { path: 'teacher/meetings/create', loadComponent: () => import('./components/meeting-link/create-zoom-meeting.component').then(m => m.CreateZoomMeetingComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
