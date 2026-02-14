@@ -63,7 +63,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component')
       .then(m => m.AdminDashboardComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'ADMIN' }
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
 
   // Admin module management route
@@ -177,7 +177,7 @@ export const routes: Routes = [
   { path: 'student-documents', loadComponent: () => import('./components/student-dashboard/student-documents/student-documents.component').then(m => m.StudentDocumentsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
   // Admin Document Verification route
-  { path: 'admin/document-verification', loadComponent: () => import('./components/admin-dashboard/document-verification/document-verification.component').then(m => m.DocumentVerificationComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'admin/document-verification', loadComponent: () => import('./components/admin-dashboard/document-verification/document-verification.component').then(m => m.DocumentVerificationComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
 
   { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
 
