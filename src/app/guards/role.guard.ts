@@ -33,6 +33,8 @@ export class RoleGuard implements CanActivate {
           this.router.navigate(['/student-dashboard']);
         } else if (user?.role === 'TEACHER') {
           this.router.navigate(['/teacher-dashboard']);
+        } else if (user?.role === 'TEACHER_ADMIN') {
+          this.router.navigate(['/teacher-dashboard']);
         } else if (user?.role === 'ADMIN') {
           this.router.navigate(['/admin-dashboard']);
         } else {

@@ -15,6 +15,19 @@
       <button class="btn btn-outline-info" routerLink="/teacher/meetings/create" routerLinkActive="active">
         <i class="fas fa-video"></i> Create Meeting
       </button>
+      
+      <!-- Admin Features for TEACHER_ADMIN -->
+      <ng-container *ngIf="isTeacherAdmin()">
+        <button class="btn btn-outline-warning" routerLink="/teachers" routerLinkActive="active">
+          <i class="fas fa-chalkboard-teacher"></i> Manage Teachers
+        </button>
+        <button class="btn btn-outline-danger" routerLink="/admin-analytics" routerLinkActive="active">
+          <i class="fas fa-chart-line"></i> Analytics
+        </button>
+        <button class="btn btn-outline-secondary" routerLink="/student-logs" routerLinkActive="active">
+          <i class="fas fa-file-alt"></i> Student Logs
+        </button>
+      </ng-container>
     </div>
   </div>
 

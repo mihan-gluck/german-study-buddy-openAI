@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TeacherService } from '../../services/teacher.service';
+import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -24,6 +25,7 @@ export class TeacherDashboardComponent implements OnInit {
 
   students: any[] = [];
   filteredStudents: any[] = [];
+  currentUser: any = null;
 
   filters: any = {
     level: '',
@@ -32,11 +34,27 @@ export class TeacherDashboardComponent implements OnInit {
   };
 
   constructor(
-    private teacherService: TeacherService
+    private teacherService: TeacherService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.loadCurrentUser();
     this.fetchStudents();
+  }
+
+  // Load current user to check role
+  loadCurrentUser(): void {
+    this.authService.currentUser$.subscribe({
+      next: (user) => {
+        this.currentUser = user;
+      }
+    });
+  }
+
+  // Check if user is TEACHER_ADMIN
+  isTeacherAdmin(): boolean {
+    return this.currentUser?.role === 'TEACHER_ADMIN';
   }
 
   // ✅ Fetch students from backend via TeacherService

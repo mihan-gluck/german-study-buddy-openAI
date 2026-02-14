@@ -133,6 +133,10 @@ export class SignupComponent {
 
           this.qualifications = data.qualifications || '';
           this.loadTeachers(); // load teachers for selected level + medium
+        } else if (this.role === 'TEACHER' || this.role === 'TEACHER_ADMIN') {
+          this.medium = data.medium || [];
+          this.assignedCourses = data.assignedCourses?.map((c: any) => c._id || c) || [];
+          this.assignedBatches = data.assignedBatches || [];
         }
       },
       error: (err) => {
@@ -154,7 +158,7 @@ export class SignupComponent {
       }
     }
 
-    if (this.role === 'TEACHER') {
+    if (this.role === 'TEACHER' || this.role === 'TEACHER_ADMIN') {
       if (!this.medium || (Array.isArray(this.medium) && this.medium.length === 0) 
           || this.assignedCourses.length === 0 
           || !this.assignedBatches.length) {
@@ -190,7 +194,7 @@ export class SignupComponent {
       user.qualifications = this.qualifications;
     }
 
-    if (this.role === 'TEACHER') {
+    if (this.role === 'TEACHER' || this.role === 'TEACHER_ADMIN') {
       user.medium = this.medium;
       user.assignedCourses = this.assignedCourses;
       user.assignedBatches = this.assignedBatches;
@@ -219,7 +223,7 @@ export class SignupComponent {
         next: (response: any) => {
           alert(user.role + ' Registered Successfully!');
 
-          if (this.role === 'TEACHER') {
+          if (this.role === 'TEACHER' || this.role === 'TEACHER_ADMIN') {
             this.router.navigate(['/teachers']);
             return;
           }

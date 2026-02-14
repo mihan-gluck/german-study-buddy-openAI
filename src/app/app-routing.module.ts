@@ -72,7 +72,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/module-management.component')
       .then(m => m.ModuleManagementComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: ['ADMIN', 'TEACHER'] }
+    data: { role: ['ADMIN', 'TEACHER', 'TEACHER_ADMIN'] }
   },
 
   // Admin analytics route
@@ -81,7 +81,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/admin-analytics/admin-analytics.component')
       .then(m => m.AdminAnalyticsComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'ADMIN' }
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
 
   // ✅ NEW: AI Usage Analytics route
@@ -90,7 +90,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/ai-usage-analytics/ai-usage-analytics.component')
       .then(m => m.AiUsageAnalyticsComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'ADMIN' }
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
 
   // Admin module trash management route
@@ -99,27 +99,27 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/module-trash/module-trash.component')
       .then(m => m.ModuleTrashComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'ADMIN' }
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
 
-  { path: 'teachers', loadComponent: () => import('./components/teachers/teachers.component').then(m => m.TeachersComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'teachers', loadComponent: () => import('./components/teachers/teachers.component').then(m => m.TeachersComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
   { path: 'courses', loadComponent: () => import('./components/courses/courses.component').then(m => m.CoursesComponent), canActivate: [AuthGuard] },
   { path: 'update-course/:id', loadComponent: () => import('./components/courses/course-create.component').then(m => m.CreateCourseComponent), canActivate: [AuthGuard] },
-  { path: 'create-course', loadComponent: () => import('./components/courses/course-create.component').then(m => m.CreateCourseComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'create-course', loadComponent: () => import('./components/courses/course-create.component').then(m => m.CreateCourseComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
   { path: 'subscriptions', loadComponent: () => import('./components/subscriptions/subscriptions.component').then(m => m.SubscriptionsComponent), canActivate: [AuthGuard] },
   { path: 'ai-conversations', loadComponent: () => import('./components/ai-conversations/ai-conversations.component').then(m => m.AiConversationsComponent), canActivate: [AuthGuard] },
 
-  { path: 'time-table', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'time-table', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
-  { path: 'time-table/:id', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'time-table/:id', loadComponent: () => import('./components/time-table/time-table.component').then(m => m.TimeTableComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
   {
     path: 'time-table-view-admin',
     loadComponent: () => import('./components/time-table/time-table-view.component')
                         .then(m => m.TimeTableViewComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'ADMIN' }
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
   {
     path: 'time-table-view-student',
@@ -138,24 +138,24 @@ export const routes: Routes = [
 
   { path: 'feedback', loadComponent: () => import('./components/feedback/feedback-form.component').then(m => m.FeedbackFormComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
-  { path: 'feedback-list', loadComponent: () => import('./components/feedback/feedback.component').then(m => m.FeedbackListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'feedback-list', loadComponent: () => import('./components/feedback/feedback.component').then(m => m.FeedbackListComponent) , canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
   // Zoom Meetings Routes (New System)
-  { path: 'teacher/meetings', loadComponent: () => import('./components/meeting-link/meetings-list.component').then(m => m.MeetingsListComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'teacher/meetings/create', loadComponent: () => import('./components/meeting-link/create-zoom-meeting.component').then(m => m.CreateZoomMeetingComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'teacher/meetings/:id', loadComponent: () => import('./components/meeting-link/meeting-details.component').then(m => m.MeetingDetailsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'teacher/meetings/:id/edit', loadComponent: () => import('./components/meeting-link/edit-meeting.component').then(m => m.EditMeetingComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'teacher/meetings/:id/attendance', loadComponent: () => import('./components/meeting-link/meeting-attendance.component').then(m => m.MeetingAttendanceComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'teacher/meetings/:id/attendance/review', loadComponent: () => import('./components/meeting-link/attendance-review.component').then(m => m.AttendanceReviewComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'teacher/meetings/:id/engagement', loadComponent: () => import('./components/meeting-link/meeting-engagement.component').then(m => m.MeetingEngagementComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  { path: 'teacher/meetings', loadComponent: () => import('./components/meeting-link/meetings-list.component').then(m => m.MeetingsListComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'teacher/meetings/create', loadComponent: () => import('./components/meeting-link/create-zoom-meeting.component').then(m => m.CreateZoomMeetingComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'teacher/meetings/:id', loadComponent: () => import('./components/meeting-link/meeting-details.component').then(m => m.MeetingDetailsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'teacher/meetings/:id/edit', loadComponent: () => import('./components/meeting-link/edit-meeting.component').then(m => m.EditMeetingComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'teacher/meetings/:id/attendance', loadComponent: () => import('./components/meeting-link/meeting-attendance.component').then(m => m.MeetingAttendanceComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'teacher/meetings/:id/attendance/review', loadComponent: () => import('./components/meeting-link/attendance-review.component').then(m => m.AttendanceReviewComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'teacher/meetings/:id/engagement', loadComponent: () => import('./components/meeting-link/meeting-engagement.component').then(m => m.MeetingEngagementComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
 
   // Student Zoom Meetings
   { path: 'student/meetings', loadComponent: () => import('./components/meeting-link/student-meetings.component').then(m => m.StudentMeetingsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
   // Admin Zoom Reports
-  { path: 'admin/zoom-reports', loadComponent: () => import('./components/admin-dashboard/zoom-reports.component').then(m => m.ZoomReportsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'admin/zoom-reports', loadComponent: () => import('./components/admin-dashboard/zoom-reports.component').then(m => m.ZoomReportsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
-  { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: 'ADMIN'} },
+  { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: ['ADMIN', 'TEACHER_ADMIN']} },
 
   { path: 'view-course-materials', loadComponent: () => import('./components/course-material/course-materials.component').then(m => m.CourseMaterialsComponent), canActivate: [AuthGuard] },
 
@@ -163,11 +163,11 @@ export const routes: Routes = [
   { path: 'learning-modules', loadComponent: () => import('./components/learning-modules/learning-modules.component').then(m => m.LearningModulesComponent), canActivate: [AuthGuard] },
 
   // Module creation/editing routes (Teachers and Admins)
-  { path: 'module-creation-choice', loadComponent: () => import('./components/teacher-dashboard/module-creation-choice.component').then(m => m.ModuleCreationChoiceComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'create-module', loadComponent: () => import('./components/teacher-dashboard/module-form.component').then(m => m.ModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'create-module-ai', loadComponent: () => import('./components/teacher-dashboard/ai-module-creator.component').then(m => m.AiModuleCreatorComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'create-roleplay-module', loadComponent: () => import('./components/teacher-dashboard/roleplay-module-form.component').then(m => m.RoleplayModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
-  { path: 'edit-module/:id', loadComponent: () => import('./components/teacher-dashboard/roleplay-module-form.component').then(m => m.RoleplayModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN'] } },
+  { path: 'module-creation-choice', loadComponent: () => import('./components/teacher-dashboard/module-creation-choice.component').then(m => m.ModuleCreationChoiceComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'create-module', loadComponent: () => import('./components/teacher-dashboard/module-form.component').then(m => m.ModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'create-module-ai', loadComponent: () => import('./components/teacher-dashboard/ai-module-creator.component').then(m => m.AiModuleCreatorComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'create-roleplay-module', loadComponent: () => import('./components/teacher-dashboard/roleplay-module-form.component').then(m => m.RoleplayModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+  { path: 'edit-module/:id', loadComponent: () => import('./components/teacher-dashboard/roleplay-module-form.component').then(m => m.RoleplayModuleFormComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
 
   { path: 'student-progress', loadComponent: () => import('./components/student-progress/student-progress.component').then(m => m.StudentProgressComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
@@ -177,14 +177,14 @@ export const routes: Routes = [
   { path: 'student-documents', loadComponent: () => import('./components/student-dashboard/student-documents/student-documents.component').then(m => m.StudentDocumentsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
   // Admin Document Verification route
-  { path: 'admin/document-verification', loadComponent: () => import('./components/admin-dashboard/document-verification/document-verification.component').then(m => m.DocumentVerificationComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'admin/document-verification', loadComponent: () => import('./components/admin-dashboard/document-verification/document-verification.component').then(m => m.DocumentVerificationComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
-  { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN'] } },
+  { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
 
   // Audio Test Route (for students and teachers to test microphone and speakers)
-  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER'] } },
+  { path: 'audio-test', loadComponent: () => import('./components/audio-test/audio-test.component').then(m => m.AudioTestComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'TEACHER_ADMIN'] } },
 
-  { path: 'student-logs', loadComponent: () => import('./components/student-logs/student-logs.component').then(m => m.StudentLogsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'ADMIN' } },
+  { path: 'student-logs', loadComponent: () => import('./components/student-logs/student-logs.component').then(m => m.StudentLogsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }

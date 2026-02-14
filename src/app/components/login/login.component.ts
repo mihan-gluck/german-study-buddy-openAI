@@ -50,7 +50,7 @@ export class LoginComponent {
 
             if (role === 'ADMIN') {
               this.router.navigate(['/admin-dashboard']);
-            } else if (role === 'TEACHER') {
+            } else if (role === 'TEACHER' || role === 'TEACHER_ADMIN') {
               this.router.navigate(['/teacher-dashboard']);
             } else if (role === 'STUDENT') {
               this.router.navigate(['/student-dashboard']);
