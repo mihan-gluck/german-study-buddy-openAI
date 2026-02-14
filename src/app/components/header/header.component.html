@@ -106,6 +106,12 @@
           <i class="fas fa-chalkboard-teacher"></i> Teachers
         </a>
       </li>
+      <li *ngIf="isLoggedIn() && (userRole === 'ADMIN' || userRole === 'TEACHER_ADMIN')">
+        <a (click)="navigateTo('/user-roles'); closeMenu()" 
+           [class.active]="isCurrentRoute('/user-roles')">
+          <i class="fas fa-user-shield"></i> User Roles
+        </a>
+      </li>
       <li *ngIf="isLoggedIn() && userRole === 'ADMIN'">
         <a (click)="navigateTo('/courses'); closeMenu()" 
            [class.active]="isCurrentRoute('/courses')">

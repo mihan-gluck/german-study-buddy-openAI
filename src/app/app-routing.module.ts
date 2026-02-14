@@ -66,6 +66,15 @@ export const routes: Routes = [
     data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
 
+  // User Roles Management
+  {
+    path: 'user-roles',
+    loadComponent: () => import('./components/admin-dashboard/user-roles.component')
+      .then(m => m.UserRolesComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
+  },
+
   // Admin module management route
   {
     path: 'admin-modules',

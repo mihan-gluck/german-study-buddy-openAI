@@ -101,7 +101,6 @@ export class AdminDashboardComponent implements OnInit {
   filteredStudents: any[] = [];  // shown in table
   selectedStudentIds = new Set<string>();
   selectAll = false;
-  activeTab: string = 'students'; // Track active tab
 
   loading = false;
   error = '';
@@ -167,7 +166,6 @@ export class AdminDashboardComponent implements OnInit {
         }
         this.fetchStudents();
         this.fetchTeachers();
-        this.fetchTeachersAndAdmins(); // Load users for role management
       },
       error: (err) => {
         //console.error('Not authenticated:', err);
@@ -724,56 +722,4 @@ export class AdminDashboardComponent implements OnInit {
 
     alert(`✅ Successfully exported ${selectedStudents.length} student(s) to CSV`);
   }
-
-  // ============================================
-  // Role Management Methods
-  // ============================================
-  
-  allTeachersAndAdmins: any[] = [];
-
-  fetchTeachersAndAdmins(): void {
-    // Fetch all users with TEACHER, TEACHER_ADMIN, or ADMIN roles
-    this.http.get<any>(`${apiUrl}/auth/teachers-and-admins`, { withCredentials: true }).subscribe({
-      next: (response) => {
-        this.allTeachersAndAdmins = response.map((user: any) => ({
-          ...user,
-          newRole: user.role // Initialize with current role
-        }));
-      },
-      error: (err) => {
-        console.error('Failed to fetch teachers and admins:', err);
-        alert('Failed to load users');
-      }
-    });
-  }
-
-  onRoleChange(user: any): void {
-    // This is called when the dropdown changes
-    console.log(`Role change requested for ${user.name}: ${user.role} -> ${user.newRole}`);
-  }
-
-  updateUserRole(user: any): void {
-    if (!user.newRole || user.newRole === user.role) {
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to change ${user.name}'s role from ${user.role} to ${user.newRole}?`)) {
-      user.newRole = user.role; // Reset if cancelled
-      return;
-    }
-
-    this.http.put(`${apiUrl}/auth/${user._id}`, { role: user.newRole }, { withCredentials: true }).subscribe({
-      next: (response) => {
-        alert(`Successfully updated ${user.name}'s role to ${user.newRole}`);
-        user.role = user.newRole; // Update the current role
-        this.fetchTeachersAndAdmins(); // Refresh the list
-      },
-      error: (err) => {
-        console.error('Failed to update role:', err);
-        alert('Failed to update role. Please try again.');
-        user.newRole = user.role; // Reset on error
-      }
-    });
-  }
-
 }
