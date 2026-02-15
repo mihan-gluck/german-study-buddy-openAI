@@ -101,6 +101,17 @@ export class StudentDocumentsComponent implements OnInit {
     }
   }
 
+  // Document type selection - auto-fill document name
+  onDocumentTypeChange(): void {
+    if (this.selectedDocumentType && !this.documentName) {
+      // Auto-fill document name with the label of selected type
+      const requirement = this.requirements.find(r => r.type === this.selectedDocumentType);
+      if (requirement) {
+        this.documentName = requirement.label;
+      }
+    }
+  }
+
   // File selection
   onFileSelected(event: any): void {
     const file = event.target.files[0];

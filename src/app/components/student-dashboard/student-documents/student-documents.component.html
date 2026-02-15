@@ -75,7 +75,7 @@
       <div class="form-body">
         <div class="form-group">
           <label class="required">Document Type</label>
-          <select class="form-control" [(ngModel)]="selectedDocumentType" [disabled]="isUploading">
+          <select class="form-control" [(ngModel)]="selectedDocumentType" (ngModelChange)="onDocumentTypeChange()" [disabled]="isUploading">
             <option value="">Select document type...</option>
             <option *ngFor="let req of requirements" [value]="req.type">
               {{ req.label }} {{ req.required ? '(Required)' : '(Optional)' }}
@@ -94,6 +94,9 @@
             [(ngModel)]="documentName"
             placeholder="e.g., O Level Certificate 2020"
             [disabled]="isUploading">
+          <small class="form-text text-muted">
+            <i class="fas fa-info-circle"></i> Auto-filled from document type. You can edit this name.
+          </small>
         </div>
 
         <div class="form-group">
