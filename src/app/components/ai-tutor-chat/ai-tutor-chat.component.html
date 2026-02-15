@@ -425,16 +425,16 @@
           class="mic-button"
           [class.listening]="isListening"
           [class.processing]="isProcessingSpeech"
-          [class.disabled]="!voiceEnabled"
+          [class.disabled]="!voiceEnabled || isSpeaking"
           [class.session-completed]="isSessionCompleted()"
           (click)="isListening ? stopListening() : startListening()"
-          [disabled]="isSending || isProcessingSpeech || !voiceEnabled"
-          title="{{ isListening ? 'Stop Listening' : 'Start Speaking' }}">
+          [disabled]="isSending || isProcessingSpeech || !voiceEnabled || isSpeaking"
+          title="{{ isSpeaking ? 'AI is speaking...' : isListening ? 'Stop Listening' : 'Start Speaking' }}">
           <i class="fas" 
-             [class.fa-microphone]="!isListening && !isProcessingSpeech" 
+             [class.fa-microphone]="!isListening && !isProcessingSpeech && !isSpeaking" 
              [class.fa-stop]="isListening"
-             [class.fa-spinner]="isProcessingSpeech"
-             [class.fa-spin]="isProcessingSpeech"></i>
+             [class.fa-spinner]="isProcessingSpeech || isSpeaking"
+             [class.fa-spin]="isProcessingSpeech || isSpeaking"></i>
         </button>
         
         <!-- Completion Indicator -->
