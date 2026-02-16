@@ -71,11 +71,21 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   showTranscript: boolean = true;
   transcriptMode: 'full' | 'minimal' | 'hidden' = 'full';
   
-  // Native language subtitles
-  showSubtitles: boolean = false; // Disabled by default to prevent infinite loops
-  subtitleCache: Map<string, string> = new Map(); // Cache translations
+  // Dual subtitle system - English and Native Language
+  showEnglishSubtitles: boolean = false;
+  showNativeSubtitles: boolean = false;
+  englishSubtitleCache: Map<string, string> = new Map(); // Cache English translations
+  nativeSubtitleCache: Map<string, string> = new Map(); // Cache native language translations
   isTranslating: boolean = false;
   private messagesBeingTranslated: Set<string> = new Set(); // Track messages being translated
+  
+  // Legacy support (deprecated)
+  get showSubtitles(): boolean {
+    return this.showEnglishSubtitles || this.showNativeSubtitles;
+  }
+  get subtitleCache(): Map<string, string> {
+    return this.nativeSubtitleCache;
+  }
   
   // Speech functionality
   speechSynthesis: SpeechSynthesis;
@@ -1471,50 +1481,135 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     }
   }
 
-  // Toggle subtitle display
-  toggleSubtitles(): void {
-    this.showSubtitles = !this.showSubtitles;
+  // Toggle English subtitles
+  toggleEnglishSubtitles(): void {
+    this.showEnglishSubtitles = !this.showEnglishSubtitles;
     
-    // Clear cache and translation tracking when toggling
-    if (this.showSubtitles) {
-      this.subtitleCache.clear();
+    if (this.showEnglishSubtitles) {
+      this.englishSubtitleCache.clear();
       this.messagesBeingTranslated.clear();
-      console.log('🔤 Subtitle cache cleared for fresh translations');
-      
-      // Force refresh of all visible translations
-      this.refreshAllTranslations();
+      console.log('🔤 English subtitle cache cleared for fresh translations');
+      this.refreshEnglishTranslations();
     } else {
-      // Clear ongoing translations when hiding subtitles
       this.messagesBeingTranslated.clear();
-      console.log('🔤 Subtitles hidden, cleared translation tracking');
+      console.log('🔤 English subtitles hidden');
     }
     
-    console.log('🔤 Subtitles toggled:', this.showSubtitles ? 'ON' : 'OFF');
+    console.log('🔤 English subtitles toggled:', this.showEnglishSubtitles ? 'ON' : 'OFF');
   }
 
-  // Force refresh all translations
-  private refreshAllTranslations(): void {
-    if (!this.showSubtitles || !this.module) return;
+  // Toggle native language subtitles
+  toggleNativeSubtitles(): void {
+    this.showNativeSubtitles = !this.showNativeSubtitles;
     
-    console.log('🔄 Refreshing all translations with delay...');
+    if (this.showNativeSubtitles) {
+      this.nativeSubtitleCache.clear();
+      this.messagesBeingTranslated.clear();
+      console.log('🔤 Native subtitle cache cleared for fresh translations');
+      this.refreshNativeTranslations();
+    } else {
+      this.messagesBeingTranslated.clear();
+      console.log('🔤 Native subtitles hidden');
+    }
     
-    // Trigger translation refresh for all AI messages with staggered delays
+    console.log('🔤 Native subtitles toggled:', this.showNativeSubtitles ? 'ON' : 'OFF');
+  }
+
+  // Legacy toggle function (deprecated - kept for compatibility)
+  toggleSubtitles(): void {
+    // Toggle native subtitles by default for backward compatibility
+    this.toggleNativeSubtitles();
+  }
+
+  // Refresh English translations
+  private refreshEnglishTranslations(): void {
+    if (!this.showEnglishSubtitles || !this.module) return;
+    
+    console.log('🔄 Refreshing English translations with delay...');
+    
     this.messages
       .filter(m => m.role === 'tutor')
       .forEach((message, index) => {
-        // Stagger the translations to avoid overwhelming the API
         setTimeout(() => {
-          this.loadSubtitleAsync(message);
-        }, index * 500); // 500ms delay between each translation
+          this.loadEnglishSubtitleAsync(message);
+        }, index * 500);
       });
     
+    this.cdr.detectChanges();
+  }
+
+  // Refresh native language translations
+  private refreshNativeTranslations(): void {
+    if (!this.showNativeSubtitles || !this.module) return;
+    
+    console.log('🔄 Refreshing native translations with delay...');
+    
+    this.messages
+      .filter(m => m.role === 'tutor')
+      .forEach((message, index) => {
+        setTimeout(() => {
+          this.loadNativeSubtitleAsync(message);
+        }, index * 500);
+      });
+    
+    this.cdr.detectChanges();
+  }
+
+  // Force refresh all translations (legacy support)
+  private refreshAllTranslations(): void {
+    this.refreshNativeTranslations();
+  }
     // Force change detection
     this.cdr.detectChanges();
   }
 
-  // Get native language translation for AI messages
+  // Get native language translation for AI messages (LEGACY - kept for compatibility)
   async getMessageTranslation(message: TutorMessage): Promise<string> {
-    // Only translate AI tutor messages that are in target language
+    return this.getNativeTranslation(message);
+  }
+
+  // Get English translation for AI messages
+  async getEnglishTranslation(message: TutorMessage): Promise<string> {
+    if (message.role !== 'tutor' || !this.module) {
+      return '';
+    }
+
+    const targetLanguage = this.module.targetLanguage;
+    
+    // Don't translate if already in English
+    if (targetLanguage === 'English') {
+      return '';
+    }
+
+    // Check cache first
+    const cacheKey = `${message.content}_${targetLanguage}_English`;
+    if (this.englishSubtitleCache.has(cacheKey)) {
+      return this.englishSubtitleCache.get(cacheKey) || '';
+    }
+
+    // Don't translate if message is likely already in English
+    if (this.isMessageInNativeLanguage(message.content, 'English')) {
+      return '';
+    }
+
+    try {
+      this.isTranslating = true;
+      const translation = await this.translateMessage(message.content, targetLanguage, 'English');
+      
+      // Cache the translation
+      this.englishSubtitleCache.set(cacheKey, translation);
+      
+      return translation;
+    } catch (error) {
+      console.error('❌ English translation error:', error);
+      return '';
+    } finally {
+      this.isTranslating = false;
+    }
+  }
+
+  // Get native language translation for AI messages
+  async getNativeTranslation(message: TutorMessage): Promise<string> {
     if (message.role !== 'tutor' || !this.module) {
       return '';
     }
@@ -1529,8 +1624,8 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
 
     // Check cache first
     const cacheKey = `${message.content}_${targetLanguage}_${nativeLanguage}`;
-    if (this.subtitleCache.has(cacheKey)) {
-      return this.subtitleCache.get(cacheKey) || '';
+    if (this.nativeSubtitleCache.has(cacheKey)) {
+      return this.nativeSubtitleCache.get(cacheKey) || '';
     }
 
     // Don't translate if message is likely already in native language
@@ -1543,11 +1638,11 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       const translation = await this.translateMessage(message.content, targetLanguage, nativeLanguage);
       
       // Cache the translation
-      this.subtitleCache.set(cacheKey, translation);
+      this.nativeSubtitleCache.set(cacheKey, translation);
       
       return translation;
     } catch (error) {
-      console.error('❌ Translation error:', error);
+      console.error('❌ Native translation error:', error);
       return '';
     } finally {
       this.isTranslating = false;
@@ -1663,9 +1758,54 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     }
   }
 
-  // Get subtitle for message (synchronous for template)
-  getMessageSubtitle(message: TutorMessage): string {
-    if (!this.showSubtitles || message.role !== 'tutor' || !this.module) {
+  // Get English subtitle for message (synchronous for template)
+  getEnglishSubtitle(message: TutorMessage): string {
+    if (!this.showEnglishSubtitles || message.role !== 'tutor' || !this.module) {
+      return '';
+    }
+
+    const targetLanguage = this.module.targetLanguage;
+    
+    // Don't show subtitle if already in English
+    if (targetLanguage === 'English') {
+      return '';
+    }
+
+    // Don't show subtitle if message is likely already in English
+    if (this.isMessageInNativeLanguage(message.content, 'English')) {
+      return '';
+    }
+
+    // Check cache first
+    const cacheKey = `${message.content}_${targetLanguage}_English`;
+    if (this.englishSubtitleCache.has(cacheKey)) {
+      return this.englishSubtitleCache.get(cacheKey) || '';
+    }
+
+    // Don't translate if this is a loading/typing message or incomplete message
+    if (this.isSending || message.content.includes('🤖 Thinking...') || message.content.length < 10) {
+      return '';
+    }
+
+    // Check if already being translated
+    const messageKey = `en_${message.timestamp}_${message.content.substring(0, 50)}`;
+    if (this.messagesBeingTranslated.has(messageKey)) {
+      return '';
+    }
+
+    // Trigger async translation
+    setTimeout(() => {
+      if (!this.messagesBeingTranslated.has(messageKey)) {
+        this.loadEnglishSubtitleAsync(message);
+      }
+    }, 100);
+    
+    return '';
+  }
+
+  // Get native subtitle for message (synchronous for template)
+  getNativeSubtitle(message: TutorMessage): string {
+    if (!this.showNativeSubtitles || message.role !== 'tutor' || !this.module) {
       return '';
     }
 
@@ -1684,8 +1824,8 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
 
     // Check cache first
     const cacheKey = `${message.content}_${targetLanguage}_${nativeLanguage}`;
-    if (this.subtitleCache.has(cacheKey)) {
-      return this.subtitleCache.get(cacheKey) || '';
+    if (this.nativeSubtitleCache.has(cacheKey)) {
+      return this.nativeSubtitleCache.get(cacheKey) || '';
     }
 
     // Don't translate if this is a loading/typing message or incomplete message
@@ -1693,81 +1833,117 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       return '';
     }
 
-    // Check if already being translated to prevent infinite loop
-    const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
+    // Check if already being translated
+    const messageKey = `native_${message.timestamp}_${message.content.substring(0, 50)}`;
     if (this.messagesBeingTranslated.has(messageKey)) {
-      return ''; // Already being translated, don't trigger again
+      return '';
     }
 
-    // Only translate complete messages - trigger async translation but don't show loading state immediately
-    // Use setTimeout to prevent infinite loop in template
+    // Trigger async translation
     setTimeout(() => {
       if (!this.messagesBeingTranslated.has(messageKey)) {
-        this.loadSubtitleAsync(message);
+        this.loadNativeSubtitleAsync(message);
       }
     }, 100);
     
-    return ''; // Return empty initially, will update when translation completes
+    return '';
+  }
+
+  // Get subtitle for message (LEGACY - kept for compatibility)
+  getMessageSubtitle(message: TutorMessage): string {
+    return this.getNativeSubtitle(message);
   }
 
   // Check if a specific message is being translated
-  isMessageBeingTranslated(message: TutorMessage): boolean {
-    const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
+  isMessageBeingTranslated(message: TutorMessage, type: 'en' | 'native' = 'native'): boolean {
+    const prefix = type === 'en' ? 'en_' : 'native_';
+    const messageKey = `${prefix}${message.timestamp}_${message.content.substring(0, 50)}`;
     return this.messagesBeingTranslated.has(messageKey);
   }
 
-  // Load subtitle asynchronously - only after message is complete
+  // Load subtitle asynchronously - only after message is complete (LEGACY - kept for compatibility)
   private async loadSubtitleAsync(message: TutorMessage): Promise<void> {
-    const messageKey = `${message.timestamp}_${message.content.substring(0, 50)}`;
+    // Redirect to native subtitle loading
+    return this.loadNativeSubtitleAsync(message);
+  }
+
+  // Load English subtitle asynchronously
+  private async loadEnglishSubtitleAsync(message: TutorMessage): Promise<void> {
+    const messageKey = `en_${message.timestamp}_${message.content.substring(0, 50)}`;
     
-    // Prevent duplicate translation attempts
     if (this.messagesBeingTranslated.has(messageKey)) {
-      console.log('🔤 Translation already in progress for message, skipping');
       return;
     }
     
     try {
-      // Mark this message as being translated
       this.messagesBeingTranslated.add(messageKey);
-      this.cdr.detectChanges(); // Update UI to show loading state
+      this.cdr.detectChanges();
       
-      // Wait a moment to ensure the message is fully displayed/typed
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Double-check we're still supposed to translate this message
-      if (!this.showSubtitles || !this.messagesBeingTranslated.has(messageKey)) {
-        console.log('🔤 Subtitles disabled or translation cancelled, skipping');
+      if (!this.showEnglishSubtitles || !this.messagesBeingTranslated.has(messageKey)) {
         return;
       }
       
-      // Double-check the message hasn't changed (still the same content)
       const currentMessage = this.messages.find(m => 
         m.timestamp === message.timestamp && m.content === message.content
       );
       
-      if (!currentMessage) {
-        console.log('🔤 Message changed during delay, skipping translation');
+      if (!currentMessage || !this.showEnglishSubtitles) {
         return;
       }
 
-      // Check if we're still in an active session and subtitles are still enabled
-      if (!this.showSubtitles) {
-        console.log('🔤 Subtitles disabled, skipping translation');
-        return;
-      }
-
-      console.log('🔤 Starting translation for complete message:', message.content.substring(0, 50));
+      console.log('🔤 Starting English translation:', message.content.substring(0, 50));
       
-      const translation = await this.getMessageTranslation(message);
+      const translation = await this.getEnglishTranslation(message);
       if (translation) {
-        console.log('✅ Translation completed, updating UI');
-        // Trigger change detection to update the view
+        console.log('✅ English translation completed');
         this.cdr.detectChanges();
       }
     } catch (error) {
-      console.error('❌ Error loading subtitle:', error);
+      console.error('❌ Error loading English subtitle:', error);
     } finally {
-      // Remove from translation tracking
+      this.messagesBeingTranslated.delete(messageKey);
+      this.cdr.detectChanges();
+    }
+  }
+
+  // Load native language subtitle asynchronously
+  private async loadNativeSubtitleAsync(message: TutorMessage): Promise<void> {
+    const messageKey = `native_${message.timestamp}_${message.content.substring(0, 50)}`;
+    
+    if (this.messagesBeingTranslated.has(messageKey)) {
+      return;
+    }
+    
+    try {
+      this.messagesBeingTranslated.add(messageKey);
+      this.cdr.detectChanges();
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      if (!this.showNativeSubtitles || !this.messagesBeingTranslated.has(messageKey)) {
+        return;
+      }
+      
+      const currentMessage = this.messages.find(m => 
+        m.timestamp === message.timestamp && m.content === message.content
+      );
+      
+      if (!currentMessage || !this.showNativeSubtitles) {
+        return;
+      }
+
+      console.log('🔤 Starting native translation:', message.content.substring(0, 50));
+      
+      const translation = await this.getNativeTranslation(message);
+      if (translation) {
+        console.log('✅ Native translation completed');
+        this.cdr.detectChanges();
+      }
+    } catch (error) {
+      console.error('❌ Error loading native subtitle:', error);
+    } finally {
       this.messagesBeingTranslated.delete(messageKey);
       this.cdr.detectChanges();
     }

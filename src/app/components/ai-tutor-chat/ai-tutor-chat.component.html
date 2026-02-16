@@ -74,17 +74,32 @@
       <div class="header-actions">
         <!-- Transcript Controls -->
         <div class="transcript-controls" *ngIf="sessionActive">
-          <!-- Subtitle Toggle -->
-          <button 
-            class="btn btn-outline-light btn-sm me-2"
-            [class.btn-warning]="showSubtitles"
-            [class.btn-secondary]="!showSubtitles"
-            (click)="toggleSubtitles()"
-            title="Toggle native language subtitles"
-            *ngIf="module?.targetLanguage !== module?.nativeLanguage">
-            <i class="fas fa-closed-captioning"></i>
-            {{ showSubtitles ? 'Hide' : 'Show' }} Subtitles
-          </button>
+          <!-- Dual Subtitle Toggles -->
+          <div class="subtitle-buttons me-2">
+            <!-- English Subtitle Button -->
+            <button 
+              class="btn btn-outline-light btn-sm me-1"
+              [class.btn-info]="showEnglishSubtitles"
+              [class.btn-secondary]="!showEnglishSubtitles"
+              (click)="toggleEnglishSubtitles()"
+              title="Toggle English subtitles"
+              *ngIf="module?.targetLanguage !== 'English'">
+              <i class="fas fa-closed-captioning"></i>
+              CC English
+            </button>
+            
+            <!-- Native Language Subtitle Button -->
+            <button 
+              class="btn btn-outline-light btn-sm"
+              [class.btn-warning]="showNativeSubtitles"
+              [class.btn-secondary]="!showNativeSubtitles"
+              (click)="toggleNativeSubtitles()"
+              [title]="'Toggle ' + (module?.nativeLanguage || 'native') + ' subtitles'"
+              *ngIf="module?.targetLanguage !== module?.nativeLanguage">
+              <i class="fas fa-closed-captioning"></i>
+              CC {{ module?.nativeLanguage || 'Native' }}
+            </button>
+          </div>
           
           <div class="btn-group" dropdown>
             <button 
@@ -258,16 +273,45 @@
               {{ message.content }}
             </div>
             
-            <!-- Native Language Subtitle -->
-            <div class="message-subtitle" 
-                 *ngIf="showSubtitles && message.role === 'tutor' && module?.targetLanguage !== module?.nativeLanguage">
+            <!-- English Subtitle -->
+            <div class="message-subtitle english-subtitle" 
+                 *ngIf="showEnglishSubtitles && message.role === 'tutor' && module?.targetLanguage !== 'English'">
               <div class="subtitle-content" 
-                   *ngIf="getMessageSubtitle(message)"
+                   *ngIf="getEnglishSubtitle(message)"
                    [class.loading]="isTranslating">
                 <i class="fas fa-language subtitle-icon"></i>
+                <span class="subtitle-label">English:</span>
                 <span class="subtitle-text" 
-                      [innerHTML]="getMessageSubtitle(message)">
+                      [innerHTML]="getEnglishSubtitle(message)">
                 </span>
+              </div>
+              
+              <div class="subtitle-loading" 
+                   *ngIf="!getEnglishSubtitle(message) && isMessageBeingTranslated(message, 'en')">
+                <i class="fas fa-spinner fa-spin"></i>
+                <small>Translating to English...</small>
+              </div>
+            </div>
+            
+            <!-- Native Language Subtitle -->
+            <div class="message-subtitle native-subtitle" 
+                 *ngIf="showNativeSubtitles && message.role === 'tutor' && module?.targetLanguage !== module?.nativeLanguage">
+              <div class="subtitle-content" 
+                   *ngIf="getNativeSubtitle(message)"
+                   [class.loading]="isTranslating">
+                <i class="fas fa-language subtitle-icon"></i>
+                <span class="subtitle-label">{{ module?.nativeLanguage }}:</span>
+                <span class="subtitle-text" 
+                      [innerHTML]="getNativeSubtitle(message)">
+                </span>
+              </div>
+              
+              <div class="subtitle-loading" 
+                   *ngIf="!getNativeSubtitle(message) && isMessageBeingTranslated(message, 'native')">
+                <i class="fas fa-spinner fa-spin"></i>
+                <small>Translating to {{ module?.nativeLanguage }}...</small>
+              </div>
+            </div>
               </div>
               
               <!-- Show loading only for messages that are being actively translated -->

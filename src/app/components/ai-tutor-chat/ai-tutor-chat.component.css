@@ -2023,14 +2023,46 @@
   margin-top: 0.25rem;
 }
 
-/* Native Language Subtitle Styles */
+/* Dual Subtitle System Styles */
 .message-subtitle {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: rgba(255, 193, 7, 0.1);
-  border-left: 3px solid #ffc107;
+  border-left: 3px solid;
   border-radius: 0.25rem;
   font-size: 0.85rem;
+}
+
+/* English Subtitle Styling */
+.english-subtitle {
+  background: rgba(23, 162, 184, 0.1);
+  border-left-color: #17a2b8;
+  margin-bottom: 0.25rem;
+}
+
+.english-subtitle .subtitle-icon {
+  color: #17a2b8;
+}
+
+.english-subtitle .subtitle-label {
+  font-weight: 600;
+  color: #17a2b8;
+  margin-right: 0.5rem;
+}
+
+/* Native Language Subtitle Styling */
+.native-subtitle {
+  background: rgba(255, 193, 7, 0.1);
+  border-left-color: #ffc107;
+}
+
+.native-subtitle .subtitle-icon {
+  color: #ffc107;
+}
+
+.native-subtitle .subtitle-label {
+  font-weight: 600;
+  color: #ffc107;
+  margin-right: 0.5rem;
 }
 
 .subtitle-content {
@@ -2040,7 +2072,6 @@
 }
 
 .subtitle-icon {
-  color: #ffc107;
   font-size: 0.8rem;
 }
 
@@ -2061,14 +2092,26 @@
   font-size: 0.7rem;
 }
 
-/* Subtitle in minimal mode */
-.minimal-mode .message-subtitle {
-  margin-top: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+/* Subtitle button group */
+.subtitle-buttons {
+  display: inline-flex;
+  gap: 0.25rem;
 }
 
-/* Subtitle button styles */
+/* English subtitle button */
+.btn-outline-light.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: #fff;
+}
+
+.btn-outline-light.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+  color: #fff;
+}
+
+/* Native subtitle button */
 .btn-outline-light.btn-warning {
   background-color: #ffc107;
   border-color: #ffc107;
@@ -2081,15 +2124,20 @@
   color: #000;
 }
 
-/* Subtitle for different message types */
-.message-tutor .message-subtitle {
-  background: rgba(40, 167, 69, 0.1);
-  border-left-color: #28a745;
+/* Subtitle in minimal mode */
+.minimal-mode .message-subtitle {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
 }
 
-.message-student .message-subtitle {
-  background: rgba(0, 123, 255, 0.1);
-  border-left-color: #007bff;
+/* Subtitle for different message types */
+.message-tutor .english-subtitle {
+  background: rgba(23, 162, 184, 0.15);
+}
+
+.message-tutor .native-subtitle {
+  background: rgba(255, 193, 7, 0.15);
 }
 
 /* Responsive subtitle styles */
@@ -2105,6 +2153,16 @@
   
   .subtitle-icon {
     font-size: 0.7rem;
+  }
+  
+  .subtitle-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .subtitle-buttons .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
   }
 }
 
