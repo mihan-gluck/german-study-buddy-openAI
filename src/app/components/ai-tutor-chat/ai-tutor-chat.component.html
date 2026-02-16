@@ -312,15 +312,6 @@
                 <small>Translating to {{ module?.nativeLanguage }}...</small>
               </div>
             </div>
-              </div>
-              
-              <!-- Show loading only for messages that are being actively translated -->
-              <div class="subtitle-loading" 
-                   *ngIf="!getMessageSubtitle(message) && isMessageBeingTranslated(message)">
-                <i class="fas fa-spinner fa-spin"></i>
-                <small>Translating complete message...</small>
-              </div>
-            </div>
             
             <!-- Message Status (hidden in minimal mode) -->
             <div class="message-status" *ngIf="message.role === 'student' && transcriptMode !== 'minimal'">

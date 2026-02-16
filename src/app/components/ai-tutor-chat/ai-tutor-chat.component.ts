@@ -1559,9 +1559,6 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   private refreshAllTranslations(): void {
     this.refreshNativeTranslations();
   }
-    // Force change detection
-    this.cdr.detectChanges();
-  }
 
   // Get native language translation for AI messages (LEGACY - kept for compatibility)
   async getMessageTranslation(message: TutorMessage): Promise<string> {
