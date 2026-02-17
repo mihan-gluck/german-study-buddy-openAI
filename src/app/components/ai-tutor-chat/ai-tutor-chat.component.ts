@@ -1425,6 +1425,15 @@ Keep practicing! 🌟`,
       return;
     }
 
+    // ✅ CHECK MINIMUM TIME REQUIREMENT BEFORE MARKING AS COMPLETE
+    const duration = this.calculateSessionDuration();
+    const requiredMinutes = this.module?.minimumCompletionTime || 15;
+    
+    if (duration < requiredMinutes) {
+      console.warn(`⚠️ Cannot mark module as completed: ${duration} min < ${requiredMinutes} min required`);
+      return; // Don't mark as complete if insufficient time
+    }
+
     const sessionData = {
       totalScore: this.getTotalEngagementScore(),
       conversationScore: this.getConversationScore(),
@@ -1432,7 +1441,8 @@ Keep practicing! 🌟`,
       messagesExchanged: this.getStudentMessageCount(),
       speechMessages: this.getSpeechMessageCount(),
       sessionType: this.sessionType,
-      completedAt: new Date()
+      completedAt: new Date(),
+      timeSpentMinutes: duration // ✅ Include duration in session data
     };
 
     console.log('📋 Marking module as completed with session data:', sessionData);

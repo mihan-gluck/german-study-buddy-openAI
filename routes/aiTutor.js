@@ -1031,6 +1031,18 @@ router.post('/end-session', verifyToken, async (req, res) => {
     
     const durationMinutes = Math.round((session.endTime - session.startTime) / 60000);
     
+    // ✅ Determine session state based on duration and module requirements
+    const module = session.moduleId;
+    const requiredMinutes = module.minimumCompletionTime || 15;
+    let sessionState = 'completed';
+    
+    if (durationMinutes < requiredMinutes) {
+      sessionState = 'manually_ended'; // Session ended early, not enough time
+      console.log(`⚠️ Session ended early: ${durationMinutes} min < ${requiredMinutes} min required`);
+    } else {
+      console.log(`✅ Session completed: ${durationMinutes} min >= ${requiredMinutes} min required`);
+    }
+    
     // ✅ NEW: Create/Update SessionRecord for analytics
     try {
       const SessionRecord = require('../models/SessionRecord');
@@ -1044,7 +1056,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
         // Update existing record
         sessionRecord.endTime = session.endTime;
         sessionRecord.durationMinutes = durationMinutes;
-        sessionRecord.sessionState = 'completed';
+        sessionRecord.sessionState = sessionState;
         sessionRecord.messages = session.messages.map(msg => ({
           role: msg.role,
           content: msg.content,
@@ -1067,8 +1079,11 @@ router.post('/end-session', verifyToken, async (req, res) => {
           accuracy: accuracy
         };
         
+        // Only mark module as completed if session state is 'completed' (sufficient time)
+        sessionRecord.isModuleCompleted = sessionState === 'completed';
+        
         await sessionRecord.save();
-        console.log('✅ SessionRecord updated with duration:', durationMinutes, 'minutes');
+        console.log('✅ SessionRecord updated with duration:', durationMinutes, 'minutes, state:', sessionState);
       } else {
         // Create new record
         // Calculate accuracy safely (avoid NaN)
@@ -1086,7 +1101,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
           moduleTitle: session.moduleId.title,
           moduleLevel: session.moduleId.level,
           sessionType: session.sessionType,
-          sessionState: 'completed',
+          sessionState: sessionState, // Use calculated sessionState
           startTime: session.startTime,
           endTime: session.endTime,
           durationMinutes: durationMinutes,
@@ -1104,7 +1119,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
             incorrectAnswers: session.analytics.incorrectAnswers,
             accuracy: accuracy
           },
-          isModuleCompleted: false
+          isModuleCompleted: sessionState === 'completed' // Only true if session completed with sufficient time
         });
         
         await sessionRecord.save();
