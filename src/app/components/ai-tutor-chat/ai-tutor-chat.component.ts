@@ -67,6 +67,9 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   // Speech processing state
   isProcessingSpeech: boolean = false;
   
+  // Speech accumulation across auto-restarts
+  private speechAccumulating: boolean = false; // Track if accumulating speech across restarts
+  
   // Transcript visibility control
   showTranscript: boolean = true;
   transcriptMode: 'full' | 'minimal' | 'hidden' = 'full';
@@ -957,6 +960,11 @@ Keep practicing! 🌟`,
     };
   }
 
+  // Mobile device detection helper
+  private isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
   // Speech Recognition Methods
   initializeSpeechRecognition(): void {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -1006,10 +1014,19 @@ Keep practicing! 🌟`,
         // Store the captured speech but DON'T send it yet
         // Always update with the latest transcript (even if not final)
         if (normalizedTranscript && normalizedTranscript.trim()) {
-          this.currentMessage = normalizedTranscript;
+          // Append to existing message if accumulating (after auto-restart)
+          if (this.speechAccumulating && this.currentMessage) {
+            // Add space and append new speech to preserve previous speech
+            this.currentMessage = this.currentMessage + ' ' + normalizedTranscript;
+            console.log('🎤 Speech accumulated:', this.currentMessage);
+          } else {
+            // Fresh start - replace message
+            this.currentMessage = normalizedTranscript;
+            console.log('🎤 Speech stored (not sent yet):', normalizedTranscript);
+          }
+          
           this.isProcessingSpeech = false;
           
-          console.log('🎤 Speech stored (not sent yet):', normalizedTranscript);
           console.log('🎤 Is final result:', isFinal);
           console.log('🎤 User must manually stop microphone to send message');
           
@@ -1025,13 +1042,23 @@ Keep practicing! 🌟`,
       
       this.speechRecognition.onerror = (event: any) => {
         console.error('🎤 Speech recognition error:', event.error);
-        this.isListening = false;
+        
+        // Don't set isListening to false for 'no-speech' error on mobile
+        // This allows auto-restart to work properly
+        if (event.error !== 'no-speech' || !this.isMobileDevice()) {
+          this.isListening = false;
+        }
         
         // Provide user feedback for common errors
         let errorMessage = '';
         switch (event.error) {
           case 'no-speech':
             errorMessage = 'No speech detected. Please try speaking again.';
+            // On mobile, this is normal - will auto-restart
+            if (this.isMobileDevice()) {
+              console.log('🎤 No speech on mobile - will auto-restart');
+              return; // Don't show error on mobile
+            }
             break;
           case 'audio-capture':
             errorMessage = 'Microphone not accessible. Please check permissions.';
@@ -1053,10 +1080,46 @@ Keep practicing! 🌟`,
       
       this.speechRecognition.onend = () => {
         console.log('🎤 Speech recognition ended');
-        this.isListening = false;
         
-        // Don't automatically restart - user controls when to speak
-        // Message will be sent by stopListening() if there's content
+        // Check if this was a user-initiated stop or browser auto-stop
+        if (this.isListening) {
+          // Browser auto-stopped (user didn't tap stop button)
+          console.log('🎤 Browser auto-stopped speech recognition');
+          
+          // On mobile, automatically restart to keep listening
+          if (this.isMobileDevice()) {
+            console.log('🎤 Mobile device detected - auto-restarting...');
+            
+            // Set accumulating flag BEFORE restart to preserve previous speech
+            this.speechAccumulating = true;
+            
+            // Small delay before restart to avoid rapid cycling
+            setTimeout(() => {
+              if (this.isListening && this.speechRecognition) {
+                try {
+                  this.speechRecognition.start();
+                  console.log('🎤 Speech recognition restarted successfully (accumulating mode)');
+                } catch (error) {
+                  console.error('🎤 Failed to restart:', error);
+                  this.isListening = false;
+                  this.speechAccumulating = false; // Reset flag on error
+                  this.cdr.detectChanges();
+                }
+              }
+            }, 100); // 100ms delay
+          } else {
+            // Desktop - don't auto-restart, user has full control
+            console.log('🎤 Desktop detected - not auto-restarting');
+            this.isListening = false;
+            this.speechAccumulating = false; // Reset flag
+          }
+        } else {
+          // User manually stopped (stopListening() was called)
+          console.log('🎤 User manually stopped speech recognition');
+          this.speechAccumulating = false; // Reset flag
+        }
+        
+        this.cdr.detectChanges();
       };
     } else {
       console.warn('Speech recognition not supported in this browser');
@@ -1069,7 +1132,11 @@ Keep practicing! 🌟`,
     if (this.speechRecognition && !this.isListening) {
       // Clear any previous error messages
       this.showSpeechError = false;
-      this.currentMessage = ''; // Clear previous message
+      
+      // Only clear message if NOT accumulating (fresh start)
+      if (!this.speechAccumulating) {
+        this.currentMessage = ''; // Clear previous message for fresh start
+      }
       
       this.speechRecognition.start();
     }
@@ -1080,6 +1147,11 @@ Keep practicing! 🌟`,
     if (this.speechRecognition && this.isListening) {
       console.log('🎤 Stopping microphone, current message:', this.currentMessage);
       
+      // Set to false BEFORE calling stop() so onend knows this was user-initiated
+      this.isListening = false;
+      this.speechAccumulating = false; // Reset accumulating flag
+      
+      // Stop speech recognition
       this.speechRecognition.stop();
       
       // Wait a bit longer to ensure speech recognition has fully processed

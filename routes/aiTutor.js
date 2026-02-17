@@ -1051,21 +1051,32 @@ router.post('/end-session', verifyToken, async (req, res) => {
           messageType: msg.messageType,
           timestamp: msg.timestamp
         }));
+        
+        // Calculate accuracy safely (avoid NaN)
+        const totalExercises = session.analytics.correctAnswers + session.analytics.incorrectAnswers;
+        const accuracy = totalExercises > 0 
+          ? Math.round((session.analytics.correctAnswers / totalExercises) * 100) 
+          : 0;
+        
         sessionRecord.summary = {
           conversationCount: session.messages.filter(m => m.role === 'student').length,
           timeSpentMinutes: durationMinutes,
           totalScore: session.analytics.sessionScore,
           correctAnswers: session.analytics.correctAnswers,
           incorrectAnswers: session.analytics.incorrectAnswers,
-          accuracy: session.analytics.totalMessages > 0 
-            ? Math.round((session.analytics.correctAnswers / (session.analytics.correctAnswers + session.analytics.incorrectAnswers)) * 100) 
-            : 0
+          accuracy: accuracy
         };
         
         await sessionRecord.save();
         console.log('✅ SessionRecord updated with duration:', durationMinutes, 'minutes');
       } else {
         // Create new record
+        // Calculate accuracy safely (avoid NaN)
+        const totalExercises = session.analytics.correctAnswers + session.analytics.incorrectAnswers;
+        const accuracy = totalExercises > 0 
+          ? Math.round((session.analytics.correctAnswers / totalExercises) * 100) 
+          : 0;
+        
         sessionRecord = new SessionRecord({
           sessionId,
           studentId: userId,
@@ -1091,9 +1102,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
             totalScore: session.analytics.sessionScore,
             correctAnswers: session.analytics.correctAnswers,
             incorrectAnswers: session.analytics.incorrectAnswers,
-            accuracy: session.analytics.totalMessages > 0 
-              ? Math.round((session.analytics.correctAnswers / (session.analytics.correctAnswers + session.analytics.incorrectAnswers)) * 100) 
-              : 0
+            accuracy: accuracy
           },
           isModuleCompleted: false
         });
