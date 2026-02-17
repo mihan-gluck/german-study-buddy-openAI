@@ -1019,7 +1019,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
       sessionId, 
       studentId: userId,
       status: 'active'
-    }).populate('moduleId', 'title level');
+    }).populate('moduleId', 'title level minimumCompletionTime');
     
     if (!session) {
       return res.status(404).json({ message: 'Active session not found' });
