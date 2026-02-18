@@ -79,10 +79,7 @@ const mongoUri =
     ? process.env.MONGO_URI
     : process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/Updated-Gluck-Portal';
 
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(mongoUri)
   .then(() => {
     console.log(`✅ Connected to MongoDB (${process.env.NODE_ENV || 'development'})`);
   })
