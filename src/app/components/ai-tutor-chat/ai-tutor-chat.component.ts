@@ -344,9 +344,41 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       'English': 'en-US',
       'German': 'de-DE',
       'Spanish': 'es-ES',
-      'French': 'fr-FR'
+      'French': 'fr-FR',
+      'Tamil': 'ta-IN',
+      'Sinhala': 'si-LK'
     };
     return languageMap[targetLanguage] || 'en-US';
+  }
+
+  // Detect the language of text based on character patterns
+  private detectTextLanguage(text: string): string {
+    // Tamil Unicode range: \u0B80-\u0BFF
+    const tamilPattern = /[\u0B80-\u0BFF]/;
+    
+    // Sinhala Unicode range: \u0D80-\u0DFF
+    const sinhalaPattern = /[\u0D80-\u0DFF]/;
+    
+    // German-specific characters
+    const germanPattern = /[äöüßÄÖÜ]/;
+    
+    // Check for Tamil characters
+    if (tamilPattern.test(text)) {
+      return 'Tamil';
+    }
+    
+    // Check for Sinhala characters
+    if (sinhalaPattern.test(text)) {
+      return 'Sinhala';
+    }
+    
+    // Check for German characters
+    if (germanPattern.test(text)) {
+      return 'German';
+    }
+    
+    // Default to target language if no specific characters detected
+    return this.module?.targetLanguage || 'English';
   }
 
   // Update speech recognition language based on module
@@ -1346,25 +1378,40 @@ Keep practicing! 🌟`,
     console.log('🔊 TTS Debug:', {
       moduleTitle: this.module?.title,
       targetLanguage: this.module?.targetLanguage,
-      nativeLanguage: this.module?.nativeLanguage
+      nativeLanguage: this.module?.nativeLanguage,
+      textPreview: cleanText.substring(0, 50)
     });
     
-    // Configure voice based on target language using unified mapping
+    // Detect the actual language of the text being spoken
+    const detectedLanguage = this.detectTextLanguage(cleanText);
+    console.log('🔊 Detected text language:', detectedLanguage);
+    
+    // Configure voice based on detected language
     const voices = this.speechSynthesis.getVoices();
     let targetVoice;
-    const selectedLang = this.getLanguageCode(this.module?.targetLanguage || 'English');
+    const selectedLang = this.getLanguageCode(detectedLanguage);
     
     // Find appropriate voice for the language
     if (selectedLang.startsWith('en')) {
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
       );
-      console.log('🔊 Using English TTS for English module');
+      console.log('🔊 Using English TTS');
     } else if (selectedLang.startsWith('de')) {
       targetVoice = voices.find(voice => 
         voice.lang.startsWith('de') || voice.name.toLowerCase().includes('german')
       );
-      console.log('🔊 Using German TTS for German module');
+      console.log('🔊 Using German TTS');
+    } else if (selectedLang.startsWith('ta')) {
+      targetVoice = voices.find(voice => 
+        voice.lang.startsWith('ta') || voice.name.toLowerCase().includes('tamil')
+      );
+      console.log('🔊 Using Tamil TTS');
+    } else if (selectedLang.startsWith('si')) {
+      targetVoice = voices.find(voice => 
+        voice.lang.startsWith('si') || voice.name.toLowerCase().includes('sinhala')
+      );
+      console.log('🔊 Using Sinhala TTS');
     } else {
       // Fallback: Use English as default
       targetVoice = voices.find(voice => 
