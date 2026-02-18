@@ -1067,47 +1067,40 @@ Keep practicing! 🌟`,
       };
       
       this.speechRecognition.onresult = (event: any) => {
-        // Get the latest result (last one in the results array)
-        const resultIndex = event.results.length - 1;
-        const transcript = event.results[resultIndex][0].transcript;
-        const confidence = event.results[resultIndex][0].confidence || 0.8; // Default confidence
-        const isFinal = event.results[resultIndex].isFinal;
+        // Build complete transcript from ALL results
+        // Speech Recognition API returns cumulative results, so we need to process all of them
+        let completeTranscript = '';
         
-        console.log('🎤 Speech captured:', {
-          transcript,
-          confidence,
-          isFinal,
-          resultIndex,
-          totalResults: event.results.length
-        });
-        
-        // Apply confidence threshold
-        if (confidence < 0.6) {
-          console.warn('🎤 Low confidence transcript, ignoring');
-          return;
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+          const confidence = result[0].confidence || 0.8;
+          
+          // Apply confidence threshold
+          if (confidence >= 0.6) {
+            completeTranscript += transcript + ' ';
+          }
         }
         
+        completeTranscript = completeTranscript.trim();
+        
+        console.log('🎤 Speech captured:', {
+          completeTranscript,
+          totalResults: event.results.length,
+          lastResultFinal: event.results[event.results.length - 1].isFinal
+        });
+        
         // Normalize the transcript for consistent processing
-        const normalizedTranscript = this.normalizeText(transcript);
+        const normalizedTranscript = this.normalizeText(completeTranscript);
         
         // Store the captured speech but DON'T send it yet
-        // Always update with the latest transcript (even if not final)
         if (normalizedTranscript && normalizedTranscript.trim()) {
-          // ✅ FIX: Always append within same recording session
-          // This ensures all speech in one session is captured, regardless of pauses
-          if (this.currentMessage && this.currentMessage.trim()) {
-            // Append to existing speech (within same session)
-            this.currentMessage = this.currentMessage + ' ' + normalizedTranscript;
-            console.log('🎤 Speech appended (same session):', this.currentMessage);
-          } else {
-            // Fresh start (first speech in session)
-            this.currentMessage = normalizedTranscript;
-            console.log('🎤 Speech stored (first in session):', normalizedTranscript);
-          }
+          // Simply replace with the complete transcript (it already contains everything)
+          this.currentMessage = normalizedTranscript;
+          console.log('🎤 Speech stored:', this.currentMessage);
           
           this.isProcessingSpeech = false;
           
-          console.log('🎤 Is final result:', isFinal);
           console.log('🎤 User must manually stop microphone to send message');
           
           // Force UI update to show captured text
