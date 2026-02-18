@@ -69,7 +69,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   
   // Speech accumulation across auto-restarts
   private speechAccumulating: boolean = false; // Track if accumulating speech across restarts
-  private processedResultsCount: number = 0; // Track how many results we've already processed
+  private previousMessage: string = ''; // Store message from before auto-restart
   
   // Enhanced mobile detection
   private isFirstDetection = true;
@@ -1068,56 +1068,45 @@ Keep practicing! 🌟`,
       };
       
       this.speechRecognition.onresult = (event: any) => {
-        // Build complete transcript from NEW results only (to avoid duplication on mobile auto-restart)
-        // Speech Recognition API returns cumulative results, but we only want NEW ones after restart
-        let sessionTranscript = '';
+        // Speech Recognition API fires this event multiple times as user speaks
+        // event.results is cumulative within a single recognition session
+        // We only want the LAST (most recent) result to avoid duplication
         
-        // Determine which results to process
-        const startIndex = this.speechAccumulating ? this.processedResultsCount : 0;
+        const lastResultIndex = event.results.length - 1;
+        const lastResult = event.results[lastResultIndex];
+        const transcript = lastResult[0].transcript;
+        const confidence = lastResult[0].confidence || 0.8;
         
-        console.log('🎤 Processing results:', {
+        console.log('🎤 Speech result received:', {
+          transcript,
+          confidence,
+          isFinal: lastResult.isFinal,
+          resultIndex: lastResultIndex,
           totalResults: event.results.length,
-          startIndex: startIndex,
           speechAccumulating: this.speechAccumulating,
-          processedBefore: this.processedResultsCount
+          previousMessage: this.previousMessage,
+          currentMessage: this.currentMessage
         });
         
-        for (let i = startIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          const transcript = result[0].transcript;
-          const confidence = result[0].confidence || 0.8;
-          
-          // Apply confidence threshold
-          if (confidence >= 0.6) {
-            sessionTranscript += transcript + ' ';
-          }
+        // Apply confidence threshold
+        if (confidence < 0.6) {
+          console.log('🎤 Low confidence, ignoring result');
+          return;
         }
         
-        // Update processed count
-        this.processedResultsCount = event.results.length;
-        
-        sessionTranscript = sessionTranscript.trim();
-        
-        console.log('🎤 Speech captured:', {
-          sessionTranscript,
-          totalResults: event.results.length,
-          processedResults: this.processedResultsCount,
-          lastResultFinal: event.results[event.results.length - 1].isFinal,
-          speechAccumulating: this.speechAccumulating
-        });
-        
         // Normalize the transcript for consistent processing
-        const normalizedTranscript = this.normalizeText(sessionTranscript);
+        const normalizedTranscript = this.normalizeText(transcript);
         
         // Store the captured speech but DON'T send it yet
         if (normalizedTranscript && normalizedTranscript.trim()) {
           // Check if we're accumulating across mobile auto-restarts
-          if (this.speechAccumulating && this.currentMessage && this.currentMessage.trim()) {
-            // Mobile auto-restart: Append new speech to previous speech
-            this.currentMessage = this.currentMessage + ' ' + normalizedTranscript;
+          if (this.speechAccumulating && this.previousMessage && this.previousMessage.trim()) {
+            // Mobile auto-restart: Combine previous message with new transcript
+            // Replace currentMessage each time (don't append repeatedly)
+            this.currentMessage = this.previousMessage + ' ' + normalizedTranscript;
             console.log('🎤 Speech accumulated (mobile auto-restart):', this.currentMessage);
           } else {
-            // Normal case: Replace with complete session transcript
+            // Normal case: Use the transcript from this recognition session
             this.currentMessage = normalizedTranscript;
             console.log('🎤 Speech stored (single session):', this.currentMessage);
           }
@@ -1189,6 +1178,9 @@ Keep practicing! 🌟`,
             // Set accumulating flag BEFORE restart to preserve previous speech
             this.speechAccumulating = true;
             
+            // Save current message before restart
+            this.previousMessage = this.currentMessage;
+            
             // Small delay before restart to avoid rapid cycling
             setTimeout(() => {
               if (this.isListening && this.speechRecognition) {
@@ -1199,7 +1191,7 @@ Keep practicing! 🌟`,
                   console.error('🎤 Failed to restart:', error);
                   this.isListening = false;
                   this.speechAccumulating = false; // Reset flag on error
-                  this.processedResultsCount = 0; // Reset counter on error
+                  this.previousMessage = ''; // Clear previous message
                   this.cdr.detectChanges();
                 }
               }
@@ -1209,13 +1201,13 @@ Keep practicing! 🌟`,
             console.log('🎤 Desktop behavior detected - not auto-restarting');
             this.isListening = false;
             this.speechAccumulating = false; // Reset flag
-            this.processedResultsCount = 0; // Reset counter
+            this.previousMessage = ''; // Clear previous message
           }
         } else {
           // User manually stopped (stopListening() was called)
           console.log('🎤 User manually stopped speech recognition');
           this.speechAccumulating = false; // Reset flag
-          this.processedResultsCount = 0; // Reset counter
+          this.previousMessage = ''; // Clear previous message
         }
         
         this.cdr.detectChanges();
@@ -1235,7 +1227,7 @@ Keep practicing! 🌟`,
       // Only clear message if NOT accumulating (fresh start)
       if (!this.speechAccumulating) {
         this.currentMessage = ''; // Clear previous message for fresh start
-        this.processedResultsCount = 0; // Reset processed results counter for fresh start
+        this.previousMessage = ''; // Clear previous message storage
       }
       
       this.speechRecognition.start();
@@ -1250,7 +1242,7 @@ Keep practicing! 🌟`,
       // Set to false BEFORE calling stop() so onend knows this was user-initiated
       this.isListening = false;
       this.speechAccumulating = false; // Reset accumulating flag
-      this.processedResultsCount = 0; // Reset processed results counter
+      this.previousMessage = ''; // Clear previous message storage
       
       // Stop speech recognition
       this.speechRecognition.stop();
