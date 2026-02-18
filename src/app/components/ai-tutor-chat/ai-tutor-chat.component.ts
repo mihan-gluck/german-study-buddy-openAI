@@ -1101,10 +1101,11 @@ Keep practicing! 🌟`,
         if (normalizedTranscript && normalizedTranscript.trim()) {
           // Check if we're accumulating across mobile auto-restarts
           if (this.speechAccumulating && this.previousMessage && this.previousMessage.trim()) {
-            // Mobile auto-restart: Combine previous message with new transcript
-            // Replace currentMessage each time (don't append repeatedly)
-            this.currentMessage = this.previousMessage + ' ' + normalizedTranscript;
-            console.log('🎤 Speech accumulated (mobile auto-restart):', this.currentMessage);
+            // Mobile auto-restart: Smart deduplication
+            // Remove duplicate words that appear at the end of previous message and start of new transcript
+            const combinedMessage = this.removeDuplicateWords(this.previousMessage, normalizedTranscript);
+            this.currentMessage = combinedMessage;
+            console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', this.currentMessage);
           } else {
             // Normal case: Use the transcript from this recognition session
             this.currentMessage = normalizedTranscript;
@@ -1288,6 +1289,45 @@ Keep practicing! 🌟`,
       .replace(/\n/g, ' ')             // Replace single newlines with spaces
       .replace(/\s+/g, ' ')            // Normalize whitespace
       .trim();
+  }
+
+  // Smart deduplication for mobile speech accumulation
+  // Removes duplicate words that appear at the end of previous message and start of new transcript
+  private removeDuplicateWords(previousMessage: string, newTranscript: string): string {
+    const prevWords = previousMessage.trim().split(/\s+/);
+    const newWords = newTranscript.trim().split(/\s+/);
+    
+    // Find the longest overlap between end of previous and start of new
+    let overlapLength = 0;
+    const maxOverlap = Math.min(prevWords.length, newWords.length);
+    
+    for (let i = 1; i <= maxOverlap; i++) {
+      const prevEnd = prevWords.slice(-i).join(' ').toLowerCase();
+      const newStart = newWords.slice(0, i).join(' ').toLowerCase();
+      
+      if (prevEnd === newStart) {
+        overlapLength = i;
+      }
+    }
+    
+    if (overlapLength > 0) {
+      // Remove the overlapping words from the new transcript
+      const deduplicatedNewWords = newWords.slice(overlapLength);
+      const result = previousMessage + ' ' + deduplicatedNewWords.join(' ');
+      
+      console.log('🔍 Deduplication:', {
+        previousMessage,
+        newTranscript,
+        overlapLength,
+        overlappingWords: newWords.slice(0, overlapLength).join(' '),
+        result
+      });
+      
+      return result.trim();
+    }
+    
+    // No overlap found, just concatenate
+    return (previousMessage + ' ' + newTranscript).trim();
   }
 
   // Text-to-Speech: Speak the AI tutor's response
