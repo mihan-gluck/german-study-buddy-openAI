@@ -57,4 +57,13 @@ Thumbs.db
 !DETAILED_FUNCTION_DOCUMENTATION.md
 *.txt
 *.pdf
-edit.pdf 
+edit.pdf
+
+# Test scripts and fix files (development only)
+*-FIX-CODE.ts
+*-FIX.ts
+check-*.js
+fix-*.js
+convert-*.js
+get-*.js
+added-*.json 
