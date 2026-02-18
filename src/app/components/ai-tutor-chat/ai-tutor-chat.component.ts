@@ -70,6 +70,10 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   // Speech accumulation across auto-restarts
   private speechAccumulating: boolean = false; // Track if accumulating speech across restarts
   
+  // Enhanced mobile detection
+  private isFirstDetection = true;
+  microphoneMode: 'auto' | 'mobile' | 'desktop' = 'auto'; // User preference
+  
   // Transcript visibility control
   showTranscript: boolean = true;
   transcriptMode: 'full' | 'minimal' | 'hidden' = 'full';
@@ -180,6 +184,13 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
   private initializeComponent(): void {
     // Load transcript preferences
     this.loadTranscriptPreferences();
+    
+    // Load saved microphone mode preference
+    const savedMode = localStorage.getItem('ai-tutor-mic-mode');
+    if (savedMode && ['auto', 'mobile', 'desktop'].includes(savedMode)) {
+      this.microphoneMode = savedMode as 'auto' | 'mobile' | 'desktop';
+      console.log('📂 Loaded microphone mode preference:', this.microphoneMode);
+    }
     
     // Module ID should already be set from ngOnInit
     console.log('🚀 AI Tutor Chat initialized:', { 
@@ -962,7 +973,75 @@ Keep practicing! 🌟`,
 
   // Mobile device detection helper
   private isMobileDevice(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Check 1: User Agent string (traditional method)
+    const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Check 2: Touch capability (mobile devices have touch)
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Check 3: Screen size (mobile screens are typically smaller)
+    const smallScreen = window.innerWidth <= 768;
+    
+    // Check 4: Touch + Small Screen combination (strong mobile indicator)
+    // This catches mobile devices using "Request Desktop Site"
+    const touchMobile = hasTouch && smallScreen;
+    
+    // Check 5: Orientation API (mobile-specific feature)
+    const hasOrientation = typeof window.orientation !== 'undefined' || 'orientation' in screen;
+    
+    // Final decision: Mobile if ANY indicator is true
+    const isMobile = mobileUA || touchMobile || hasOrientation;
+    
+    // Debug logging (only on first detection to avoid spam)
+    if (this.isFirstDetection) {
+      console.log('🔍 Enhanced Mobile Detection:', {
+        userAgent: navigator.userAgent.substring(0, 100) + '...',
+        checks: {
+          mobileUA: mobileUA,
+          hasTouch: hasTouch,
+          smallScreen: smallScreen,
+          touchMobile: touchMobile,
+          hasOrientation: hasOrientation
+        },
+        screenSize: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
+        finalDecision: isMobile ? '📱 MOBILE' : '🖥️ DESKTOP'
+      });
+      this.isFirstDetection = false;
+    }
+    
+    return isMobile;
+  }
+
+  /**
+   * Determine if mobile behavior should be used
+   * Respects user preference if set, otherwise uses auto-detection
+   */
+  private shouldUseMobileBehavior(): boolean {
+    if (this.microphoneMode === 'mobile') {
+      console.log('🎤 Using MOBILE mode (user preference)');
+      return true;
+    }
+    
+    if (this.microphoneMode === 'desktop') {
+      console.log('🎤 Using DESKTOP mode (user preference)');
+      return false;
+    }
+    
+    // Auto mode - use enhanced detection
+    const isMobile = this.isMobileDevice();
+    console.log(`🎤 Using ${isMobile ? 'MOBILE' : 'DESKTOP'} mode (auto-detected)`);
+    return isMobile;
+  }
+
+  /**
+   * Save user's microphone mode preference
+   */
+  saveMicrophoneMode(): void {
+    localStorage.setItem('ai-tutor-mic-mode', this.microphoneMode);
+    console.log('💾 Microphone mode saved:', this.microphoneMode);
   }
 
   // Speech Recognition Methods
@@ -1014,15 +1093,16 @@ Keep practicing! 🌟`,
         // Store the captured speech but DON'T send it yet
         // Always update with the latest transcript (even if not final)
         if (normalizedTranscript && normalizedTranscript.trim()) {
-          // Append to existing message if accumulating (after auto-restart)
-          if (this.speechAccumulating && this.currentMessage) {
-            // Add space and append new speech to preserve previous speech
+          // ✅ FIX: Always append within same recording session
+          // This ensures all speech in one session is captured, regardless of pauses
+          if (this.currentMessage && this.currentMessage.trim()) {
+            // Append to existing speech (within same session)
             this.currentMessage = this.currentMessage + ' ' + normalizedTranscript;
-            console.log('🎤 Speech accumulated:', this.currentMessage);
+            console.log('🎤 Speech appended (same session):', this.currentMessage);
           } else {
-            // Fresh start - replace message
+            // Fresh start (first speech in session)
             this.currentMessage = normalizedTranscript;
-            console.log('🎤 Speech stored (not sent yet):', normalizedTranscript);
+            console.log('🎤 Speech stored (first in session):', normalizedTranscript);
           }
           
           this.isProcessingSpeech = false;
@@ -1045,7 +1125,7 @@ Keep practicing! 🌟`,
         
         // Don't set isListening to false for 'no-speech' error on mobile
         // This allows auto-restart to work properly
-        if (event.error !== 'no-speech' || !this.isMobileDevice()) {
+        if (event.error !== 'no-speech' || !this.shouldUseMobileBehavior()) {
           this.isListening = false;
         }
         
@@ -1055,7 +1135,7 @@ Keep practicing! 🌟`,
           case 'no-speech':
             errorMessage = 'No speech detected. Please try speaking again.';
             // On mobile, this is normal - will auto-restart
-            if (this.isMobileDevice()) {
+            if (this.shouldUseMobileBehavior()) {
               console.log('🎤 No speech on mobile - will auto-restart');
               return; // Don't show error on mobile
             }
@@ -1086,9 +1166,9 @@ Keep practicing! 🌟`,
           // Browser auto-stopped (user didn't tap stop button)
           console.log('🎤 Browser auto-stopped speech recognition');
           
-          // On mobile, automatically restart to keep listening
-          if (this.isMobileDevice()) {
-            console.log('🎤 Mobile device detected - auto-restarting...');
+          // Use enhanced detection with user preference support
+          if (this.shouldUseMobileBehavior()) {
+            console.log('🎤 Mobile behavior detected - auto-restarting...');
             
             // Set accumulating flag BEFORE restart to preserve previous speech
             this.speechAccumulating = true;
@@ -1109,7 +1189,7 @@ Keep practicing! 🌟`,
             }, 100); // 100ms delay
           } else {
             // Desktop - don't auto-restart, user has full control
-            console.log('🎤 Desktop detected - not auto-restarting');
+            console.log('🎤 Desktop behavior detected - not auto-restarting');
             this.isListening = false;
             this.speechAccumulating = false; // Reset flag
           }
