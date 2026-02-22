@@ -1101,33 +1101,56 @@ Keep practicing! 🌟`,
       
       this.speechRecognition.onresult = (event: any) => {
         // Speech Recognition API fires this event multiple times as user speaks
-        // event.results is cumulative within a single recognition session
-        // We only want the LAST (most recent) result to avoid duplication
-        
-        const lastResultIndex = event.results.length - 1;
-        const lastResult = event.results[lastResultIndex];
-        const transcript = lastResult[0].transcript;
-        const confidence = lastResult[0].confidence || 0.8;
+        // IMPORTANT: event.results contains SEPARATE speech segments, NOT cumulative transcripts
+        // We must concatenate ALL final results to get the complete message
         
         console.log('🎤 Speech result received:', {
-          transcript,
-          confidence,
-          isFinal: lastResult.isFinal,
-          resultIndex: lastResultIndex,
           totalResults: event.results.length,
+          resultIndex: event.resultIndex,
           speechAccumulating: this.speechAccumulating,
           previousMessage: this.previousMessage,
           currentMessage: this.currentMessage
         });
         
-        // Apply confidence threshold
-        if (confidence < 0.6) {
-          console.log('🎤 Low confidence, ignoring result');
+        // Build complete transcript from ALL final results
+        // This is necessary because Web Speech API creates separate results for each speech segment
+        let completeTranscript = '';
+        let hasNewFinalResult = false;
+        let lowestConfidence = 1.0;
+        
+        console.log('🔍 Analyzing all results:');
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+          const confidence = result[0].confidence || 0.8;
+          const isFinal = result.isFinal;
+          
+          console.log(`  [${i}] "${transcript}" (final: ${isFinal}, confidence: ${confidence.toFixed(2)})`);
+          
+          // Only include final results with sufficient confidence
+          if (isFinal) {
+            if (confidence >= 0.6) {
+              completeTranscript += transcript + ' ';
+              hasNewFinalResult = true;
+              lowestConfidence = Math.min(lowestConfidence, confidence);
+            } else {
+              console.log(`  ⚠️  Skipping result ${i} due to low confidence (${confidence.toFixed(2)} < 0.6)`);
+            }
+          }
+        }
+        
+        completeTranscript = completeTranscript.trim();
+        
+        if (!hasNewFinalResult) {
+          console.log('🎤 No new final results, waiting...');
           return;
         }
         
-        // Normalize the transcript for consistent processing
-        const normalizedTranscript = this.normalizeText(transcript);
+        console.log('🎤 Complete transcript from all final results:', completeTranscript);
+        console.log('🎤 Lowest confidence in results:', lowestConfidence.toFixed(2));
+        
+        // Normalize the complete transcript
+        const normalizedTranscript = this.normalizeText(completeTranscript);
         
         // Store the captured speech but DON'T send it yet
         if (normalizedTranscript && normalizedTranscript.trim()) {
@@ -1139,9 +1162,9 @@ Keep practicing! 🌟`,
             this.currentMessage = combinedMessage;
             console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', this.currentMessage);
           } else {
-            // Normal case: Use the transcript from this recognition session
+            // Desktop/Normal case: Use the complete transcript from all final results
             this.currentMessage = normalizedTranscript;
-            console.log('🎤 Speech stored (single session):', this.currentMessage);
+            console.log('🎤 Speech stored (all final results accumulated):', this.currentMessage);
           }
           
           this.isProcessingSpeech = false;
