@@ -252,6 +252,14 @@ export class ZoomReportsComponent implements OnInit {
     this.router.navigate(['/teacher/meetings', meetingId]);
   }
 
+  viewAttendance(meetingId: string): void {
+    this.router.navigate(['/teacher/meetings', meetingId, 'attendance']);
+  }
+
+  viewEngagement(meetingId: string): void {
+    this.router.navigate(['/teacher/meetings', meetingId, 'engagement']);
+  }
+
   formatDate(date: Date): string {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',

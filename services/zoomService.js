@@ -350,20 +350,51 @@ class ZoomService {
 
       const participants = response.data.participants || [];
       
-      // Process and format participant data
-      return participants.map(p => ({
-        id: p.id,
-        userId: p.user_id,
-        name: p.name,
-        email: p.user_email,
-        joinTime: p.join_time,
-        leaveTime: p.leave_time,
-        duration: p.duration, // in seconds
-        durationMinutes: Math.round(p.duration / 60), // convert to minutes
-        attentiveness_score: p.attentiveness_score,
-        status: p.status,
-        participantUserId: p.participant_user_id
-      }));
+      // Group participants by email (or name if email not available) to merge multiple sessions
+      const participantMap = new Map();
+      
+      participants.forEach(p => {
+        const key = p.user_email || p.name; // Use email as primary key, fallback to name
+        
+        if (participantMap.has(key)) {
+          // Merge with existing participant - sum durations, keep earliest join and latest leave
+          const existing = participantMap.get(key);
+          existing.duration += p.duration;
+          existing.durationMinutes = Math.round(existing.duration / 60);
+          
+          // Keep earliest join time
+          if (new Date(p.join_time) < new Date(existing.joinTime)) {
+            existing.joinTime = p.join_time;
+          }
+          
+          // Keep latest leave time
+          if (new Date(p.leave_time) > new Date(existing.leaveTime)) {
+            existing.leaveTime = p.leave_time;
+          }
+          
+          // Increment session count
+          existing.sessionCount = (existing.sessionCount || 1) + 1;
+        } else {
+          // First session for this participant
+          participantMap.set(key, {
+            id: p.id,
+            userId: p.user_id,
+            name: p.name,
+            email: p.user_email,
+            joinTime: p.join_time,
+            leaveTime: p.leave_time,
+            duration: p.duration, // in seconds
+            durationMinutes: Math.round(p.duration / 60), // convert to minutes
+            attentiveness_score: p.attentiveness_score,
+            status: p.status,
+            participantUserId: p.participant_user_id,
+            sessionCount: 1
+          });
+        }
+      });
+      
+      // Convert map back to array
+      return Array.from(participantMap.values());
     } catch (error) {
       console.error('❌ Error getting participants:', error.response?.data || error.message);
       
@@ -482,17 +513,32 @@ class ZoomService {
     try {
       const token = await this.getAccessToken();
 
-      // Get basic participant data
+      // Get the actual meeting details to know the total duration
+      const meetingResponse = await axios.get(
+        `${zoomConfig.apiBaseUrl}/past_meetings/${meetingId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      const actualMeetingDuration = meetingResponse.data.duration; // in minutes
+      console.log(`📊 Actual meeting duration: ${actualMeetingDuration} minutes`);
+
+      // Get basic participant data (now merged by email/name)
       const participants = await this.getMeetingParticipants(meetingId);
 
       // For accounts without Dashboard access, skip QoS calls and provide basic engagement
       console.log('ℹ️ Using basic engagement metrics (QoS requires Business+ account)');
       
       const engagementData = participants.map(participant => {
-        // Calculate basic engagement based on participation duration
-        const totalMeetingMinutes = 60; // Default assumption, could be passed as parameter
-        const participationRate = participant.durationMinutes / totalMeetingMinutes;
-        const engagementScore = Math.min(Math.round(participationRate * 100), 100);
+        // Calculate participation rate based on ACTUAL meeting duration
+        const participationRate = Math.min(participant.durationMinutes / actualMeetingDuration, 1);
+        const participationPercentage = Math.round(participationRate * 100);
+        
+        // Engagement score based on participation (0-100%)
+        const engagementScore = participationPercentage;
         
         return {
           ...participant,
@@ -505,9 +551,11 @@ class ZoomService {
             cameraOnPercentage: 0,
             micOnPercentage: 0,
             
-            // Participation-based engagement
+            // Participation-based engagement (using ACTUAL meeting duration)
             participationRate: participationRate,
+            participationPercentage: participationPercentage,
             engagementScore: engagementScore,
+            actualMeetingDuration: actualMeetingDuration,
             
             // Account limitation flags
             accountLimitation: true,

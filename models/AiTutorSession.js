@@ -85,6 +85,7 @@ const AiTutorSessionSchema = new mongoose.Schema({
     topicsDiscussed: [String],
     skillsImproved: [String],
     weaknessesIdentified: [String],
+    vocabularyUsed: [String], // Track vocabulary words used during session
     sessionScore: { type: Number, default: 0 },
     engagementLevel: {
       type: String,
@@ -176,6 +177,28 @@ AiTutorSessionSchema.methods.addMessage = function(role, content, messageType = 
   if (messageType === 'hint') {
     this.analytics.hintsUsed++;
   }
+  
+  return this.save();
+};
+
+// Method to track vocabulary usage
+AiTutorSessionSchema.methods.trackVocabulary = function(words) {
+  if (!Array.isArray(words)) {
+    words = [words];
+  }
+  
+  // Initialize vocabularyUsed if it doesn't exist
+  if (!this.analytics.vocabularyUsed) {
+    this.analytics.vocabularyUsed = [];
+  }
+  
+  // Add new vocabulary words (avoid duplicates)
+  words.forEach(word => {
+    const normalizedWord = word.toLowerCase().trim();
+    if (normalizedWord && !this.analytics.vocabularyUsed.includes(normalizedWord)) {
+      this.analytics.vocabularyUsed.push(normalizedWord);
+    }
+  });
   
   return this.save();
 };

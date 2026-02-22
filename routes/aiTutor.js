@@ -667,6 +667,47 @@ router.post('/send-message', verifyToken, async (req, res) => {
     
     session.messages.push(studentMessage);
     
+    // Track vocabulary usage from student message
+    if (session.moduleId.vocabulary && Array.isArray(session.moduleId.vocabulary)) {
+      const moduleVocabulary = session.moduleId.vocabulary.map(v => {
+        if (typeof v === 'string') return v.toLowerCase();
+        if (v.german) return v.german.toLowerCase();
+        if (v.word) return v.word.toLowerCase();
+        return null;
+      }).filter(Boolean);
+      
+      const messageWords = message.toLowerCase()
+        .replace(/[^\wäöüß\s]/gi, ' ') // Keep German characters
+        .split(/\s+/)
+        .filter(word => word.length > 2); // Only words with 3+ characters
+      
+      const usedVocabulary = [];
+      
+      // Check each vocabulary item against the message
+      moduleVocabulary.forEach(vocab => {
+        // Check if the vocabulary word/phrase appears in the message
+        if (message.toLowerCase().includes(vocab)) {
+          usedVocabulary.push(vocab);
+        }
+      });
+      
+      if (usedVocabulary.length > 0) {
+        // Initialize vocabularyUsed if it doesn't exist
+        if (!session.analytics.vocabularyUsed) {
+          session.analytics.vocabularyUsed = [];
+        }
+        
+        // Add new vocabulary words (avoid duplicates)
+        usedVocabulary.forEach(word => {
+          if (!session.analytics.vocabularyUsed.includes(word)) {
+            session.analytics.vocabularyUsed.push(word);
+          }
+        });
+        
+        console.log(`📚 Vocabulary tracked: ${usedVocabulary.join(', ')} (Total: ${session.analytics.vocabularyUsed.length})`);
+      }
+    }
+    
     // Check for role-play session control commands
     const isRolePlayModule = session.moduleId.content?.rolePlayScenario;
     const lowerMessage = message.toLowerCase().trim();
@@ -1073,6 +1114,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
         sessionRecord.summary = {
           conversationCount: session.messages.filter(m => m.role === 'student').length,
           timeSpentMinutes: durationMinutes,
+          vocabularyUsed: session.analytics.vocabularyUsed || [],
           totalScore: session.analytics.sessionScore,
           correctAnswers: session.analytics.correctAnswers,
           incorrectAnswers: session.analytics.incorrectAnswers,
@@ -1114,6 +1156,7 @@ router.post('/end-session', verifyToken, async (req, res) => {
           summary: {
             conversationCount: session.messages.filter(m => m.role === 'student').length,
             timeSpentMinutes: durationMinutes,
+            vocabularyUsed: session.analytics.vocabularyUsed || [],
             totalScore: session.analytics.sessionScore,
             correctAnswers: session.analytics.correctAnswers,
             incorrectAnswers: session.analytics.incorrectAnswers,

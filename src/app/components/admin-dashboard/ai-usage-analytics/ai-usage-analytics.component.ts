@@ -22,6 +22,7 @@ interface StudentAIUsage {
   modulesUsed: number;
   lastSessionDate: Date;
   vocabularyLearned: number;
+  totalVocabulary: number; // Total vocabulary words used
 }
 
 interface ModuleUsageSummary {
@@ -32,6 +33,7 @@ interface ModuleUsageSummary {
   totalTimeMinutes: number;
   uniqueStudents: number;
   averageScore: number;
+  totalVocabulary: number; // Total vocabulary words used in this module
 }
 
 @Component({
@@ -247,7 +249,8 @@ export class AiUsageAnalyticsComponent implements OnInit {
       averageScore: item.averageScore,
       modulesUsed: item.sessions?.length || 0,
       lastSessionDate: item.sessions?.[0]?.date || new Date(),
-      vocabularyLearned: item.totalVocabularyLearned || 0
+      vocabularyLearned: item.totalVocabularyLearned || 0,
+      totalVocabulary: item.totalVocabularyLearned || 0 // Same as vocabularyLearned
     })).sort((a, b) => b.totalTimeMinutes - a.totalTimeMinutes);
     
     console.log('✅ Processed student data (students only):', this.studentUsageData.length);
@@ -261,7 +264,8 @@ export class AiUsageAnalyticsComponent implements OnInit {
       totalSessions: item.totalSessions,
       totalTimeMinutes: item.totalTimeSpent,
       uniqueStudents: item.uniqueStudentCount,
-      averageScore: item.averageScore
+      averageScore: item.averageScore,
+      totalVocabulary: item.totalVocabularyLearned || 0 // Add vocabulary count
     })).sort((a, b) => b.totalSessions - a.totalSessions);
   }
 

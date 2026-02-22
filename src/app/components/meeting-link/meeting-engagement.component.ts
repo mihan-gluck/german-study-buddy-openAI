@@ -151,10 +151,10 @@ import { ZoomService } from '../../services/zoom.service';
               <th mat-header-cell *matHeaderCellDef>Participation Rate</th>
               <td mat-cell *matCellDef="let record">
                 <div class="metric-cell">
-                  <mat-chip [class]="getEngagementClass(record.engagement?.participationRate * 100 || 0)">
-                    {{ getRoundedPercentage((record.engagement?.participationRate || 0) * 100) }}%
+                  <mat-chip [class]="getEngagementClass(record.engagement?.participationPercentage || 0)">
+                    {{ record.engagement?.participationPercentage || 0 }}%
                   </mat-chip>
-                  <span class="metric-label">of meeting time</span>
+                  <span class="metric-label">{{ record.durationMinutes || 0 }} / {{ record.engagement?.actualMeetingDuration || 0 }} min</span>
                 </div>
               </td>
             </ng-container>
@@ -316,6 +316,11 @@ import { ZoomService } from '../../services/zoom.service';
       color: #e65100;
     }
 
+    .engagement-low {
+      background-color: #fff8e1;
+      color: #f57c00;
+    }
+
     .engagement-very-low {
       background-color: #ffebee;
       color: #c62828;
@@ -370,6 +375,30 @@ import { ZoomService } from '../../services/zoom.service';
     .limitation-content p {
       margin: 0 0 15px 0;
       color: #bf360c;
+    }
+
+    .current-metrics {
+      margin: 15px 0;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 8px;
+    }
+
+    .current-metrics h4 {
+      margin: 0 0 10px 0;
+      color: #e65100;
+      font-size: 14px;
+    }
+
+    .current-metrics ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #5d4037;
+    }
+
+    .current-metrics li {
+      margin: 5px 0;
+      font-size: 13px;
     }
 
     .limitation-cell {
@@ -492,7 +521,7 @@ export class MeetingEngagementComponent implements OnInit {
       return 0;
     }
     const total = this.engagementData.data.reduce((sum: number, record: any) => 
-      sum + (record.engagement?.engagementScore || 0), 0
+      sum + (record.engagement?.participationPercentage || 0), 0
     );
     return Math.round(total / this.engagementData.data.length);
   }
@@ -502,7 +531,7 @@ export class MeetingEngagementComponent implements OnInit {
       return 0;
     }
     const completedCount = this.engagementData.data.filter((record: any) => 
-      (record.engagement?.participationRate || 0) >= 0.8
+      (record.engagement?.participationPercentage || 0) >= 80
     ).length;
     return Math.round((completedCount / this.engagementData.data.length) * 100);
   }
@@ -518,14 +547,16 @@ export class MeetingEngagementComponent implements OnInit {
       return;
     }
 
-    const headers = ['Name', 'Email', 'Duration (min)', 'Participation Rate (%)', 'Engagement Score (%)', 'Engagement Level'];
+    const headers = ['Name', 'Email', 'Duration (min)', 'Meeting Duration (min)', 'Participation Rate (%)', 'Engagement Score (%)', 'Engagement Level', 'Sessions'];
     const rows = this.engagementData.data.map((record: any) => [
       record.name,
       record.email || '-',
       record.durationMinutes || 0,
-      Math.round((record.engagement?.participationRate || 0) * 100),
+      record.engagement?.actualMeetingDuration || 0,
+      record.engagement?.participationPercentage || 0,
       record.engagement?.engagementScore || 0,
-      this.getEngagementLabel(record.engagement?.engagementScore || 0)
+      this.getEngagementLabel(record.engagement?.engagementScore || 0),
+      record.sessionCount || 1
     ]);
 
     const csvContent = [

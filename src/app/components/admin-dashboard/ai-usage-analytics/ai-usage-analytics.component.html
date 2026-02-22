@@ -251,7 +251,8 @@
                 <th class="text-center">Sessions</th>
                 <th class="text-center">Time Spent</th>
                 <th class="text-center">Completion Rate</th>
-                <th class="text-center">Avg Score</th>
+                <!-- <th class="text-center">Avg Score</th> -->
+                <th class="text-center">Vocabulary</th>
                 <th class="text-center">Modules</th>
                 <th class="text-center">Actions</th>
               </tr>
@@ -288,14 +289,15 @@
                     </div>
                   </div>
                 </td>
-                <td class="text-center">
+                <!-- <td class="text-center">
                   <span class="badge" 
                     [class.bg-success]="student.averageScore >= 80"
                     [class.bg-warning]="student.averageScore >= 60 && student.averageScore < 80"
                     [class.bg-danger]="student.averageScore < 60">
                     {{ student.averageScore | number:'1.0-0' }}
                   </span>
-                </td>
+                </td> -->
+                <td class="text-center">{{ student.totalVocabulary || 0 }} words</td>
                 <td class="text-center">{{ student.modulesUsed }}</td>
                 <td class="text-center">
                   <button class="btn btn-sm btn-primary" (click)="viewStudentDetails(student)">
@@ -316,10 +318,10 @@
     <div class="container-fluid">
       <div class="row g-3">
         <div class="col-md-4" *ngFor="let module of moduleUsageData">
-          <div class="card module-card">
+          <div class="card module-card module-card-yellow">
             <div class="card-body">
               <h5 class="card-title">{{ module.moduleName }}</h5>
-              <span class="badge bg-info mb-3">{{ module.moduleLevel }}</span>
+              <span class="badge bg-warning text-dark mb-3">{{ module.moduleLevel }}</span>
               
               <div class="module-stats">
                 <div class="stat-row">
@@ -343,12 +345,19 @@
                   </span>
                   <span class="stat-value">{{ module.uniqueStudents }}</span>
                 </div>
-                <div class="stat-row">
+                <!-- <div class="stat-row">
                   <span class="stat-label">
                     <i class="fas fa-star"></i>
                     Avg Score:
                   </span>
                   <span class="stat-value">{{ module.averageScore | number:'1.0-0' }}</span>
+                </div> -->
+                <div class="stat-row">
+                  <span class="stat-label">
+                    <i class="fas fa-book"></i>
+                    Vocabulary:
+                  </span>
+                  <span class="stat-value">{{ module.totalVocabulary || 0 }} words</span>
                 </div>
               </div>
             </div>
@@ -394,10 +403,16 @@
                 <div class="summary-value">{{ selectedStudent.completionRate | number:'1.0-0' }}%</div>
               </div>
             </div>
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
               <div class="summary-item">
                 <div class="summary-label">Average Score</div>
                 <div class="summary-value">{{ selectedStudent.averageScore | number:'1.0-0' }}</div>
+              </div>
+            </div> -->
+            <div class="col-md-3">
+              <div class="summary-item">
+                <div class="summary-label">Total Vocabulary</div>
+                <div class="summary-value">{{ selectedStudent.totalVocabulary || 0 }} words</div>
               </div>
             </div>
           </div>
@@ -423,7 +438,7 @@
                   <th>Level</th>
                   <th>Duration</th>
                   <th>Status</th>
-                  <th>Score</th>
+                  <!-- <th>Score</th> -->
                   <th>Vocabulary</th>
                 </tr>
               </thead>
@@ -441,7 +456,7 @@
                       {{ session.sessionState }}
                     </span>
                   </td>
-                  <td>{{ session.summary?.totalScore || 0 }}</td>
+                  <!-- <td>{{ session.summary?.totalScore || 0 }}</td> -->
                   <td>{{ session.summary?.vocabularyUsed?.length || 0 }} words</td>
                 </tr>
               </tbody>

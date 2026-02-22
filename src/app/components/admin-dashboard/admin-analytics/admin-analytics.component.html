@@ -190,9 +190,9 @@
               <th (click)="sortData('completionRate')" class="sortable">
                 Completion Rate <i class="fas fa-sort ms-1"></i>
               </th>
-              <th (click)="sortData('averageScore')" class="sortable">
+              <!-- <th (click)="sortData('averageScore')" class="sortable">
                 Avg Score <i class="fas fa-sort ms-1"></i>
-              </th>
+              </th> -->
               <th>Students</th>
               <th>Avg Time/Student</th>
               <th>Vocabulary</th>
@@ -216,11 +216,11 @@
                   {{ item.completionRate | number:'1.1-1' }}%
                 </span>
               </td>
-              <td>
+              <!-- <td>
                 <span [class]="getScoreColor(item.averageScore)">
                   {{ item.averageScore | number:'1.1-1' }}
                 </span>
-              </td>
+              </td> -->
               <td>
                 <span class="badge bg-info">{{ item.uniqueStudentCount }}</span>
               </td>
@@ -358,9 +358,9 @@
               <th (click)="sortData('completionRate')" class="sortable">
                 Completion Rate <i class="fas fa-sort ms-1"></i>
               </th>
-              <th (click)="sortData('averageScore')" class="sortable">
+              <!-- <th (click)="sortData('averageScore')" class="sortable">
                 Avg Score <i class="fas fa-sort ms-1"></i>
-              </th>
+              </th> -->
               <th>Students</th>
               <th>Modules</th>
               <th>Avg Time/Student</th>
@@ -386,11 +386,11 @@
                   {{ teacher.overallCompletionRate | number:'1.1-1' }}%
                 </span>
               </td>
-              <td>
+              <!-- <td>
                 <span [class]="getScoreColor(teacher.averageScore)">
                   {{ teacher.averageScore | number:'1.1-1' }}
                 </span>
-              </td>
+              </td> -->
               <td>
                 <span class="badge bg-info">{{ teacher.totalStudents }}</span>
               </td>
@@ -618,7 +618,7 @@
               <th>Sessions</th>
               <th>Time Spent</th>
               <th>Completion Rate</th>
-              <th>Avg Score</th>
+              <!-- <th>Avg Score</th> -->
               <th>Vocabulary</th>
               <th>Actions</th>
             </tr>
@@ -657,11 +657,11 @@
                   </div>
                 </div>
               </td>
-              <td>
+              <!-- <td>
                 <span [class]="getScoreColor(student.averageScore)">
                   {{ student.averageScore | number:'1.1-1' }}
                 </span>
-              </td>
+              </td> -->
               <td>
                 <span class="badge bg-success">{{ student.vocabularyLearned }}</span>
               </td>
@@ -734,7 +734,8 @@
                 <th>Module</th>
                 <th>Date</th>
                 <th>Duration</th>
-                <th>Score</th>
+                <!-- <th>Score</th> -->
+                <th>Vocabulary</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -746,10 +747,13 @@
                 </td>
                 <td>{{ formatDateTime(session.createdAt) }}</td>
                 <td>{{ formatTimeSpent(session.durationMinutes) }}</td>
-                <td>
+                <!-- <td>
                   <span [class]="getScoreColor(session.summary?.totalScore || 0)">
                     {{ session.summary?.totalScore || 0 }}
                   </span>
+                </td> -->
+                <td>
+                  <span class="badge bg-success">{{ session.summary?.vocabularyUsed?.length || 0 }} words</span>
                 </td>
                 <td>
                   <span class="badge" 
