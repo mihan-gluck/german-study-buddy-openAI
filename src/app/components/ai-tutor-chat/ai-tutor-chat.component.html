@@ -403,12 +403,27 @@
       </div>
     </div>
     
-    <!-- Speech Captured Feedback -->
+    <!-- Speech Captured Feedback (While Listening) - EDITABLE -->
     <div class="speech-captured-feedback" *ngIf="isListening && currentMessage && currentMessage.trim()">
       <div class="alert alert-success">
-        <i class="fas fa-microphone"></i>
-        <strong>Speech captured:</strong> "{{currentMessage}}"
-        <br><small>Tap the microphone button to stop and send this message</small>
+        <div class="speech-captured-header">
+          <i class="fas fa-microphone"></i>
+          <strong>Speech captured - Edit if needed:</strong>
+        </div>
+        
+        <div class="speech-captured-edit-wrapper">
+          <textarea 
+            class="form-control speech-captured-textarea"
+            [(ngModel)]="currentMessage"
+            rows="2"
+            placeholder="Your speech will appear here..."
+            #liveEditTextarea></textarea>
+        </div>
+        
+        <small class="speech-captured-hint">
+          <i class="fas fa-info-circle"></i>
+          You can edit while speaking. Tap the microphone button to stop and send.
+        </small>
       </div>
     </div>
     

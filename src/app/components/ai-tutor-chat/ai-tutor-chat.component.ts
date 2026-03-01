@@ -1303,7 +1303,7 @@ Keep practicing! 🌟`,
     }
   }
 
-  // Stop listening and send the captured message
+  // Stop listening and send the captured message directly
   stopListening(): void {
     if (this.speechRecognition && this.isListening) {
       console.log('🎤 Stopping microphone, current message:', this.currentMessage);
@@ -1318,11 +1318,11 @@ Keep practicing! 🌟`,
       
       // Wait a bit longer to ensure speech recognition has fully processed
       setTimeout(() => {
-        // If there's a captured message, send it now
+        // If there's a captured message, send it directly
         if (this.currentMessage && this.currentMessage.trim()) {
-          console.log('🎤 Microphone stopped - sending captured message:', this.currentMessage);
+          console.log('🎤 Microphone stopped - sending message directly:', this.currentMessage);
           
-          // Send the message that was captured during listening
+          // Send the message that was captured (and possibly edited) during listening
           this.sendMessage(true); // true indicates speech input
         } else {
           console.log('🎤 Microphone stopped - no message to send');
