@@ -1112,14 +1112,18 @@ Keep practicing! 🌟`,
           currentMessage: this.currentMessage
         });
         
-        // Build complete transcript from ALL final results
-        // This is necessary because Web Speech API creates separate results for each speech segment
+        // Build transcript from NEW results only (starting from event.resultIndex)
+        // CRITICAL: event.resultIndex tells us where NEW results start
+        // This prevents processing old results again after mobile auto-restart
         let completeTranscript = '';
         let hasNewFinalResult = false;
         let lowestConfidence = 1.0;
         
-        console.log('🔍 Analyzing all results:');
-        for (let i = 0; i < event.results.length; i++) {
+        console.log('🔍 Analyzing NEW results only (starting from index', event.resultIndex, '):');
+        
+        // FIXED: Only process NEW results starting from resultIndex
+        // This prevents duplicate processing after mobile auto-restart
+        for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           const transcript = result[0].transcript;
           const confidence = result[0].confidence || 0.8;
