@@ -712,6 +712,58 @@ router.post('/send-message', verifyToken, async (req, res) => {
     const isRolePlayModule = session.moduleId.content?.rolePlayScenario;
     const lowerMessage = message.toLowerCase().trim();
     
+    // ✅ CHECK FOR ROLE-PLAY START TRIGGERS
+    if (isRolePlayModule) {
+      const lastTutorMessage = session.messages
+        .filter(m => m.role === 'tutor')
+        .pop();
+      
+      // Check if we're in introduction state waiting for trigger
+      const isWaitingForTrigger = lastTutorMessage?.metadata?.waitingForTrigger === true;
+      
+      if (isWaitingForTrigger) {
+        // Check for start trigger words
+        const startTriggers = [
+          "let's start", "lets start", "let's begin", "lets begin",
+          "start", "begin", "go", "ready", "ok", "okay",
+          "los geht's", "los gehts", "beginnen wir", "anfangen", "start",
+          "ஆரம்பிக்கலாம்", "தொடங்கலாம்", "ஆம்",
+          "ආරම්භ කරමු", "පටන් ගනිමු", "ඔව්"
+        ];
+        
+        const hasStartTrigger = startTriggers.some(trigger => 
+          lowerMessage.includes(trigger.toLowerCase())
+        );
+        
+        if (hasStartTrigger) {
+          console.log('🎭 Role-play start trigger detected:', message);
+          
+          // Override the message to explicitly tell AI to start role-play
+          const scenario = session.moduleId.content.rolePlayScenario;
+          const explicitStartMessage = `The student said "${message}" which means they want to start the role-play. 
+
+SWITCH TO ROLE-PLAY STATE NOW:
+- You are now the ${scenario.aiRole}
+- Embody this personality: ${scenario.aiPersonality || 'helpful and patient'}
+- Start with your opening line in ${session.moduleId.targetLanguage}
+- Use ONLY ${session.moduleId.targetLanguage} language from now on
+- Use ONLY the allowed vocabulary and grammar
+- Stay in character
+
+Begin the role-play conversation now with your opening line.`;
+          
+          // Replace the student message with explicit instruction
+          session.messages[session.messages.length - 1].content = explicitStartMessage;
+          session.messages[session.messages.length - 1].metadata = {
+            ...session.messages[session.messages.length - 1].metadata,
+            originalMessage: message,
+            triggerDetected: true,
+            rolePlayStarted: true
+          };
+        }
+      }
+    }
+    
     // Check for stop commands
     const stopCommands = ['stop', 'end', 'finish', 'quit', 'exit'];
     if (stopCommands.some(cmd => lowerMessage.includes(cmd))) {
