@@ -8,4 +8,12 @@ body {
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+  zoom: 0.8; /* Scale entire application to 80% */
+  -moz-transform: scale(0.8); /* Firefox fallback */
+  -moz-transform-origin: 0 0; /* Firefox fallback */
+}
+
+/* Alternative approach using transform for better browser support */
+html {
+  font-size: 80%; /* Scale base font size to 80% */
 }

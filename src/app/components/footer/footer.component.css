@@ -4,7 +4,7 @@ footer {
   padding: 15px 0;
   font-family: 'Comic Neue', sans-serif;
   font-size: 0.85rem;
-  margin-top: 40px; /* Add top margin to create space from content */
+  margin-top: 0; /* Remove all top margin for flush positioning */
   position: relative; /* Ensure it's in normal flow */
   clear: both; /* Clear any floats */
 }
