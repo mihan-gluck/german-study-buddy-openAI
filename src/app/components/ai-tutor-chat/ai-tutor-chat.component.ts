@@ -1152,6 +1152,13 @@ Keep practicing! 🌟`,
         // Normalize the complete transcript
         const normalizedTranscript = this.normalizeText(completeTranscript);
         
+        // ENHANCED: Skip if this is the exact same transcript we just captured
+        // This prevents duplicate captures during auto-restart
+        if (normalizedTranscript === this.currentMessage) {
+          console.log('⚠️ Duplicate transcript detected - ignoring (same as current message)');
+          return;
+        }
+        
         // Store the captured speech but DON'T send it yet
         if (normalizedTranscript && normalizedTranscript.trim()) {
           // Check if we're accumulating across mobile auto-restarts
@@ -1159,8 +1166,14 @@ Keep practicing! 🌟`,
             // Mobile auto-restart: Smart deduplication
             // Remove duplicate words that appear at the end of previous message and start of new transcript
             const combinedMessage = this.removeDuplicateWords(this.previousMessage, normalizedTranscript);
-            this.currentMessage = combinedMessage;
-            console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', this.currentMessage);
+            
+            // Only update if the combined message is different
+            if (combinedMessage !== this.currentMessage) {
+              this.currentMessage = combinedMessage;
+              console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', this.currentMessage);
+            } else {
+              console.log('⚠️ Combined message unchanged - skipping update');
+            }
           } else {
             // Desktop/Normal case: Use the complete transcript from all final results
             this.currentMessage = normalizedTranscript;
@@ -1352,6 +1365,23 @@ Keep practicing! 🌟`,
     const prevWords = previousMessage.trim().split(/\s+/);
     const newWords = newTranscript.trim().split(/\s+/);
     
+    console.log('🔍 Deduplication check:', {
+      previousMessage,
+      newTranscript,
+      prevWords,
+      newWords
+    });
+    
+    // ENHANCED: Check if new transcript is completely contained in previous message
+    // This handles cases where speech recognition re-captures the same audio
+    const prevLower = previousMessage.toLowerCase().trim();
+    const newLower = newTranscript.toLowerCase().trim();
+    
+    if (prevLower.includes(newLower)) {
+      console.log('⚠️ New transcript already contained in previous message - ignoring duplicate');
+      return previousMessage; // Don't add duplicate
+    }
+    
     // Find the longest overlap between end of previous and start of new
     let overlapLength = 0;
     const maxOverlap = Math.min(prevWords.length, newWords.length);
@@ -1368,13 +1398,21 @@ Keep practicing! 🌟`,
     if (overlapLength > 0) {
       // Remove the overlapping words from the new transcript
       const deduplicatedNewWords = newWords.slice(overlapLength);
+      
+      // If all words were overlapping, don't add anything
+      if (deduplicatedNewWords.length === 0) {
+        console.log('⚠️ Complete overlap detected - no new words to add');
+        return previousMessage;
+      }
+      
       const result = previousMessage + ' ' + deduplicatedNewWords.join(' ');
       
-      console.log('🔍 Deduplication:', {
+      console.log('✅ Deduplication applied:', {
         previousMessage,
         newTranscript,
         overlapLength,
         overlappingWords: newWords.slice(0, overlapLength).join(' '),
+        newWordsAdded: deduplicatedNewWords.join(' '),
         result
       });
       
@@ -1382,6 +1420,7 @@ Keep practicing! 🌟`,
     }
     
     // No overlap found, just concatenate
+    console.log('✅ No overlap - concatenating');
     return (previousMessage + ' ' + newTranscript).trim();
   }
 
