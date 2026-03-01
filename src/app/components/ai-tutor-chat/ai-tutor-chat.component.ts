@@ -1362,67 +1362,106 @@ Keep practicing! 🌟`,
   // Smart deduplication for mobile speech accumulation
   // Removes duplicate words that appear at the end of previous message and start of new transcript
   private removeDuplicateWords(previousMessage: string, newTranscript: string): string {
-    const prevWords = previousMessage.trim().split(/\s+/);
-    const newWords = newTranscript.trim().split(/\s+/);
-    
-    console.log('🔍 Deduplication check:', {
-      previousMessage,
-      newTranscript,
-      prevWords,
-      newWords
-    });
-    
-    // ENHANCED: Check if new transcript is completely contained in previous message
-    // This handles cases where speech recognition re-captures the same audio
-    const prevLower = previousMessage.toLowerCase().trim();
-    const newLower = newTranscript.toLowerCase().trim();
-    
-    if (prevLower.includes(newLower)) {
-      console.log('⚠️ New transcript already contained in previous message - ignoring duplicate');
-      return previousMessage; // Don't add duplicate
-    }
-    
-    // Find the longest overlap between end of previous and start of new
-    let overlapLength = 0;
-    const maxOverlap = Math.min(prevWords.length, newWords.length);
-    
-    for (let i = 1; i <= maxOverlap; i++) {
-      const prevEnd = prevWords.slice(-i).join(' ').toLowerCase();
-      const newStart = newWords.slice(0, i).join(' ').toLowerCase();
-      
-      if (prevEnd === newStart) {
-        overlapLength = i;
+      // STEP 1: Remove consecutive duplicate words within the new transcript itself
+      // This handles cases like "guten guten guten Morgen" -> "guten Morgen"
+      const cleanedTranscript = this.removeConsecutiveDuplicates(newTranscript);
+
+      if (cleanedTranscript !== newTranscript) {
+        console.log('🔍 Removed consecutive duplicates:', {
+          original: newTranscript,
+          cleaned: cleanedTranscript
+        });
       }
-    }
-    
-    if (overlapLength > 0) {
-      // Remove the overlapping words from the new transcript
-      const deduplicatedNewWords = newWords.slice(overlapLength);
-      
-      // If all words were overlapping, don't add anything
-      if (deduplicatedNewWords.length === 0) {
-        console.log('⚠️ Complete overlap detected - no new words to add');
-        return previousMessage;
-      }
-      
-      const result = previousMessage + ' ' + deduplicatedNewWords.join(' ');
-      
-      console.log('✅ Deduplication applied:', {
+
+      const prevWords = previousMessage.trim().split(/\s+/);
+      const newWords = cleanedTranscript.trim().split(/\s+/);
+
+      console.log('🔍 Deduplication check:', {
         previousMessage,
-        newTranscript,
-        overlapLength,
-        overlappingWords: newWords.slice(0, overlapLength).join(' '),
-        newWordsAdded: deduplicatedNewWords.join(' '),
-        result
+        newTranscript: cleanedTranscript,
+        prevWords,
+        newWords
       });
-      
-      return result.trim();
+
+      // STEP 2: Check if new transcript is completely contained in previous message
+      // This handles cases where speech recognition re-captures the same audio
+      const prevLower = previousMessage.toLowerCase().trim();
+      const newLower = cleanedTranscript.toLowerCase().trim();
+
+      if (prevLower.includes(newLower)) {
+        console.log('⚠️ New transcript already contained in previous message - ignoring duplicate');
+        return previousMessage; // Don't add duplicate
+      }
+
+      // STEP 3: Find the longest overlap between end of previous and start of new
+      let overlapLength = 0;
+      const maxOverlap = Math.min(prevWords.length, newWords.length);
+
+      for (let i = 1; i <= maxOverlap; i++) {
+        const prevEnd = prevWords.slice(-i).join(' ').toLowerCase();
+        const newStart = newWords.slice(0, i).join(' ').toLowerCase();
+
+        if (prevEnd === newStart) {
+          overlapLength = i;
+        }
+      }
+
+      if (overlapLength > 0) {
+        // Remove the overlapping words from the new transcript
+        const deduplicatedNewWords = newWords.slice(overlapLength);
+
+        // If all words were overlapping, don't add anything
+        if (deduplicatedNewWords.length === 0) {
+          console.log('⚠️ Complete overlap detected - no new words to add');
+          return previousMessage;
+        }
+
+        const result = previousMessage + ' ' + deduplicatedNewWords.join(' ');
+
+        console.log('✅ Deduplication applied:', {
+          previousMessage,
+          newTranscript: cleanedTranscript,
+          overlapLength,
+          overlappingWords: newWords.slice(0, overlapLength).join(' '),
+          newWordsAdded: deduplicatedNewWords.join(' '),
+          result
+        });
+
+        return result.trim();
+      }
+
+      // No overlap found, just concatenate
+      console.log('✅ No overlap - concatenating');
+      return (previousMessage + ' ' + cleanedTranscript).trim();
     }
-    
-    // No overlap found, just concatenate
-    console.log('✅ No overlap - concatenating');
-    return (previousMessage + ' ' + newTranscript).trim();
-  }
+
+    /**
+     * Remove consecutive duplicate words from a transcript
+     * Example: "guten guten guten Morgen" -> "guten Morgen"
+     */
+    private removeConsecutiveDuplicates(text: string): string {
+      if (!text || text.trim().length === 0) {
+        return text;
+      }
+
+      const words = text.trim().split(/\s+/);
+      const result: string[] = [];
+
+      for (let i = 0; i < words.length; i++) {
+        const currentWord = words[i].toLowerCase();
+        const prevWord = i > 0 ? words[i - 1].toLowerCase() : '';
+
+        // Only add the word if it's different from the previous word
+        if (currentWord !== prevWord) {
+          result.push(words[i]); // Keep original casing
+        } else {
+          console.log(`🔍 Skipping consecutive duplicate: "${words[i]}"`);
+        }
+      }
+
+      return result.join(' ');
+    }
+
 
   // Text-to-Speech: Speak the AI tutor's response
   speakText(text: string): void {
