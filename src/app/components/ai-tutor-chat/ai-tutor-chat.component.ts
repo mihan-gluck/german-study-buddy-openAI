@@ -1441,71 +1441,134 @@ Keep practicing! 🌟`,
       moduleTitle: this.module?.title,
       targetLanguage: this.module?.targetLanguage,
       nativeLanguage: this.module?.nativeLanguage,
-      textPreview: cleanText.substring(0, 50)
+      textPreview: cleanText.substring(0, 50),
+      isMobile: this.isMobileDevice()
     });
     
     // Detect the actual language of the text being spoken
     const detectedLanguage = this.detectTextLanguage(cleanText);
     console.log('🔊 Detected text language:', detectedLanguage);
     
-    // Configure voice based on detected language
+    // Configure voice based on detected language with platform-specific preferences
     const voices = this.speechSynthesis.getVoices();
     let targetVoice;
     const selectedLang = this.getLanguageCode(detectedLanguage);
+    const isMobile = this.isMobileDevice();
     
-    // Find appropriate voice for the language
+    console.log('🔊 Available voices:', voices.length, 'Platform:', isMobile ? 'Mobile' : 'Desktop');
+    
+    // Find appropriate voice for the language with platform-specific preferences
     if (selectedLang.startsWith('en')) {
-      targetVoice = voices.find(voice => 
-        voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
-      );
+      // English voice selection
+      if (isMobile) {
+        // Mobile: Prefer native voices (better quality on mobile)
+        targetVoice = voices.find(voice => 
+          !voice.localService && voice.lang.startsWith('en-US')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en-US')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en')
+        );
+      } else {
+        // Desktop: Prefer Google voices or high-quality voices
+        targetVoice = voices.find(voice => 
+          voice.name.includes('Google') && voice.lang.startsWith('en-US')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en-US')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en')
+        );
+      }
       console.log('🔊 Using English TTS');
     } else if (selectedLang.startsWith('de')) {
-      targetVoice = voices.find(voice => 
-        voice.lang.startsWith('de') || voice.name.toLowerCase().includes('german')
-      );
+      // German voice selection
+      if (isMobile) {
+        // Mobile: Prefer native German voices
+        targetVoice = voices.find(voice => 
+          !voice.localService && voice.lang.startsWith('de-DE')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('de-DE')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('de')
+        );
+      } else {
+        // Desktop: Prefer Google German voices
+        targetVoice = voices.find(voice => 
+          voice.name.includes('Google') && voice.lang.startsWith('de-DE')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('de-DE')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('de')
+        );
+      }
       console.log('🔊 Using German TTS');
     } else if (selectedLang.startsWith('ta')) {
+      // Tamil voice selection
       targetVoice = voices.find(voice => 
-        voice.lang.startsWith('ta') || voice.name.toLowerCase().includes('tamil')
+        voice.lang.startsWith('ta')
+      ) || voices.find(voice => 
+        voice.name.toLowerCase().includes('tamil')
       );
       console.log('🔊 Using Tamil TTS');
     } else if (selectedLang.startsWith('si')) {
+      // Sinhala voice selection
       targetVoice = voices.find(voice => 
-        voice.lang.startsWith('si') || voice.name.toLowerCase().includes('sinhala')
+        voice.lang.startsWith('si')
+      ) || voices.find(voice => 
+        voice.name.toLowerCase().includes('sinhala')
       );
       console.log('🔊 Using Sinhala TTS');
     } else {
-      // Fallback: Use English as default
-      targetVoice = voices.find(voice => 
-        voice.lang.startsWith('en') || voice.name.toLowerCase().includes('english')
-      );
+      // Fallback: Use English as default with platform preference
+      if (isMobile) {
+        targetVoice = voices.find(voice => 
+          !voice.localService && voice.lang.startsWith('en')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en')
+        );
+      } else {
+        targetVoice = voices.find(voice => 
+          voice.name.includes('Google') && voice.lang.startsWith('en')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en')
+        );
+      }
       console.log('🔊 Using English TTS as fallback');
     }
     
     utterance.lang = selectedLang;
     
-    console.log('🔊 Selected voice:', targetVoice?.name || 'Default', 'Language:', selectedLang);
+    console.log('🔊 Selected voice:', {
+      name: targetVoice?.name || 'Default',
+      lang: targetVoice?.lang || selectedLang,
+      localService: targetVoice?.localService,
+      platform: isMobile ? 'Mobile' : 'Desktop'
+    });
     
     if (targetVoice) {
       utterance.voice = targetVoice;
     }
     
-    utterance.rate = 0.8; // Slightly slower for learning
+    // Platform-specific speech rate for better consistency
+    utterance.rate = isMobile ? 0.85 : 0.8; // Slightly faster on mobile for better clarity
     utterance.pitch = 1;
     utterance.volume = 1;
     
     utterance.onstart = () => {
       this.isSpeaking = true;
+      console.log('🔊 Speech started');
     };
     
     utterance.onend = () => {
       this.isSpeaking = false;
+      console.log('🔊 Speech ended');
       
       // Manual microphone control - students decide when to speak
       // No automatic microphone activation for better learning control
     };
     
-    utterance.onerror = () => {
+    utterance.onerror = (event) => {
+      console.error('🔊 Speech error:', event);
       this.isSpeaking = false;
     };
     
