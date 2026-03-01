@@ -1165,23 +1165,38 @@ Keep practicing! 🌟`,
         
         // Store the captured speech but DON'T send it yet
         if (normalizedTranscript && normalizedTranscript.trim()) {
+          let updatedMessage = '';
+          
           // Check if we're accumulating across mobile auto-restarts
           if (this.speechAccumulating && this.previousMessage && this.previousMessage.trim()) {
             // Mobile auto-restart: Smart deduplication
             // Remove duplicate words that appear at the end of previous message and start of new transcript
-            const combinedMessage = this.removeDuplicateWords(this.previousMessage, normalizedTranscript);
-            
-            // Only update if the combined message is different
-            if (combinedMessage !== this.currentMessage) {
-              this.currentMessage = combinedMessage;
-              console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', this.currentMessage);
-            } else {
-              console.log('⚠️ Combined message unchanged - skipping update');
-            }
+            updatedMessage = this.removeDuplicateWords(this.previousMessage, normalizedTranscript);
+            console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', updatedMessage);
           } else {
             // Desktop/Normal case: Use the complete transcript from all final results
-            this.currentMessage = normalizedTranscript;
-            console.log('🎤 Speech stored (all final results accumulated):', this.currentMessage);
+            updatedMessage = normalizedTranscript;
+            console.log('🎤 Speech stored (all final results accumulated):', updatedMessage);
+          }
+          
+          // CRITICAL: Final pass to remove ANY consecutive duplicates in the entire message
+          // This catches duplicates that slip through during mobile auto-restart overlaps
+          // Example: "guten guten Morgen" -> "guten Morgen"
+          const finalCleanedMessage = this.removeConsecutiveDuplicates(updatedMessage);
+          
+          if (finalCleanedMessage !== updatedMessage) {
+            console.log('🧹 Final cleanup removed consecutive duplicates:', {
+              before: updatedMessage,
+              after: finalCleanedMessage
+            });
+          }
+          
+          // Only update if the message actually changed
+          if (finalCleanedMessage !== this.currentMessage) {
+            this.currentMessage = finalCleanedMessage;
+            console.log('✅ Final message updated:', this.currentMessage);
+          } else {
+            console.log('⚠️ Message unchanged - skipping update');
           }
           
           this.isProcessingSpeech = false;
