@@ -1549,10 +1549,48 @@ Keep practicing! 🌟`,
       utterance.voice = targetVoice;
     }
     
-    // Platform-specific speech rate for better consistency
-    utterance.rate = isMobile ? 0.85 : 0.8; // Slightly faster on mobile for better clarity
+    // Level-based speech rate for better learning experience
+    // Beginners need slower speech, advanced learners can handle normal speed
+    let speechRate = 0.8; // Default rate
+    
+    if (this.module?.level) {
+      switch (this.module.level.toUpperCase()) {
+        case 'A1':
+          speechRate = 0.6; // Very slow for absolute beginners
+          console.log('🔊 Using A1 rate: 0.6 (very slow for beginners)');
+          break;
+        case 'A2':
+          speechRate = 0.7; // Slow for elementary learners
+          console.log('🔊 Using A2 rate: 0.7 (slow for elementary)');
+          break;
+        case 'B1':
+        case 'B2':
+          speechRate = 0.8; // Normal learning pace for intermediate
+          console.log(`🔊 Using ${this.module.level} rate: 0.8 (normal for intermediate)`);
+          break;
+        case 'C1':
+        case 'C2':
+          speechRate = 0.9; // Slightly faster for advanced learners
+          console.log(`🔊 Using ${this.module.level} rate: 0.9 (faster for advanced)`);
+          break;
+        default:
+          speechRate = 0.8; // Default fallback
+          console.log('🔊 Using default rate: 0.8');
+      }
+    } else {
+      console.log('🔊 No module level found, using default rate: 0.8');
+    }
+    
+    utterance.rate = speechRate;
     utterance.pitch = 1;
     utterance.volume = 1;
+    
+    console.log('🔊 Final TTS settings:', {
+      rate: speechRate,
+      level: this.module?.level || 'Unknown',
+      pitch: 1,
+      volume: 1
+    });
     
     utterance.onstart = () => {
       this.isSpeaking = true;
