@@ -191,6 +191,7 @@
   padding: 1rem 0.5rem;
   background: #f8f9fa;
   border-radius: 0.75rem;
+  overflow: hidden;
 }
 
 .chart-item {
@@ -213,7 +214,7 @@
 }
 
 .activity-bar {
-  height: 100px;
+  height: 100%;
   display: flex;
   align-items: flex-end;
   width: 100%;
@@ -223,6 +224,7 @@
 
 .bar {
   width: 22px;
+  max-height: 100%;
   background: linear-gradient(135deg, #405980 0%, #667eea 100%);
   border-radius: 4px 4px 0 0;
   min-height: 2px;
