@@ -1167,20 +1167,28 @@ Keep practicing! 🌟`,
         if (normalizedTranscript && normalizedTranscript.trim()) {
           let updatedMessage = '';
           
-          // Check if we're accumulating across mobile auto-restarts
-          if (this.speechAccumulating && this.previousMessage && this.previousMessage.trim()) {
-            // Mobile auto-restart: Smart deduplication
+          // Check if we need to accumulate with existing message
+          // This handles BOTH mobile auto-restart AND desktop manual restart
+          const hasExistingMessage = this.currentMessage && this.currentMessage.trim();
+          const hasPreviousMessage = this.previousMessage && this.previousMessage.trim();
+          
+          if (this.speechAccumulating && hasPreviousMessage) {
+            // Accumulating mode (mobile auto-restart OR desktop manual restart)
             // Remove duplicate words that appear at the end of previous message and start of new transcript
             updatedMessage = this.removeDuplicateWords(this.previousMessage, normalizedTranscript);
-            console.log('🎤 Speech accumulated (mobile auto-restart, deduplicated):', updatedMessage);
+            console.log('🎤 Speech accumulated (deduplicated with previous):', updatedMessage);
+          } else if (hasExistingMessage) {
+            // Desktop: User clicked mic again after pause - accumulate with current message
+            updatedMessage = this.removeDuplicateWords(this.currentMessage, normalizedTranscript);
+            console.log('🎤 Speech accumulated (deduplicated with current):', updatedMessage);
           } else {
-            // Desktop/Normal case: Use the complete transcript from all final results
+            // Fresh start: No existing message
             updatedMessage = normalizedTranscript;
-            console.log('🎤 Speech stored (all final results accumulated):', updatedMessage);
+            console.log('🎤 Speech stored (fresh start):', updatedMessage);
           }
           
           // CRITICAL: Final pass to remove ANY consecutive duplicates in the entire message
-          // This catches duplicates that slip through during mobile auto-restart overlaps
+          // This catches duplicates that slip through during overlaps
           // Example: "guten guten Morgen" -> "guten Morgen"
           const finalCleanedMessage = this.removeConsecutiveDuplicates(updatedMessage);
           
@@ -1285,11 +1293,13 @@ Keep practicing! 🌟`,
               }
             }, 100); // 100ms delay
           } else {
-            // Desktop - don't auto-restart, user has full control
-            console.log('🎤 Desktop behavior detected - not auto-restarting');
+            // Desktop - don't auto-restart, but KEEP accumulating mode
+            // This allows user to manually restart and continue their message
+            console.log('🎤 Desktop behavior detected - not auto-restarting, but keeping accumulation mode');
             this.isListening = false;
-            this.speechAccumulating = false; // Reset flag
-            this.previousMessage = ''; // Clear previous message
+            this.speechAccumulating = true; // KEEP accumulating for manual restart
+            this.previousMessage = this.currentMessage; // Save current message
+            console.log('🎤 Desktop: Ready for manual restart. Current message preserved:', this.currentMessage);
           }
         } else {
           // User manually stopped (stopListening() was called)
@@ -1312,13 +1322,23 @@ Keep practicing! 🌟`,
       // Clear any previous error messages
       this.showSpeechError = false;
       
-      // Only clear message if NOT accumulating (fresh start)
-      if (!this.speechAccumulating) {
-        this.currentMessage = ''; // Clear previous message for fresh start
-        this.previousMessage = ''; // Clear previous message storage
+      // Check if we should preserve existing message
+      const hasExistingMessage = this.currentMessage && this.currentMessage.trim();
+      
+      if (hasExistingMessage) {
+        // User is continuing their speech - preserve the message
+        console.log('🎤 Continuing speech with existing message:', this.currentMessage);
+        this.speechAccumulating = true;
+        this.previousMessage = this.currentMessage; // Save for deduplication
+      } else if (!this.speechAccumulating) {
+        // Fresh start - clear everything
+        console.log('🎤 Starting fresh speech session');
+        this.currentMessage = '';
+        this.previousMessage = '';
       }
       
       this.speechRecognition.start();
+      console.log('🎤 Microphone started, accumulating:', this.speechAccumulating);
     }
   }
 
