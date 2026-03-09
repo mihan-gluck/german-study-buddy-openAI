@@ -1,10 +1,11 @@
 // routes/adminAnalytics.js
 // Advanced Admin Analytics for Student Usage and Teacher Performance
+// UPDATED: Now uses AiTutorSession for complete data (645 sessions vs 333)
 
 const express = require('express');
 const router = express.Router();
 const { verifyToken, checkRole } = require('../middleware/auth');
-const SessionRecord = require('../models/SessionRecord');
+const AiTutorSession = require('./models/AiTutorSession'); // CHANGED: Use AiTutorSession
 const LearningModule = require('../models/LearningModule');
 const User = require('../models/User');
 const mongoose = require('mongoose');
@@ -76,13 +77,13 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
         $group: {
           _id: getGroupByField(groupBy),
           totalSessions: { $sum: 1 },
-          totalTimeSpent: { $sum: '$durationMinutes' },
+          totalTimeSpent: { $sum: '$totalDuration' }, // CHANGED: from durationMinutes
           completedSessions: {
-            $sum: { $cond: [{ $eq: ['$sessionState', 'completed'] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } // CHANGED: from sessionState
           },
-          averageScore: { $avg: '$summary.totalScore' },
+          averageScore: { $avg: '$analytics.sessionScore' }, // CHANGED: from summary.totalScore
           totalStudents: { $addToSet: '$studentId' },
-          totalVocabularyLearned: { $sum: { $size: { $ifNull: ['$summary.vocabularyUsed', []] } } },
+          totalVocabularyLearned: { $sum: { $size: { $ifNull: ['$analytics.vocabularyUsed', []] } } }, // CHANGED: from summary.vocabularyUsed
           sessions: {
             $push: {
               sessionId: '$sessionId',
@@ -91,9 +92,9 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
               studentLevel: '$student.level',
               moduleName: '$module.title',
               moduleLevel: '$module.level',
-              timeSpent: '$durationMinutes',
-              score: '$summary.totalScore',
-              completionStatus: '$sessionState',
+              timeSpent: '$totalDuration', // CHANGED: from durationMinutes
+              score: '$analytics.sessionScore', // CHANGED: from summary.totalScore
+              completionStatus: '$status', // CHANGED: from sessionState
               date: '$createdAt'
             }
           }
@@ -123,7 +124,7 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
       { $sort: { totalTimeSpent: -1 } }
     ];
     
-    const results = await SessionRecord.aggregate(pipeline);
+    const results = await AiTutorSession.aggregate(pipeline); // CHANGED: from SessionRecord
     
     console.log('✅ Query results count:', results.length);
     if (results.length > 0 && groupBy === 'student') {
@@ -156,15 +157,15 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
         $group: {
           _id: null,
           totalSessions: { $sum: 1 },
-          totalTimeSpent: { $sum: '$durationMinutes' },
+          totalTimeSpent: { $sum: '$totalDuration' }, // CHANGED: from durationMinutes
           totalStudents: { $addToSet: '$studentId' },
           totalModules: { $addToSet: '$moduleId' },
-          averageScore: { $avg: '$summary.totalScore' }
+          averageScore: { $avg: '$analytics.sessionScore' } // CHANGED: from summary.totalScore
         }
       }
     ];
     
-    const summary = await SessionRecord.aggregate(summaryPipeline);
+    const summary = await AiTutorSession.aggregate(summaryPipeline); // CHANGED: from SessionRecord
     
     res.json({
       success: true,
@@ -264,11 +265,11 @@ router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req
             batch: '$student.batch'
           },
           totalSessions: { $sum: 1 },
-          totalTimeSpent: { $sum: '$durationMinutes' },
+          totalTimeSpent: { $sum: '$totalDuration' }, // CHANGED: from durationMinutes
           completedSessions: {
-            $sum: { $cond: [{ $eq: ['$sessionState', 'completed'] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } // CHANGED: from sessionState
           },
-          averageScore: { $avg: '$summary.totalScore' },
+          averageScore: { $avg: '$analytics.sessionScore' }, // CHANGED: from summary.totalScore
           studentsInvolved: { $addToSet: '$studentId' },
           studentDetails: {
             $addToSet: {
@@ -351,7 +352,7 @@ router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req
       { $sort: { totalTimeSpent: -1 } }
     ];
     
-    const teacherPerformance = await SessionRecord.aggregate(pipeline);
+    const teacherPerformance = await AiTutorSession.aggregate(pipeline); // CHANGED: from SessionRecord
     
     // Get batch-level statistics
     const batchStatsPipeline = [
@@ -382,7 +383,7 @@ router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req
             teacherId: '$teacher._id',
             teacherName: '$teacher.name'
           },
-          totalTimeSpent: { $sum: '$durationMinutes' },
+          totalTimeSpent: { $sum: '$totalDuration' }, // CHANGED: from durationMinutes
           totalSessions: { $sum: 1 },
           studentCount: { $addToSet: '$studentId' }
         }
@@ -412,7 +413,7 @@ router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req
       { $sort: { _id: 1 } }
     ];
     
-    const batchStats = await SessionRecord.aggregate(batchStatsPipeline);
+    const batchStats = await AiTutorSession.aggregate(batchStatsPipeline); // CHANGED: from SessionRecord
     
     res.json({
       success: true,
@@ -499,9 +500,9 @@ router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (
           moduleLevel: '$module.level',
           moduleCategory: '$module.category',
           sessionType: 1,
-          sessionState: 1,
-          durationMinutes: 1,
-          summary: 1,
+          sessionState: '$status', // CHANGED: Map status to sessionState for compatibility
+          durationMinutes: '$totalDuration', // CHANGED: Map totalDuration to durationMinutes for compatibility
+          summary: '$analytics', // CHANGED: Map analytics to summary for compatibility
           createdAt: 1,
           startTime: 1,
           endTime: 1
@@ -511,13 +512,13 @@ router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (
       { $sort: { createdAt: -1 } }
     ];
     
-    const detailedUsage = await SessionRecord.aggregate(pipeline);
+    const detailedUsage = await AiTutorSession.aggregate(pipeline); // CHANGED: from SessionRecord
     
     // Calculate summary statistics
     const summaryStats = detailedUsage.reduce((acc, session) => {
       acc.totalSessions++;
       acc.totalTimeSpent += session.durationMinutes || 0;
-      acc.totalScore += session.summary?.totalScore || 0;
+      acc.totalScore += session.summary?.sessionScore || session.summary?.totalScore || 0; // CHANGED: Handle both field names
       
       if (session.sessionState === 'completed') {
         acc.completedSessions++;
