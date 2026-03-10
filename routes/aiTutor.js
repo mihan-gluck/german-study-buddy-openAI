@@ -1118,23 +1118,30 @@ router.post('/end-session', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Active session not found' });
     }
     
-    session.status = 'completed';
     session.endTime = new Date();
-    await session.save();
-    
     const durationMinutes = Math.round((session.endTime - session.startTime) / 60000);
     
     // ✅ Determine session state based on duration and module requirements
     const module = session.moduleId;
     const requiredMinutes = module.minimumCompletionTime || 15;
-    let sessionState = 'completed';
+    const messageCount = session.messages?.length || 0;
+    const studentMessageCount = session.messages?.filter(m => m.role === 'student').length || 0;
     
-    if (durationMinutes < requiredMinutes) {
-      sessionState = 'manually_ended'; // Session ended early, not enough time
-      console.log(`⚠️ Session ended early: ${durationMinutes} min < ${requiredMinutes} min required`);
+    // Validate if session should be marked as completed
+    const meetsTimeRequirement = durationMinutes >= requiredMinutes;
+    const hasMinimumInteraction = studentMessageCount >= 3; // At least 3 student messages
+    
+    if (meetsTimeRequirement && hasMinimumInteraction) {
+      session.status = 'completed';
+      console.log(`✅ Session completed: ${durationMinutes} min >= ${requiredMinutes} min, ${studentMessageCount} student messages`);
     } else {
-      console.log(`✅ Session completed: ${durationMinutes} min >= ${requiredMinutes} min required`);
+      session.status = 'manually_ended';
+      console.log(`⚠️ Session manually ended (incomplete): ${durationMinutes} min < ${requiredMinutes} min OR ${studentMessageCount} < 3 messages`);
     }
+    
+    await session.save();
+    
+    const sessionState = session.status; // Use the same status for SessionRecord
     
     // ✅ NEW: Create/Update SessionRecord for analytics
     try {

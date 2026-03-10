@@ -898,7 +898,7 @@ export class AdminAnalyticsComponent implements OnInit {
       case 'active':
         return 'Incomplete';
       case 'manually_ended':
-        return 'Manually Ended';
+        return 'Ended Early';
       case 'abandoned':
         return 'Abandoned';
       default:
