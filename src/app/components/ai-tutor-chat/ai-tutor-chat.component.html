@@ -439,7 +439,7 @@
     <!-- Speech Error Feedback (after stopping with no speech) -->
     <div class="speech-error-feedback" *ngIf="showSpeechError && !isListening">
       <div class="alert alert-danger">
-        <button type="button" class="btn-close" (click)="showSpeechError = false" aria-label="Close"></button>
+        <button type="button" class="btn-close" (click)="clearSpeechError()" aria-label="Close"></button>
         <i class="fas fa-exclamation-triangle"></i>
         <strong>No speech detected</strong>
         <br><small>Please try again and speak clearly after clicking the microphone button.</small>

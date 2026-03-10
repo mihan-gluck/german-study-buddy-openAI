@@ -546,6 +546,15 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     
     this.isSending = true;
     
+    // Safety timeout to prevent stuck isSending state (60 seconds max)
+    const sendingTimeout = setTimeout(() => {
+      if (this.isSending) {
+        console.warn('⚠️ Message sending timeout triggered - forcing isSending to false');
+        this.isSending = false;
+        this.cdr.detectChanges();
+      }
+    }, 60000);
+    
     // Add student message to UI immediately with input method indicator
     const studentMessage: TutorMessage = {
       role: 'student',
@@ -577,6 +586,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
     // Send to backend
     this.aiTutorService.sendMessage(this.sessionId, messageContent).subscribe({
       next: (response) => {
+        clearTimeout(sendingTimeout);
         console.log('📥 Received response from backend:', response);
         
         // Remove loading message and add real response
@@ -647,6 +657,7 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
         }, 100);
       },
       error: (error) => {
+        clearTimeout(sendingTimeout);
         console.error('Error sending message:', error);
         this.isSending = false;
         
@@ -1281,14 +1292,24 @@ Keep practicing! 🌟`,
             setTimeout(() => {
               if (this.isListening && this.speechRecognition) {
                 try {
+                  // Safety check: ensure recognition is not already running
+                  if (this.speechRecognition.state === 'running') {
+                    console.log('🎤 Recognition already running, skipping restart');
+                    return;
+                  }
                   this.speechRecognition.start();
                   console.log('🎤 Speech recognition restarted successfully (accumulating mode)');
-                } catch (error) {
-                  console.error('🎤 Failed to restart:', error);
-                  this.isListening = false;
-                  this.speechAccumulating = false; // Reset flag on error
-                  this.previousMessage = ''; // Clear previous message
-                  this.cdr.detectChanges();
+                } catch (error: any) {
+                  // Handle "already started" error gracefully
+                  if (error.message && error.message.includes('already started')) {
+                    console.warn('⚠️ Recognition already started during auto-restart, continuing...');
+                  } else {
+                    console.error('🎤 Failed to restart:', error);
+                    this.isListening = false;
+                    this.speechAccumulating = false; // Reset flag on error
+                    this.previousMessage = ''; // Clear previous message
+                    this.cdr.detectChanges();
+                  }
                 }
               }
             }, 100); // 100ms delay
@@ -1337,8 +1358,29 @@ Keep practicing! 🌟`,
         this.previousMessage = '';
       }
       
-      this.speechRecognition.start();
-      console.log('🎤 Microphone started, accumulating:', this.speechAccumulating);
+      try {
+        this.speechRecognition.start();
+        console.log('🎤 Microphone started, accumulating:', this.speechAccumulating);
+      } catch (error: any) {
+        // Handle "already started" error gracefully
+        if (error.message && error.message.includes('already started')) {
+          console.warn('⚠️ Speech recognition already running, stopping and restarting...');
+          this.speechRecognition.stop();
+          // Retry after a short delay
+          setTimeout(() => {
+            try {
+              this.speechRecognition.start();
+              console.log('🎤 Microphone restarted successfully');
+            } catch (retryError) {
+              console.error('❌ Failed to restart microphone:', retryError);
+              this.showSpeechError = true;
+            }
+          }, 100);
+        } else {
+          console.error('❌ Error starting speech recognition:', error);
+          this.showSpeechError = true;
+        }
+      }
     }
   }
 
@@ -1371,6 +1413,11 @@ Keep practicing! 🌟`,
           console.warn('   - Browser speech recognition limitations');
           console.warn('   - Low audio quality or background noise');
           
+          // CRITICAL: Reset all flags that might disable the microphone button
+          this.isProcessingSpeech = false;
+          this.isSending = false;
+          this.isListening = false;
+          
           // Show non-intrusive inline error message instead of alert popup
           this.showSpeechError = true;
           
@@ -1384,6 +1431,18 @@ Keep practicing! 🌟`,
         }
       }, 800); // Increased delay from 500ms to 800ms to ensure processing completes
     }
+  }
+
+  // Clear speech error and reset all blocking flags
+  clearSpeechError(): void {
+    console.log('🧹 Clearing speech error and resetting flags');
+    this.showSpeechError = false;
+    this.isProcessingSpeech = false;
+    this.isSending = false;
+    this.isListening = false;
+    this.speechAccumulating = false;
+    this.previousMessage = '';
+    this.cdr.detectChanges();
   }
 
   // Normalize text for consistent processing
@@ -1504,192 +1563,208 @@ Keep practicing! 🌟`,
 
   // Text-to-Speech: Speak the AI tutor's response
   speakText(text: string): void {
-    if (!this.voiceEnabled || this.isSpeaking) return;
-    
-    // Stop any current speech
-    this.speechSynthesis.cancel();
-    
-    // Clean up markdown formatting and emojis for better speech
-    const cleanText = this.normalizeText(text);
-    
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    
-    // Debug: Log module language info
-    console.log('🔊 TTS Debug:', {
-      moduleTitle: this.module?.title,
-      targetLanguage: this.module?.targetLanguage,
-      nativeLanguage: this.module?.nativeLanguage,
-      textPreview: cleanText.substring(0, 50),
-      isMobile: this.isMobileDevice()
-    });
-    
-    // Detect the actual language of the text being spoken
-    const detectedLanguage = this.detectTextLanguage(cleanText);
-    console.log('🔊 Detected text language:', detectedLanguage);
-    
-    // Configure voice based on detected language with platform-specific preferences
-    const voices = this.speechSynthesis.getVoices();
-    let targetVoice;
-    const selectedLang = this.getLanguageCode(detectedLanguage);
-    const isMobile = this.isMobileDevice();
-    
-    console.log('🔊 Available voices:', voices.length, 'Platform:', isMobile ? 'Mobile' : 'Desktop');
-    
-    // Find appropriate voice for the language with platform-specific preferences
-    if (selectedLang.startsWith('en')) {
-      // English voice selection
-      if (isMobile) {
-        // Mobile: Prefer native voices (better quality on mobile)
+      if (!this.voiceEnabled || this.isSpeaking) return;
+
+      // Stop any current speech
+      this.speechSynthesis.cancel();
+
+      // Clean up markdown formatting and emojis for better speech
+      const cleanText = this.normalizeText(text);
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+
+      // Debug: Log module language info
+      console.log('🔊 TTS Debug:', {
+        moduleTitle: this.module?.title,
+        targetLanguage: this.module?.targetLanguage,
+        nativeLanguage: this.module?.nativeLanguage,
+        textPreview: cleanText.substring(0, 50),
+        isMobile: this.isMobileDevice()
+      });
+
+      // Detect the actual language of the text being spoken
+      const detectedLanguage = this.detectTextLanguage(cleanText);
+      console.log('🔊 Detected text language:', detectedLanguage);
+
+      // Configure voice based on detected language with platform-specific preferences
+      const voices = this.speechSynthesis.getVoices();
+      let targetVoice;
+      const selectedLang = this.getLanguageCode(detectedLanguage);
+      const isMobile = this.isMobileDevice();
+
+      console.log('🔊 Available voices:', voices.length, 'Platform:', isMobile ? 'Mobile' : 'Desktop');
+
+      // Find appropriate voice for the language with platform-specific preferences
+      if (selectedLang.startsWith('en')) {
+        // English voice selection
+        if (isMobile) {
+          // Mobile: Prefer native voices (better quality on mobile)
+          targetVoice = voices.find(voice => 
+            !voice.localService && voice.lang.startsWith('en-US')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('en-US')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('en')
+          );
+        } else {
+          // Desktop: Prefer Google voices or high-quality voices
+          targetVoice = voices.find(voice => 
+            voice.name.includes('Google') && voice.lang.startsWith('en-US')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('en-US')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('en')
+          );
+        }
+        console.log('🔊 Using English TTS');
+      } else if (selectedLang.startsWith('de')) {
+        // German voice selection
+        if (isMobile) {
+          // Mobile: Prefer native German voices
+          targetVoice = voices.find(voice => 
+            !voice.localService && voice.lang.startsWith('de-DE')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('de-DE')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('de')
+          );
+        } else {
+          // Desktop: Prefer Google German voices
+          targetVoice = voices.find(voice => 
+            voice.name.includes('Google') && voice.lang.startsWith('de-DE')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('de-DE')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('de')
+          );
+        }
+        console.log('🔊 Using German TTS');
+      } else if (selectedLang.startsWith('ta')) {
+        // Tamil voice selection
         targetVoice = voices.find(voice => 
-          !voice.localService && voice.lang.startsWith('en-US')
+          voice.lang.startsWith('ta')
         ) || voices.find(voice => 
-          voice.lang.startsWith('en-US')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('en')
+          voice.name.toLowerCase().includes('tamil')
         );
+        console.log('🔊 Using Tamil TTS');
+      } else if (selectedLang.startsWith('si')) {
+        // Sinhala voice selection
+        targetVoice = voices.find(voice => 
+          voice.lang.startsWith('si')
+        ) || voices.find(voice => 
+          voice.name.toLowerCase().includes('sinhala')
+        );
+        console.log('🔊 Using Sinhala TTS');
       } else {
-        // Desktop: Prefer Google voices or high-quality voices
-        targetVoice = voices.find(voice => 
-          voice.name.includes('Google') && voice.lang.startsWith('en-US')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('en-US')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('en')
-        );
+        // Fallback: Use English as default with platform preference
+        if (isMobile) {
+          targetVoice = voices.find(voice => 
+            !voice.localService && voice.lang.startsWith('en')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('en')
+          );
+        } else {
+          targetVoice = voices.find(voice => 
+            voice.name.includes('Google') && voice.lang.startsWith('en')
+          ) || voices.find(voice => 
+            voice.lang.startsWith('en')
+          );
+        }
+        console.log('🔊 Using English TTS as fallback');
       }
-      console.log('🔊 Using English TTS');
-    } else if (selectedLang.startsWith('de')) {
-      // German voice selection
-      if (isMobile) {
-        // Mobile: Prefer native German voices
-        targetVoice = voices.find(voice => 
-          !voice.localService && voice.lang.startsWith('de-DE')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('de-DE')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('de')
-        );
+
+      utterance.lang = selectedLang;
+
+      console.log('🔊 Selected voice:', {
+        name: targetVoice?.name || 'Default',
+        lang: targetVoice?.lang || selectedLang,
+        localService: targetVoice?.localService,
+        platform: isMobile ? 'Mobile' : 'Desktop'
+      });
+
+      if (targetVoice) {
+        utterance.voice = targetVoice;
+      }
+
+      // Level-based speech rate for better learning experience
+      // Beginners need slower speech, advanced learners can handle normal speed
+      let speechRate = 0.8; // Default rate
+
+      if (this.module?.level) {
+        switch (this.module.level.toUpperCase()) {
+          case 'A1':
+            speechRate = 0.6; // Very slow for absolute beginners
+            console.log('🔊 Using A1 rate: 0.6 (very slow for beginners)');
+            break;
+          case 'A2':
+            speechRate = 0.7; // Slow for elementary learners
+            console.log('🔊 Using A2 rate: 0.7 (slow for elementary)');
+            break;
+          case 'B1':
+          case 'B2':
+            speechRate = 0.8; // Normal learning pace for intermediate
+            console.log(`🔊 Using ${this.module.level} rate: 0.8 (normal for intermediate)`);
+            break;
+          case 'C1':
+          case 'C2':
+            speechRate = 0.9; // Slightly faster for advanced learners
+            console.log(`🔊 Using ${this.module.level} rate: 0.9 (faster for advanced)`);
+            break;
+          default:
+            speechRate = 0.8; // Default fallback
+            console.log('🔊 Using default rate: 0.8');
+        }
       } else {
-        // Desktop: Prefer Google German voices
-        targetVoice = voices.find(voice => 
-          voice.name.includes('Google') && voice.lang.startsWith('de-DE')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('de-DE')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('de')
-        );
+        console.log('🔊 No module level found, using default rate: 0.8');
       }
-      console.log('🔊 Using German TTS');
-    } else if (selectedLang.startsWith('ta')) {
-      // Tamil voice selection
-      targetVoice = voices.find(voice => 
-        voice.lang.startsWith('ta')
-      ) || voices.find(voice => 
-        voice.name.toLowerCase().includes('tamil')
-      );
-      console.log('🔊 Using Tamil TTS');
-    } else if (selectedLang.startsWith('si')) {
-      // Sinhala voice selection
-      targetVoice = voices.find(voice => 
-        voice.lang.startsWith('si')
-      ) || voices.find(voice => 
-        voice.name.toLowerCase().includes('sinhala')
-      );
-      console.log('🔊 Using Sinhala TTS');
-    } else {
-      // Fallback: Use English as default with platform preference
-      if (isMobile) {
-        targetVoice = voices.find(voice => 
-          !voice.localService && voice.lang.startsWith('en')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('en')
-        );
-      } else {
-        targetVoice = voices.find(voice => 
-          voice.name.includes('Google') && voice.lang.startsWith('en')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('en')
-        );
-      }
-      console.log('🔊 Using English TTS as fallback');
+
+      utterance.rate = speechRate;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      console.log('🔊 Final TTS settings:', {
+        rate: speechRate,
+        level: this.module?.level || 'Unknown',
+        pitch: 1,
+        volume: 1
+      });
+
+      // Safety timeout to prevent stuck isSpeaking state (30 seconds max)
+      const safetyTimeout = setTimeout(() => {
+        if (this.isSpeaking) {
+          console.warn('⚠️ TTS safety timeout triggered - forcing isSpeaking to false');
+          this.isSpeaking = false;
+          this.speechSynthesis.cancel();
+          this.cdr.detectChanges();
+        }
+      }, 30000);
+
+      utterance.onstart = () => {
+        this.isSpeaking = true;
+        console.log('🔊 Speech started');
+        this.cdr.detectChanges();
+      };
+
+      utterance.onend = () => {
+        clearTimeout(safetyTimeout);
+        this.isSpeaking = false;
+        console.log('🔊 Speech ended');
+        this.cdr.detectChanges();
+
+        // Manual microphone control - students decide when to speak
+        // No automatic microphone activation for better learning control
+      };
+
+      utterance.onerror = (event) => {
+        clearTimeout(safetyTimeout);
+        console.error('🔊 Speech error:', event);
+        this.isSpeaking = false;
+        this.cdr.detectChanges();
+      };
+
+      this.speechSynthesis.speak(utterance);
     }
-    
-    utterance.lang = selectedLang;
-    
-    console.log('🔊 Selected voice:', {
-      name: targetVoice?.name || 'Default',
-      lang: targetVoice?.lang || selectedLang,
-      localService: targetVoice?.localService,
-      platform: isMobile ? 'Mobile' : 'Desktop'
-    });
-    
-    if (targetVoice) {
-      utterance.voice = targetVoice;
-    }
-    
-    // Level-based speech rate for better learning experience
-    // Beginners need slower speech, advanced learners can handle normal speed
-    let speechRate = 0.8; // Default rate
-    
-    if (this.module?.level) {
-      switch (this.module.level.toUpperCase()) {
-        case 'A1':
-          speechRate = 0.6; // Very slow for absolute beginners
-          console.log('🔊 Using A1 rate: 0.6 (very slow for beginners)');
-          break;
-        case 'A2':
-          speechRate = 0.7; // Slow for elementary learners
-          console.log('🔊 Using A2 rate: 0.7 (slow for elementary)');
-          break;
-        case 'B1':
-        case 'B2':
-          speechRate = 0.8; // Normal learning pace for intermediate
-          console.log(`🔊 Using ${this.module.level} rate: 0.8 (normal for intermediate)`);
-          break;
-        case 'C1':
-        case 'C2':
-          speechRate = 0.9; // Slightly faster for advanced learners
-          console.log(`🔊 Using ${this.module.level} rate: 0.9 (faster for advanced)`);
-          break;
-        default:
-          speechRate = 0.8; // Default fallback
-          console.log('🔊 Using default rate: 0.8');
-      }
-    } else {
-      console.log('🔊 No module level found, using default rate: 0.8');
-    }
-    
-    utterance.rate = speechRate;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    
-    console.log('🔊 Final TTS settings:', {
-      rate: speechRate,
-      level: this.module?.level || 'Unknown',
-      pitch: 1,
-      volume: 1
-    });
-    
-    utterance.onstart = () => {
-      this.isSpeaking = true;
-      console.log('🔊 Speech started');
-    };
-    
-    utterance.onend = () => {
-      this.isSpeaking = false;
-      console.log('🔊 Speech ended');
-      
-      // Manual microphone control - students decide when to speak
-      // No automatic microphone activation for better learning control
-    };
-    
-    utterance.onerror = (event) => {
-      console.error('🔊 Speech error:', event);
-      this.isSpeaking = false;
-    };
-    
-    this.speechSynthesis.speak(utterance);
-  }
+
 
   // Stop current speech
   stopSpeaking(): void {
@@ -2529,7 +2604,13 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     );
     
     // Check if message is encouraging further practice (indicates session end)
-    const encouragesPractice = allPracticeEncouragement.some(phrase => 
+    // BUT exclude messages that ask to continue the current session
+    const continueKeywords = ['continue', 'let\'s continue', 'keep going', 'carry on', 'go on', 'more minutes'];
+    const isAskingToContinue = continueKeywords.some(keyword => 
+      messageContent.includes(keyword.toLowerCase())
+    );
+    
+    const encouragesPractice = !isAskingToContinue && allPracticeEncouragement.some(phrase => 
       messageContent.includes(phrase.toLowerCase())
     );
     
@@ -2540,6 +2621,7 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         hasCompletionPhrase,
         hasFarewellPattern,
         encouragesPractice,
+        isAskingToContinue,
         messagePreview: messageContent.substring(0, 100) + '...'
       });
       

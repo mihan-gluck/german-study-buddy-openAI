@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken, checkRole } = require('../middleware/auth');
-const AiTutorSession = require('./models/AiTutorSession'); // CHANGED: Use AiTutorSession
+const AiTutorSession = require('../models/AiTutorSession'); // CHANGED: Use AiTutorSession
 const LearningModule = require('../models/LearningModule');
 const User = require('../models/User');
 const mongoose = require('mongoose');
