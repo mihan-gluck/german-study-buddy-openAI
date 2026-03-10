@@ -503,6 +503,7 @@ router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (
           sessionState: '$status', // CHANGED: Map status to sessionState for compatibility
           durationMinutes: '$totalDuration', // CHANGED: Map totalDuration to durationMinutes for compatibility
           summary: '$analytics', // CHANGED: Map analytics to summary for compatibility
+          messages: 1, // NEW: Include conversation messages
           createdAt: 1,
           startTime: 1,
           endTime: 1

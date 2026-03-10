@@ -737,6 +737,7 @@
                 <!-- <th>Score</th> -->
                 <th>Vocabulary</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -757,11 +758,17 @@
                 </td>
                 <td>
                   <span class="badge" 
-                        [class.bg-success]="session.sessionState === 'completed'"
-                        [class.bg-warning]="session.sessionState === 'manually_ended'"
-                        [class.bg-danger]="session.sessionState === 'abandoned'">
-                    {{ session.sessionState }}
+                        [ngClass]="getStatusBadgeClass(session.sessionState)">
+                    {{ formatSessionStatus(session.sessionState) }}
                   </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info" 
+                          (click)="viewConversation(session)"
+                          [disabled]="!session.messages || session.messages.length === 0"
+                          title="View conversation transcript">
+                    <i class="fas fa-comments"></i> View Conversation
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -774,6 +781,78 @@
             <span class="visually-hidden">Loading...</span>
           </div>
           <p class="mt-2">Loading session details...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversation Transcript Modal -->
+  <div *ngIf="showConversationView" class="modal-overlay" (click)="closeConversationView()">
+    <div class="modal-content-custom conversation-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header-custom">
+        <h4>
+          <i class="fas fa-comments"></i>
+          Conversation Transcript
+        </h4>
+        <button class="btn-close-custom" (click)="closeConversationView()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body-custom">
+        <!-- Session Info -->
+        <div class="conversation-info mb-4">
+          <div class="row">
+            <div class="col-md-4">
+              <small class="text-muted">Module</small>
+              <div><strong>{{ selectedSessionConversation?.moduleName }}</strong></div>
+              <small class="text-muted">{{ selectedSessionConversation?.moduleLevel }}</small>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted">Date</small>
+              <div><strong>{{ formatDateTime(selectedSessionConversation?.createdAt) }}</strong></div>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted">Duration</small>
+              <div><strong>{{ formatTimeSpent(selectedSessionConversation?.durationMinutes) }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversation Messages -->
+        <div class="conversation-container">
+          <div *ngIf="conversationMessages.length === 0" class="text-center text-muted py-4">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <p>No messages in this conversation</p>
+          </div>
+
+          <div *ngFor="let message of conversationMessages; let i = index" 
+               class="message-bubble"
+               [class.student-message]="message.role === 'student'"
+               [class.tutor-message]="message.role === 'tutor'">
+            <div class="message-header">
+              <span class="message-role">
+                <i class="fas" [class.fa-user-graduate]="message.role === 'student'" 
+                               [class.fa-robot]="message.role === 'tutor'"></i>
+                {{ message.role === 'student' ? 'Student' : 'AI Tutor' }}
+              </span>
+              <span class="message-time">{{ formatTimestamp(message.timestamp) }}</span>
+            </div>
+            <div class="message-content">{{ message.content }}</div>
+            <div *ngIf="message.metadata?.inputMethod" class="message-meta">
+              <small class="text-muted">
+                <i class="fas" [class.fa-microphone]="message.metadata.inputMethod === 'speech'"
+                               [class.fa-keyboard]="message.metadata.inputMethod === 'text'"></i>
+                {{ message.metadata.inputMethod === 'speech' ? 'Voice input' : 'Text input' }}
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Button -->
+        <div class="mt-4 text-end">
+          <button class="btn btn-outline-secondary" (click)="exportConversation()">
+            <i class="fas fa-download"></i> Export Conversation
+          </button>
         </div>
       </div>
     </div>

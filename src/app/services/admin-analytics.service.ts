@@ -102,6 +102,7 @@ export interface DetailedUsage {
   sessionState: string;
   durationMinutes: number;
   summary: any;
+  messages: any[]; // NEW: Include conversation messages
   createdAt: Date;
   startTime: Date;
   endTime: Date;

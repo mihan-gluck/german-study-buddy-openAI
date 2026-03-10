@@ -101,6 +101,11 @@ export class AdminAnalyticsComponent implements OnInit {
   isLoadingAIDetails = false;
   showDetailedView = false;
   
+  // Conversation view
+  showConversationView = false;
+  selectedSessionConversation: any = null;
+  conversationMessages: any[] = [];
+  
   // AI Usage Charts
   studentEngagementChart: ChartConfiguration<'bar'>['data'] | null = null;
   studentEngagementOptions: ChartConfiguration<'bar'>['options'];
@@ -810,6 +815,13 @@ export class AdminAnalyticsComponent implements OnInit {
 
       if (response && response.detailedUsage) {
         this.studentDetailedSessions = response.detailedUsage;
+        console.log('📊 Loaded sessions:', this.studentDetailedSessions.length);
+        console.log('📋 First session messages:', this.studentDetailedSessions[0]?.messages?.length || 0);
+        console.log('📝 Sample session:', {
+          moduleName: this.studentDetailedSessions[0]?.moduleName,
+          hasMessages: !!this.studentDetailedSessions[0]?.messages,
+          messageCount: this.studentDetailedSessions[0]?.messages?.length || 0
+        });
       }
     } catch (error) {
       console.error('Error loading student details:', error);
@@ -822,6 +834,92 @@ export class AdminAnalyticsComponent implements OnInit {
     this.showDetailedView = false;
     this.selectedStudent = null;
     this.studentDetailedSessions = [];
+  }
+
+  viewConversation(session: any): void {
+    this.selectedSessionConversation = session;
+    this.conversationMessages = session.messages || [];
+    this.showConversationView = true;
+  }
+
+  closeConversationView(): void {
+    this.showConversationView = false;
+    this.selectedSessionConversation = null;
+    this.conversationMessages = [];
+  }
+
+  formatTimestamp(timestamp: Date | string): string {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  exportConversation(): void {
+    if (!this.selectedSessionConversation || !this.conversationMessages.length) {
+      return;
+    }
+
+    const session = this.selectedSessionConversation;
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    
+    // Add header
+    csvContent += 'Conversation Transcript\n';
+    csvContent += `Module: ${session.moduleName}\n`;
+    csvContent += `Date: ${this.formatDateTime(session.createdAt)}\n`;
+    csvContent += `Duration: ${this.formatTimeSpent(session.durationMinutes)}\n`;
+    csvContent += `Student: ${session.studentName}\n\n`;
+    
+    // Add column headers
+    csvContent += 'Time,Role,Message,Input Method\n';
+    
+    // Add messages
+    this.conversationMessages.forEach(msg => {
+      const time = this.formatTimestamp(msg.timestamp);
+      const role = msg.role === 'student' ? 'Student' : 'AI Tutor';
+      const content = `"${msg.content.replace(/"/g, '""')}"`;  // Escape quotes
+      const inputMethod = msg.metadata?.inputMethod || 'N/A';
+      csvContent += `${time},${role},${content},${inputMethod}\n`;
+    });
+    
+    // Create download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `conversation_${session.sessionId}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Format session status for display
+  formatSessionStatus(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return 'Completed';
+      case 'active':
+        return 'Incomplete';
+      case 'manually_ended':
+        return 'Manually Ended';
+      case 'abandoned':
+        return 'Abandoned';
+      default:
+        return status || 'Unknown';
+    }
+  }
+
+  // Get badge class for session status
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return 'bg-success';
+      case 'active':
+        return 'bg-warning';
+      case 'manually_ended':
+        return 'bg-info';
+      case 'abandoned':
+        return 'bg-danger';
+      default:
+        return 'bg-secondary';
+    }
   }
 
   formatTimeAI(minutes: number): string {

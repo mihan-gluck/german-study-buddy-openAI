@@ -645,3 +645,121 @@
     margin-bottom: 15px;
   }
 }
+
+/* Conversation Modal Styles */
+.conversation-modal {
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.conversation-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.conversation-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.message-bubble {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.student-message {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  margin-left: 2rem;
+}
+
+.tutor-message {
+  background: #f3e5f5;
+  border-left: 4px solid #9c27b0;
+  margin-right: 2rem;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.message-role {
+  font-weight: 600;
+  color: #495057;
+}
+
+.message-role i {
+  margin-right: 0.5rem;
+}
+
+.student-message .message-role {
+  color: #1976d2;
+}
+
+.tutor-message .message-role {
+  color: #7b1fa2;
+}
+
+.message-time {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.message-content {
+  color: #212529;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.message-meta {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.message-meta i {
+  margin-right: 0.25rem;
+}
+
+/* Scrollbar styling for conversation container */
+.conversation-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.conversation-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.conversation-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.conversation-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

@@ -305,12 +305,12 @@ export class AiTutorChatComponent implements OnInit, OnDestroy {
       this.speechRecognition.stop();
     }
     
-    // End session if still active
-    if (this.sessionActive && this.sessionId) {
-      this.endSession(false);
-    }
+    // DO NOT end session on component destroy
+    // This was causing sessions to be marked as "completed" when users simply closed the browser
+    // Sessions should remain "active" if abandoned, not marked as "completed"
+    // Only explicit user action (clicking "End Session") should complete a session
     
-    console.log('✅ AI tutor chat component cleaned up');
+    console.log('✅ AI tutor chat component cleaned up (session remains active if not explicitly ended)');
   }
 
   loadModule(): void {
