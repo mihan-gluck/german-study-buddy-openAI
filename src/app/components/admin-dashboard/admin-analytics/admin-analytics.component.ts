@@ -89,6 +89,12 @@ export class AdminAnalyticsComponent implements OnInit {
   selectedStudent: any | null = null;
   studentDetailedSessions: any[] = [];
   
+  // Teacher Performance Detail View properties
+  selectedTeacher: any | null = null;
+  teacherDetailedSessions: any[] = [];
+  showTeacherDetailedView = false;
+  isLoadingTeacherDetails = false;
+  
   // AI Usage Summary statistics
   totalStudentsUsingAI = 0;
   totalAISessionsCount = 0;
@@ -691,7 +697,8 @@ export class AdminAnalyticsComponent implements OnInit {
       averageScore: item.averageScore,
       modulesUsed: item.sessions?.length || 0,
       lastSessionDate: item.sessions?.[0]?.date || new Date(),
-      vocabularyLearned: item.totalVocabularyLearned || 0
+      vocabularyLearned: item.totalVocabularyLearned || 0,
+      totalConversations: item.totalConversations || 0 // NEW: Total student messages
     })).sort((a, b) => b.totalTimeMinutes - a.totalTimeMinutes);
   }
 
@@ -809,22 +816,30 @@ export class AdminAnalyticsComponent implements OnInit {
     this.isLoadingAIDetails = true;
 
     try {
+      console.log('🔍 Loading student details for:', student);
+      console.log('📋 Student ID:', student.studentId);
+      
       const response = await this.adminAnalyticsService.getStudentModuleDetails({
         studentId: student.studentId
       }).toPromise();
 
+      console.log('📦 API Response:', response);
+
       if (response && response.detailedUsage) {
         this.studentDetailedSessions = response.detailedUsage;
         console.log('📊 Loaded sessions:', this.studentDetailedSessions.length);
-        console.log('📋 First session messages:', this.studentDetailedSessions[0]?.messages?.length || 0);
-        console.log('📝 Sample session:', {
-          moduleName: this.studentDetailedSessions[0]?.moduleName,
-          hasMessages: !!this.studentDetailedSessions[0]?.messages,
-          messageCount: this.studentDetailedSessions[0]?.messages?.length || 0
-        });
+        console.log('📋 Sessions data:', this.studentDetailedSessions);
+        
+        if (this.studentDetailedSessions.length > 0) {
+          console.log('📝 First session:', this.studentDetailedSessions[0]);
+          console.log('📋 First session messages:', this.studentDetailedSessions[0]?.messages?.length || 0);
+        }
+      } else {
+        console.warn('⚠️ No detailedUsage in response');
       }
     } catch (error) {
-      console.error('Error loading student details:', error);
+      console.error('❌ Error loading student details:', error);
+      alert('Error loading student details. Check console for details.');
     } finally {
       this.isLoadingAIDetails = false;
     }
@@ -834,6 +849,67 @@ export class AdminAnalyticsComponent implements OnInit {
     this.showDetailedView = false;
     this.selectedStudent = null;
     this.studentDetailedSessions = [];
+  }
+
+  // Helper method to count student messages
+  getStudentMessageCount(messages: any[]): number {
+    if (!messages || !Array.isArray(messages)) {
+      return 0;
+    }
+    return messages.filter(m => m.role === 'student').length;
+  }
+
+  // Teacher Performance Detail View Methods
+  async viewTeacherDetails(teacher: any): Promise<void> {
+    this.selectedTeacher = teacher;
+    this.showTeacherDetailedView = true;
+    this.isLoadingTeacherDetails = true;
+
+    try {
+      console.log('🔍 Loading teacher own usage for:', teacher);
+      console.log('📋 Full teacher object:', JSON.stringify(teacher, null, 2));
+      console.log('📋 Teacher _id:', teacher._id);
+      console.log('📋 Teacher Email:', teacher._id?.teacherEmail);
+      
+      // Check if email exists
+      const teacherEmail = teacher._id?.teacherEmail || teacher.teacherEmail || teacher.email;
+      
+      if (!teacherEmail) {
+        console.error('❌ No teacher email found in object');
+        alert('Cannot load teacher details: Email not found');
+        this.isLoadingTeacherDetails = false;
+        return;
+      }
+      
+      console.log('✅ Using teacher email:', teacherEmail);
+      
+      // Load sessions where teacher was the student (teacher's own usage)
+      const teacherOwnResponse = await this.adminAnalyticsService.getTeacherOwnUsage({
+        teacherEmail: teacherEmail
+      }).toPromise();
+      
+      console.log('📦 Teacher Own Usage Response:', teacherOwnResponse);
+      
+      if (teacherOwnResponse && teacherOwnResponse.detailedUsage) {
+        this.teacherDetailedSessions = teacherOwnResponse.detailedUsage;
+        console.log('📊 Loaded teacher own sessions:', this.teacherDetailedSessions.length);
+      } else {
+        console.warn('⚠️ No detailedUsage in teacher own response');
+        this.teacherDetailedSessions = [];
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading teacher details:', error);
+      alert('Error loading teacher details. Check console for details.');
+    } finally {
+      this.isLoadingTeacherDetails = false;
+    }
+  }
+
+  closeTeacherDetailedView(): void {
+    this.showTeacherDetailedView = false;
+    this.selectedTeacher = null;
+    this.teacherDetailedSessions = [];
   }
 
   viewConversation(session: any): void {
@@ -950,7 +1026,7 @@ export class AdminAnalyticsComponent implements OnInit {
       'Completion Rate (%)': Math.round(student.completionRate),
       'Average Score': Math.round(student.averageScore),
       'Modules Used': student.modulesUsed,
-      'Vocabulary Learned': student.vocabularyLearned,
+      'Total Conversations': student.totalConversations,
       'Last Session': this.formatDate(student.lastSessionDate)
     }));
 

@@ -206,14 +206,77 @@ export class AdminAnalyticsService {
     }>(`${this.apiUrl}/student-module-details`, { params, withCredentials: true });
   }
 
+  // Get detailed teacher module usage
+  getTeacherModuleDetails(filters: {
+    moduleId?: string;
+    teacherId?: string;
+    batch?: string;
+  } = {}): Observable<{
+    success: boolean;
+    detailedUsage: DetailedUsage[];
+    summary: any;
+    totalRecords: number;
+  }> {
+    let params = new HttpParams();
+    
+    Object.keys(filters).forEach(key => {
+      const value = (filters as any)[key];
+      if (value) {
+        params = params.set(key, value);
+      }
+    });
+
+    return this.http.get<{
+      success: boolean;
+      detailedUsage: DetailedUsage[];
+      summary: any;
+      totalRecords: number;
+    }>(`${this.apiUrl}/teacher-module-details`, { params, withCredentials: true });
+  }
+
+  // Get teacher's own usage (when teacher uses AI bot as student)
+  getTeacherOwnUsage(filters: {
+    teacherEmail?: string;
+    moduleId?: string;
+  } = {}): Observable<{
+    success: boolean;
+    detailedUsage: DetailedUsage[];
+    summary: any;
+    totalRecords: number;
+  }> {
+    let params = new HttpParams();
+    
+    Object.keys(filters).forEach(key => {
+      const value = (filters as any)[key];
+      if (value) {
+        params = params.set(key, value);
+      }
+    });
+
+    return this.http.get<{
+      success: boolean;
+      detailedUsage: DetailedUsage[];
+      summary: any;
+      totalRecords: number;
+    }>(`${this.apiUrl}/teacher-own-usage`, { params, withCredentials: true });
+  }
+
   // Utility methods for formatting
   formatTimeSpent(minutes: number): string {
+    // Handle invalid values
+    if (minutes === null || minutes === undefined || isNaN(minutes)) {
+      return '0m';
+    }
+    
+    // Round to nearest integer
+    minutes = Math.round(minutes);
+    
     if (minutes < 60) {
       return `${minutes}m`;
     }
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   }
 
   formatDate(date: Date | string): string {

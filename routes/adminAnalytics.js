@@ -84,6 +84,17 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
           averageScore: { $avg: '$analytics.sessionScore' }, // CHANGED: from summary.totalScore
           totalStudents: { $addToSet: '$studentId' },
           totalVocabularyLearned: { $sum: { $size: { $ifNull: ['$analytics.vocabularyUsed', []] } } }, // CHANGED: from summary.vocabularyUsed
+          totalConversations: { 
+            $sum: { 
+              $size: { 
+                $filter: {
+                  input: { $ifNull: ['$messages', []] },
+                  as: 'msg',
+                  cond: { $eq: ['$$msg.role', 'student'] }
+                }
+              }
+            }
+          }, // NEW: Count total student messages across all sessions
           sessions: {
             $push: {
               sessionId: '$sessionId',
@@ -241,6 +252,9 @@ router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req
       ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
       ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
       
+      // Filter out students without assigned teachers
+      { $match: { 'student.assignedTeacher': { $exists: true, $ne: null } } },
+      
       // Populate teacher data
       {
         $lookup: {
@@ -250,7 +264,7 @@ router.get('/teacher-performance', verifyToken, checkRole(['ADMIN']), async (req
           as: 'teacher'
         }
       },
-      { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+      { $unwind: '$teacher' }, // Changed: removed preserveNullAndEmptyArrays since we filtered above
       
       // Group by teacher and module
       {
@@ -561,6 +575,259 @@ router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (
     res.status(500).json({
       success: false,
       message: 'Error fetching detailed usage',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/admin-analytics/teacher-module-details - Get detailed teacher usage per module
+router.get('/teacher-module-details', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    console.log('👨‍🏫 Admin requesting detailed teacher module usage');
+    
+    const { moduleId, teacherId, batch } = req.query;
+    
+    const matchCriteria = {};
+    if (moduleId) matchCriteria.moduleId = new mongoose.Types.ObjectId(moduleId);
+    
+    const pipeline = [
+      { $match: matchCriteria },
+      
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      {
+        $lookup: {
+          from: 'learningmodules',
+          localField: 'moduleId',
+          foreignField: '_id',
+          as: 'module'
+        }
+      },
+      
+      { $unwind: '$student' },
+      { $unwind: '$module' },
+      
+      // Filter by batch if provided
+      ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
+      
+      // Populate teacher data
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'student.assignedTeacher',
+          foreignField: '_id',
+          as: 'teacher'
+        }
+      },
+      { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+      
+      // Filter by teacher if provided
+      ...(teacherId ? [{ $match: { 'teacher._id': new mongoose.Types.ObjectId(teacherId) } }] : []),
+      
+      // Project detailed information
+      {
+        $project: {
+          sessionId: 1,
+          studentName: '$student.name',
+          studentEmail: '$student.email',
+          studentBatch: '$student.batch',
+          studentLevel: '$student.level',
+          teacherName: '$teacher.name',
+          teacherEmail: '$teacher.email',
+          moduleName: '$module.title',
+          moduleLevel: '$module.level',
+          moduleCategory: '$module.category',
+          sessionType: 1,
+          sessionState: '$status',
+          durationMinutes: '$totalDuration',
+          summary: '$analytics',
+          messages: 1,
+          createdAt: 1,
+          startTime: 1,
+          endTime: 1
+        }
+      },
+      
+      { $sort: { createdAt: -1 } }
+    ];
+    
+    const detailedUsage = await AiTutorSession.aggregate(pipeline);
+    
+    // Calculate summary statistics
+    const summaryStats = detailedUsage.reduce((acc, session) => {
+      acc.totalSessions++;
+      acc.totalTimeSpent += session.durationMinutes || 0;
+      acc.totalScore += session.summary?.sessionScore || session.summary?.totalScore || 0;
+      
+      if (session.sessionState === 'completed') {
+        acc.completedSessions++;
+      }
+      
+      // Track unique students and modules
+      acc.uniqueStudents.add(session.studentName);
+      acc.uniqueModules.add(session.moduleName);
+      
+      return acc;
+    }, {
+      totalSessions: 0,
+      completedSessions: 0,
+      totalTimeSpent: 0,
+      totalScore: 0,
+      uniqueStudents: new Set(),
+      uniqueModules: new Set()
+    });
+    
+    // Convert sets to counts
+    summaryStats.uniqueStudentCount = summaryStats.uniqueStudents.size;
+    summaryStats.uniqueModuleCount = summaryStats.uniqueModules.size;
+    summaryStats.averageScore = summaryStats.totalSessions > 0 ? summaryStats.totalScore / summaryStats.totalSessions : 0;
+    summaryStats.completionRate = summaryStats.totalSessions > 0 ? (summaryStats.completedSessions / summaryStats.totalSessions) * 100 : 0;
+    
+    // Remove sets from response
+    delete summaryStats.uniqueStudents;
+    delete summaryStats.uniqueModules;
+    
+    res.json({
+      success: true,
+      detailedUsage,
+      summary: summaryStats,
+      totalRecords: detailedUsage.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching detailed teacher module usage:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching detailed usage',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/admin-analytics/teacher-own-usage - Get teacher's own AI bot usage
+router.get('/teacher-own-usage', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    console.log('👨‍🎓 Admin requesting teacher own usage');
+    
+    const { teacherEmail, moduleId } = req.query;
+    
+    if (!teacherEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Teacher email is required'
+      });
+    }
+    
+    // Find teacher by email
+    const User = require('../models/User');
+    const teacher = await User.findOne({ email: teacherEmail, role: 'TEACHER' });
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+    
+    const matchCriteria = {
+      studentId: teacher._id // Teacher used AI bot as a student
+    };
+    
+    if (moduleId) {
+      matchCriteria.moduleId = new mongoose.Types.ObjectId(moduleId);
+    }
+    
+    const pipeline = [
+      { $match: matchCriteria },
+      
+      {
+        $lookup: {
+          from: 'learningmodules',
+          localField: 'moduleId',
+          foreignField: '_id',
+          as: 'module'
+        }
+      },
+      
+      { $unwind: '$module' },
+      
+      // Project detailed information
+      {
+        $project: {
+          sessionId: 1,
+          studentName: teacher.name, // Teacher's name
+          studentEmail: teacher.email, // Teacher's email
+          studentBatch: teacher.batch || 'N/A',
+          studentLevel: teacher.level || 'N/A',
+          teacherName: 'Self-Practice', // Indicate it's self-practice
+          teacherEmail: teacher.email,
+          moduleName: '$module.title',
+          moduleLevel: '$module.level',
+          moduleCategory: '$module.category',
+          sessionType: 1,
+          sessionState: '$status',
+          durationMinutes: '$totalDuration',
+          summary: '$analytics',
+          messages: 1,
+          createdAt: 1,
+          startTime: 1,
+          endTime: 1
+        }
+      },
+      
+      { $sort: { createdAt: -1 } }
+    ];
+    
+    const detailedUsage = await AiTutorSession.aggregate(pipeline);
+    
+    // Calculate summary statistics
+    const summaryStats = detailedUsage.reduce((acc, session) => {
+      acc.totalSessions++;
+      acc.totalTimeSpent += session.durationMinutes || 0;
+      acc.totalScore += session.summary?.sessionScore || session.summary?.totalScore || 0;
+      
+      if (session.sessionState === 'completed') {
+        acc.completedSessions++;
+      }
+      
+      // Track unique modules
+      acc.uniqueModules.add(session.moduleName);
+      
+      return acc;
+    }, {
+      totalSessions: 0,
+      completedSessions: 0,
+      totalTimeSpent: 0,
+      totalScore: 0,
+      uniqueModules: new Set()
+    });
+    
+    // Convert sets to counts
+    summaryStats.uniqueModuleCount = summaryStats.uniqueModules.size;
+    summaryStats.averageScore = summaryStats.totalSessions > 0 ? summaryStats.totalScore / summaryStats.totalSessions : 0;
+    summaryStats.completionRate = summaryStats.totalSessions > 0 ? (summaryStats.completedSessions / summaryStats.totalSessions) * 100 : 0;
+    
+    // Remove sets from response
+    delete summaryStats.uniqueModules;
+    
+    res.json({
+      success: true,
+      detailedUsage,
+      summary: summaryStats,
+      totalRecords: detailedUsage.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching teacher own usage:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching teacher own usage',
       error: error.message
     });
   }

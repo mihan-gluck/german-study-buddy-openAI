@@ -2847,36 +2847,15 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     const duration = this.calculateSessionDuration();
     const requiredMinutes = this.module?.minimumCompletionTime || 15;
     
-    if (duration < requiredMinutes) {
-      const remainingMinutes = requiredMinutes - duration;
-      console.log(`⚠️ Auto-completion blocked: ${duration} min < ${requiredMinutes} min required. Need ${remainingMinutes} more minutes.`);
-      
-      // Send a message to continue practicing
-      const continueMessage: TutorMessage = {
-        role: 'tutor',
-        content: `I appreciate your enthusiasm, but we need to practice a bit more! This module requires at least ${requiredMinutes} minutes of practice time. We've spent ${duration} minutes so far, so let's continue for about ${remainingMinutes} more minutes to ensure you've fully mastered the material. What would you like to practice next?`,
-        messageType: 'text',
-        timestamp: new Date(),
-        metadata: {
-          completionBlocked: true,
-          reason: 'insufficient_time',
-          durationMinutes: duration,
-          requiredMinutes: requiredMinutes,
-          remainingMinutes: remainingMinutes
-        } as any
-      };
-      
-      // Add message to chat
-      this.aiTutorService.addMessageToCurrentSession(continueMessage);
-      this.localMessages.push(continueMessage);
-      this.messages = [...this.localMessages];
-      this.cdr.detectChanges();
-      setTimeout(() => this.scrollToBottom(), 100);
-      
-      return; // Don't complete the module
-    }
+    // ✅ ALWAYS ALLOW COMPLETION when AI detects natural end (role-play finished, etc.)
+    const minutesShort = requiredMinutes - duration;
+    const isEarlyCompletion = duration < requiredMinutes;
     
-    console.log(`🎯 Auto-completing module based on AI completion signal (${duration} min >= ${requiredMinutes} min required)`);
+    if (isEarlyCompletion) {
+      console.log(`🎯 Early completion detected: ${duration} min (${minutesShort} min before ${requiredMinutes} min requirement)`);
+    } else {
+      console.log(`🎯 Auto-completing module: ${duration} min >= ${requiredMinutes} min required`);
+    }
     
     // Stop any ongoing speech
     this.speechSynthesis.cancel();
@@ -2894,14 +2873,44 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     const conversationCount = this.getStudentMessageCount();
     const vocabularyUsed = this.getVocabularyUsedList();
     
-    // STAGE 1: Show celebration message (10 seconds)
-    const celebrationMessage: TutorMessage = {
-      role: 'tutor',
-      content: `🎉✨ CONGRATULATIONS! ✨🎉
+    // STAGE 1: Show celebration message with early completion acknowledgment
+    let celebrationContent = '';
+    
+    if (isEarlyCompletion) {
+      // Early completion message - user's exact requested format
+      celebrationContent = `🎉 Great progress! You completed the module ${minutesShort} minute${minutesShort > 1 ? 's' : ''} before the given time. 
+
+I'm finishing the module now but if you want to try again you can try again. 
+
+Thank you! 🌟
+
+📊 Your Session Summary:
+• Practice Time: ${duration} minutes
+• Conversations: ${conversationCount} exchanges
+• Vocabulary Practiced: ${vocabularyUsed.length} words
+• Module Status: ✅ COMPLETED
+
+You'll be redirected to the summary page shortly...`;
+    } else {
+      // Normal completion message
+      celebrationContent = `🎉✨ CONGRATULATIONS! ✨🎉
 
 🌟 Module Completed Successfully! 🌟
 
-You've done an amazing job!`,
+You've done an amazing job!
+
+📊 Your Session Summary:
+• Practice Time: ${duration} minutes
+• Conversations: ${conversationCount} exchanges
+• Vocabulary Practiced: ${vocabularyUsed.length} words
+• Module Status: ✅ COMPLETED
+
+You'll be redirected to the summary page shortly...`;
+    }
+    
+    const celebrationMessage: TutorMessage = {
+      role: 'tutor',
+      content: celebrationContent,
       messageType: 'text',
       timestamp: new Date(),
       metadata: { 

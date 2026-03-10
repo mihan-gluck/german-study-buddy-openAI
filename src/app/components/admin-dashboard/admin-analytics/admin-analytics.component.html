@@ -364,6 +364,7 @@
               <th>Students</th>
               <th>Modules</th>
               <th>Avg Time/Student</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -399,6 +400,11 @@
               </td>
               <td>
                 {{ formatTimeSpent(teacher.averageTimePerStudent) }}
+              </td>
+              <td>
+                <button class="btn btn-sm btn-primary" (click)="viewTeacherDetails(teacher)">
+                  <i class="fas fa-eye"></i> View
+                </button>
               </td>
             </tr>
           </tbody>
@@ -619,7 +625,7 @@
               <th>Time Spent</th>
               <th>Completion Rate</th>
               <!-- <th>Avg Score</th> -->
-              <th>Vocabulary</th>
+              <th>Conversations</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -642,8 +648,8 @@
                 </span>
               </td>
               <td>
-                <span class="badge bg-primary">{{ student.totalSessions }}</span>
-                <small class="d-block text-muted">{{ student.completedSessions }} completed</small>
+                <span class="badge bg-primary">{{ student.completedSessions }}/{{ student.totalSessions }}</span>
+                <small class="d-block text-muted">completed</small>
               </td>
               <td>
                 <strong>{{ formatTimeAI(student.totalTimeMinutes) }}</strong>
@@ -663,7 +669,7 @@
                 </span>
               </td> -->
               <td>
-                <span class="badge bg-success">{{ student.vocabularyLearned }}</span>
+                <span class="badge bg-success">{{ student.totalConversations }} messages</span>
               </td>
               <td>
                 <button class="btn btn-sm btn-outline-primary" (click)="viewStudentDetails(student)">
@@ -735,7 +741,7 @@
                 <th>Date</th>
                 <th>Duration</th>
                 <!-- <th>Score</th> -->
-                <th>Vocabulary</th>
+                <th>Messages</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -754,7 +760,7 @@
                   </span>
                 </td> -->
                 <td>
-                  <span class="badge bg-success">{{ session.summary?.vocabularyUsed?.length || 0 }} words</span>
+                  <span class="badge bg-success">{{ getStudentMessageCount(session.messages) }} messages</span>
                 </td>
                 <td>
                   <span class="badge" 
@@ -787,7 +793,7 @@
   </div>
 
   <!-- Conversation Transcript Modal -->
-  <div *ngIf="showConversationView" class="modal-overlay" (click)="closeConversationView()">
+  <div *ngIf="showConversationView" class="modal-overlay conversation-modal-overlay" (click)="closeConversationView()">
     <div class="modal-content-custom conversation-modal" (click)="$event.stopPropagation()">
       <div class="modal-header-custom">
         <h4>
@@ -882,3 +888,95 @@
   </nav>
 </div>
 </div>
+
+  <!-- Teacher Details Modal -->
+  <div *ngIf="showTeacherDetailedView" class="modal-overlay" (click)="closeTeacherDetailedView()">
+    <div class="modal-content-custom" (click)="$event.stopPropagation()">
+      <div class="modal-header-custom">
+        <h4>
+          <i class="fas fa-chalkboard-teacher"></i>
+          {{ selectedTeacher?._id?.teacherName }} - Detailed Sessions
+        </h4>
+        <button class="btn-close-custom" (click)="closeTeacherDetailedView()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body-custom">
+        <div class="student-summary mb-4">
+          <div class="row">
+            <div class="col-md-4">
+              <small class="text-muted">Email</small>
+              <div><strong>{{ selectedTeacher?._id?.teacherEmail }}</strong></div>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted">Total Students Assigned</small>
+              <div><strong>{{ selectedTeacher?.totalStudents }}</strong></div>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted">Teacher's AI Bot Sessions</small>
+              <div><strong>{{ teacherDetailedSessions.length }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="mb-3">
+          <i class="fas fa-robot"></i> Teacher's AI Bot Usage History
+        </h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Messages</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let session of teacherDetailedSessions">
+                <td>
+                  <strong>{{ session.moduleName }}</strong>
+                  <small class="d-block text-muted">{{ session.moduleLevel }}</small>
+                </td>
+                <td>{{ formatDateTime(session.createdAt) }}</td>
+                <td>{{ formatTimeSpent(session.durationMinutes) }}</td>
+                <td>
+                  <span class="badge bg-success">{{ getStudentMessageCount(session.messages) }} messages</span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [ngClass]="getStatusBadgeClass(session.sessionState)">
+                    {{ formatSessionStatus(session.sessionState) }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info" 
+                          (click)="viewConversation(session)"
+                          [disabled]="!session.messages || session.messages.length === 0"
+                          title="View conversation transcript">
+                    <i class="fas fa-comments"></i> View
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="teacherDetailedSessions.length === 0 && !isLoadingTeacherDetails">
+                <td colspan="6" class="text-center text-muted py-4">
+                  <i class="fas fa-inbox fa-2x mb-2"></i>
+                  <p class="mb-0">This teacher has not used the AI bot yet</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Loading State for Details -->
+        <div *ngIf="isLoadingTeacherDetails" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Loading session details...</p>
+        </div>
+      </div>
+    </div>
+  </div>

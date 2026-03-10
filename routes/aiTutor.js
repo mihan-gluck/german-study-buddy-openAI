@@ -1121,22 +1121,76 @@ router.post('/end-session', verifyToken, async (req, res) => {
     session.endTime = new Date();
     const durationMinutes = Math.round((session.endTime - session.startTime) / 60000);
     
-    // ✅ Determine session state based on duration and module requirements
+    // ✅ Determine session state based on duration, interaction, and conversation content
     const module = session.moduleId;
     const requiredMinutes = module.minimumCompletionTime || 15;
     const messageCount = session.messages?.length || 0;
     const studentMessageCount = session.messages?.filter(m => m.role === 'student').length || 0;
     
+    // Get last AI message to check for completion indicators
+    const lastAIMessage = [...(session.messages || [])].reverse().find(m => m.role === 'tutor');
+    const lastAIContent = lastAIMessage?.content?.toLowerCase() || '';
+    
+    // ✅ IMPROVED: More strict completion phrase detection
+    // These phrases must appear in specific completion contexts, not just anywhere
+    const strongCompletionPhrases = [
+      // English - Strong completion indicators
+      'congratulations', 'well done on completing', 'successfully completed',
+      'module completed', 'session completed', 'finished this module',
+      'completed this module', 'you\'ve completed', 'you have completed',
+      'module status: completed', 'ready for your next challenge',
+      'ready for the next module', 'you\'ve finished', 'you have finished',
+      
+      // German - Strong completion indicators
+      'herzlichen glückwunsch', 'erfolgreich abgeschlossen',
+      'modul abgeschlossen', 'sitzung abgeschlossen',
+      'dieses modul beendet', 'du hast abgeschlossen',
+      'bereit für die nächste herausforderung', 'bereit für das nächste modul',
+      'du hast das modul abgeschlossen', 'modul erfolgreich'
+    ];
+    
+    // Check for strong completion phrases
+    const hasStrongCompletionPhrase = strongCompletionPhrases.some(phrase => 
+      lastAIContent.includes(phrase.toLowerCase())
+    );
+    
+    // ✅ ADDITIONAL CHECK: Exclude if message contains continuation indicators
+    const continuationIndicators = [
+      'let\'s continue', 'continue with', 'keep going', 'carry on',
+      'more practice', 'try again', 'another', 'next question',
+      'lass uns weitermachen', 'weiter üben', 'noch einmal', 'nächste frage'
+    ];
+    
+    const hasContinuationIndicator = continuationIndicators.some(indicator =>
+      lastAIContent.includes(indicator.toLowerCase())
+    );
+    
+    // Only consider it a completion if:
+    // 1. Has strong completion phrase AND
+    // 2. Does NOT have continuation indicators
+    const hasCompletionPhrase = hasStrongCompletionPhrase && !hasContinuationIndicator;
+    
     // Validate if session should be marked as completed
     const meetsTimeRequirement = durationMinutes >= requiredMinutes;
     const hasMinimumInteraction = studentMessageCount >= 3; // At least 3 student messages
     
-    if (meetsTimeRequirement && hasMinimumInteraction) {
+    // ✅ NEW: Allow early completion if conversation naturally ended (AI detected completion)
+    // This handles scenarios like restaurant role-play where student completes the task early
+    const isNaturalCompletion = hasCompletionPhrase && hasMinimumInteraction;
+    
+    // Session is completed if:
+    // OPTION 1: Meets time requirement + minimum interaction + completion phrase (normal completion)
+    // OPTION 2: Natural completion detected by AI (completion phrase present) + minimum interaction (early completion)
+    if ((meetsTimeRequirement && hasMinimumInteraction && hasCompletionPhrase) || isNaturalCompletion) {
       session.status = 'completed';
-      console.log(`✅ Session completed: ${durationMinutes} min >= ${requiredMinutes} min, ${studentMessageCount} student messages`);
+      if (!meetsTimeRequirement && isNaturalCompletion) {
+        console.log(`✅ Session completed (early): ${durationMinutes} min < ${requiredMinutes} min, but natural completion detected with ${studentMessageCount} student messages`);
+      } else {
+        console.log(`✅ Session completed: ${durationMinutes} min >= ${requiredMinutes} min, ${studentMessageCount} student messages, has completion phrase`);
+      }
     } else {
-      session.status = 'manually_ended';
-      console.log(`⚠️ Session manually ended (incomplete): ${durationMinutes} min < ${requiredMinutes} min OR ${studentMessageCount} < 3 messages`);
+      session.status = 'active'; // Changed from 'manually_ended' to 'active' to match schema
+      console.log(`⚠️ Session incomplete: time=${durationMinutes}/${requiredMinutes}min, messages=${studentMessageCount}, hasCompletion=${hasCompletionPhrase}`);
     }
     
     await session.save();
