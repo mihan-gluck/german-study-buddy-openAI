@@ -2578,6 +2578,19 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     
     console.log('🔍 Checking completion for languages:', { targetLanguage, nativeLanguage });
     
+    // ✅ TIME-BASED SAFETY CHECK: Only allow completion within 3 minutes of required time
+    const currentDuration = this.calculateSessionDuration();
+    const requiredMinutes = this.module?.minimumCompletionTime || 15;
+    const minimumAllowedTime = Math.max(0, requiredMinutes - 3); // Can complete 3 min before required time
+    
+    if (currentDuration < minimumAllowedTime) {
+      console.log(`⏱️ Too early for completion: ${currentDuration} min < ${minimumAllowedTime} min (required: ${requiredMinutes} min, safety buffer: 3 min)`);
+      console.log('🚫 Blocking auto-completion - session too short');
+      return; // Block auto-completion
+    }
+    
+    console.log(`✅ Time check passed: ${currentDuration} min >= ${minimumAllowedTime} min (can complete)`);
+    
     // ✅ NEW: Combination-based detection - requires multiple keywords to be present
     // This prevents false positives from single words appearing in normal conversation
     const completionCombinations = this.getCompletionCombinations(targetLanguage, nativeLanguage);
@@ -2608,6 +2621,8 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         matchedCombination: matchedCombination.description,
         keywords: matchedCombination.keywords,
         isAskingToContinue,
+        currentDuration: currentDuration,
+        requiredMinutes: requiredMinutes,
         messagePreview: messageContent.substring(0, 100) + '...'
       });
       
@@ -2615,6 +2630,8 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
       setTimeout(() => {
         this.autoCompleteModule();
       }, 2000); // 2 second delay to let user read the message
+    } else if (matchedCombination && isAskingToContinue) {
+      console.log('⚠️ Completion phrase detected but asking to continue - blocking auto-completion');
     }
   }
 

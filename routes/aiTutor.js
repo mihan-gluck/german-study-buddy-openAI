@@ -1233,23 +1233,33 @@ router.post('/end-session', verifyToken, async (req, res) => {
     const meetsTimeRequirement = durationMinutes >= requiredMinutes;
     const hasMinimumInteraction = studentMessageCount >= 3; // At least 3 student messages
     
+    // ✅ TIME-BASED SAFETY CHECK: Only allow early completion within 3 minutes of required time
+    const minimumAllowedTime = Math.max(0, requiredMinutes - 3); // Can complete 3 min before required time
+    const meetsMinimumTime = durationMinutes >= minimumAllowedTime;
+    
+    if (hasCompletionPhrase && !meetsMinimumTime) {
+      console.log(`⏱️ BLOCKING COMPLETION: Too early - ${durationMinutes} min < ${minimumAllowedTime} min (required: ${requiredMinutes} min, safety buffer: 3 min)`);
+      console.log(`🚫 Completion phrase detected but session too short - likely false positive`);
+    }
+    
     // ✅ NEW: Allow early completion if conversation naturally ended (AI detected completion)
+    // BUT only within 3 minutes of required time (safety check)
     // This handles scenarios like restaurant role-play where student completes the task early
-    const isNaturalCompletion = hasCompletionPhrase && hasMinimumInteraction;
+    const isNaturalCompletion = hasCompletionPhrase && hasMinimumInteraction && meetsMinimumTime;
     
     // Session is completed if:
     // OPTION 1: Meets time requirement + minimum interaction + completion phrase (normal completion)
-    // OPTION 2: Natural completion detected by AI (completion phrase present) + minimum interaction (early completion)
+    // OPTION 2: Natural completion detected by AI (completion phrase present) + minimum interaction + within 3 min of required time (early completion with safety check)
     if ((meetsTimeRequirement && hasMinimumInteraction && hasCompletionPhrase) || isNaturalCompletion) {
       session.status = 'completed';
       if (!meetsTimeRequirement && isNaturalCompletion) {
-        console.log(`✅ Session completed (early): ${durationMinutes} min < ${requiredMinutes} min, but natural completion detected with ${studentMessageCount} student messages`);
+        console.log(`✅ Session completed (early): ${durationMinutes} min < ${requiredMinutes} min, but natural completion detected with ${studentMessageCount} student messages (within safety window)`);
       } else {
         console.log(`✅ Session completed: ${durationMinutes} min >= ${requiredMinutes} min, ${studentMessageCount} student messages, has completion phrase`);
       }
     } else {
       session.status = 'active'; // Changed from 'manually_ended' to 'active' to match schema
-      console.log(`⚠️ Session incomplete: time=${durationMinutes}/${requiredMinutes}min, messages=${studentMessageCount}, hasCompletion=${hasCompletionPhrase}`);
+      console.log(`⚠️ Session incomplete: time=${durationMinutes}/${requiredMinutes}min, messages=${studentMessageCount}, hasCompletion=${hasCompletionPhrase}, meetsMinTime=${meetsMinimumTime}`);
     }
     
     await session.save();
