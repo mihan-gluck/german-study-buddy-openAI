@@ -6,7 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { FeedbackService } from '../../services/feedback.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +18,11 @@ import { HttpHeaders } from '@angular/common/http';
 import {TeacherService} from '../../services/teacher.service';
 import { environment } from '../../../environments/environment';
 import { BulkStudentUploadComponent } from './bulk-student-upload.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 const apiUrl = environment.apiUrl;  // Base API URL
 
@@ -85,12 +90,16 @@ interface TeacherResponse {
     HttpClientModule,
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatProgressBarModule,
     MatCardModule,
     MaterialModule,
     NgChartsModule,
     RouterModule,
-    BulkStudentUploadComponent
+    BulkStudentUploadComponent,
+    MatAutocompleteModule,
+    MatInputModule,
+    MatFormFieldModule
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
@@ -104,10 +113,20 @@ export class AdminDashboardComponent implements OnInit {
 
   loading = false;
   error = '';
-  filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '' };
+  filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '', studentName: '', teacherName: '' };
   plan: string[] = ['PLATINUM', 'SILVER'];
   level: string[] = ['A1', 'A2', 'A2', 'B1', 'B2'];
   teachers: any[] = [];
+  
+  // Autocomplete for student name
+  studentNameControl = new FormControl('');
+  filteredStudentNames!: Observable<string[]>;
+  allStudentNames: string[] = [];
+  
+  // Autocomplete for teacher name
+  teacherNameControl = new FormControl('');
+  filteredTeacherNames!: Observable<string[]>;
+  allTeacherNames: string[] = [];
 
   // Bulk upload
   showBulkUpload = false;
@@ -191,6 +210,18 @@ export class AdminDashboardComponent implements OnInit {
             //console.log('Student data:', student);
           });
           this.filteredStudents = [...this.students];
+          
+          // Extract student names for autocomplete
+          this.allStudentNames = this.students
+            .map(s => s.name)
+            .filter((name, index, self) => name && self.indexOf(name) === index)
+            .sort();
+          
+          // Setup autocomplete filtering
+          this.filteredStudentNames = this.studentNameControl.valueChanges.pipe(
+            startWith(''),
+            map(value => this._filterStudentNames(value || ''))
+          );
         } else {
           this.error = 'Failed to load students';
         }
@@ -211,6 +242,18 @@ export class AdminDashboardComponent implements OnInit {
           next: (res) => {
             if (res.success) {
               this.teachers = res.data;
+              
+              // Extract teacher names for autocomplete
+              this.allTeacherNames = this.teachers
+                .map(t => t.name)
+                .filter((name, index, self) => name && self.indexOf(name) === index)
+                .sort();
+              
+              // Setup autocomplete filtering
+              this.filteredTeacherNames = this.teacherNameControl.valueChanges.pipe(
+                startWith(''),
+                map(value => this._filterTeacherNames(value || ''))
+              );
             } else {
               alert('Failed to load teachers');
             }
@@ -232,13 +275,16 @@ export class AdminDashboardComponent implements OnInit {
       typeof student.assignedTeacher === 'object'
         ? student.assignedTeacher.name?.toLowerCase()
         : student.assignedTeacher?.toLowerCase() || '';
+      const studentName = student.name ? student.name.toLowerCase() : '';
 
       return (
         (!this.filters.level || student.level === this.filters.level) &&
         (!this.filters.plan   || plan === this.filters.plan.toUpperCase()) &&
         (!this.filters.batch || student.batch === this.filters.batch.toString()) &&
         (!this.filters.assignedTeacher || assignedTeacherName === this.filters.assignedTeacher.toLowerCase()) &&
-        (!this.filters.studentStatus || status === this.filters.studentStatus.toLowerCase())
+        (!this.filters.studentStatus || status === this.filters.studentStatus.toLowerCase()) &&
+        (!this.filters.studentName || studentName.includes(this.filters.studentName.toLowerCase())) &&
+        (!this.filters.teacherName || assignedTeacherName.includes(this.filters.teacherName.toLowerCase()))
       );
     });
 
@@ -246,7 +292,33 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   clearFilters() {
-    this.filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '' };
+    this.filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '', studentName: '', teacherName: '' };
+    this.studentNameControl.setValue('');
+    this.teacherNameControl.setValue('');
+    this.applyFilters();
+  }
+  
+  private _filterStudentNames(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.allStudentNames.filter(name => 
+      name.toLowerCase().includes(filterValue)
+    );
+  }
+  
+  private _filterTeacherNames(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.allTeacherNames.filter(name => 
+      name.toLowerCase().includes(filterValue)
+    );
+  }
+  
+  onStudentNameSelected(studentName: string): void {
+    this.filters.studentName = studentName;
+    this.applyFilters();
+  }
+  
+  onTeacherNameSelected(teacherName: string): void {
+    this.filters.teacherName = teacherName;
     this.applyFilters();
   }
 
