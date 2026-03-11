@@ -140,9 +140,9 @@
             </h5>
           </div>
           <div class="card-body">
-            <div class="row g-3">
+            <div class="row g-2">
               <!-- Student Name Filter -->
-              <div class="col-md-3">
+              <div class="col-md-2">
                 <label class="form-label">Student Name</label>
                 <mat-form-field class="filter-autocomplete" appearance="outline">
                   <input 
@@ -150,7 +150,7 @@
                     matInput 
                     [formControl]="studentNameControl"
                     [matAutocomplete]="autoStudentName"
-                    placeholder="Search student..."
+                    placeholder="Search..."
                     (input)="onStudentNameSelected(studentNameControl.value || '')"
                   >
                   <mat-autocomplete #autoStudentName="matAutocomplete" (optionSelected)="onStudentNameSelected($event.option.value)">
@@ -162,7 +162,7 @@
               </div>
               
               <!-- Teacher Name Filter -->
-              <div class="col-md-3">
+              <div class="col-md-2">
                 <label class="form-label">Teacher</label>
                 <mat-form-field class="filter-autocomplete" appearance="outline">
                   <input 
@@ -170,7 +170,7 @@
                     matInput 
                     [formControl]="teacherNameControl"
                     [matAutocomplete]="autoTeacherName"
-                    placeholder="Search teacher..."
+                    placeholder="Search..."
                     (input)="onTeacherNameSelected(teacherNameControl.value || '')"
                   >
                   <mat-autocomplete #autoTeacherName="matAutocomplete" (optionSelected)="onTeacherNameSelected($event.option.value)">
@@ -185,7 +185,7 @@
               <div class="col-md-2">
                 <label class="form-label">Level</label>
                 <select class="form-select" [(ngModel)]="filters.level" (change)="applyFilters()">
-                  <option value="">All Levels</option>
+                  <option value="">All</option>
                   <option value="A1">A1</option>
                   <option value="A2">A2</option>
                   <option value="B1">B1</option>
@@ -197,9 +197,21 @@
               <div class="col-md-2">
                 <label class="form-label">Plan</label>
                 <select class="form-select" [(ngModel)]="filters.plan" (change)="applyFilters()">
-                  <option value="">All Plans</option>
+                  <option value="">All</option>
                   <option value="PLATINUM">Platinum</option>
                   <option value="SILVER">Silver</option>
+                </select>
+              </div>
+              
+              <!-- Status Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" [(ngModel)]="filters.studentStatus" (change)="applyFilters()">
+                  <option value="">All</option>
+                  <option value="UNCERTAIN">Uncertain</option>
+                  <option value="ONGOING">Ongoing</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="WITHDREW">Withdrew</option>
                 </select>
               </div>
               
@@ -207,22 +219,6 @@
               <div class="col-md-2">
                 <label class="form-label">Batch</label>
                 <input type="number" class="form-control" [(ngModel)]="filters.batch" placeholder="Batch #" (input)="applyFilters()">
-              </div>
-              
-              <!-- Status Filter (new row) -->
-              <div class="col-md-12 mt-2">
-                <div class="row g-3">
-                  <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" [(ngModel)]="filters.studentStatus" (change)="applyFilters()">
-                      <option value="">All Status</option>
-                      <option value="UNCERTAIN">Uncertain</option>
-                      <option value="ONGOING">Ongoing</option>
-                      <option value="COMPLETED">Completed</option>
-                      <option value="WITHDREW">Withdrew</option>
-                    </select>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
