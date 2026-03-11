@@ -2578,49 +2578,35 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
     
     console.log('🔍 Checking completion for languages:', { targetLanguage, nativeLanguage });
     
-    // Check completion phrases in both target and native languages
-    const targetCompletionPhrases = this.getCompletionPhrases(targetLanguage);
-    const nativeCompletionPhrases = this.getCompletionPhrases(nativeLanguage);
-    const allCompletionPhrases = [...targetCompletionPhrases, ...nativeCompletionPhrases];
+    // ✅ NEW: Combination-based detection - requires multiple keywords to be present
+    // This prevents false positives from single words appearing in normal conversation
+    const completionCombinations = this.getCompletionCombinations(targetLanguage, nativeLanguage);
     
-    // Check farewell patterns in both languages
-    const targetFarewellPatterns = this.getFarewellPatterns(targetLanguage);
-    const nativeFarewellPatterns = this.getFarewellPatterns(nativeLanguage);
-    const allFarewellPatterns = [...targetFarewellPatterns, ...nativeFarewellPatterns];
+    // Check if any combination is satisfied
+    let matchedCombination: any = null;
+    for (const combo of completionCombinations) {
+      const allKeywordsPresent = combo.keywords.every((keyword: string) => 
+        messageContent.includes(keyword.toLowerCase())
+      );
+      
+      if (allKeywordsPresent) {
+        matchedCombination = combo;
+        break;
+      }
+    }
     
-    // Check practice encouragement in both languages
-    const targetPracticeEncouragement = this.getPracticeEncouragementPhrases(targetLanguage);
-    const nativePracticeEncouragement = this.getPracticeEncouragementPhrases(nativeLanguage);
-    const allPracticeEncouragement = [...targetPracticeEncouragement, ...nativePracticeEncouragement];
-    
-    // Check for completion phrases
-    const hasCompletionPhrase = allCompletionPhrases.some(phrase => 
-      messageContent.includes(phrase.toLowerCase())
-    );
-    
-    // Check for farewell patterns
-    const hasFarewellPattern = allFarewellPatterns.some(pattern => 
-      pattern.test(messageContent)
-    );
-    
-    // Check if message is encouraging further practice (indicates session end)
-    // BUT exclude messages that ask to continue the current session
-    const continueKeywords = ['continue', 'let\'s continue', 'keep going', 'carry on', 'go on', 'more minutes'];
+    // Exclude messages that ask to continue the current session
+    const continueKeywords = ['continue', 'let\'s continue', 'keep going', 'carry on', 'go on', 'more minutes', 'weitermachen', 'weiter üben'];
     const isAskingToContinue = continueKeywords.some(keyword => 
       messageContent.includes(keyword.toLowerCase())
     );
     
-    const encouragesPractice = !isAskingToContinue && allPracticeEncouragement.some(phrase => 
-      messageContent.includes(phrase.toLowerCase())
-    );
-    
-    if (hasCompletionPhrase || hasFarewellPattern || encouragesPractice) {
+    if (matchedCombination && !isAskingToContinue) {
       console.log('🎯 Auto-completion detected in AI response:', {
         targetLanguage,
         nativeLanguage,
-        hasCompletionPhrase,
-        hasFarewellPattern,
-        encouragesPractice,
+        matchedCombination: matchedCombination.description,
+        keywords: matchedCombination.keywords,
         isAskingToContinue,
         messagePreview: messageContent.substring(0, 100) + '...'
       });
@@ -2630,6 +2616,118 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         this.autoCompleteModule();
       }, 2000); // 2 second delay to let user read the message
     }
+  }
+
+  // ✅ NEW: Get completion keyword combinations
+  // Requires multiple keywords to be present to confirm completion
+  // This prevents false positives from single words in normal conversation
+  private getCompletionCombinations(targetLanguage: string, nativeLanguage: string): any[] {
+    const combinations: { [key: string]: any[] } = {
+      'English': [
+        // Combination 1: Congratulations + Completed
+        { keywords: ['congratulations', 'completed'], description: 'Congratulations + Completed' },
+        { keywords: ['congratulations', 'finished'], description: 'Congratulations + Finished' },
+        
+        // Combination 2: Thank you + Goodbye/Bye
+        { keywords: ['thank you', 'goodbye'], description: 'Thank you + Goodbye' },
+        { keywords: ['thank you', 'bye'], description: 'Thank you + Bye' },
+        { keywords: ['thank you', 'see you'], description: 'Thank you + See you' },
+        
+        // Combination 3: Great/Excellent/Wonderful + Completed/Finished
+        { keywords: ['great', 'completed'], description: 'Great + Completed' },
+        { keywords: ['excellent', 'completed'], description: 'Excellent + Completed' },
+        { keywords: ['wonderful', 'completed'], description: 'Wonderful + Completed' },
+        { keywords: ['fantastic', 'completed'], description: 'Fantastic + Completed' },
+        
+        // Combination 4: Module/Session + Completed/Finished
+        { keywords: ['module', 'completed'], description: 'Module + Completed' },
+        { keywords: ['session', 'completed'], description: 'Session + Completed' },
+        { keywords: ['module', 'finished'], description: 'Module + Finished' },
+        { keywords: ['session', 'finished'], description: 'Session + Finished' },
+        
+        // Combination 5: Well done + Thank you
+        { keywords: ['well done', 'thank you'], description: 'Well done + Thank you' },
+        
+        // Combination 6: Practice + Thank you + Goodbye (3 keywords)
+        { keywords: ['practice', 'thank you', 'goodbye'], description: 'Practice + Thank you + Goodbye' },
+        { keywords: ['practicing', 'thank you', 'bye'], description: 'Practicing + Thank you + Bye' },
+        
+        // Combination 7: Successfully + Completed
+        { keywords: ['successfully', 'completed'], description: 'Successfully + Completed' },
+        { keywords: ['successfully', 'finished'], description: 'Successfully + Finished' }
+      ],
+      'German': [
+        // Combination 1: Glückwunsch + Abgeschlossen
+        { keywords: ['glückwunsch', 'abgeschlossen'], description: 'Glückwunsch + Abgeschlossen' },
+        { keywords: ['herzlichen glückwunsch', 'modul'], description: 'Herzlichen Glückwunsch + Modul' },
+        
+        // Combination 2: Danke + Auf Wiedersehen/Tschüss
+        { keywords: ['danke', 'auf wiedersehen'], description: 'Danke + Auf Wiedersehen' },
+        { keywords: ['danke', 'tschüss'], description: 'Danke + Tschüss' },
+        { keywords: ['danke', 'bis'], description: 'Danke + Bis' },
+        { keywords: ['vielen dank', 'auf wiedersehen'], description: 'Vielen Dank + Auf Wiedersehen' },
+        
+        // Combination 3: Toll/Wunderbar/Ausgezeichnet + Abgeschlossen
+        { keywords: ['toll', 'abgeschlossen'], description: 'Toll + Abgeschlossen' },
+        { keywords: ['wunderbar', 'abgeschlossen'], description: 'Wunderbar + Abgeschlossen' },
+        { keywords: ['ausgezeichnet', 'abgeschlossen'], description: 'Ausgezeichnet + Abgeschlossen' },
+        { keywords: ['perfekt', 'abgeschlossen'], description: 'Perfekt + Abgeschlossen' },
+        
+        // Combination 4: Modul/Sitzung + Abgeschlossen/Beendet
+        { keywords: ['modul', 'abgeschlossen'], description: 'Modul + Abgeschlossen' },
+        { keywords: ['sitzung', 'beendet'], description: 'Sitzung + Beendet' },
+        { keywords: ['session', 'beendet'], description: 'Session + Beendet' },
+        
+        // Combination 5: Gut gemacht + Danke
+        { keywords: ['gut gemacht', 'danke'], description: 'Gut gemacht + Danke' },
+        
+        // Combination 6: Üben + Danke + Auf Wiedersehen (3 keywords)
+        { keywords: ['üben', 'danke', 'auf wiedersehen'], description: 'Üben + Danke + Auf Wiedersehen' },
+        { keywords: ['praktizieren', 'danke', 'tschüss'], description: 'Praktizieren + Danke + Tschüss' },
+        
+        // Combination 7: Erfolgreich + Abgeschlossen
+        { keywords: ['erfolgreich', 'abgeschlossen'], description: 'Erfolgreich + Abgeschlossen' }
+      ],
+      'Tamil': [
+        // Combination 1: வாழ்த்துக்கள் + முடிந்தது
+        { keywords: ['வாழ்த்துக்கள்', 'முடிந்தது'], description: 'வாழ்த்துக்கள் + முடிந்தது' },
+        
+        // Combination 2: நன்றி + வணக்கம்
+        { keywords: ['நன்றி', 'வணக்கம்'], description: 'நன்றி + வணக்கம்' },
+        { keywords: ['நன்றி', 'பிரியாவிடை'], description: 'நன்றி + பிரியாவிடை' },
+        
+        // Combination 3: சிறப்பு + முடிந்தது
+        { keywords: ['சிறப்பு', 'முடிந்தது'], description: 'சிறப்பு + முடிந்தது' },
+        { keywords: ['அருமை', 'முடிந்தது'], description: 'அருமை + முடிந்தது' },
+        
+        // Combination 4: அமர்வு/பாடம் + முடிந்தது
+        { keywords: ['அமர்வு', 'முடிந்தது'], description: 'அமர்வு + முடிந்தது' },
+        { keywords: ['பாடம்', 'முடிந்தது'], description: 'பாடம் + முடிந்தது' }
+      ],
+      'Sinhala': [
+        // Combination 1: සුභපැතුම් + අවසන්
+        { keywords: ['සුභපැතුම්', 'අවසන්'], description: 'සුභපැතුම් + අවසන්' },
+        
+        // Combination 2: ස්තූතියි + ආයුබෝවන්
+        { keywords: ['ස්තූතියි', 'ආයුබෝවන්'], description: 'ස්තූතියි + ආයුබෝවන්' },
+        { keywords: ['ස්තූතියි', 'සමුගන්නවා'], description: 'ස්තූතියි + සමුගන්නවා' },
+        
+        // Combination 3: විශිෂ්ට + අවසන්
+        { keywords: ['විශිෂ්ට', 'අවසන්'], description: 'විශිෂ්ට + අවසන්' },
+        { keywords: ['අපූරු', 'අවසන්'], description: 'අපූරු + අවසන්' },
+        
+        // Combination 4: සැසිය/පාඩම + අවසන්
+        { keywords: ['සැසිය', 'අවසන්'], description: 'සැසිය + අවසන්' },
+        { keywords: ['පාඩම', 'අවසන්'], description: 'පාඩම + අවසන්' }
+      ]
+    };
+    
+    // Get combinations for both target and native languages
+    const targetCombos = combinations[targetLanguage] || combinations['English'];
+    const nativeCombos = combinations[nativeLanguage] || combinations['English'];
+    
+    // Combine and deduplicate
+    return [...targetCombos, ...nativeCombos];
   }
 
   // Get completion phrases for specific language
@@ -2668,22 +2766,17 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         'bis zum nächsten mal',
         'tschüss',
         'tschau',
-        'großartige arbeit heute',
-        'toll gemacht heute',
-        'fantastische fortschritte',
-        'weiter so',
-        'gut gemacht',
-        'ausgezeichnet',
-        'wunderbar',
-        'perfekt',
         'session beendet',
         'sitzung beendet',
         'modul abgeschlossen',
+        'erfolgreich abgeschlossen',
+        'dieses modul beendet',
+        'du hast abgeschlossen',
         'herzlichen glückwunsch',
         'glückwunsch',
         'bis bald',
-        'mach weiter so',
-        'sehr gut gemacht'
+        'bereit für die nächste herausforderung',
+        'bereit für das nächste modul'
       ],
       'Tamil': [
         'பயிற்சிக்கு நன்றி',
@@ -2928,10 +3021,10 @@ You'll be redirected to the summary page shortly...`;
     // Scroll to show celebration message
     setTimeout(() => this.scrollToBottom(), 100);
     
-    // STAGE 2: After 10 seconds, show detailed summary (stays for 60 seconds)
+    // STAGE 2: After 15 seconds, show detailed summary (stays for 15 seconds minimum)
     setTimeout(() => {
       this.showDetailedCompletionSummary(duration, conversationCount, vocabularyUsed);
-    }, 10000); // 10 seconds delay
+    }, 15000); // 15 seconds delay
   }
 
   // Show detailed completion summary after celebration
@@ -3004,11 +3097,11 @@ You can now move on to the next challenge or review your progress in the perform
     // Scroll to show summary message
     setTimeout(() => this.scrollToBottom(), 100);
     
-    // Auto-redirect after 60 seconds (summary stays visible for 1 minute)
+    // Auto-redirect after 15 seconds (summary stays visible for 15 seconds minimum)
     setTimeout(() => {
       console.log('🔄 Automatically redirecting after summary display...');
       this.navigateToSummary();
-    }, 60000); // 60 seconds = 1 minute
+    }, 15000); // 15 seconds = minimum display time
     
     // End the backend session
     this.aiTutorService.endSession(this.sessionId).subscribe({

@@ -1131,28 +1131,80 @@ router.post('/end-session', verifyToken, async (req, res) => {
     const lastAIMessage = [...(session.messages || [])].reverse().find(m => m.role === 'tutor');
     const lastAIContent = lastAIMessage?.content?.toLowerCase() || '';
     
-    // ✅ IMPROVED: More strict completion phrase detection
-    // These phrases must appear in specific completion contexts, not just anywhere
-    const strongCompletionPhrases = [
-      // English - Strong completion indicators
-      'congratulations', 'well done on completing', 'successfully completed',
-      'module completed', 'session completed', 'finished this module',
-      'completed this module', 'you\'ve completed', 'you have completed',
-      'module status: completed', 'ready for your next challenge',
-      'ready for the next module', 'you\'ve finished', 'you have finished',
+    // ✅ NEW: Combination-based completion detection
+    // Requires multiple keywords to be present to confirm completion
+    // This prevents false positives from single words in normal conversation
+    const completionCombinations = [
+      // English combinations
+      { keywords: ['congratulations', 'completed'], lang: 'English' },
+      { keywords: ['congratulations', 'finished'], lang: 'English' },
+      { keywords: ['thank you', 'goodbye'], lang: 'English' },
+      { keywords: ['thank you', 'bye'], lang: 'English' },
+      { keywords: ['thank you', 'see you'], lang: 'English' },
+      { keywords: ['great', 'completed'], lang: 'English' },
+      { keywords: ['excellent', 'completed'], lang: 'English' },
+      { keywords: ['wonderful', 'completed'], lang: 'English' },
+      { keywords: ['fantastic', 'completed'], lang: 'English' },
+      { keywords: ['module', 'completed'], lang: 'English' },
+      { keywords: ['session', 'completed'], lang: 'English' },
+      { keywords: ['module', 'finished'], lang: 'English' },
+      { keywords: ['session', 'finished'], lang: 'English' },
+      { keywords: ['well done', 'thank you'], lang: 'English' },
+      { keywords: ['practice', 'thank you', 'goodbye'], lang: 'English' },
+      { keywords: ['practicing', 'thank you', 'bye'], lang: 'English' },
+      { keywords: ['successfully', 'completed'], lang: 'English' },
+      { keywords: ['successfully', 'finished'], lang: 'English' },
       
-      // German - Strong completion indicators
-      'herzlichen glückwunsch', 'erfolgreich abgeschlossen',
-      'modul abgeschlossen', 'sitzung abgeschlossen',
-      'dieses modul beendet', 'du hast abgeschlossen',
-      'bereit für die nächste herausforderung', 'bereit für das nächste modul',
-      'du hast das modul abgeschlossen', 'modul erfolgreich'
+      // German combinations
+      { keywords: ['glückwunsch', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['herzlichen glückwunsch', 'modul'], lang: 'German' },
+      { keywords: ['danke', 'auf wiedersehen'], lang: 'German' },
+      { keywords: ['danke', 'tschüss'], lang: 'German' },
+      { keywords: ['danke', 'bis'], lang: 'German' },
+      { keywords: ['vielen dank', 'auf wiedersehen'], lang: 'German' },
+      { keywords: ['toll', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['wunderbar', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['ausgezeichnet', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['perfekt', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['sitzung', 'beendet'], lang: 'German' },
+      { keywords: ['session', 'beendet'], lang: 'German' },
+      { keywords: ['gut gemacht', 'danke'], lang: 'German' },
+      { keywords: ['üben', 'danke', 'auf wiedersehen'], lang: 'German' },
+      { keywords: ['praktizieren', 'danke', 'tschüss'], lang: 'German' },
+      { keywords: ['erfolgreich', 'abgeschlossen'], lang: 'German' },
+      
+      // Tamil combinations
+      { keywords: ['வாழ்த்துக்கள்', 'முடிந்தது'], lang: 'Tamil' },
+      { keywords: ['நன்றி', 'வணக்கம்'], lang: 'Tamil' },
+      { keywords: ['நன்றி', 'பிரியாவிடை'], lang: 'Tamil' },
+      { keywords: ['சிறப்பு', 'முடிந்தது'], lang: 'Tamil' },
+      { keywords: ['அருமை', 'முடிந்தது'], lang: 'Tamil' },
+      { keywords: ['அமர்வு', 'முடிந்தது'], lang: 'Tamil' },
+      { keywords: ['பாடம்', 'முடிந்தது'], lang: 'Tamil' },
+      
+      // Sinhala combinations
+      { keywords: ['සුභපැතුම්', 'අවසන්'], lang: 'Sinhala' },
+      { keywords: ['ස්තූතියි', 'ආයුබෝවන්'], lang: 'Sinhala' },
+      { keywords: ['ස්තූතියි', 'සමුගන්නවා'], lang: 'Sinhala' },
+      { keywords: ['විශිෂ්ට', 'අවසන්'], lang: 'Sinhala' },
+      { keywords: ['අපූරු', 'අවසන්'], lang: 'Sinhala' },
+      { keywords: ['සැසිය', 'අවසන්'], lang: 'Sinhala' },
+      { keywords: ['පාඩම', 'අවසන්'], lang: 'Sinhala' }
     ];
     
-    // Check for strong completion phrases
-    const hasStrongCompletionPhrase = strongCompletionPhrases.some(phrase => 
-      lastAIContent.includes(phrase.toLowerCase())
-    );
+    // Check if any combination is satisfied
+    let matchedCombination = null;
+    for (const combo of completionCombinations) {
+      const allKeywordsPresent = combo.keywords.every(keyword => 
+        lastAIContent.includes(keyword.toLowerCase())
+      );
+      
+      if (allKeywordsPresent) {
+        matchedCombination = combo;
+        break;
+      }
+    }
     
     // ✅ ADDITIONAL CHECK: Exclude if message contains continuation indicators
     const continuationIndicators = [
@@ -1166,9 +1218,16 @@ router.post('/end-session', verifyToken, async (req, res) => {
     );
     
     // Only consider it a completion if:
-    // 1. Has strong completion phrase AND
+    // 1. Has matched keyword combination AND
     // 2. Does NOT have continuation indicators
-    const hasCompletionPhrase = hasStrongCompletionPhrase && !hasContinuationIndicator;
+    const hasCompletionPhrase = matchedCombination && !hasContinuationIndicator;
+    
+    if (matchedCombination) {
+      console.log(`✅ Completion combination matched: ${matchedCombination.keywords.join(' + ')} (${matchedCombination.lang})`);
+    }
+    if (hasContinuationIndicator) {
+      console.log(`⚠️ Continuation indicator found - blocking completion`);
+    }
     
     // Validate if session should be marked as completed
     const meetsTimeRequirement = durationMinutes >= requiredMinutes;
