@@ -1134,63 +1134,46 @@ router.post('/end-session', verifyToken, async (req, res) => {
     // ✅ NEW: Combination-based completion detection
     // Requires multiple keywords to be present to confirm completion
     // This prevents false positives from single words in normal conversation
+    // IMPORTANT: "module" or "session" is now REQUIRED in all combinations
     const completionCombinations = [
-      // English combinations
-      { keywords: ['congratulations', 'completed'], lang: 'English' },
-      { keywords: ['congratulations', 'finished'], lang: 'English' },
-      { keywords: ['thank you', 'goodbye'], lang: 'English' },
-      { keywords: ['thank you', 'bye'], lang: 'English' },
-      { keywords: ['thank you', 'see you'], lang: 'English' },
-      { keywords: ['great', 'completed'], lang: 'English' },
-      { keywords: ['excellent', 'completed'], lang: 'English' },
-      { keywords: ['wonderful', 'completed'], lang: 'English' },
-      { keywords: ['fantastic', 'completed'], lang: 'English' },
+      // English combinations - ALL require "module" or "session"
+      { keywords: ['module', 'congratulations', 'completed'], lang: 'English' },
+      { keywords: ['module', 'congratulations', 'finished'], lang: 'English' },
+      { keywords: ['module', 'successfully', 'completed'], lang: 'English' },
+      { keywords: ['module', 'successfully', 'finished'], lang: 'English' },
+      { keywords: ['module', 'status', 'completed'], lang: 'English' },
+      { keywords: ['module', 'status', 'finished'], lang: 'English' },
       { keywords: ['module', 'completed'], lang: 'English' },
-      { keywords: ['session', 'completed'], lang: 'English' },
       { keywords: ['module', 'finished'], lang: 'English' },
-      { keywords: ['session', 'finished'], lang: 'English' },
-      { keywords: ['well done', 'thank you'], lang: 'English' },
-      { keywords: ['practice', 'thank you', 'goodbye'], lang: 'English' },
-      { keywords: ['practicing', 'thank you', 'bye'], lang: 'English' },
-      { keywords: ['successfully', 'completed'], lang: 'English' },
-      { keywords: ['successfully', 'finished'], lang: 'English' },
+      { keywords: ['session', 'congratulations', 'completed'], lang: 'English' },
+      { keywords: ['session', 'successfully', 'completed'], lang: 'English' },
+      { keywords: ['session', 'status', 'completed'], lang: 'English' },
+      { keywords: ['session', 'completed'], lang: 'English' },
       
-      // German combinations
-      { keywords: ['glückwunsch', 'abgeschlossen'], lang: 'German' },
-      { keywords: ['herzlichen glückwunsch', 'modul'], lang: 'German' },
-      { keywords: ['danke', 'auf wiedersehen'], lang: 'German' },
-      { keywords: ['danke', 'tschüss'], lang: 'German' },
-      { keywords: ['danke', 'bis'], lang: 'German' },
-      { keywords: ['vielen dank', 'auf wiedersehen'], lang: 'German' },
-      { keywords: ['toll', 'abgeschlossen'], lang: 'German' },
-      { keywords: ['wunderbar', 'abgeschlossen'], lang: 'German' },
-      { keywords: ['ausgezeichnet', 'abgeschlossen'], lang: 'German' },
-      { keywords: ['perfekt', 'abgeschlossen'], lang: 'German' },
+      // German combinations - ALL require "modul" or "sitzung"
+      { keywords: ['modul', 'glückwunsch', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'herzlichen glückwunsch'], lang: 'German' },
+      { keywords: ['modul', 'erfolgreich', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'status', 'abgeschlossen'], lang: 'German' },
       { keywords: ['modul', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'wunderbar', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'ausgezeichnet', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'perfekt', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['modul', 'toll', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['sitzung', 'erfolgreich', 'abgeschlossen'], lang: 'German' },
+      { keywords: ['sitzung', 'abgeschlossen'], lang: 'German' },
       { keywords: ['sitzung', 'beendet'], lang: 'German' },
       { keywords: ['session', 'beendet'], lang: 'German' },
-      { keywords: ['gut gemacht', 'danke'], lang: 'German' },
-      { keywords: ['üben', 'danke', 'auf wiedersehen'], lang: 'German' },
-      { keywords: ['praktizieren', 'danke', 'tschüss'], lang: 'German' },
-      { keywords: ['erfolgreich', 'abgeschlossen'], lang: 'German' },
       
-      // Tamil combinations
-      { keywords: ['வாழ்த்துக்கள்', 'முடிந்தது'], lang: 'Tamil' },
-      { keywords: ['நன்றி', 'வணக்கம்'], lang: 'Tamil' },
-      { keywords: ['நன்றி', 'பிரியாவிடை'], lang: 'Tamil' },
-      { keywords: ['சிறப்பு', 'முடிந்தது'], lang: 'Tamil' },
-      { keywords: ['அருமை', 'முடிந்தது'], lang: 'Tamil' },
-      { keywords: ['அமர்வு', 'முடிந்தது'], lang: 'Tamil' },
+      // Tamil combinations - ALL require "பாடம்" (module) or "அமர்வு" (session)
+      { keywords: ['பாடம்', 'வாழ்த்துக்கள்', 'முடிந்தது'], lang: 'Tamil' },
       { keywords: ['பாடம்', 'முடிந்தது'], lang: 'Tamil' },
+      { keywords: ['அமர்வு', 'முடிந்தது'], lang: 'Tamil' },
       
-      // Sinhala combinations
-      { keywords: ['සුභපැතුම්', 'අවසන්'], lang: 'Sinhala' },
-      { keywords: ['ස්තූතියි', 'ආයුබෝවන්'], lang: 'Sinhala' },
-      { keywords: ['ස්තූතියි', 'සමුගන්නවා'], lang: 'Sinhala' },
-      { keywords: ['විශිෂ්ට', 'අවසන්'], lang: 'Sinhala' },
-      { keywords: ['අපූරු', 'අවසන්'], lang: 'Sinhala' },
-      { keywords: ['සැසිය', 'අවසන්'], lang: 'Sinhala' },
-      { keywords: ['පාඩම', 'අවසන්'], lang: 'Sinhala' }
+      // Sinhala combinations - ALL require "පාඩම" (module) or "සැසිය" (session)
+      { keywords: ['පාඩම', 'සුභපැතුම්', 'අවසන්'], lang: 'Sinhala' },
+      { keywords: ['පාඩම', 'අවසන්'], lang: 'Sinhala' },
+      { keywords: ['සැසිය', 'අවසන්'], lang: 'Sinhala' }
     ];
     
     // Check if any combination is satisfied

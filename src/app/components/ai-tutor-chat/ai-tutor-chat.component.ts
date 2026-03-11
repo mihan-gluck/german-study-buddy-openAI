@@ -2638,104 +2638,81 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   // ✅ NEW: Get completion keyword combinations
   // Requires multiple keywords to be present to confirm completion
   // This prevents false positives from single words in normal conversation
+  // IMPORTANT: "module" or "session" is now REQUIRED in all combinations
   private getCompletionCombinations(targetLanguage: string, nativeLanguage: string): any[] {
     const combinations: { [key: string]: any[] } = {
       'English': [
-        // Combination 1: Congratulations + Completed
-        { keywords: ['congratulations', 'completed'], description: 'Congratulations + Completed' },
-        { keywords: ['congratulations', 'finished'], description: 'Congratulations + Finished' },
+        // All combinations now require "module" or "session" as mandatory keyword
         
-        // Combination 2: Thank you + Goodbye/Bye
-        { keywords: ['thank you', 'goodbye'], description: 'Thank you + Goodbye' },
-        { keywords: ['thank you', 'bye'], description: 'Thank you + Bye' },
-        { keywords: ['thank you', 'see you'], description: 'Thank you + See you' },
+        // Combination 1: Module + Congratulations + Completed
+        { keywords: ['module', 'congratulations', 'completed'], description: 'Module + Congratulations + Completed' },
+        { keywords: ['module', 'congratulations', 'finished'], description: 'Module + Congratulations + Finished' },
         
-        // Combination 3: Great/Excellent/Wonderful + Completed/Finished
-        { keywords: ['great', 'completed'], description: 'Great + Completed' },
-        { keywords: ['excellent', 'completed'], description: 'Excellent + Completed' },
-        { keywords: ['wonderful', 'completed'], description: 'Wonderful + Completed' },
-        { keywords: ['fantastic', 'completed'], description: 'Fantastic + Completed' },
+        // Combination 2: Module + Successfully + Completed
+        { keywords: ['module', 'successfully', 'completed'], description: 'Module + Successfully + Completed' },
+        { keywords: ['module', 'successfully', 'finished'], description: 'Module + Successfully + Finished' },
         
-        // Combination 4: Module/Session + Completed/Finished
+        // Combination 3: Module + Status + Completed (for system messages)
+        { keywords: ['module', 'status', 'completed'], description: 'Module + Status + Completed' },
+        { keywords: ['module', 'status', 'finished'], description: 'Module + Status + Finished' },
+        
+        // Combination 4: Module + Completed (minimum)
         { keywords: ['module', 'completed'], description: 'Module + Completed' },
-        { keywords: ['session', 'completed'], description: 'Session + Completed' },
         { keywords: ['module', 'finished'], description: 'Module + Finished' },
-        { keywords: ['session', 'finished'], description: 'Session + Finished' },
         
-        // Combination 5: Well done + Thank you
-        { keywords: ['well done', 'thank you'], description: 'Well done + Thank you' },
-        
-        // Combination 6: Practice + Thank you + Goodbye (3 keywords)
-        { keywords: ['practice', 'thank you', 'goodbye'], description: 'Practice + Thank you + Goodbye' },
-        { keywords: ['practicing', 'thank you', 'bye'], description: 'Practicing + Thank you + Bye' },
-        
-        // Combination 7: Successfully + Completed
-        { keywords: ['successfully', 'completed'], description: 'Successfully + Completed' },
-        { keywords: ['successfully', 'finished'], description: 'Successfully + Finished' }
+        // Session alternatives (if "module" is not used)
+        { keywords: ['session', 'congratulations', 'completed'], description: 'Session + Congratulations + Completed' },
+        { keywords: ['session', 'successfully', 'completed'], description: 'Session + Successfully + Completed' },
+        { keywords: ['session', 'status', 'completed'], description: 'Session + Status + Completed' },
+        { keywords: ['session', 'completed'], description: 'Session + Completed' }
       ],
       'German': [
-        // Combination 1: Glückwunsch + Abgeschlossen
-        { keywords: ['glückwunsch', 'abgeschlossen'], description: 'Glückwunsch + Abgeschlossen' },
-        { keywords: ['herzlichen glückwunsch', 'modul'], description: 'Herzlichen Glückwunsch + Modul' },
+        // All combinations now require "modul" or "sitzung" as mandatory keyword
         
-        // Combination 2: Danke + Auf Wiedersehen/Tschüss
-        { keywords: ['danke', 'auf wiedersehen'], description: 'Danke + Auf Wiedersehen' },
-        { keywords: ['danke', 'tschüss'], description: 'Danke + Tschüss' },
-        { keywords: ['danke', 'bis'], description: 'Danke + Bis' },
-        { keywords: ['vielen dank', 'auf wiedersehen'], description: 'Vielen Dank + Auf Wiedersehen' },
+        // Combination 1: Modul + Glückwunsch + Abgeschlossen
+        { keywords: ['modul', 'glückwunsch', 'abgeschlossen'], description: 'Modul + Glückwunsch + Abgeschlossen' },
+        { keywords: ['modul', 'herzlichen glückwunsch'], description: 'Modul + Herzlichen Glückwunsch' },
         
-        // Combination 3: Toll/Wunderbar/Ausgezeichnet + Abgeschlossen
-        { keywords: ['toll', 'abgeschlossen'], description: 'Toll + Abgeschlossen' },
-        { keywords: ['wunderbar', 'abgeschlossen'], description: 'Wunderbar + Abgeschlossen' },
-        { keywords: ['ausgezeichnet', 'abgeschlossen'], description: 'Ausgezeichnet + Abgeschlossen' },
-        { keywords: ['perfekt', 'abgeschlossen'], description: 'Perfekt + Abgeschlossen' },
+        // Combination 2: Modul + Erfolgreich + Abgeschlossen
+        { keywords: ['modul', 'erfolgreich', 'abgeschlossen'], description: 'Modul + Erfolgreich + Abgeschlossen' },
         
-        // Combination 4: Modul/Sitzung + Abgeschlossen/Beendet
+        // Combination 3: Modul + Status + Abgeschlossen
+        { keywords: ['modul', 'status', 'abgeschlossen'], description: 'Modul + Status + Abgeschlossen' },
+        
+        // Combination 4: Modul + Abgeschlossen (minimum)
         { keywords: ['modul', 'abgeschlossen'], description: 'Modul + Abgeschlossen' },
+        
+        // Combination 5: Modul + Praise words + Abgeschlossen
+        { keywords: ['modul', 'wunderbar', 'abgeschlossen'], description: 'Modul + Wunderbar + Abgeschlossen' },
+        { keywords: ['modul', 'ausgezeichnet', 'abgeschlossen'], description: 'Modul + Ausgezeichnet + Abgeschlossen' },
+        { keywords: ['modul', 'perfekt', 'abgeschlossen'], description: 'Modul + Perfekt + Abgeschlossen' },
+        { keywords: ['modul', 'toll', 'abgeschlossen'], description: 'Modul + Toll + Abgeschlossen' },
+        
+        // Session/Sitzung alternatives
+        { keywords: ['sitzung', 'erfolgreich', 'abgeschlossen'], description: 'Sitzung + Erfolgreich + Abgeschlossen' },
+        { keywords: ['sitzung', 'abgeschlossen'], description: 'Sitzung + Abgeschlossen' },
         { keywords: ['sitzung', 'beendet'], description: 'Sitzung + Beendet' },
-        { keywords: ['session', 'beendet'], description: 'Session + Beendet' },
-        
-        // Combination 5: Gut gemacht + Danke
-        { keywords: ['gut gemacht', 'danke'], description: 'Gut gemacht + Danke' },
-        
-        // Combination 6: Üben + Danke + Auf Wiedersehen (3 keywords)
-        { keywords: ['üben', 'danke', 'auf wiedersehen'], description: 'Üben + Danke + Auf Wiedersehen' },
-        { keywords: ['praktizieren', 'danke', 'tschüss'], description: 'Praktizieren + Danke + Tschüss' },
-        
-        // Combination 7: Erfolgreich + Abgeschlossen
-        { keywords: ['erfolgreich', 'abgeschlossen'], description: 'Erfolgreich + Abgeschlossen' }
+        { keywords: ['session', 'beendet'], description: 'Session + Beendet' }
       ],
       'Tamil': [
-        // Combination 1: வாழ்த்துக்கள் + முடிந்தது
-        { keywords: ['வாழ்த்துக்கள்', 'முடிந்தது'], description: 'வாழ்த்துக்கள் + முடிந்தது' },
+        // Combination 1: பாடம் (module) + வாழ்த்துக்கள் + முடிந்தது
+        { keywords: ['பாடம்', 'வாழ்த்துக்கள்', 'முடிந்தது'], description: 'பாடம் + வாழ்த்துக்கள் + முடிந்தது' },
         
-        // Combination 2: நன்றி + வணக்கம்
-        { keywords: ['நன்றி', 'வணக்கம்'], description: 'நன்றி + வணக்கம்' },
-        { keywords: ['நன்றி', 'பிரியாவிடை'], description: 'நன்றி + பிரியாவிடை' },
+        // Combination 2: பாடம் + முடிந்தது (minimum)
+        { keywords: ['பாடம்', 'முடிந்தது'], description: 'பாடம் + முடிந்தது' },
         
-        // Combination 3: சிறப்பு + முடிந்தது
-        { keywords: ['சிறப்பு', 'முடிந்தது'], description: 'சிறப்பு + முடிந்தது' },
-        { keywords: ['அருமை', 'முடிந்தது'], description: 'அருமை + முடிந்தது' },
-        
-        // Combination 4: அமர்வு/பாடம் + முடிந்தது
-        { keywords: ['அமர்வு', 'முடிந்தது'], description: 'அமர்வு + முடிந்தது' },
-        { keywords: ['பாடம்', 'முடிந்தது'], description: 'பாடம் + முடிந்தது' }
+        // Session alternative
+        { keywords: ['அமர்வு', 'முடிந்தது'], description: 'அமர்வு + முடிந்தது' }
       ],
       'Sinhala': [
-        // Combination 1: සුභපැතුම් + අවසන්
-        { keywords: ['සුභපැතුම්', 'අවසන්'], description: 'සුභපැතුම් + අවසන්' },
+        // Combination 1: පාඩම (module) + සුභපැතුම් + අවසන්
+        { keywords: ['පාඩම', 'සුභපැතුම්', 'අවසන්'], description: 'පාඩම + සුභපැතුම් + අවසන්' },
         
-        // Combination 2: ස්තූතියි + ආයුබෝවන්
-        { keywords: ['ස්තූතියි', 'ආයුබෝවන්'], description: 'ස්තූතියි + ආයුබෝවන්' },
-        { keywords: ['ස්තූතියි', 'සමුගන්නවා'], description: 'ස්තූතියි + සමුගන්නවා' },
+        // Combination 2: පාඩම + අවසන් (minimum)
+        { keywords: ['පාඩම', 'අවසන්'], description: 'පාඩම + අවසන්' },
         
-        // Combination 3: විශිෂ්ට + අවසන්
-        { keywords: ['විශිෂ්ට', 'අවසන්'], description: 'විශිෂ්ට + අවසන්' },
-        { keywords: ['අපූරු', 'අවසන්'], description: 'අපූරු + අවසන්' },
-        
-        // Combination 4: සැසිය/පාඩම + අවසන්
-        { keywords: ['සැසිය', 'අවසන්'], description: 'සැසිය + අවසන්' },
-        { keywords: ['පාඩම', 'අවසන්'], description: 'පාඩම + අවසන්' }
+        // Session alternative
+        { keywords: ['සැසිය', 'අවසන්'], description: 'සැසිය + අවසන්' }
       ]
     };
     
