@@ -521,8 +521,8 @@
 .modal-content-custom {
   background: white;
   border-radius: 12px;
-  width: 90%;
-  max-width: 900px;
+  width: 95%;
+  max-width: 1400px;
   max-height: 90vh;
   overflow: hidden;
   display: flex;

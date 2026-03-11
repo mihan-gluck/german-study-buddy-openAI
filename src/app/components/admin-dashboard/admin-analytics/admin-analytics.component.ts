@@ -1070,6 +1070,147 @@ export class AdminAnalyticsComponent implements OnInit {
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   }
 
+  // Determine how the session ended based on status and other factors
+  getCompletionMethod(session: any): string {
+    const status = session.sessionState?.toLowerCase();
+    const messages = session.messages || [];
+    const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+    const lastAIMessage = [...messages].reverse().find(m => m.role === 'tutor');
+    
+    // Check if session is completed
+    if (status === 'completed') {
+      // Check if last AI message contains auto-completion indicators
+      if (lastAIMessage) {
+        const content = lastAIMessage.content?.toLowerCase() || '';
+        
+        // Check for auto-completion celebration messages
+        if (content.includes('congratulations') || 
+            content.includes('module completed') ||
+            content.includes('great progress! you completed') ||
+            content.includes('modul abgeschlossen') ||
+            content.includes('herzlichen glückwunsch') ||
+            content.includes('session complete') ||
+            content.includes('successfully completed')) {
+          return 'Auto-Completion by AI';
+        }
+      }
+      
+      // If completed but no auto-completion indicators, it's manual
+      return 'Manual End by User';
+    }
+    
+    // Check for stop command (manually_ended status)
+    if (status === 'manually_ended') {
+      // Check if last student message was a stop command
+      const lastStudentMessage = [...messages].reverse().find(m => m.role === 'student');
+      if (lastStudentMessage) {
+        const content = lastStudentMessage.content?.toLowerCase().trim() || '';
+        const stopCommands = ['stop', 'end', 'finish', 'quit', 'exit', 'stopp', 'ende', 'beenden', 'aufhören'];
+        
+        if (stopCommands.some(cmd => 
+          content === cmd || 
+          content === `${cmd}.` || 
+          content === `${cmd}!` || 
+          content === `${cmd}?`
+        )) {
+          return 'Stop Command by User';
+        }
+      }
+      
+      // Otherwise it's manual end via button
+      return 'Manual End by User';
+    }
+    
+    // Active sessions - need to determine if it's a false positive or truly abandoned
+    if (status === 'active') {
+      // Check if last AI message suggests completion (false positive scenario)
+      if (lastAIMessage) {
+        const content = lastAIMessage.content?.toLowerCase() || '';
+        
+        // Check for words that might have triggered false positive
+        // These are single words that appear in normal conversation
+        const falsePositiveWords = [
+          'wunderbar', 'wonderful', 'perfekt', 'perfect', 
+          'ausgezeichnet', 'excellent', 'toll', 'great',
+          'fantastisch', 'fantastic', 'gut gemacht', 'well done'
+        ];
+        
+        // If session is very short (< 5 min) and contains these words, likely false positive
+        const duration = session.durationMinutes || 0;
+        if (duration < 5 && falsePositiveWords.some(word => content.includes(word))) {
+          // Check if it doesn't have proper completion phrases
+          const hasProperCompletion = 
+            content.includes('congratulations') ||
+            content.includes('module completed') ||
+            content.includes('modul abgeschlossen') ||
+            content.includes('herzlichen glückwunsch');
+          
+          if (!hasProperCompletion) {
+            return 'Auto-Completion by AI (False Positive)';
+          }
+        }
+      }
+      
+      // Check if session is old (likely abandoned)
+      const sessionDate = new Date(session.createdAt);
+      const now = new Date();
+      const hoursSinceSession = (now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceSession > 1) { // More than 1 hour old
+        return 'Browser Close/Navigation';
+      }
+      
+      return 'In Progress';
+    }
+    
+    // Explicitly marked as abandoned
+    if (status === 'abandoned') {
+      return 'Browser Close/Navigation';
+    }
+    
+    return 'Unknown';
+  }
+
+  // Get badge class for completion method
+  getCompletionMethodBadgeClass(method: string): string {
+    switch (method) {
+      case 'Auto-Completion by AI':
+        return 'bg-success';
+      case 'Auto-Completion by AI (False Positive)':
+        return 'bg-danger'; // Red to highlight the issue
+      case 'Manual End by User':
+        return 'bg-primary';
+      case 'Stop Command by User':
+        return 'bg-warning';
+      case 'Browser Close/Navigation':
+        return 'bg-secondary';
+      case 'In Progress':
+        return 'bg-info';
+      default:
+        return 'bg-secondary';
+    }
+  }
+
+  // Get icon for completion method
+  getCompletionMethodIcon(method: string): string {
+    switch (method) {
+      case 'Auto-Completion by AI':
+        return 'fa-robot';
+      case 'Auto-Completion by AI (False Positive)':
+        return 'fa-exclamation-triangle'; // Warning icon
+      case 'Manual End by User':
+        return 'fa-hand-pointer';
+      case 'Stop Command by User':
+        return 'fa-stop-circle';
+      case 'Browser Close/Navigation':
+        return 'fa-times-circle';
+      case 'In Progress':
+        return 'fa-spinner fa-spin';
+      default:
+        return 'fa-question-circle';
+    }
+  }
+
   getCompletionRateColorAI(rate: number): string {
     if (rate >= 80) return '#28a745';
     if (rate >= 60) return '#ffc107';

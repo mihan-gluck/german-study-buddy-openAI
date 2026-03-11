@@ -758,6 +758,7 @@
                 <!-- <th>Score</th> -->
                 <th>Messages</th>
                 <th>Status</th>
+                <th>Completion Method</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -781,6 +782,14 @@
                   <span class="badge" 
                         [ngClass]="getStatusBadgeClass(session.sessionState)">
                     {{ formatSessionStatus(session.sessionState) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [ngClass]="getCompletionMethodBadgeClass(getCompletionMethod(session))"
+                        [title]="getCompletionMethod(session)">
+                    <i class="fas" [ngClass]="getCompletionMethodIcon(getCompletionMethod(session))"></i>
+                    {{ getCompletionMethod(session) }}
                   </span>
                 </td>
                 <td>
