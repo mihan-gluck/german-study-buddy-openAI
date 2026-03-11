@@ -566,6 +566,21 @@
     <!-- Filters -->
     <div class="filters-section mb-4">
       <div class="row">
+        <div class="col-md-3">
+          <label class="form-label">Student Name</label>
+          <mat-form-field class="w-100" appearance="outline">
+            <input type="text"
+                   matInput
+                   [formControl]="studentNameControl"
+                   [matAutocomplete]="auto"
+                   placeholder="Search by name...">
+            <mat-autocomplete #auto="matAutocomplete">
+              <mat-option *ngFor="let name of filteredStudentNames | async" [value]="name">
+                {{name}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
         <div class="col-md-2">
           <label class="form-label">Batch</label>
           <select class="form-select form-select-sm" [(ngModel)]="moduleUsageFilters.batch">
@@ -592,17 +607,17 @@
           <label class="form-label">Date To</label>
           <input type="date" class="form-control form-control-sm" [(ngModel)]="moduleUsageFilters.dateTo">
         </div>
-        <div class="col-md-4">
+        <div class="col-md-1">
           <label class="form-label">Actions</label>
           <div class="d-flex gap-1">
             <button class="btn btn-primary btn-sm" (click)="loadAIUsageData()">
-              <i class="fas fa-search"></i> Apply
+              <i class="fas fa-search"></i>
             </button>
-            <button class="btn btn-secondary btn-sm" (click)="moduleUsageFilters.batch=''; moduleUsageFilters.level=''; moduleUsageFilters.dateFrom=''; moduleUsageFilters.dateTo=''; loadAIUsageData()">
-              <i class="fas fa-times"></i> Clear
+            <button class="btn btn-secondary btn-sm" (click)="studentNameControl.setValue(''); moduleUsageFilters.studentName=''; moduleUsageFilters.batch=''; moduleUsageFilters.level=''; moduleUsageFilters.dateFrom=''; moduleUsageFilters.dateTo=''; loadAIUsageData()">
+              <i class="fas fa-times"></i>
             </button>
             <button class="btn btn-success btn-sm" (click)="exportAIUsageData()">
-              <i class="fas fa-download"></i> Export
+              <i class="fas fa-download"></i>
             </button>
           </div>
         </div>

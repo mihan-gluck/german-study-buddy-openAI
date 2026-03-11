@@ -124,6 +124,7 @@ export class AdminAnalyticsService {
     level?: string;
     dateFrom?: string;
     dateTo?: string;
+    studentName?: string; // NEW: Student name search
     groupBy?: 'module' | 'teacher' | 'batch' | 'student';
   } = {}): Observable<{
     success: boolean;
@@ -344,5 +345,18 @@ export class AdminAnalyticsService {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  }
+
+  // Get filter options (batches, levels)
+  getFilterOptions(): Observable<{
+    success: boolean;
+    batches: string[];
+    levels: string[];
+  }> {
+    return this.http.get<{
+      success: boolean;
+      batches: string[];
+      levels: string[];
+    }>(`${this.apiUrl}/filter-options`, { withCredentials: true });
   }
 }

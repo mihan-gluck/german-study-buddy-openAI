@@ -3,9 +3,14 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { 
   AdminAnalyticsService, 
   ModuleUsageData, 
@@ -19,7 +24,15 @@ import { TeacherService } from '../../../services/teacher.service';
 @Component({
   selector: 'app-admin-analytics',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgChartsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule,
+    NgChartsModule,
+    MatAutocompleteModule,
+    MatInputModule,
+    MatFormFieldModule
+  ],
   templateUrl: './admin-analytics.component.html',
   styleUrls: ['./admin-analytics.component.css']
 })
@@ -47,6 +60,11 @@ export class AdminAnalyticsComponent implements OnInit {
   availableBatches: string[] = [];
   availableLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
   
+  // Autocomplete for student name
+  studentNameControl = new FormControl('');
+  filteredStudentNames!: Observable<string[]>;
+  allStudentNames: string[] = [];
+  
   // Active tab
   activeTab: 'ai-usage' | 'module-usage' | 'teacher-performance' = 'ai-usage';
   
@@ -58,6 +76,7 @@ export class AdminAnalyticsComponent implements OnInit {
     level: '',
     dateFrom: '',
     dateTo: '',
+    studentName: '', // NEW: Student name search
     groupBy: 'module' as 'module' | 'teacher' | 'batch' | 'student'
   };
   
@@ -133,6 +152,27 @@ export class AdminAnalyticsComponent implements OnInit {
   ngOnInit(): void {
     this.loadFilterOptions();
     this.loadAIUsageData(); // Load AI Usage by default since it's the first tab
+    this.initializeAutocomplete();
+  }
+
+  initializeAutocomplete(): void {
+    // Initialize filtered student names observable
+    this.filteredStudentNames = this.studentNameControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterStudentNames(value || ''))
+    );
+    
+    // Subscribe to value changes to update the filter
+    this.studentNameControl.valueChanges.subscribe(value => {
+      this.moduleUsageFilters.studentName = value || '';
+    });
+  }
+
+  private _filterStudentNames(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.allStudentNames.filter(name => 
+      name.toLowerCase().includes(filterValue)
+    );
   }
 
   loadFilterOptions(): void {
@@ -156,8 +196,21 @@ export class AdminAnalyticsComponent implements OnInit {
       }
     });
 
-    // Load batches (you might want to create a separate endpoint for this)
-    this.availableBatches = ['2024-A', '2024-B', '2024-C', '2025-A', '2025-B'];
+    // Load batches and levels from API
+    this.adminAnalyticsService.getFilterOptions().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.availableBatches = response.batches;
+          this.availableLevels = response.levels;
+          console.log('✅ Filter options loaded:', { batches: this.availableBatches.length, levels: this.availableLevels.length });
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error loading filter options:', error);
+        // Fallback to default levels if API fails
+        this.availableLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      }
+    });
   }
 
   // Tab management
@@ -278,6 +331,7 @@ export class AdminAnalyticsComponent implements OnInit {
       level: '',
       dateFrom: '',
       dateTo: '',
+      studentName: '',
       groupBy: 'module'
     };
     this.loadModuleUsage();
@@ -656,6 +710,7 @@ export class AdminAnalyticsComponent implements OnInit {
       if (this.moduleUsageFilters.level) filters.level = this.moduleUsageFilters.level;
       if (this.moduleUsageFilters.dateFrom) filters.dateFrom = this.moduleUsageFilters.dateFrom;
       if (this.moduleUsageFilters.dateTo) filters.dateTo = this.moduleUsageFilters.dateTo;
+      if (this.moduleUsageFilters.studentName) filters.studentName = this.moduleUsageFilters.studentName;
 
       // Fetch student usage data
       const response = await this.adminAnalyticsService.getModuleUsage(filters).toPromise();
@@ -663,6 +718,14 @@ export class AdminAnalyticsComponent implements OnInit {
       if (response && response.data) {
         this.processStudentUsageData(response.data);
         this.calculateAISummaryStatistics(response.data);
+        
+        // Extract student names for autocomplete (only if no name filter applied)
+        if (!this.moduleUsageFilters.studentName) {
+          this.allStudentNames = response.data
+            .map((item: any) => item._id.studentName)
+            .filter((name: string) => name) // Remove null/undefined
+            .sort();
+        }
       }
 
       // Fetch module usage data

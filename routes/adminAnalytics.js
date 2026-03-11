@@ -22,6 +22,7 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
       level, 
       dateFrom, 
       dateTo,
+      studentName, // NEW: Student name search filter
       groupBy = 'module', // module, teacher, batch, student
       studentsOnly = false // NEW: Filter to show only students
     } = req.query;
@@ -67,17 +68,39 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
       // NEW: Filter to show only STUDENTS (exclude TEACHER and ADMIN roles)
       ...(studentsOnly === 'true' ? [{ $match: { 'student.role': 'STUDENT' } }] : []),
       
+      // NEW: Filter by student name (case-insensitive)
+      ...(studentName ? [{ $match: { 'student.name': { $regex: studentName, $options: 'i' } } }] : []),
+      
       // Filter by additional criteria
       ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
       ...(level ? [{ $match: { 'student.level': level } }] : []),
       ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
+      
+      // Calculate duration if not set (for active/incomplete sessions)
+      {
+        $addFields: {
+          calculatedDuration: {
+            $cond: {
+              if: { $ifNull: ['$totalDuration', false] },
+              then: '$totalDuration',
+              else: {
+                $cond: {
+                  if: { $and: ['$startTime', '$endTime'] },
+                  then: { $round: { $divide: [{ $subtract: ['$endTime', '$startTime'] }, 60000] } },
+                  else: 0
+                }
+              }
+            }
+          }
+        }
+      },
       
       // Group by specified criteria
       {
         $group: {
           _id: getGroupByField(groupBy),
           totalSessions: { $sum: 1 },
-          totalTimeSpent: { $sum: '$totalDuration' }, // CHANGED: from durationMinutes
+          totalTimeSpent: { $sum: '$calculatedDuration' }, // Use calculated duration
           completedSessions: {
             $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } // CHANGED: from sessionState
           },
@@ -103,7 +126,7 @@ router.get('/module-usage', verifyToken, checkRole(['ADMIN']), async (req, res) 
               studentLevel: '$student.level',
               moduleName: '$module.title',
               moduleLevel: '$module.level',
-              timeSpent: '$totalDuration', // CHANGED: from durationMinutes
+              timeSpent: '$calculatedDuration', // Use calculated duration
               score: '$analytics.sessionScore', // CHANGED: from summary.totalScore
               completionStatus: '$status', // CHANGED: from sessionState
               date: '$createdAt'
@@ -489,6 +512,25 @@ router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (
       ...(batch ? [{ $match: { 'student.batch': batch } }] : []),
       ...(teacherId ? [{ $match: { 'student.assignedTeacher': new mongoose.Types.ObjectId(teacherId) } }] : []),
       
+      // Calculate duration if not set
+      {
+        $addFields: {
+          calculatedDuration: {
+            $cond: {
+              if: { $ifNull: ['$totalDuration', false] },
+              then: '$totalDuration',
+              else: {
+                $cond: {
+                  if: { $and: ['$startTime', '$endTime'] },
+                  then: { $round: { $divide: [{ $subtract: ['$endTime', '$startTime'] }, 60000] } },
+                  else: 0
+                }
+              }
+            }
+          }
+        }
+      },
+      
       // Populate teacher data
       {
         $lookup: {
@@ -515,7 +557,7 @@ router.get('/student-module-details', verifyToken, checkRole(['ADMIN']), async (
           moduleCategory: '$module.category',
           sessionType: 1,
           sessionState: '$status', // CHANGED: Map status to sessionState for compatibility
-          durationMinutes: '$totalDuration', // CHANGED: Map totalDuration to durationMinutes for compatibility
+          durationMinutes: '$calculatedDuration', // Use calculated duration
           summary: '$analytics', // CHANGED: Map analytics to summary for compatibility
           messages: 1, // NEW: Include conversation messages
           createdAt: 1,
@@ -757,6 +799,25 @@ router.get('/teacher-own-usage', verifyToken, checkRole(['ADMIN']), async (req, 
       
       { $unwind: '$module' },
       
+      // Calculate duration if not set
+      {
+        $addFields: {
+          calculatedDuration: {
+            $cond: {
+              if: { $ifNull: ['$totalDuration', false] },
+              then: '$totalDuration',
+              else: {
+                $cond: {
+                  if: { $and: ['$startTime', '$endTime'] },
+                  then: { $round: { $divide: [{ $subtract: ['$endTime', '$startTime'] }, 60000] } },
+                  else: 0
+                }
+              }
+            }
+          }
+        }
+      },
+      
       // Project detailed information
       {
         $project: {
@@ -772,7 +833,7 @@ router.get('/teacher-own-usage', verifyToken, checkRole(['ADMIN']), async (req, 
           moduleCategory: '$module.category',
           sessionType: 1,
           sessionState: '$status',
-          durationMinutes: '$totalDuration',
+          durationMinutes: '$calculatedDuration', // Use calculated duration
           summary: '$analytics',
           messages: 1,
           createdAt: 1,
@@ -863,5 +924,58 @@ function getGroupByField(groupBy) {
       };
   }
 }
+
+// GET /api/admin-analytics/filter-options - Get available filter options
+router.get('/filter-options', verifyToken, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    console.log('📊 Admin requesting filter options');
+    
+    const User = require('../models/User');
+    
+    // Get unique batch values from students who have used AI tutor
+    const AiTutorSession = require('../models/AiTutorSession');
+    
+    // Get student IDs who have AI sessions
+    const studentIdsWithSessions = await AiTutorSession.distinct('studentId');
+    
+    // Get unique batches from those students
+    const batches = await User.distinct('batch', {
+      _id: { $in: studentIdsWithSessions },
+      role: 'STUDENT',
+      batch: { $exists: true, $ne: null, $ne: '' }
+    });
+    
+    // Sort batches (numeric first, then alphabetic)
+    const sortedBatches = batches.sort((a, b) => {
+      const aNum = parseInt(a);
+      const bNum = parseInt(b);
+      
+      // Both are numbers
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return aNum - bNum;
+      }
+      // a is number, b is not
+      if (!isNaN(aNum)) return -1;
+      // b is number, a is not
+      if (!isNaN(bNum)) return 1;
+      // Both are strings
+      return a.localeCompare(b);
+    });
+    
+    res.json({
+      success: true,
+      batches: sortedBatches,
+      levels: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching filter options:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching filter options',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;
