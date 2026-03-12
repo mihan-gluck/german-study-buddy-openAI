@@ -39,6 +39,12 @@ export class SignupComponent {
     B1CompletionDate?: string | null;
     B2CompletionDate?: string | null;
   } = {};
+  courseStartDates: {
+    A1StartDate?: string | null;
+    A2StartDate?: string | null;
+    B1StartDate?: string | null;
+    B2StartDate?: string | null;
+  } = {};
   qualifications: string = '';
   
   // Teacher assignment
@@ -131,6 +137,21 @@ export class SignupComponent {
               : null
           };
 
+          this.courseStartDates = {
+            A1StartDate: data.courseStartDates?.A1StartDate
+              ? new Date(data.courseStartDates.A1StartDate).toISOString().split('T')[0]
+              : null,
+            A2StartDate: data.courseStartDates?.A2StartDate
+              ? new Date(data.courseStartDates.A2StartDate).toISOString().split('T')[0]
+              : null,
+            B1StartDate: data.courseStartDates?.B1StartDate
+              ? new Date(data.courseStartDates.B1StartDate).toISOString().split('T')[0]
+              : null,
+            B2StartDate: data.courseStartDates?.B2StartDate
+              ? new Date(data.courseStartDates.B2StartDate).toISOString().split('T')[0]
+              : null
+          };
+
           this.qualifications = data.qualifications || '';
           this.loadTeachers(); // load teachers for selected level + medium
         } else if (this.role === 'TEACHER' || this.role === 'TEACHER_ADMIN') {
@@ -191,6 +212,7 @@ export class SignupComponent {
       user.dateWithdrew = this.dateWithdrew;
       user.reasonForWithdrawing = this.reasonForWithdrawing;
       user.courseCompletionDates = this.courseCompletionDates;
+      user.courseStartDates = this.courseStartDates;
       user.qualifications = this.qualifications;
     }
 

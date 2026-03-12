@@ -2638,11 +2638,11 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
   // ✅ NEW: Get completion keyword combinations
   // Requires multiple keywords to be present to confirm completion
   // This prevents false positives from single words in normal conversation
-  // IMPORTANT: "module" or "session" is now REQUIRED in all combinations
+  // IMPORTANT: "module" or "session" is REQUIRED in most combinations, but we have fallback patterns
   private getCompletionCombinations(targetLanguage: string, nativeLanguage: string): any[] {
     const combinations: { [key: string]: any[] } = {
       'English': [
-        // All combinations now require "module" or "session" as mandatory keyword
+        // PRIMARY: All combinations require "module" or "session" as mandatory keyword
         
         // Combination 1: Module + Congratulations + Completed
         { keywords: ['module', 'congratulations', 'completed'], description: 'Module + Congratulations + Completed' },
@@ -2664,10 +2664,24 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         { keywords: ['session', 'congratulations', 'completed'], description: 'Session + Congratulations + Completed' },
         { keywords: ['session', 'successfully', 'completed'], description: 'Session + Successfully + Completed' },
         { keywords: ['session', 'status', 'completed'], description: 'Session + Status + Completed' },
-        { keywords: ['session', 'completed'], description: 'Session + Completed' }
+        { keywords: ['session', 'completed'], description: 'Session + Completed' },
+        
+        // FALLBACK: Patterns without "module" but with strong completion indicators
+        // These require 3+ keywords to avoid false positives
+        { keywords: ['thank you', 'practicing', 'great work'], description: 'Thank you + Practicing + Great work' },
+        { keywords: ['thank you', 'practicing', 'fantastic'], description: 'Thank you + Practicing + Fantastic' },
+        { keywords: ['thank you', 'practicing', 'excellent'], description: 'Thank you + Practicing + Excellent' },
+        { keywords: ['thank you', 'practicing', 'wonderful'], description: 'Thank you + Practicing + Wonderful' },
+        { keywords: ['thank you', 'practicing', 'today'], description: 'Thank you + Practicing + Today' },
+        { keywords: ['great work', 'today', 'goodbye'], description: 'Great work + Today + Goodbye' },
+        { keywords: ['excellent work', 'today', 'goodbye'], description: 'Excellent work + Today + Goodbye' },
+        { keywords: ['wonderful job', 'today', 'goodbye'], description: 'Wonderful job + Today + Goodbye' },
+        { keywords: ['well done', 'today', 'goodbye'], description: 'Well done + Today + Goodbye' },
+        { keywords: ['fantastic progress', 'goodbye'], description: 'Fantastic progress + Goodbye' },
+        { keywords: ['great progress', 'goodbye'], description: 'Great progress + Goodbye' }
       ],
       'German': [
-        // All combinations now require "modul" or "sitzung" as mandatory keyword
+        // PRIMARY: All combinations require "modul" or "sitzung" as mandatory keyword
         
         // Combination 1: Modul + Glückwunsch + Abgeschlossen
         { keywords: ['modul', 'glückwunsch', 'abgeschlossen'], description: 'Modul + Glückwunsch + Abgeschlossen' },
@@ -2692,27 +2706,35 @@ You've done great work in this session. Keep up the excellent progress! 🌟`,
         { keywords: ['sitzung', 'erfolgreich', 'abgeschlossen'], description: 'Sitzung + Erfolgreich + Abgeschlossen' },
         { keywords: ['sitzung', 'abgeschlossen'], description: 'Sitzung + Abgeschlossen' },
         { keywords: ['sitzung', 'beendet'], description: 'Sitzung + Beendet' },
-        { keywords: ['session', 'beendet'], description: 'Session + Beendet' }
+        { keywords: ['session', 'beendet'], description: 'Session + Beendet' },
+        
+        // FALLBACK: Patterns without "modul" but with strong completion indicators
+        { keywords: ['danke', 'üben', 'toll'], description: 'Danke + Üben + Toll' },
+        { keywords: ['danke', 'üben', 'wunderbar'], description: 'Danke + Üben + Wunderbar' },
+        { keywords: ['danke', 'üben', 'ausgezeichnet'], description: 'Danke + Üben + Ausgezeichnet' },
+        { keywords: ['danke', 'üben', 'heute'], description: 'Danke + Üben + Heute' },
+        { keywords: ['toll gemacht', 'heute', 'auf wiedersehen'], description: 'Toll gemacht + Heute + Auf Wiedersehen' },
+        { keywords: ['wunderbar', 'heute', 'tschüss'], description: 'Wunderbar + Heute + Tschüss' }
       ],
       'Tamil': [
-        // Combination 1: பாடம் (module) + வாழ்த்துக்கள் + முடிந்தது
+        // PRIMARY: Combination with பாடம் (module)
         { keywords: ['பாடம்', 'வாழ்த்துக்கள்', 'முடிந்தது'], description: 'பாடம் + வாழ்த்துக்கள் + முடிந்தது' },
-        
-        // Combination 2: பாடம் + முடிந்தது (minimum)
         { keywords: ['பாடம்', 'முடிந்தது'], description: 'பாடம் + முடிந்தது' },
+        { keywords: ['அமர்வு', 'முடிந்தது'], description: 'அமர்வு + முடிந்தது' },
         
-        // Session alternative
-        { keywords: ['அமர்வு', 'முடிந்தது'], description: 'அமர்வு + முடிந்தது' }
+        // FALLBACK: Patterns without பாடம்
+        { keywords: ['நன்றி', 'பயிற்சி', 'சிறப்பு'], description: 'நன்றி + பயிற்சி + சிறப்பு' },
+        { keywords: ['நன்றி', 'பயிற்சி', 'இன்று'], description: 'நன்றி + பயிற்சி + இன்று' }
       ],
       'Sinhala': [
-        // Combination 1: පාඩම (module) + සුභපැතුම් + අවසන්
+        // PRIMARY: Combination with පාඩම (module)
         { keywords: ['පාඩම', 'සුභපැතුම්', 'අවසන්'], description: 'පාඩම + සුභපැතුම් + අවසන්' },
-        
-        // Combination 2: පාඩම + අවසන් (minimum)
         { keywords: ['පාඩම', 'අවසන්'], description: 'පාඩම + අවසන්' },
+        { keywords: ['සැසිය', 'අවසන්'], description: 'සැසිය + අවසන්' },
         
-        // Session alternative
-        { keywords: ['සැසිය', 'අවසන්'], description: 'සැසිය + අවසන්' }
+        // FALLBACK: Patterns without පාඩම
+        { keywords: ['ස්තූතියි', 'පුහුණුව', 'විශිෂ්ට'], description: 'ස්තූතියි + පුහුණුව + විශිෂ්ට' },
+        { keywords: ['ස්තූතියි', 'පුහුණුව', 'අද'], description: 'ස්තූතියි + පුහුණුව + අද' }
       ]
     };
     

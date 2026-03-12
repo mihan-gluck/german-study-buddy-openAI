@@ -10,6 +10,13 @@ const completionDates = new mongoose.Schema({
   B2CompletionDate: { type: Date }
 }, { _id: false });
 
+const startDates = new mongoose.Schema({
+  A1StartDate: { type: Date },
+  A2StartDate: { type: Date },
+  B1StartDate: { type: Date },
+  B2StartDate: { type: Date }
+}, { _id: false });
+
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   regNo: { type: String, required: true, unique: true },
@@ -42,6 +49,7 @@ const UserSchema = new mongoose.Schema({
   dateWithdrew: { type: Date, default: null, function() { return this.role === "STUDENT" && this.studentStatus === "WITHDREW"; }  },
   reasonForWithdrawing: { type: String, default: "", function() { return this.role === "STUDENT" && this.studentStatus === "WITHDREW"; }  },
   courseCompletionDates: {type: completionDates, default: () => ({}) , function() { return this.role === "STUDENT"; }  },
+  courseStartDates: {type: startDates, default: () => ({}) , function() { return this.role === "STUDENT"; }  },
   qualifications: { type: String, default: "", function() { return this.role === "STUDENT"; }  },
 
   // ✅ move these inside schema

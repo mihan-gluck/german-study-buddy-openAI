@@ -41,6 +41,12 @@ interface User {
     B1CompletionDate?: Date;
     B2CompletionDate?: Date;
   };
+  courseStartDates?: {
+    A1StartDate?: Date;
+    A2StartDate?: Date;
+    B1StartDate?: Date;
+    B2StartDate?: Date;
+  };
   qualifications?: string;
   [key: string]: any;            // Allow additional properties
 }
@@ -102,6 +108,12 @@ export class AuthService {
       A2CompletionDate?: Date;
       B1CompletionDate?: Date;
       B2CompletionDate?: Date;
+    };
+    courseStartDates?: {
+      A1StartDate?: Date;
+      A2StartDate?: Date;
+      B1StartDate?: Date;
+      B2StartDate?: Date;
     };
     qualifications?: string;
   }): Observable<any> {

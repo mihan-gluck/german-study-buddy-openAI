@@ -305,46 +305,96 @@
         />
       </div>
 
-      <!-- Course Completion Dates for STUDENT -->
-      <div class="course-dates-grid mb-4" *ngIf="role === 'STUDENT'">
-        <div class="date-field" *ngIf="level === 'A1' || level === 'A2' || level === 'B1' || level === 'B2'">
-          <label class="form-label small">A1 Completed On</label>
-          <input
-            type="date"
-            class="form-control"
-            [(ngModel)]="courseCompletionDates.A1CompletionDate"
-            name="A1CompletionDate"
-          />
+      <!-- Course Start & Completion Dates for STUDENT -->
+      <div class="mb-4" *ngIf="role === 'STUDENT'">
+        <h6 class="mb-3">Course Timeline</h6>
+        
+        <!-- A1 Dates -->
+        <div class="row mb-3" *ngIf="level === 'A1' || level === 'A2' || level === 'B1' || level === 'B2'">
+          <div class="col-md-6">
+            <label class="form-label small">A1 Start Date</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseStartDates.A1StartDate"
+              name="A1StartDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">A1 Completed On</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseCompletionDates.A1CompletionDate"
+              name="A1CompletionDate"
+            />
+          </div>
         </div>
 
-        <div class="date-field" *ngIf="level === 'A2' || level === 'B1' || level === 'B2'">
-          <label class="form-label small">A2 Completed On</label>
-          <input
-            type="date"
-            class="form-control"
-            [(ngModel)]="courseCompletionDates.A2CompletionDate"
-            name="A2CompletionDate"
-          />
+        <!-- A2 Dates -->
+        <div class="row mb-3" *ngIf="level === 'A2' || level === 'B1' || level === 'B2'">
+          <div class="col-md-6">
+            <label class="form-label small">A2 Start Date</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseStartDates.A2StartDate"
+              name="A2StartDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">A2 Completed On</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseCompletionDates.A2CompletionDate"
+              name="A2CompletionDate"
+            />
+          </div>
         </div>
 
-        <div class="date-field" *ngIf="level === 'B1' || level === 'B2'">
-          <label class="form-label small">B1 Completed On</label>
-          <input
-            type="date"
-            class="form-control"
-            [(ngModel)]="courseCompletionDates.B1CompletionDate"
-            name="B1CompletionDate"
-          />
+        <!-- B1 Dates -->
+        <div class="row mb-3" *ngIf="level === 'B1' || level === 'B2'">
+          <div class="col-md-6">
+            <label class="form-label small">B1 Start Date</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseStartDates.B1StartDate"
+              name="B1StartDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">B1 Completed On</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseCompletionDates.B1CompletionDate"
+              name="B1CompletionDate"
+            />
+          </div>
         </div>
 
-        <div class="date-field" *ngIf="level === 'B2'">
-          <label class="form-label small">B2 Completed On</label>
-          <input
-            type="date"
-            class="form-control"
-            [(ngModel)]="courseCompletionDates.B2CompletionDate"
-            name="B2CompletionDate"
-          />
+        <!-- B2 Dates -->
+        <div class="row mb-3" *ngIf="level === 'B2'">
+          <div class="col-md-6">
+            <label class="form-label small">B2 Start Date</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseStartDates.B2StartDate"
+              name="B2StartDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">B2 Completed On</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="courseCompletionDates.B2CompletionDate"
+              name="B2CompletionDate"
+            />
+          </div>
         </div>
       </div>
 

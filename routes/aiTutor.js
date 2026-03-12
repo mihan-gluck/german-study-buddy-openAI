@@ -1134,9 +1134,9 @@ router.post('/end-session', verifyToken, async (req, res) => {
     // ✅ NEW: Combination-based completion detection
     // Requires multiple keywords to be present to confirm completion
     // This prevents false positives from single words in normal conversation
-    // IMPORTANT: "module" or "session" is now REQUIRED in all combinations
+    // IMPORTANT: "module" or "session" is REQUIRED in PRIMARY combinations, with FALLBACK patterns
     const completionCombinations = [
-      // English combinations - ALL require "module" or "session"
+      // PRIMARY: English combinations - require "module" or "session"
       { keywords: ['module', 'congratulations', 'completed'], lang: 'English' },
       { keywords: ['module', 'congratulations', 'finished'], lang: 'English' },
       { keywords: ['module', 'successfully', 'completed'], lang: 'English' },
@@ -1150,7 +1150,20 @@ router.post('/end-session', verifyToken, async (req, res) => {
       { keywords: ['session', 'status', 'completed'], lang: 'English' },
       { keywords: ['session', 'completed'], lang: 'English' },
       
-      // German combinations - ALL require "modul" or "sitzung"
+      // FALLBACK: English patterns without "module" but with strong completion indicators (3+ keywords)
+      { keywords: ['thank you', 'practicing', 'great work'], lang: 'English' },
+      { keywords: ['thank you', 'practicing', 'fantastic'], lang: 'English' },
+      { keywords: ['thank you', 'practicing', 'excellent'], lang: 'English' },
+      { keywords: ['thank you', 'practicing', 'wonderful'], lang: 'English' },
+      { keywords: ['thank you', 'practicing', 'today'], lang: 'English' },
+      { keywords: ['great work', 'today', 'goodbye'], lang: 'English' },
+      { keywords: ['excellent work', 'today', 'goodbye'], lang: 'English' },
+      { keywords: ['wonderful job', 'today', 'goodbye'], lang: 'English' },
+      { keywords: ['well done', 'today', 'goodbye'], lang: 'English' },
+      { keywords: ['fantastic progress', 'goodbye'], lang: 'English' },
+      { keywords: ['great progress', 'goodbye'], lang: 'English' },
+      
+      // PRIMARY: German combinations - require "modul" or "sitzung"
       { keywords: ['modul', 'glückwunsch', 'abgeschlossen'], lang: 'German' },
       { keywords: ['modul', 'herzlichen glückwunsch'], lang: 'German' },
       { keywords: ['modul', 'erfolgreich', 'abgeschlossen'], lang: 'German' },
@@ -1165,15 +1178,31 @@ router.post('/end-session', verifyToken, async (req, res) => {
       { keywords: ['sitzung', 'beendet'], lang: 'German' },
       { keywords: ['session', 'beendet'], lang: 'German' },
       
-      // Tamil combinations - ALL require "பாடம்" (module) or "அமர்வு" (session)
+      // FALLBACK: German patterns without "modul"
+      { keywords: ['danke', 'üben', 'toll'], lang: 'German' },
+      { keywords: ['danke', 'üben', 'wunderbar'], lang: 'German' },
+      { keywords: ['danke', 'üben', 'ausgezeichnet'], lang: 'German' },
+      { keywords: ['danke', 'üben', 'heute'], lang: 'German' },
+      { keywords: ['toll gemacht', 'heute', 'auf wiedersehen'], lang: 'German' },
+      { keywords: ['wunderbar', 'heute', 'tschüss'], lang: 'German' },
+      
+      // PRIMARY: Tamil combinations - require "பாடம்" (module) or "அமர்வு" (session)
       { keywords: ['பாடம்', 'வாழ்த்துக்கள்', 'முடிந்தது'], lang: 'Tamil' },
       { keywords: ['பாடம்', 'முடிந்தது'], lang: 'Tamil' },
       { keywords: ['அமர்வு', 'முடிந்தது'], lang: 'Tamil' },
       
-      // Sinhala combinations - ALL require "පාඩම" (module) or "සැසිය" (session)
+      // FALLBACK: Tamil patterns without "பாடம்"
+      { keywords: ['நன்றி', 'பயிற்சி', 'சிறப்பு'], lang: 'Tamil' },
+      { keywords: ['நன்றி', 'பயிற்சி', 'இன்று'], lang: 'Tamil' },
+      
+      // PRIMARY: Sinhala combinations - require "පාඩම" (module) or "සැසිය" (session)
       { keywords: ['පාඩම', 'සුභපැතුම්', 'අවසන්'], lang: 'Sinhala' },
       { keywords: ['පාඩම', 'අවසන්'], lang: 'Sinhala' },
-      { keywords: ['සැසිය', 'අවසන්'], lang: 'Sinhala' }
+      { keywords: ['සැසිය', 'අවසන්'], lang: 'Sinhala' },
+      
+      // FALLBACK: Sinhala patterns without "පාඩම"
+      { keywords: ['ස්තූතියි', 'පුහුණුව', 'විශිෂ්ට'], lang: 'Sinhala' },
+      { keywords: ['ස්තූතියි', 'පුහුණුව', 'අද'], lang: 'Sinhala' }
     ];
     
     // Check if any combination is satisfied

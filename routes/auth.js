@@ -135,6 +135,13 @@ cron.schedule(
           leadSource
         });
 
+        // ✅ Auto-set start date for current level
+        if (!newUser.courseStartDates) {
+          newUser.courseStartDates = {};
+        }
+        const levelStartField = `${level}StartDate`;
+        newUser.courseStartDates[levelStartField] = new Date();
+
         await newUser.save();
 
         await transporter.sendMail({
@@ -317,6 +324,7 @@ router.post("/signup", async (req, res) => {
       dateWithdrew,
       reasonForWithdrewing,
       courseCompletionDates,
+      courseStartDates,
       qualifications
      } = req.body;
 
@@ -351,7 +359,17 @@ router.post("/signup", async (req, res) => {
       user.dateWithdrew = dateWithdrew;
       user.reasonForWithdrawing = reasonForWithdrewing;
       user.courseCompletionDates = courseCompletionDates;
+      user.courseStartDates = courseStartDates;
       user.qualifications = qualifications;
+
+      // ✅ Auto-set start date for current level if not provided
+      if (!user.courseStartDates) {
+        user.courseStartDates = {};
+      }
+      const levelStartField = `${level}StartDate`;
+      if (!user.courseStartDates[levelStartField]) {
+        user.courseStartDates[levelStartField] = new Date();
+      }
 
       // 🔍 Teacher assignment
       if (assignedTeacher) {
@@ -679,6 +697,7 @@ router.put("/:id", async (req, res) => {
       languageLevelOpted,
       dateWithdrew,
       courseCompletionDates,
+      courseStartDates,
       reasonForWithdrawing,
       qualifications
     } = req.body;
@@ -705,8 +724,20 @@ router.put("/:id", async (req, res) => {
       dateWithdrew,
       reasonForWithdrawing,
       courseCompletionDates,
+      courseStartDates,
       qualifications
     };
+
+    // ✅ Auto-set start date for new level if level changed and start date not set
+    if (existingUser.role === "STUDENT" && level && level !== existingUser.level) {
+      if (!updateData.courseStartDates) {
+        updateData.courseStartDates = existingUser.courseStartDates || {};
+      }
+      const levelStartField = `${level}StartDate`;
+      if (!updateData.courseStartDates[levelStartField]) {
+        updateData.courseStartDates[levelStartField] = new Date();
+      }
+    }
 
     // 5️⃣ Clear withdraw data if not withdrew
     if (studentStatus !== "WITHDREW") {
@@ -1034,6 +1065,14 @@ router.post("/bulk-upload-students", verifyToken, checkRole(['ADMIN']), async (r
           programEnrolled: student.programEnrolled ? student.programEnrolled.trim() : undefined,
           leadSource: student.leadSource ? student.leadSource.trim() : undefined
         });
+
+        // ✅ Auto-set start date for current level
+        const level = student.level.toUpperCase();
+        if (!newUser.courseStartDates) {
+          newUser.courseStartDates = {};
+        }
+        const levelStartField = `${level}StartDate`;
+        newUser.courseStartDates[levelStartField] = new Date();
 
         await newUser.save();
 
