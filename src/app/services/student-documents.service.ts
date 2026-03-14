@@ -98,6 +98,19 @@ export class StudentDocumentsService {
     });
   }
 
+  // Preview a document inline
+  getPreviewUrl(documentId: string): string {
+    return `${this.apiUrl}/preview/${documentId}`;
+  }
+
+  // Preview a document as blob (sends auth cookie)
+  previewDocument(documentId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/preview/${documentId}`, {
+      responseType: 'blob',
+      withCredentials: true
+    });
+  }
+
   // Get document statistics
   getDocumentStats(): Observable<{
     success: boolean;

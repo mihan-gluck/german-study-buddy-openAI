@@ -124,12 +124,137 @@
           <mat-icon>clear</mat-icon>
           Clear Filters
         </button>
+
+        <div class="view-toggle">
+          <button mat-icon-button [class.active-view]="viewMode === 'compact'" (click)="switchView('compact')" matTooltip="Compact View">
+            <mat-icon>view_list</mat-icon>
+          </button>
+          <button mat-icon-button [class.active-view]="viewMode === 'detailed'" (click)="switchView('detailed')" matTooltip="Detailed View">
+            <mat-icon>table_rows</mat-icon>
+          </button>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
 
-  <!-- Documents Table -->
-  <mat-card class="table-card">
+  <!-- Compact Student View -->
+  <div *ngIf="viewMode === 'compact' && !loading">
+    <div *ngIf="filteredStudentGroups.length === 0" class="no-data">
+      <mat-icon>folder_open</mat-icon>
+      <p>No documents found</p>
+    </div>
+
+    <div class="student-group-list">
+      <mat-card *ngFor="let group of filteredStudentGroups" class="student-group-card" [class.expanded]="expandedStudentId === group.studentId">
+        <!-- Student Summary Row -->
+        <div class="student-group-header" (click)="toggleStudentExpand(group.studentId)">
+          <div class="student-group-info">
+            <mat-icon class="student-avatar-icon">account_circle</mat-icon>
+            <div>
+              <strong>{{ group.studentName }}</strong>
+              <small>{{ group.studentEmail }}</small>
+            </div>
+          </div>
+          <div class="student-group-stats">
+            <span class="doc-count total" matTooltip="Total Documents">
+              <mat-icon>description</mat-icon> {{ group.totalDocs }}
+            </span>
+            <span class="doc-count pending" *ngIf="group.pendingDocs > 0" matTooltip="Pending Review">
+              <mat-icon>schedule</mat-icon> {{ group.pendingDocs }}
+            </span>
+            <span class="doc-count verified" *ngIf="group.verifiedDocs > 0" matTooltip="Verified">
+              <mat-icon>check_circle</mat-icon> {{ group.verifiedDocs }}
+            </span>
+            <span class="doc-count rejected" *ngIf="group.rejectedDocs > 0" matTooltip="Rejected">
+              <mat-icon>cancel</mat-icon> {{ group.rejectedDocs }}
+            </span>
+          </div>
+          <mat-icon class="expand-icon">{{ expandedStudentId === group.studentId ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </div>
+
+        <!-- Expanded Document List -->
+        <div class="student-group-documents" *ngIf="expandedStudentId === group.studentId">
+          <table mat-table [dataSource]="group.documents" class="documents-table compact-table">
+            <ng-container matColumnDef="documentType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let doc">{{ doc.documentTypeDisplay || doc.documentType }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="documentName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let doc">{{ doc.documentName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="fileSize">
+              <th mat-header-cell *matHeaderCellDef>Size</th>
+              <td mat-cell *matCellDef="let doc">{{ doc.formattedFileSize }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="uploadedAt">
+              <th mat-header-cell *matHeaderCellDef>Uploaded</th>
+              <td mat-cell *matCellDef="let doc">{{ formatDate(doc.uploadedAt) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let doc">
+                <mat-chip [color]="getStatusColor(doc.status)" selected>
+                  <mat-icon>{{ getStatusIcon(doc.status) }}</mat-icon>
+                  {{ doc.status }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let doc">
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" 
+                          (click)="openPreview(doc); $event.stopPropagation()"
+                          [disabled]="doc.fileName === 'NO_FILE_UPLOADED'"
+                          [matTooltip]="doc.fileName === 'NO_FILE_UPLOADED' ? 'No file available' : 'Preview'">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button 
+                          (click)="downloadDocument(doc); $event.stopPropagation()"
+                          [disabled]="doc.fileName === 'NO_FILE_UPLOADED'"
+                          matTooltip="Download"
+                          style="color: #1976d2;">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                  <button mat-icon-button color="accent" 
+                          (click)="openVerificationDialog(doc, 'VERIFIED'); $event.stopPropagation()"
+                          [disabled]="doc.status === 'VERIFIED'"
+                          matTooltip="Verify">
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" 
+                          (click)="openVerificationDialog(doc, 'REJECTED'); $event.stopPropagation()"
+                          [disabled]="doc.status === 'REJECTED'"
+                          matTooltip="Reject">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                  <button mat-icon-button 
+                          *ngIf="doc.status === 'VERIFIED'"
+                          (click)="unlockDocument(doc); $event.stopPropagation()"
+                          matTooltip="Unlock for student to update"
+                          style="color: #ff9800;">
+                    <mat-icon>lock_open</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['documentType', 'documentName', 'fileSize', 'uploadedAt', 'status', 'actions']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['documentType', 'documentName', 'fileSize', 'uploadedAt', 'status', 'actions'];"></tr>
+          </table>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Documents Table (Detailed View) -->
+  <mat-card class="table-card" *ngIf="viewMode === 'detailed'">
     <mat-card-content>
       <div *ngIf="loading" class="loading-container">
         <mat-spinner></mat-spinner>
@@ -217,9 +342,17 @@
             <td mat-cell *matCellDef="let doc">
               <div class="action-buttons">
                 <button mat-icon-button color="primary" 
+                        (click)="openPreview(doc)"
+                        [disabled]="doc.fileName === 'NO_FILE_UPLOADED'"
+                        [matTooltip]="doc.fileName === 'NO_FILE_UPLOADED' ? 'No file available - verified without upload' : 'Preview'">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                
+                <button mat-icon-button 
                         (click)="downloadDocument(doc)"
                         [disabled]="doc.fileName === 'NO_FILE_UPLOADED'"
-                        [matTooltip]="doc.fileName === 'NO_FILE_UPLOADED' ? 'No file available - verified without upload' : 'Download'">
+                        matTooltip="Download"
+                        style="color: #1976d2;">
                   <mat-icon>download</mat-icon>
                 </button>
                 
@@ -573,6 +706,71 @@
         <mat-icon>verified</mat-icon>
         Mark as Verified
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Document Preview Dialog -->
+<div class="preview-dialog-overlay" *ngIf="showPreviewDialog" (click)="closePreview()">
+  <div class="preview-dialog" (click)="$event.stopPropagation()">
+    <div class="preview-header">
+      <div class="preview-title">
+        <mat-icon>visibility</mat-icon>
+        <div>
+          <h3>{{ previewDocument?.documentName }}</h3>
+          <small>{{ previewDocument?.documentTypeDisplay || previewDocument?.documentType }} — {{ previewDocument?.studentName }}</small>
+        </div>
+      </div>
+      <div class="preview-header-actions">
+        <button mat-icon-button matTooltip="Download" (click)="downloadDocument(previewDocument!)">
+          <mat-icon>download</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Verify" color="accent"
+                *ngIf="previewDocument?.status === 'PENDING'"
+                (click)="openVerificationDialog(previewDocument!, 'VERIFIED')">
+          <mat-icon>check_circle</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Reject" color="warn"
+                *ngIf="previewDocument?.status === 'PENDING'"
+                (click)="openVerificationDialog(previewDocument!, 'REJECTED')">
+          <mat-icon>cancel</mat-icon>
+        </button>
+        <button mat-icon-button (click)="closePreview()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="preview-body">
+      <div *ngIf="previewLoading" class="preview-loading">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Loading preview...</p>
+      </div>
+
+      <iframe *ngIf="!previewLoading && previewType === 'pdf' && previewUrl" 
+              [src]="previewUrl" 
+              class="preview-iframe">
+      </iframe>
+
+      <img *ngIf="!previewLoading && previewType === 'image' && previewUrl" 
+           [src]="previewUrl" 
+           class="preview-image"
+           alt="Document preview">
+
+      <div *ngIf="!previewLoading && previewType === 'unsupported'" class="preview-unsupported">
+        <mat-icon>insert_drive_file</mat-icon>
+        <p>Preview not available for this file type</p>
+        <button mat-raised-button color="primary" (click)="downloadDocument(previewDocument!)">
+          <mat-icon>download</mat-icon>
+          Download to View
+        </button>
+      </div>
+
+      <div *ngIf="!previewLoading && previewType === 'not-found'" class="preview-unsupported">
+        <mat-icon>cloud_off</mat-icon>
+        <p>File not found on server</p>
+        <small>The physical file may have been moved or deleted.</small>
+      </div>
     </div>
   </div>
 </div>

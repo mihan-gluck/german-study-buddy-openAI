@@ -20,6 +20,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { StudentDocumentsService } from '../../../services/student-documents.service';
 import { map, startWith } from 'rxjs/operators';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface StudentDocument {
   _id: string;
@@ -160,6 +161,21 @@ export class DocumentVerificationComponent implements OnInit {
   
   // Requirements Management
   requirements: any[] = [];
+
+  // Compact view
+  viewMode: 'compact' | 'detailed' = 'compact';
+  studentGroups: any[] = [];
+  filteredStudentGroups: any[] = [];
+  expandedStudentId: string | null = null;
+
+  // Document preview
+  showPreviewDialog: boolean = false;
+  previewDocument: StudentDocument | null = null;
+  previewUrl: SafeResourceUrl | null = null;
+  previewRawUrl: string = '';
+  previewType: 'pdf' | 'image' | 'unsupported' | 'not-found' = 'unsupported';
+  previewLoading: boolean = false;
+
   showRequirementForm: boolean = false;
   editingRequirement: any = null;
   requirementForm = {
@@ -181,7 +197,8 @@ export class DocumentVerificationComponent implements OnInit {
   constructor(
     private documentService: StudentDocumentsService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -240,8 +257,13 @@ export class DocumentVerificationComponent implements OnInit {
     this.stats.verifiedDocuments = this.documents.filter(d => d.status === 'VERIFIED').length;
     this.stats.rejectedDocuments = this.documents.filter(d => d.status === 'REJECTED').length;
     
-    // Count unique students
-    const uniqueStudents = new Set(this.documents.map(d => d.studentId));
+    // Count unique students (studentId may be a populated object)
+    const uniqueStudents = new Set(this.documents.map(d => {
+      const id = typeof d.studentId === 'object' && d.studentId !== null
+        ? (d.studentId as any)._id
+        : d.studentId;
+      return String(id);
+    }));
     this.stats.totalStudents = uniqueStudents.size;
   }
 
@@ -272,6 +294,7 @@ export class DocumentVerificationComponent implements OnInit {
     this.totalDocuments = filtered.length;
     this.pageIndex = 0;
     this.updatePaginatedDocuments();
+    this.buildStudentGroups();
   }
 
   updatePaginatedDocuments(): void {
@@ -293,20 +316,129 @@ export class DocumentVerificationComponent implements OnInit {
     this.applyFilters();
   }
 
+  buildStudentGroups(): void {
+    const groupMap = new Map<string, any>();
+    
+    this.filteredDocuments.forEach(doc => {
+      // studentId may be a populated object or a plain string
+      const id = typeof doc.studentId === 'object' && doc.studentId !== null
+        ? (doc.studentId as any)._id
+        : doc.studentId;
+      const idStr = String(id);
+      
+      if (!groupMap.has(idStr)) {
+        groupMap.set(idStr, {
+          studentId: idStr,
+          studentName: doc.studentName,
+          studentEmail: doc.studentEmail,
+          documents: [],
+          totalDocs: 0,
+          pendingDocs: 0,
+          verifiedDocs: 0,
+          rejectedDocs: 0
+        });
+      }
+      const group = groupMap.get(idStr);
+      group.documents.push(doc);
+      group.totalDocs++;
+      if (doc.status === 'PENDING') group.pendingDocs++;
+      else if (doc.status === 'VERIFIED') group.verifiedDocs++;
+      else if (doc.status === 'REJECTED') group.rejectedDocs++;
+    });
+    
+    this.studentGroups = Array.from(groupMap.values())
+      .sort((a, b) => b.pendingDocs - a.pendingDocs);
+    this.filteredStudentGroups = this.studentGroups;
+  }
+
+  toggleStudentExpand(studentId: string): void {
+    this.expandedStudentId = this.expandedStudentId === studentId ? null : studentId;
+  }
+
+  switchView(mode: 'compact' | 'detailed'): void {
+    this.viewMode = mode;
+  }
+
+  openPreview(doc: StudentDocument): void {
+    if (doc.fileName === 'NO_FILE_UPLOADED') return;
+    
+    this.previewDocument = doc;
+    this.previewUrl = null;
+    this.previewType = 'pdf';
+    this.previewLoading = true;
+    this.showPreviewDialog = true;
+    
+    this.documentService.previewDocument(doc._id).subscribe({
+      next: (blob) => {
+        this.previewLoading = false;
+        const blobType = blob.type || '';
+        
+        if (blobType.includes('pdf')) {
+          this.previewType = 'pdf';
+        } else if (blobType.includes('image')) {
+          this.previewType = 'image';
+        } else {
+          const fileName = doc.fileName.toLowerCase();
+          if (fileName.endsWith('.pdf')) {
+            this.previewType = 'pdf';
+          } else if (/\.(jpg|jpeg|png|gif|webp|bmp)$/.test(fileName)) {
+            this.previewType = 'image';
+          } else {
+            this.previewType = 'unsupported';
+          }
+        }
+        
+        const objectUrl = URL.createObjectURL(blob);
+        this.previewRawUrl = objectUrl;
+        this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+      },
+      error: (error) => {
+        this.previewLoading = false;
+        console.error('Error loading preview:', error);
+        this.previewType = 'not-found';
+      }
+    });
+  }
+
+  closePreview(): void {
+    this.showPreviewDialog = false;
+    this.previewDocument = null;
+    // Revoke the object URL to free memory
+    if (this.previewRawUrl) {
+      URL.revokeObjectURL(this.previewRawUrl);
+    }
+    this.previewUrl = null;
+    this.previewRawUrl = '';
+  }
+
   downloadDocument(doc: StudentDocument): void {
     this.documentService.downloadDocument(doc._id).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = window.document.createElement('a');
         link.href = url;
-        link.download = doc.fileName;
+        link.download = doc.documentName || doc.fileName;
         link.click();
         window.URL.revokeObjectURL(url);
         this.snackBar.open('Document downloaded', 'Close', { duration: 2000 });
       },
       error: (error) => {
         console.error('Error downloading document:', error);
-        this.snackBar.open('Error downloading document', 'Close', { duration: 3000 });
+        // Try to read error message from blob response
+        if (error.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errJson = JSON.parse(reader.result as string);
+              this.snackBar.open(errJson.message || 'Error downloading document', 'Close', { duration: 4000 });
+            } catch {
+              this.snackBar.open('Error downloading document', 'Close', { duration: 3000 });
+            }
+          };
+          reader.readAsText(error.error);
+        } else {
+          this.snackBar.open('Error downloading document', 'Close', { duration: 3000 });
+        }
       }
     });
   }

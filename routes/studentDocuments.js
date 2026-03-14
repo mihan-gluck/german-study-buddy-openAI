@@ -280,6 +280,43 @@ router.get('/download/:documentId', verifyToken, checkRole(['STUDENT', 'TEACHER'
   }
 });
 
+// GET /api/student-documents/preview/:documentId - Preview a document inline
+router.get('/preview/:documentId', verifyToken, checkRole(['STUDENT', 'TEACHER', 'ADMIN']), async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    
+    const document = await StudentDocument.findById(documentId);
+    
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+    
+    if (userRole === 'STUDENT' && document.studentId.toString() !== userId) {
+      return res.status(403).json({ success: false, message: 'Permission denied' });
+    }
+    
+    if (document.fileName === 'NO_FILE_UPLOADED' || document.filePath === 'NO_FILE_UPLOADED') {
+      return res.status(404).json({ success: false, message: 'No file available' });
+    }
+    
+    if (!fs.existsSync(document.filePath)) {
+      return res.status(404).json({ success: false, message: 'File not found on server' });
+    }
+    
+    // Set content type and serve inline
+    res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename="${document.fileName}"`);
+    
+    const fileStream = fs.createReadStream(document.filePath);
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error('❌ Error previewing document:', error);
+    res.status(500).json({ success: false, message: 'Error previewing document' });
+  }
+});
+
 // GET /api/student-documents/admin/all - Get all student documents (Admin only)
 router.get('/admin/all', verifyToken, checkRole(['ADMIN', 'TEACHER']), async (req, res) => {
   try {
