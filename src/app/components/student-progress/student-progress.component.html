@@ -94,6 +94,68 @@
     </div>
   </div>
 
+  <!-- Level Progression Section -->
+  <div class="level-progression-section" *ngIf="!isLoading && levelProgression.length > 0">
+    <div class="section-header">
+      <i class="fas fa-chart-line"></i>
+      <h2>Level Progression</h2>
+      <p class="subtitle">Your journey through German language levels</p>
+    </div>
+    
+    <div class="level-badges">
+      <span class="current-level-badge" *ngIf="studentLevel">
+        <i class="fas fa-star"></i> Current Level: {{ studentLevel }}
+      </span>
+    </div>
+    
+    <div class="level-timeline">
+      <div class="level-item" *ngFor="let level of levelProgression; let i = index" 
+           [class.completed]="level.status === 'completed'"
+           [class.in-progress]="level.status === 'in-progress'"
+           [class.not-started]="level.status === 'not-started'">
+        
+        <div class="level-icon">
+          <i class="fas fa-check-circle" *ngIf="level.status === 'completed'"></i>
+          <i class="fas fa-play-circle" *ngIf="level.status === 'in-progress'"></i>
+          <i class="fas fa-circle" *ngIf="level.status === 'not-started'"></i>
+        </div>
+        
+        <div class="level-content">
+          <div class="level-header">
+            <h3>{{ level.level }}</h3>
+            <span class="level-status-badge" 
+                  [ngClass]="{
+                    'badge-completed': level.status === 'completed',
+                    'badge-in-progress': level.status === 'in-progress',
+                    'badge-not-started': level.status === 'not-started'
+                  }">
+              {{ level.status === 'completed' ? 'Completed' : level.status === 'in-progress' ? 'In Progress' : 'Not Started' }}
+            </span>
+          </div>
+          
+          <div class="level-details" *ngIf="level.status !== 'not-started'">
+            <div class="detail-item" *ngIf="level.startDate">
+              <i class="fas fa-play-circle"></i>
+              <span>Started: {{ level.startDate | date:'MMM d, yyyy' }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="level.completedDate">
+              <i class="fas fa-check-circle"></i>
+              <span>Completed: {{ level.completedDate | date:'MMM d, yyyy' }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="level.duration">
+              <i class="fas fa-clock"></i>
+              <span>Duration: {{ level.duration }} {{ level.duration === 1 ? 'month' : 'months' }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="level-connector" *ngIf="i < levelProgression.length - 1"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Filters -->
   <div class="filters-section">
     <div class="filters-container">

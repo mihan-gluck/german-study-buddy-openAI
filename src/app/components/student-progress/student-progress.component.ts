@@ -18,6 +18,10 @@ export class StudentProgressComponent implements OnInit {
   stats: ProgressStats | null = null;
   isLoading: boolean = true;
   
+  // Level progression tracking
+  studentLevel: string = '';
+  levelProgression: any[] = [];
+  
   // Filter options
   selectedStatus: string = '';
   selectedLevel: string = '';
@@ -30,6 +34,7 @@ export class StudentProgressComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProgress();
+    this.loadStudentLevelProgression();
   }
 
   loadProgress(): void {
@@ -91,5 +96,17 @@ export class StudentProgressComponent implements OnInit {
 
   calculateCompletionPercentage(completed: number, total: number): number {
     return this.studentProgressService.calculateCompletionPercentage(completed, total);
+  }
+
+  loadStudentLevelProgression(): void {
+    this.studentProgressService.getStudentLevelProgression().subscribe({
+      next: (data) => {
+        this.studentLevel = data.currentLevel;
+        this.levelProgression = data.levelProgression;
+      },
+      error: (error) => {
+        console.error('Error loading level progression:', error);
+      }
+    });
   }
 }

@@ -115,7 +115,7 @@ export class AdminDashboardComponent implements OnInit {
   error = '';
   filters = { level: '', plan: '', batch: '', assignedTeacher: '', studentStatus: '', studentName: '', teacherName: '' };
   plan: string[] = ['PLATINUM', 'SILVER'];
-  level: string[] = ['A1', 'A2', 'A2', 'B1', 'B2'];
+  level: string[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
   teachers: any[] = [];
   
   // Autocomplete for student name
@@ -210,6 +210,7 @@ export class AdminDashboardComponent implements OnInit {
             //console.log('Student data:', student);
           });
           this.filteredStudents = [...this.students];
+          this.filteredStudentCount = this.students.length;
           
           // Extract student names for autocomplete
           this.allStudentNames = this.students
@@ -272,9 +273,9 @@ export class AdminDashboardComponent implements OnInit {
       const plan   = student.subscription ? student.subscription.toUpperCase() : '';
       const status = student.studentStatus ? student.studentStatus.toLowerCase() : '';
       const assignedTeacherName =
-      typeof student.assignedTeacher === 'object'
-        ? student.assignedTeacher.name?.toLowerCase()
-        : student.assignedTeacher?.toLowerCase() || '';
+      typeof student.assignedTeacher === 'object' && student.assignedTeacher !== null
+        ? (student.assignedTeacher.name?.toLowerCase() || '')
+        : (student.assignedTeacher?.toLowerCase() || '');
       const studentName = student.name ? student.name.toLowerCase() : '';
 
       return (

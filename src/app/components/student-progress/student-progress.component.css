@@ -312,3 +312,280 @@
     width: 100%;
   }
 }
+
+/* Level Progression Section */
+.level-progression-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-header i {
+  font-size: 2rem;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.section-header h2 {
+  margin: 0.5rem 0;
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 1.75rem;
+}
+
+.section-header .subtitle {
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Level Badges */
+.level-badges {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.current-level-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.current-level-badge i {
+  font-size: 1.1rem;
+}
+
+/* Level Timeline */
+.level-timeline {
+  position: relative;
+  padding: 1rem 0;
+}
+
+.level-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.level-item.completed {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-left: 4px solid #28a745;
+}
+
+.level-item.in-progress {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  border-left: 4px solid #17a2b8;
+}
+
+.level-item.not-started {
+  background: #f8f9fa;
+  border-left: 4px solid #e9ecef;
+  opacity: 0.7;
+}
+
+.level-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Level Icon */
+.level-icon {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.level-item.completed .level-icon {
+  color: #28a745;
+}
+
+.level-item.in-progress .level-icon {
+  color: #17a2b8;
+}
+
+.level-item.not-started .level-icon {
+  color: #6c757d;
+}
+
+/* Level Content */
+.level-content {
+  flex: 1;
+}
+
+.level-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.level-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.level-status-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.level-status-badge.badge-completed {
+  background: #28a745;
+  color: white;
+}
+
+.level-status-badge.badge-in-progress {
+  background: #17a2b8;
+  color: white;
+}
+
+.level-status-badge.badge-not-started {
+  background: #6c757d;
+  color: white;
+}
+
+/* Level Details */
+.level-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #495057;
+}
+
+.detail-item i {
+  width: 20px;
+  color: #667eea;
+}
+
+/* Level Connector */
+.level-connector {
+  position: absolute;
+  left: 2.5rem;
+  top: 100%;
+  width: 2px;
+  height: 1rem;
+  background: #e9ecef;
+}
+
+.level-item.completed .level-connector {
+  background: #28a745;
+}
+
+.level-item.in-progress .level-connector {
+  background: #17a2b8;
+}
+
+/* Responsive Design for Level Progression */
+@media (max-width: 768px) {
+  .level-progression-section {
+    padding: 1.5rem;
+  }
+  
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .level-badges {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .current-level-badge {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .level-item {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .level-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+  
+  .level-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .level-header h3 {
+    font-size: 1.25rem;
+  }
+  
+  .level-connector {
+    left: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .level-progression-section {
+    padding: 1rem;
+  }
+  
+  .section-header i {
+    font-size: 1.5rem;
+  }
+  
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .level-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .level-details {
+    align-items: center;
+  }
+  
+  .level-connector {
+    display: none;
+  }
+}

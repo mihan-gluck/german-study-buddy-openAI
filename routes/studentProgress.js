@@ -17,7 +17,7 @@ router.get('/', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res)
     
     // Build aggregation pipeline
     const pipeline = [
-      { $match: { studentId: mongoose.Types.ObjectId(studentId) } },
+      { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
       {
         $lookup: {
           from: 'learningmodules',
@@ -58,6 +58,123 @@ router.get('/', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res)
     res.status(500).json({ message: 'Error fetching progress data' });
   }
 });
+
+// GET /api/student-progress/level-progression - Get student's level progression
+router.get('/level-progression', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const studentId = req.user.id;
+    
+    const student = await User.findById(studentId).select('level languageLevelOpted courseStartDates courseCompletionDates').lean();
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    const allLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    const currentLevelIndex = allLevels.indexOf(student.level);
+    
+    // Determine which levels to show based on languageLevelOpted
+    let displayLevels;
+    const opted = (student.languageLevelOpted || '').trim();
+    
+    if (!opted) {
+      // Default: A1 to B2
+      displayLevels = ['A1', 'A2', 'B1', 'B2'];
+    } else if (opted.includes('-')) {
+      // Range like "A1-B2", "A2-B2", "A1-A2"
+      const [startLevel, endLevel] = opted.split('-');
+      const startIdx = allLevels.indexOf(startLevel);
+      const endIdx = allLevels.indexOf(endLevel);
+      if (startIdx >= 0 && endIdx >= 0 && endIdx >= startIdx) {
+        displayLevels = allLevels.slice(startIdx, endIdx + 1);
+      } else {
+        displayLevels = ['A1', 'A2', 'B1', 'B2'];
+      }
+    } else {
+      // Single level like "A1" or "B2"
+      const optedIdx = allLevels.indexOf(opted);
+      if (optedIdx >= 0) {
+        // If current level is higher than opted level, show up to current level
+        if (currentLevelIndex > optedIdx) {
+          displayLevels = allLevels.slice(0, currentLevelIndex + 1);
+        } else {
+          // Show from A1 to opted level
+          displayLevels = allLevels.slice(0, optedIdx + 1);
+        }
+      } else {
+        displayLevels = ['A1', 'A2', 'B1', 'B2'];
+      }
+    }
+    
+    // Ensure current level is always included
+    if (!displayLevels.includes(student.level)) {
+      const currentIdx = allLevels.indexOf(student.level);
+      if (currentIdx >= 0) {
+        // Extend display levels to include current level
+        const lastDisplayIdx = allLevels.indexOf(displayLevels[displayLevels.length - 1]);
+        if (currentIdx > lastDisplayIdx) {
+          displayLevels = allLevels.slice(allLevels.indexOf(displayLevels[0]), currentIdx + 1);
+        }
+      }
+    }
+    
+    // Determine target level (last level in the display range)
+    const targetLevel = displayLevels[displayLevels.length - 1];
+    
+    const levelProgression = displayLevels.map((level, index) => {
+      const startDateKey = `${level}StartDate`;
+      const completionDateKey = `${level}CompletionDate`;
+      
+      const startDate = student.courseStartDates?.[startDateKey];
+      const completedDate = student.courseCompletionDates?.[completionDateKey];
+      const levelIndex = allLevels.indexOf(level);
+      
+      let status = 'not-started';
+      let duration = null;
+      
+      if (completedDate) {
+        status = 'completed';
+        if (startDate) {
+          const diffTime = Math.abs(new Date(completedDate).getTime() - new Date(startDate).getTime());
+          duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
+        }
+      } else if (startDate) {
+        status = 'in-progress';
+      } else if (levelIndex < currentLevelIndex) {
+        status = 'completed';
+      } else if (levelIndex === currentLevelIndex) {
+        status = 'in-progress';
+      }
+      
+      return {
+        level,
+        status,
+        startDate,
+        completedDate,
+        duration
+      };
+    });
+    
+    res.json({
+      currentLevel: student.level,
+      targetLevel,
+      levelProgression
+    });
+  } catch (error) {
+    console.error('Error fetching level progression:', error);
+    res.status(500).json({ message: 'Error fetching level progression' });
+  }
+});
+
+function getNextLevel(currentLevel) {
+  const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  const currentIndex = levels.indexOf(currentLevel);
+  if (currentIndex >= 0 && currentIndex < levels.length - 1) {
+    return levels[currentIndex + 1];
+  }
+  return currentLevel; // Already at highest level
+}
 
 // GET /api/student-progress/:moduleId - Get progress for specific module
 // ✅ Allow both STUDENT and TEACHER (for testing modules)

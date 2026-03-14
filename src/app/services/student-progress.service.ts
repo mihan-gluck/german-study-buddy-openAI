@@ -240,4 +240,11 @@ export class StudentProgressService {
 
     return recommendations;
   }
+
+  // Get student's level progression through German language levels
+  getStudentLevelProgression(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/level-progression`, {
+      withCredentials: true
+    });
+  }
 }
