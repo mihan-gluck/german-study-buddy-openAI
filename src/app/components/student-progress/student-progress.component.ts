@@ -53,7 +53,7 @@ export class StudentProgressComponent implements OnInit {
   }
 
   get docsSubmitted(): number {
-    return this.documents.filter((d: any) => d.status === 'submitted').length;
+    return this.documents.filter((d: any) => d.status === 'verified').length;
   }
 
   get docsPercent(): number {

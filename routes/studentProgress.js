@@ -274,7 +274,7 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
       totalStudyHours: Math.round(totalStudyMinutes / 60),
       botUsage: { todayMinutes: botTodayMinutes, weekMinutes: botWeekMinutes, targetMinutesPerWeek: 180 },
       attendance: { attended: completedSessions, total: totalSessionCount, lastSessionDate: lastSession?.startTime || null },
-      documents: documents.map(d => ({ name: d.documentType, status: d.status === 'VERIFIED' ? 'submitted' : 'pending', verified: d.status === 'VERIFIED', approvalStatus: d.status.toLowerCase() })),
+      documents: documents.map(d => ({ name: d.documentType, status: d.status === 'VERIFIED' ? 'verified' : 'pending', verified: d.status === 'VERIFIED', approvalStatus: d.status.toLowerCase() })),
       feedbackByLevel, history: history.slice(0, 20),
       payments: {
         instalments: [

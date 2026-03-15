@@ -84,7 +84,7 @@
       <div>
         <div class="progress-header">
           <span>Documents ({{ documents.length }})</span>
-          <span class="progress-sub">{{ docsSubmitted }} submitted / {{ documents.length }} total</span>
+          <span class="progress-sub">{{ docsSubmitted }} verified / {{ documents.length }} total</span>
         </div>
         <div class="doc-bar-bg"><div class="doc-bar-fill" [style.width.%]="docsPercent"></div></div>
         <div class="doc-list">
@@ -92,12 +92,11 @@
             <div class="doc-item">
               <span>{{ doc.name }}</span>
               <span class="doc-status"
-                    [class.submitted]="doc.status === 'submitted'"
+                    [class.submitted]="doc.status === 'verified'"
                     [class.pending]="doc.status === 'pending'">
-                {{ doc.status === 'submitted' ? 'Submitted' : 'Pending' }}
+                {{ doc.status === 'verified' ? 'Verified' : 'Pending' }}
               </span>
             </div>
-            <div class="doc-extra">Verified: {{ doc.verified ? 'Yes' : 'No' }} | Approval: {{ doc.approvalStatus }}</div>
           </ng-container>
           <div *ngIf="!documents.length" class="doc-extra">No documents uploaded yet.</div>
         </div>
