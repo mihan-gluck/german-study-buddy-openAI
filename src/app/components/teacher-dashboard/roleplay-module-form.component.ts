@@ -475,6 +475,21 @@ import { ModuleDataTransferService } from '../../services/module-data-transfer.s
                 <!-- Form Actions -->
                 <div class="row">
                   <div class="col-12">
+                    <!-- Validation feedback -->
+                    <div *ngIf="moduleForm.invalid && isEditMode" class="alert alert-warning mb-3">
+                      <small><i class="fas fa-exclamation-triangle me-1"></i> Please fix the following to enable save:</small>
+                      <ul class="mb-0 small">
+                        <li *ngIf="moduleForm.get('title')?.invalid">Title is required</li>
+                        <li *ngIf="moduleForm.get('description')?.invalid">Description is required</li>
+                        <li *ngIf="moduleForm.get('targetLanguage')?.invalid">Target Language is required</li>
+                        <li *ngIf="moduleForm.get('nativeLanguage')?.invalid">Native Language is required</li>
+                        <li *ngIf="moduleForm.get('level')?.invalid">Level is required</li>
+                        <li *ngIf="moduleForm.get('minimumCompletionTime')?.invalid">Minimum Completion Time must be between 5 and 60</li>
+                        <li *ngIf="moduleForm.get('rolePlayScenario.situation')?.invalid">Situation is required</li>
+                        <li *ngIf="moduleForm.get('rolePlayScenario.studentRole')?.invalid">Student Role is required</li>
+                        <li *ngIf="moduleForm.get('rolePlayScenario.aiRole')?.invalid">AI Role is required</li>
+                      </ul>
+                    </div>
                     <div class="d-flex justify-content-end gap-2">
                       <button type="button" class="btn btn-secondary" (click)="goBack()">
                         Cancel
@@ -879,7 +894,7 @@ export class RoleplayModuleFormComponent implements OnInit {
       level: module.level || '',
       category: module.category || 'Conversation',
       difficulty: module.difficulty || 'Beginner',
-      minimumCompletionTime: module.minimumCompletionTime || 10, // ✅ Load minimum completion time
+      minimumCompletionTime: Math.min(60, Math.max(5, module.minimumCompletionTime || 10)), // ✅ Clamp to valid range
       rolePlayScenario: {
         situation: module.content?.rolePlayScenario?.situation || '',
         studentRole: module.content?.rolePlayScenario?.studentRole || '',
