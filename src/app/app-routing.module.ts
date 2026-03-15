@@ -198,6 +198,47 @@ export const routes: Routes = [
 
   { path: 'student-logs', loadComponent: () => import('./components/student-logs/student-logs.component').then(m => m.StudentLogsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
+  // ── Digital Exercises (new feature) ──────────────────────────────────────
+  // Student & all roles: browse and play exercises
+  {
+    path: 'digital-exercises',
+    loadComponent: () => import('./components/digital-exercises/digital-exercises.component').then(m => m.DigitalExercisesComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'digital-exercises/:id/play',
+    loadComponent: () => import('./components/digital-exercise-player/digital-exercise-player.component').then(m => m.DigitalExercisePlayerComponent),
+    canActivate: [AuthGuard]
+  },
+  // Admin/Teacher: manage exercises
+  {
+    path: 'admin/digital-exercises',
+    loadComponent: () => import('./components/admin-dashboard/digital-exercise-management/digital-exercise-management.component').then(m => m.DigitalExerciseManagementComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: ['ADMIN', 'TEACHER', 'TEACHER_ADMIN'] }
+  },
+  // Admin/Teacher: create exercise (builder)
+  {
+    path: 'admin/digital-exercises/create',
+    loadComponent: () => import('./components/digital-exercise-builder/digital-exercise-builder.component').then(m => m.DigitalExerciseBuilderComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: ['ADMIN', 'TEACHER', 'TEACHER_ADMIN'] }
+  },
+  // Admin/Teacher: edit exercise
+  {
+    path: 'admin/digital-exercises/:id/edit',
+    loadComponent: () => import('./components/digital-exercise-builder/digital-exercise-builder.component').then(m => m.DigitalExerciseBuilderComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: ['ADMIN', 'TEACHER', 'TEACHER_ADMIN'] }
+  },
+  // Admin/Teacher: AI PDF Generator
+  {
+    path: 'admin/digital-exercises/generate-ai',
+    loadComponent: () => import('./components/pdf-exercise-generator/pdf-exercise-generator.component').then(m => m.PdfExerciseGeneratorComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: ['ADMIN', 'TEACHER', 'TEACHER_ADMIN'] }
+  },
+
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }
 ];

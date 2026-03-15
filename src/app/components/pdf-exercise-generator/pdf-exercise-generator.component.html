@@ -1,0 +1,524 @@
+<!-- pdf-exercise-generator.component.html -->
+<div class="generator-page">
+
+  <!-- ── Top Bar ── -->
+  <div class="top-bar">
+    <button class="btn-back" (click)="cancel()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <div class="top-bar-title">
+      <h1><span class="material-icons">auto_awesome</span> AI Exercise Generator</h1>
+      <p>Upload a PDF and let AI convert it into interactive exercises</p>
+    </div>
+  </div>
+
+  <!-- ── Step Indicator ── -->
+  <div class="stepper">
+    <div class="step" *ngFor="let s of [1,2,3,4]; let i = index"
+      [class.active]="currentStep === s"
+      [class.done]="currentStep > s"
+      (click)="goToStep(s)"
+      [class.clickable]="currentStep > s"
+    >
+      <div class="step-circle">
+        <span class="material-icons done-icon" *ngIf="currentStep > s">check</span>
+        <span *ngIf="currentStep <= s">{{ s }}</span>
+      </div>
+      <div class="step-label">
+        <span *ngIf="s === 1">Upload PDF</span>
+        <span *ngIf="s === 2">Configure</span>
+        <span *ngIf="s === 3">Processing</span>
+        <span *ngIf="s === 4">Review &amp; Save</span>
+      </div>
+      <div class="step-connector" *ngIf="i < 3" [class.done]="currentStep > s"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 1: Upload PDF                                                       -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="step-panel" *ngIf="currentStep === 1">
+    <div class="step-header">
+      <div class="step-icon-wrap"><span class="material-icons step-icon">upload_file</span></div>
+      <div>
+        <h2>Upload Your PDF</h2>
+        <p>Upload a PDF with exercises or learning content. We'll extract the text and convert it into interactive exercises.</p>
+      </div>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="drop-zone"
+      [class.dragging]="isDragging"
+      [class.has-file]="!!selectedFile"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+      (click)="!selectedFile && fileInput.click()"
+    >
+      <input #fileInput type="file" accept=".pdf" class="file-input-hidden" (change)="onFileSelected($event)" />
+
+      <!-- No file selected -->
+      <div class="drop-content" *ngIf="!selectedFile">
+        <div class="drop-icon-wrap">
+          <span class="material-icons drop-icon">picture_as_pdf</span>
+        </div>
+        <p class="drop-title">Drag &amp; drop your PDF here</p>
+        <p class="drop-subtitle">or click to browse files</p>
+        <div class="drop-limits">PDF only · Max 15 MB · Text-based PDFs work best</div>
+      </div>
+
+      <!-- File selected -->
+      <div class="file-selected" *ngIf="selectedFile">
+        <div class="file-icon-wrap">
+          <span class="material-icons">picture_as_pdf</span>
+        </div>
+        <div class="file-info">
+          <div class="file-name">{{ selectedFile.name }}</div>
+          <div class="file-size">{{ formatFileSize(selectedFile.size) }}</div>
+        </div>
+        <button class="btn-remove-file" (click)="$event.stopPropagation(); removeFile()" title="Remove">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Upload Button -->
+    <div class="upload-action" *ngIf="selectedFile && !uploadResult">
+      <button class="btn-upload" (click)="uploadPdf()" [disabled]="uploading">
+        <span class="material-icons">{{ uploading ? 'hourglass_empty' : 'cloud_upload' }}</span>
+        {{ uploading ? 'Uploading & reading PDF...' : 'Upload & Read PDF' }}
+        <div class="upload-spinner" *ngIf="uploading"></div>
+      </button>
+    </div>
+
+    <!-- Upload Result -->
+    <div class="upload-result" *ngIf="uploadResult">
+      <div class="result-success">
+        <span class="material-icons">check_circle</span>
+        <strong>PDF read successfully!</strong>
+      </div>
+      <div class="result-stats">
+        <span><span class="material-icons">article</span> {{ uploadResult.pages }} page{{ uploadResult.pages !== 1 ? 's' : '' }}</span>
+        <span><span class="material-icons">format_align_left</span> ~{{ uploadResult.totalChars.toLocaleString() }} characters</span>
+        <span *ngIf="!uploadResult.hasContent" class="warn-text">
+          <span class="material-icons">warning</span> Limited text detected — this may be a scanned/image PDF
+        </span>
+      </div>
+      <div class="text-preview">
+        <div class="preview-label">Content preview:</div>
+        <pre class="preview-text">{{ uploadResult.previewText }}</pre>
+      </div>
+      <button class="btn-change-file" (click)="removeFile()">
+        <span class="material-icons">swap_horiz</span> Change PDF
+      </button>
+    </div>
+
+    <div class="step-footer">
+      <button class="btn-cancel" (click)="cancel()">Cancel</button>
+      <button class="btn-primary" (click)="next()" [disabled]="!canProceedFrom(1)">
+        Next: Configure <span class="material-icons">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 2: Configure                                                        -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="step-panel" *ngIf="currentStep === 2">
+    <div class="step-header">
+      <div class="step-icon-wrap"><span class="material-icons step-icon">tune</span></div>
+      <div>
+        <h2>Configure Exercise Generation</h2>
+        <p>Select which types of exercises to generate and set the language level.</p>
+      </div>
+    </div>
+
+    <!-- Exercise Types -->
+    <div class="config-section">
+      <h3 class="config-label">Exercise Types <span class="required">*</span></h3>
+      <p class="config-hint">Select one or more types — AI will generate each type from your PDF content.</p>
+      <div class="type-grid">
+        <div
+          *ngFor="let qt of questionTypes"
+          class="type-card"
+          [class.selected]="isTypeSelected(qt.value)"
+          (click)="toggleType(qt.value)"
+        >
+          <div class="type-card-icon" [style.background]="qt.bg" [style.color]="qt.color">
+            <span class="material-icons">{{ qt.icon }}</span>
+          </div>
+          <div class="type-card-body">
+            <div class="type-card-name">{{ qt.label }}</div>
+            <div class="type-card-desc" *ngIf="qt.value === 'mcq'">4 options, 1 correct answer</div>
+            <div class="type-card-desc" *ngIf="qt.value === 'matching'">Match word/phrase pairs</div>
+            <div class="type-card-desc" *ngIf="qt.value === 'fill-blank'">Sentences with ___ gaps</div>
+            <div class="type-card-desc" *ngIf="qt.value === 'pronunciation'">Speak a word aloud</div>
+          </div>
+          <div class="type-card-check" [class.visible]="isTypeSelected(qt.value)">
+            <span class="material-icons">check_circle</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Language & Level -->
+    <div class="config-section">
+      <h3 class="config-label">Language Settings</h3>
+      <div class="config-grid">
+        <div class="config-field">
+          <label>Target Language <span class="required">*</span></label>
+          <select [(ngModel)]="targetLanguage" class="field-select">
+            <option *ngFor="let l of languages" [value]="l">{{ l }}</option>
+          </select>
+        </div>
+        <div class="config-field">
+          <label>Native Language</label>
+          <select [(ngModel)]="nativeLanguage" class="field-select">
+            <option *ngFor="let l of nativeLanguages" [value]="l">{{ l }}</option>
+          </select>
+        </div>
+        <div class="config-field">
+          <label>CEFR Level <span class="required">*</span></label>
+          <div class="level-selector">
+            <button
+              *ngFor="let l of levels"
+              class="level-btn"
+              [class.active]="level === l"
+              [style.background]="level === l ? getLevelColor(l) : ''"
+              [style.color]="level === l ? 'white' : ''"
+              (click)="level = l"
+            >{{ l }}</button>
+          </div>
+        </div>
+        <div class="config-field">
+          <label>Difficulty</label>
+          <select [(ngModel)]="difficulty" class="field-select">
+            <option *ngFor="let d of difficulties" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Number of questions -->
+    <div class="config-section">
+      <h3 class="config-label">Number of Questions</h3>
+      <div class="qty-slider-wrap">
+        <input type="range" min="3" max="100" [(ngModel)]="maxQuestions" class="qty-slider" />
+        <div class="qty-display">
+          <strong>{{ maxQuestions }}</strong> questions
+        </div>
+      </div>
+      <p class="config-hint">AI will generate up to {{ maxQuestions }} questions, distributed across selected types.</p>
+    </div>
+
+    <div class="step-footer">
+      <button class="btn-secondary" (click)="back()">
+        <span class="material-icons">arrow_back</span> Back
+      </button>
+      <button class="btn-primary" (click)="next()" [disabled]="!canProceedFrom(2)">
+        <span class="material-icons">auto_awesome</span> Generate with AI
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 3: Processing                                                       -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="step-panel processing-panel" *ngIf="currentStep === 3">
+
+    <!-- Generating -->
+    <div class="processing-content" *ngIf="generating">
+      <div class="ai-animation">
+        <div class="ai-orbit">
+          <div class="ai-core">
+            <span class="material-icons">auto_awesome</span>
+          </div>
+          <div class="orbit-ring ring1"></div>
+          <div class="orbit-ring ring2"></div>
+          <div class="orbit-dots">
+            <div class="orbit-dot d1"></div>
+            <div class="orbit-dot d2"></div>
+            <div class="orbit-dot d3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="processing-text">
+        <h2>AI is working on your exercises</h2>
+        <p class="status-msg">{{ currentProgressMsg }}</p>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" [style.width]="progressPercent + '%'"></div>
+        </div>
+        <span class="progress-pct">{{ progressPercent | number:'1.0-0' }}%</span>
+      </div>
+
+      <div class="config-summary">
+        <span class="material-icons">description</span> {{ uploadResult?.filename }}
+        &nbsp;·&nbsp;
+        <span *ngFor="let t of selectedTypes; let i = index">{{ getTypeInfo(t).label }}{{ i < selectedTypes.size - 1 ? ', ' : '' }}</span>
+        &nbsp;·&nbsp;
+        {{ level }} · {{ targetLanguage }} · Max {{ maxQuestions }} questions
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="processing-error" *ngIf="!generating && generationError">
+      <span class="material-icons err-icon">error_outline</span>
+      <h2>Generation Failed</h2>
+      <p class="err-msg">{{ generationError }}</p>
+      <div class="error-actions">
+        <button class="btn-secondary" (click)="currentStep = 2">
+          <span class="material-icons">tune</span> Change Settings
+        </button>
+        <button class="btn-primary" (click)="retryGeneration()">
+          <span class="material-icons">refresh</span> Try Again
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- STEP 4: Review & Save                                                    -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <div class="step-panel review-panel" *ngIf="currentStep === 4">
+    <div class="step-header">
+      <div class="step-icon-wrap success-icon-wrap"><span class="material-icons step-icon">check_circle</span></div>
+      <div>
+        <h2>Review &amp; Edit Generated Exercises</h2>
+        <p *ngIf="generationMeta">
+          {{ getContentTypeLabel(generationMeta.contentType) }}
+          · {{ reviewQuestions.length }} question{{ reviewQuestions.length !== 1 ? 's' : '' }} generated
+        </p>
+      </div>
+    </div>
+
+    <!-- Exercise Metadata -->
+    <div class="metadata-section">
+      <div class="meta-field full">
+        <label class="meta-label required">Exercise Title</label>
+        <input type="text" [(ngModel)]="exerciseTitle" class="meta-input" placeholder="e.g. German A1 – Present Tense Practice" />
+      </div>
+      <div class="meta-field full">
+        <label class="meta-label">Description</label>
+        <textarea [(ngModel)]="exerciseDescription" rows="2" class="meta-input" placeholder="What will students practice?"></textarea>
+      </div>
+      <div class="meta-row">
+        <div class="meta-field">
+          <label class="meta-label">Level</label>
+          <div class="level-selector sm">
+            <button *ngFor="let l of levels" class="level-btn" [class.active]="level === l"
+              [style.background]="level === l ? getLevelColor(l) : ''" [style.color]="level === l ? 'white' : ''"
+              (click)="level = l">{{ l }}</button>
+          </div>
+        </div>
+        <div class="meta-field">
+          <label class="meta-label">Language</label>
+          <select [(ngModel)]="targetLanguage" class="meta-select">
+            <option *ngFor="let l of languages" [value]="l">{{ l }}</option>
+          </select>
+        </div>
+        <div class="meta-field">
+          <label class="meta-label">
+            <input type="checkbox" [(ngModel)]="visibleToStudents" />
+            Publish immediately
+          </label>
+          <p class="meta-hint">If unchecked, saved as draft</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions List -->
+    <div class="review-questions">
+      <div class="review-header">
+        <h3>Questions <span class="q-count">{{ reviewQuestions.length }}</span></h3>
+        <div class="review-stats">
+          <span class="valid-count" [class.all-good]="validCount === reviewQuestions.length">
+            <span class="material-icons">{{ validCount === reviewQuestions.length ? 'check_circle' : 'warning' }}</span>
+            {{ validCount }}/{{ reviewQuestions.length }} valid
+          </span>
+          <span class="total-pts">{{ totalPoints }} pts total</span>
+        </div>
+      </div>
+
+      <div class="question-card review-q" *ngFor="let q of reviewQuestions; let i = index" [class.expanded]="q.expanded">
+
+        <!-- Question row header -->
+        <div class="rq-header" (click)="toggleQuestion(i)">
+          <div class="rq-left">
+            <span class="q-num">{{ i + 1 }}</span>
+            <span class="q-type-pill" [style.background]="getTypeInfo(q.type).bg" [style.color]="getTypeInfo(q.type).color">
+              <span class="material-icons">{{ getTypeInfo(q.type).icon }}</span>
+              {{ getTypeInfo(q.type).label }}
+            </span>
+            <span class="ai-badge" *ngIf="q.aiGenerated"><span class="material-icons">auto_awesome</span> AI</span>
+            <span class="q-summary">
+              <ng-container [ngSwitch]="q.type">
+                <span *ngSwitchCase="'mcq'">{{ q.question || '—' }}</span>
+                <span *ngSwitchCase="'matching'">{{ q.pairs?.length }} pairs</span>
+                <span *ngSwitchCase="'fill-blank'">{{ q.sentence || '—' }}</span>
+                <span *ngSwitchCase="'pronunciation'">{{ q.word || '—' }}</span>
+              </ng-container>
+            </span>
+          </div>
+          <div class="rq-right">
+            <span class="q-valid-indicator" [class.valid]="isQuestionValid(q)" [class.invalid]="!isQuestionValid(q)">
+              <span class="material-icons">{{ isQuestionValid(q) ? 'check_circle' : 'warning' }}</span>
+            </span>
+            <button class="btn-move-sm" (click)="$event.stopPropagation(); moveQuestion(i, -1)" [disabled]="i === 0">
+              <span class="material-icons">keyboard_arrow_up</span>
+            </button>
+            <button class="btn-move-sm" (click)="$event.stopPropagation(); moveQuestion(i, 1)" [disabled]="i === reviewQuestions.length - 1">
+              <span class="material-icons">keyboard_arrow_down</span>
+            </button>
+            <button class="btn-del-q" (click)="$event.stopPropagation(); removeQuestion(i)">
+              <span class="material-icons">delete_outline</span>
+            </button>
+            <span class="material-icons expand-chevron">{{ q.expanded ? 'expand_less' : 'expand_more' }}</span>
+          </div>
+        </div>
+
+        <!-- Expanded Editor -->
+        <div class="rq-body" *ngIf="q.expanded">
+          <div class="pts-row">
+            <label>Points:</label>
+            <input type="number" [(ngModel)]="q.points" min="1" max="10" class="pts-input" />
+          </div>
+
+          <!-- MCQ Editor -->
+          <ng-container *ngIf="q.type === 'mcq'">
+            <div class="ed-field">
+              <label>Question</label>
+              <textarea [(ngModel)]="q.question" class="ed-input" rows="2"></textarea>
+            </div>
+            <div class="ed-field">
+              <label>Image URL <span class="opt-label">(optional)</span></label>
+              <input type="text" [(ngModel)]="q.imageUrl" class="ed-input" placeholder="https://..." />
+            </div>
+            <div class="ed-field">
+              <label>Options <span class="hint-label">(click radio to set correct)</span></label>
+              <div class="opt-row" *ngFor="let opt of q.options; let oi = index; trackBy: trackByIndex">
+                <label class="radio-wrap">
+                  <input type="radio" [name]="'correct-'+i" [value]="oi" [(ngModel)]="q.correctAnswerIndex" />
+                </label>
+                <input type="text" [(ngModel)]="q.options![oi]" class="opt-input" [placeholder]="'Option '+(oi+1)" (keydown)="$event.stopPropagation()" />
+                <button class="btn-rm-sm" (click)="removeOption(q, oi)" *ngIf="q.options!.length > 2">
+                  <span class="material-icons">close</span>
+                </button>
+              </div>
+              <button class="btn-add-sm" (click)="addOption(q)" *ngIf="q.options!.length < 6">
+                <span class="material-icons">add</span> Add option
+              </button>
+            </div>
+            <div class="ed-field">
+              <label>Explanation</label>
+              <input type="text" [(ngModel)]="q.explanation" class="ed-input" placeholder="Why is this the correct answer?" />
+            </div>
+          </ng-container>
+
+          <!-- Matching Editor -->
+          <ng-container *ngIf="q.type === 'matching'">
+            <div class="ed-field">
+              <label>Instruction</label>
+              <input type="text" [(ngModel)]="q.instruction" class="ed-input" />
+            </div>
+            <div class="ed-field">
+              <label>Pairs</label>
+              <div class="pair-row" *ngFor="let pair of q.pairs; let pi = index; trackBy: trackByIndex">
+                <input type="text" [(ngModel)]="pair.left" class="pair-input" [placeholder]="'Left '+(pi+1)" (keydown)="$event.stopPropagation()" />
+                <span class="pair-sep">↔</span>
+                <input type="text" [(ngModel)]="pair.right" class="pair-input" [placeholder]="'Right '+(pi+1)" (keydown)="$event.stopPropagation()" />
+                <button class="btn-rm-sm" (click)="removePair(q, pi)"><span class="material-icons">close</span></button>
+              </div>
+              <button class="btn-add-sm" (click)="addPair(q)"><span class="material-icons">add</span> Add pair</button>
+            </div>
+          </ng-container>
+
+          <!-- Fill-blank Editor -->
+          <ng-container *ngIf="q.type === 'fill-blank'">
+            <div class="ed-field">
+              <div class="sentence-label-row">
+                <label>Sentence <span class="hint-label">(use ___ for blanks)</span></label>
+                <button type="button" class="btn-insert-blank" (mousedown)="$event.preventDefault()" (click)="insertBlank(q)"
+                  matTooltip="Insert ___ at cursor or at end">
+                  <span class="material-icons">add_box</span> Insert blank
+                </button>
+              </div>
+              <textarea [(ngModel)]="q.sentence" (ngModelChange)="onSentenceChange(q)" class="ed-input" rows="2"></textarea>
+              <div class="blank-count-badge">{{ getBlankCount(q) }} blank(s)</div>
+            </div>
+            <div class="ed-field" *ngIf="getBlankCount(q) > 0">
+              <label>Answers</label>
+              <div class="ans-row" *ngFor="let ans of q.answers; let ai = index; trackBy: trackByIndex">
+                <span class="blank-num">Blank {{ ai+1 }}</span>
+                <input type="text" [(ngModel)]="q.answers![ai]" class="ans-input" [placeholder]="'Answer '+(ai+1)" (keydown)="$event.stopPropagation()" />
+              </div>
+            </div>
+            <div class="ed-field">
+              <label>Hint <span class="opt-label">(optional)</span></label>
+              <input type="text" [(ngModel)]="q.hint" class="ed-input" placeholder="Grammar tip or vocabulary clue" />
+            </div>
+          </ng-container>
+
+          <!-- Pronunciation Editor -->
+          <ng-container *ngIf="q.type === 'pronunciation'">
+            <div class="ed-row">
+              <div class="ed-field">
+                <label>Word / Phrase</label>
+                <input type="text" [(ngModel)]="q.word" class="ed-input" />
+              </div>
+              <div class="ed-field">
+                <label>Phonetic</label>
+                <input type="text" [(ngModel)]="q.phonetic" class="ed-input" placeholder="/ˈɡuːtən/" />
+              </div>
+            </div>
+            <div class="ed-row">
+              <div class="ed-field">
+                <label>Translation</label>
+                <input type="text" [(ngModel)]="q.translation" class="ed-input" />
+              </div>
+            </div>
+            <div class="ed-field">
+              <label>Accepted Variants</label>
+              <div class="var-row" *ngFor="let v of q.acceptedVariants; let vi = index">
+                <input type="text" [(ngModel)]="q.acceptedVariants![vi]" class="ed-input" placeholder="Alternative form" />
+                <button class="btn-rm-sm" (click)="removeVariant(q, vi)"><span class="material-icons">close</span></button>
+              </div>
+              <button class="btn-add-sm" (click)="addVariant(q)"><span class="material-icons">add</span> Add variant</button>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Add Question -->
+      <div class="add-question-bar">
+        <div class="add-q-label">Add a question manually:</div>
+        <div class="add-q-buttons">
+          <button *ngFor="let qt of questionTypes" class="add-q-btn" (click)="addBlankQuestion(qt.value)"
+            [style.background]="qt.bg" [style.color]="qt.color">
+            <span class="material-icons">{{ qt.icon }}</span> {{ qt.label }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Actions -->
+    <div class="save-bar">
+      <button class="btn-secondary" (click)="back()">
+        <span class="material-icons">arrow_back</span> Back
+      </button>
+      <div class="save-buttons">
+        <button class="btn-save-draft" (click)="saveExercise(false)" [disabled]="saving || !canSave">
+          <span class="material-icons">save</span> Save as Draft
+        </button>
+        <button class="btn-publish" (click)="saveExercise(true)" [disabled]="saving || !canSave">
+          <span class="material-icons">{{ saving ? 'hourglass_empty' : 'publish' }}</span>
+          {{ saving ? 'Saving...' : 'Publish to Students' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
