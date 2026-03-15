@@ -30,7 +30,7 @@ interface User {
   phoneNumber?: string;
   address?: string;
   age?: number;
-  programEnrolled?: string;
+  servicesOpted?: string;
   leadSource?: string;
   languageLevelOpted?: string;
   dateWithdrew?: Date;
@@ -96,7 +96,7 @@ export class AuthService {
     phoneNumber?: string;     // for STUDENT
     address?: string;   // for STUDENT
     age?: number;   // for STUDENT
-    programEnrolled?: string; // for STUDENT
+    servicesOpted?: string; // for STUDENT
     leadSource?: string; // for STUDENT
     languageLevelOpted?: string;
     dateWithdrew?: Date;

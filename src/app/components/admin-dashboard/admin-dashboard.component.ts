@@ -766,7 +766,7 @@ export class AdminDashboardComponent implements OnInit {
         (student as any).phoneNumber || 'N/A',
         (student as any).address || 'N/A',
         (student as any).age || 'N/A',
-        (student as any).programEnrolled || 'N/A',
+        (student as any).servicesOpted || 'N/A',
         (student as any).leadSource || 'N/A',
         teacherName,
         student.registeredAt ? new Date(student.registeredAt).toLocaleDateString() : 'N/A',
