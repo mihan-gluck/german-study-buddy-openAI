@@ -34,7 +34,7 @@ const routes: Routes = [
             StudentRoutingModule,
         ],
   exports: [StudentDashboardComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]   // 👈 allow custom elements like <elevenlabs-convai>
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class StudentDashboardModule {}
 

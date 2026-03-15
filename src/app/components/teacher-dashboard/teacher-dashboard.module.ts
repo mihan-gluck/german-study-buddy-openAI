@@ -39,7 +39,7 @@ const routes: Routes = [
     TeacherNotificationsComponent
     ],
   exports: [],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]   // 👈 allow custom elements like <elevenlabs-convai>
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 
 export class TeacherDashboardModule {}
