@@ -32,6 +32,14 @@
       </li>
 
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
+        <a (click)="navigateTo('/digital-exercises'); closeMenu()"
+           [class.active]="isCurrentRoute('/digital-exercises')">
+          <i class="fas fa-tasks"></i> Digital Exercises
+        </a>
+      </li>
+
+      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/performance-history'); closeMenu()">Performance History</a>
       </li>
 
@@ -65,6 +73,13 @@
         <a (click)="navigateTo('/learning-modules'); closeMenu()">Learning Modules</a>
       </li>
 
+      <li *ngIf="isLoggedIn() && (userRole === 'TEACHER' || userRole === 'TEACHER_ADMIN')">
+        <a (click)="navigateTo('/digital-exercises'); closeMenu()"
+           [class.active]="isCurrentRoute('/digital-exercises')">
+          <i class="fas fa-tasks"></i> Digital Exercises
+        </a>
+      </li>
+
       <!-- Admin Navigation -->
       <li *ngIf="isLoggedIn() && (userRole === 'ADMIN' || userRole === 'TEACHER_ADMIN')">
         <a (click)="navigateTo('/admin-dashboard'); closeMenu()" 
@@ -76,6 +91,12 @@
         <a (click)="navigateTo('/admin-modules'); closeMenu()" 
            [class.active]="isCurrentRoute('/admin-modules')">
           <i class="fas fa-book"></i> Modules
+        </a>
+      </li>
+      <li *ngIf="isLoggedIn() && (userRole === 'ADMIN' || userRole === 'TEACHER_ADMIN')">
+        <a (click)="navigateTo('/admin/digital-exercises'); closeMenu()" 
+           [class.active]="isCurrentRoute('/admin/digital-exercises')">
+          <i class="fas fa-tasks"></i> Digital Exercises
         </a>
       </li>
       <li *ngIf="isLoggedIn() && (userRole === 'ADMIN' || userRole === 'TEACHER_ADMIN')">

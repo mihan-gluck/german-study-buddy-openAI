@@ -45,6 +45,7 @@ const assignmentRoutes = require('./routes/assignments');
 const assignmentTemplatesRoutes = require('./routes/assignmentTemplates');
 const notificationRoutes = require('./routes/notifications');
 const metaLeadsRoutes = require('./routes/metaLeads');
+const digitalExercisesRoutes = require('./routes/digitalExercises');
 
 const gradingRoutes = require("./routes/grading");
 const { gradeAssignment } = require("./services/grading.service");
@@ -138,6 +139,10 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/assignment-templates', assignmentTemplatesRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/meta-leads', metaLeadsRoutes);
+app.use('/api/digital-exercises', digitalExercisesRoutes);
+
+const pdfExerciseGeneratorRoutes = require('./routes/pdfExerciseGenerator');
+app.use('/api/pdf-exercises', pdfExerciseGeneratorRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get("/api/user/profile", auth.verifyToken, async (req, res) => {

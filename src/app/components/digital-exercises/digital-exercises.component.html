@@ -1,0 +1,165 @@
+<!-- digital-exercises.component.html -->
+<div class="exercises-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h1><span class="material-icons">edit_note</span> Digital Exercises</h1>
+      <p>Practice your {{ isTeacherOrAdmin ? 'students\'' : '' }} language skills with interactive exercises</p>
+    </div>
+    <div class="header-actions" *ngIf="isTeacherOrAdmin">
+      <button class="btn-manage" (click)="navigateToAdmin()">
+        <span class="material-icons">settings</span> Manage
+      </button>
+      <button class="btn-create" (click)="navigateToCreate()">
+        <span class="material-icons">add</span> Create Exercise
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-section">
+    <div class="search-wrap">
+      <span class="material-icons search-icon">search</span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search exercises..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+      />
+      <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; onSearchChange()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="filter-chips">
+      <select [(ngModel)]="selectedLevel" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Levels</option>
+        <option *ngFor="let l of levels" [value]="l">{{ l }}</option>
+      </select>
+      <select [(ngModel)]="selectedCategory" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Categories</option>
+        <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+      </select>
+      <select [(ngModel)]="selectedDifficulty" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Difficulties</option>
+        <option *ngFor="let d of difficulties" [value]="d">{{ d }}</option>
+      </select>
+      <button class="clear-filters-btn" *ngIf="hasActiveFilters()" (click)="clearFilters()">
+        <span class="material-icons">filter_alt_off</span> Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Count -->
+  <div class="results-info" *ngIf="!loading && totalExercises > 0">
+    <span>{{ totalExercises }} exercise{{ totalExercises !== 1 ? 's' : '' }} found</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="loading-grid">
+      <div class="skeleton-card" *ngFor="let _ of [1,2,3,4,5,6]"></div>
+    </div>
+  </div>
+
+  <!-- Exercises Grid -->
+  <div class="exercises-grid" *ngIf="!loading && exercises.length > 0">
+    <div class="exercise-card" *ngFor="let ex of exercises">
+
+      <!-- Card Header -->
+      <div class="card-top">
+        <div class="card-badges">
+          <span class="level-badge" [style.background]="getLevelColor(ex.level)">{{ ex.level }}</span>
+          <span class="cat-badge">{{ ex.category }}</span>
+        </div>
+        <div class="card-score" *ngIf="ex.studentAttempt">
+          <span class="score-dot" [class]="getScoreClass(ex.studentAttempt.scorePercentage)"></span>
+          <span class="score-text">{{ ex.studentAttempt.scorePercentage }}%</span>
+        </div>
+        <div class="card-new-badge" *ngIf="!ex.studentAttempt">
+          <span class="new-tag">NEW</span>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <h3 class="card-title">{{ ex.title }}</h3>
+        <p class="card-desc">{{ ex.description }}</p>
+
+        <div class="card-meta">
+          <span class="meta-item">
+            <span class="material-icons">quiz</span>
+            {{ ex.questions?.length || 0 }} questions
+          </span>
+          <span class="meta-item">
+            <span class="material-icons">schedule</span>
+            ~{{ ex.estimatedDuration || 15 }} min
+          </span>
+          <span class="meta-item" *ngIf="ex.difficulty">
+            <span class="material-icons">signal_cellular_alt</span>
+            {{ ex.difficulty }}
+          </span>
+        </div>
+
+        <div class="type-chips">
+          <span class="type-chip chip-mcq" *ngIf="hasType(ex, 'mcq')">❓ MCQ</span>
+          <span class="type-chip chip-matching" *ngIf="hasType(ex, 'matching')">🔗 Match</span>
+          <span class="type-chip chip-fill" *ngIf="hasType(ex, 'fill-blank')">📝 Fill</span>
+          <span class="type-chip chip-pronunciation" *ngIf="hasType(ex, 'pronunciation')">🎤 Speak</span>
+        </div>
+      </div>
+
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <div class="completion-info" *ngIf="ex.studentAttempt">
+          <span class="material-icons done-icon">check_circle</span>
+          <span>Completed · {{ ex.studentAttempt.scorePercentage }}%</span>
+          <button class="btn-retry" (click)="startExercise(ex)">Retry</button>
+        </div>
+        <button class="btn-start" (click)="startExercise(ex)" *ngIf="!ex.studentAttempt">
+          <span class="material-icons">play_arrow</span> Start Exercise
+        </button>
+        <div class="admin-actions" *ngIf="isTeacherOrAdmin">
+          <span class="visibility-indicator" [class.visible]="ex.visibleToStudents">
+            <span class="material-icons">{{ ex.visibleToStudents ? 'visibility' : 'visibility_off' }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && exercises.length === 0">
+    <span class="material-icons empty-icon">search_off</span>
+    <h3>{{ hasActiveFilters() ? 'No exercises match your filters' : 'No exercises yet' }}</h3>
+    <p *ngIf="hasActiveFilters()">Try adjusting or clearing your filters</p>
+    <p *ngIf="!hasActiveFilters() && !isTeacherOrAdmin">Exercises will appear here once your teacher creates them</p>
+    <div *ngIf="!hasActiveFilters() && isTeacherOrAdmin">
+      <p>Get started by creating your first interactive exercise</p>
+      <button class="btn-create" (click)="navigateToCreate()">
+        <span class="material-icons">add</span> Create Exercise
+      </button>
+    </div>
+    <button class="btn-clear-filters" *ngIf="hasActiveFilters()" (click)="clearFilters()">Clear Filters</button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1 && !loading">
+    <button class="page-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="material-icons">chevron_left</span>
+    </button>
+    <div class="page-numbers">
+      <button
+        *ngFor="let p of getPageNumbers()"
+        class="page-num-btn"
+        [class.active]="p === currentPage"
+        (click)="changePage(p)"
+      >{{ p }}</button>
+    </div>
+    <button class="page-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+
+</div>

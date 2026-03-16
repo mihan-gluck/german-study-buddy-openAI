@@ -1,0 +1,406 @@
+<!-- digital-exercise-player.component.html -->
+<div class="player-page">
+
+  <!-- ─── LOADING ─────────────────────────────────────────────────────────── -->
+  <div class="state-centered" *ngIf="state === 'loading'">
+    <div class="spinner"></div>
+    <p>Loading exercise...</p>
+  </div>
+
+  <!-- ─── ERROR ───────────────────────────────────────────────────────────── -->
+  <div class="state-centered" *ngIf="state === 'error'">
+    <span class="material-icons error-icon">error_outline</span>
+    <h3>Exercise not found</h3>
+    <p>This exercise may not be available or the link is incorrect.</p>
+    <button class="btn-primary" (click)="backToExercises()">
+      <span class="material-icons">arrow_back</span> Back to Exercises
+    </button>
+  </div>
+
+  <!-- ─── RESULT (full-page; replaces question view completely after submit) ── -->
+  <div class="result-screen" *ngIf="state === 'submitted' && result">
+    <div class="result-page">
+      <div class="result-card-new">
+        <div class="result-card-inner">
+          <p class="result-exercise-label">{{ exercise?.title }}</p>
+          <h1 class="result-heading">Your Result</h1>
+          <div class="result-score-block">
+            <div class="result-points-big">
+              <span class="points-earned">{{ result.earnedPoints }}</span>
+              <span class="points-sep">/</span>
+              <span class="points-total">{{ result.totalPoints }}</span>
+              <span class="points-label">points</span>
+            </div>
+            <div class="result-percent" [class]="getScoreClass(result.scorePercentage)">
+              {{ result.scorePercentage }}%
+            </div>
+          </div>
+          <div class="result-meta">
+            <span class="result-meta-item">
+              <span class="material-icons">schedule</span>
+              {{ formatTime(elapsedSeconds) }}
+            </span>
+            <span class="result-meta-item" [class.passed]="result.passed" [class.failed]="!result.passed">
+              <span class="material-icons">{{ result.passed ? 'check_circle' : 'cancel' }}</span>
+              {{ result.passed ? 'Passed' : 'Not passed' }}
+            </span>
+          </div>
+          <p class="result-message-sm">{{ getScoreMessage(result.scorePercentage) }}</p>
+          <div class="result-actions-new">
+            <button class="btn-review" (click)="showReviewAnswers()">
+              <span class="material-icons">rate_review</span>
+              Review answers
+            </button>
+            <button class="btn-reattempt" (click)="tryAgain()">
+              <span class="material-icons">replay</span>
+              Re-attempt
+            </button>
+          </div>
+          <button class="result-back-link" (click)="backToExercises()">
+            <span class="material-icons">list</span> Back to all exercises
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── REVIEW (full-page; all answers on one screen) ──────────────────────── -->
+  <div class="review-screen" *ngIf="state === 'review' && result">
+    <div class="review-header">
+      <button class="btn-icon-back" (click)="backToResult()" title="Back to result">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <h1 class="review-title">Review answers</h1>
+      <div class="review-score-bar">
+        Total: <strong>{{ result.earnedPoints }}</strong> / <strong>{{ result.totalPoints }}</strong> points
+        ({{ result.scorePercentage }}%)
+      </div>
+    </div>
+    <div class="review-list">
+      <div class="review-q-block" *ngFor="let pq of playerQuestions; let i = index"
+        [class.correct]="pq.isCorrect === true"
+        [class.wrong]="pq.isCorrect === false">
+        <div class="review-q-head">
+          <span class="review-q-num">Question {{ i + 1 }}</span>
+          <span class="review-q-type-pill" [class]="'pill-' + pq.data.type">
+            {{ getTypeLabel(pq.data.type) }}
+          </span>
+          <span class="review-q-pts">{{ pq.data.points || 1 }} pt</span>
+          <span class="review-q-badge" [class.correct]="pq.isCorrect" [class.wrong]="!pq.isCorrect">
+            <span class="material-icons">{{ pq.isCorrect ? 'check_circle' : 'cancel' }}</span>
+            {{ pq.isCorrect ? 'Correct' : 'Incorrect' }}
+          </span>
+        </div>
+        <div class="review-q-body">
+          <div class="review-q-text" *ngIf="pq.data.type === 'mcq'">{{ pq.data.question }}</div>
+          <div class="review-q-text" *ngIf="pq.data.type === 'matching'">{{ pq.data.instruction }}</div>
+          <div class="review-q-text" *ngIf="pq.data.type === 'fill-blank'">{{ pq.data.sentence }}</div>
+          <div class="review-q-text" *ngIf="pq.data.type === 'pronunciation'">Say: {{ pq.data.word }}</div>
+          <div class="review-answer-row">
+            <span class="review-label">Your answer:</span>
+            <span class="review-value" [class.wrong]="!pq.isCorrect">{{ getReviewAnswerText(pq) }}</span>
+          </div>
+          <div class="review-answer-row" *ngIf="!pq.isCorrect">
+            <span class="review-label">Correct answer:</span>
+            <span class="review-value correct">{{ getReviewCorrectText(pq) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="review-actions">
+      <button class="btn-secondary" (click)="backToResult()">
+        <span class="material-icons">arrow_back</span> Back to result
+      </button>
+      <button class="btn-primary" (click)="backToExercises()">
+        <span class="material-icons">list</span> All Exercises
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── INTRO ───────────────────────────────────────────────────────────── -->
+  <div class="intro-screen" *ngIf="state === 'intro' && exercise">
+    <div class="intro-card">
+      <div class="intro-badges">
+        <span class="level-badge" [style.background]="exerciseService.getLevelColor(exercise.level)">{{ exercise.level }}</span>
+        <span class="cat-badge">{{ exercise.category }}</span>
+        <span class="diff-badge">{{ exercise.difficulty }}</span>
+      </div>
+      <h1 class="intro-title">{{ exercise.title }}</h1>
+      <p class="intro-desc">{{ exercise.description }}</p>
+      <div class="intro-stats">
+        <div class="intro-stat">
+          <span class="material-icons">quiz</span>
+          <div>
+            <strong>{{ playerQuestions.length }}</strong>
+            <span>Questions</span>
+          </div>
+        </div>
+        <div class="intro-stat">
+          <span class="material-icons">schedule</span>
+          <div>
+            <strong>~{{ exercise.estimatedDuration || 15 }} min</strong>
+            <span>Estimated</span>
+          </div>
+        </div>
+        <div class="intro-stat">
+          <span class="material-icons">stars</span>
+          <div>
+            <strong>{{ totalPoints }}</strong>
+            <span>Total Points</span>
+          </div>
+        </div>
+      </div>
+      <div class="intro-types">
+        <span *ngFor="let qt of getQuestionTypes()" class="type-pill" [class]="'pill-' + qt.type">
+          <span class="material-icons">{{ qt.icon }}</span> {{ qt.count }}× {{ qt.label }}
+        </span>
+      </div>
+      <div class="intro-actions">
+        <button class="btn-secondary" (click)="backToExercises()">
+          <span class="material-icons">arrow_back</span> Back
+        </button>
+        <button class="btn-primary btn-start" (click)="startExercise()">
+          <span class="material-icons">play_arrow</span> Start Exercise
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PLAYING (hidden when result/review screen is shown) ───────────────── -->
+  <div class="player-layout" *ngIf="state === 'playing'">
+
+    <!-- Player Header -->
+    <div class="player-header">
+      <button class="btn-icon-back" (click)="backToExercises()" title="Exit exercise">
+        <span class="material-icons">close</span>
+      </button>
+      <div class="header-center">
+        <div class="exercise-title-sm">{{ exercise?.title }}</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" [style.width]="getProgressPercentage() + '%'"></div>
+        </div>
+        <div class="progress-text">{{ answeredCount }} / {{ playerQuestions.length }} answered</div>
+      </div>
+      <div class="timer">
+        <span class="material-icons">timer</span>
+        {{ formatTime(elapsedSeconds) }}
+      </div>
+    </div>
+
+    <!-- Question Navigator (dots) -->
+    <div class="question-nav">
+      <button
+        *ngFor="let pq of playerQuestions; let i = index"
+        class="q-dot"
+        [class.current]="i === currentIndex"
+        [class.answered]="isQuestionAnswered(pq)"
+        [class.correct]="isSubmittedState && pq.isCorrect === true"
+        [class.wrong]="isSubmittedState && pq.isCorrect === false"
+        (click)="goToQuestion(i)"
+        [title]="'Question ' + (i + 1)"
+      >{{ i + 1 }}</button>
+    </div>
+
+    <!-- Question Area -->
+    <div class="question-area" *ngIf="playerQuestions.length > 0">
+      <div class="question-card" [class]="'q-type-' + currentQuestion.data.type">
+
+        <!-- Question Header -->
+        <div class="q-header">
+          <span class="q-num">{{ currentIndex + 1 }} / {{ playerQuestions.length }}</span>
+          <span class="q-type-label" [class]="'label-' + currentQuestion.data.type">
+            <span class="material-icons">{{ getTypeIcon(currentQuestion.data.type) }}</span>
+            {{ getTypeLabel(currentQuestion.data.type) }}
+          </span>
+          <span class="q-points">{{ currentQuestion.data.points || 1 }} pt</span>
+        </div>
+
+        <!-- ── MCQ ── -->
+        <div class="q-body" *ngIf="currentQuestion.data.type === 'mcq'">
+          <p class="q-text">{{ currentQuestion.data.question }}</p>
+          <div class="q-image-wrap" *ngIf="currentQuestion.data.imageUrl">
+            <img [src]="currentQuestion.data.imageUrl" alt="Question image" class="q-image" />
+          </div>
+          <div class="mcq-options">
+            <button
+              *ngFor="let opt of currentQuestion.data.options; let oi = index"
+              class="mcq-option"
+              [class.selected]="currentQuestion.selectedOption === oi"
+              [class.correct]="isSubmittedState && oi === currentQuestion.data.correctAnswerIndex"
+              [class.wrong]="isSubmittedState && currentQuestion.selectedOption === oi && oi !== currentQuestion.data.correctAnswerIndex"
+              [class.disabled]="isSubmittedState"
+              (click)="selectOption(currentQuestion, oi)"
+            >
+              <span class="opt-letter">{{ 'ABCD'[oi] }}</span>
+              <span class="opt-text">{{ opt }}</span>
+              <span class="opt-icon" *ngIf="isSubmittedState">
+                <span class="material-icons" *ngIf="oi === currentQuestion.data.correctAnswerIndex">check_circle</span>
+                <span class="material-icons" *ngIf="currentQuestion.selectedOption === oi && oi !== currentQuestion.data.correctAnswerIndex">cancel</span>
+              </span>
+            </button>
+          </div>
+          <div class="q-explanation" *ngIf="isSubmittedState && currentQuestion.feedback">
+            <span class="material-icons">lightbulb</span>
+            {{ currentQuestion.feedback }}
+          </div>
+        </div>
+
+        <!-- ── MATCHING ── -->
+        <div class="q-body" *ngIf="currentQuestion.data.type === 'matching'">
+          <p class="q-text">{{ currentQuestion.data.instruction }}</p>
+          <div class="matching-container">
+            <div class="matching-col left-col">
+              <div class="matching-col-label">Match these...</div>
+              <button
+                *ngFor="let item of currentQuestion.matchingLeft; let li = index"
+                class="match-item left-item"
+                [class.selected]="currentQuestion.selectedLeftIndex === li"
+                [class.matched]="item.matchedRightIndex !== null"
+                [class.correct]="isSubmittedState && isMatchCorrect(currentQuestion, li)"
+                [class.wrong]="isSubmittedState && !isMatchCorrect(currentQuestion, li)"
+                (click)="selectLeft(currentQuestion, li)"
+              >
+                {{ item.value }}
+                <span class="match-badge" *ngIf="item.matchedRightIndex !== null">✓</span>
+              </button>
+            </div>
+            <div class="matching-connector">
+              <div class="connector-lines">
+                <div *ngFor="let item of currentQuestion.matchingLeft; let li = index" class="connector-dot"></div>
+              </div>
+            </div>
+            <div class="matching-col right-col">
+              <div class="matching-col-label">...with these</div>
+              <button
+                *ngFor="let item of currentQuestion.matchingRight; let ri = index"
+                class="match-item right-item"
+                [class.available]="item.matchedLeftIndex === null && currentQuestion.selectedLeftIndex !== null"
+                [class.matched]="item.matchedLeftIndex !== null"
+                [class.disabled]="item.matchedLeftIndex !== null"
+                (click)="selectRight(currentQuestion, ri)"
+              >
+                {{ item.value }}
+              </button>
+            </div>
+          </div>
+          <div class="matching-hint" *ngIf="currentQuestion.selectedLeftIndex !== null">
+            <span class="material-icons">info</span>
+            Now click the matching item on the right →
+          </div>
+          <div class="matching-reset" *ngIf="!isSubmittedState">
+            <button class="btn-text-sm" (click)="resetMatching(currentQuestion)">
+              <span class="material-icons">refresh</span> Reset matches
+            </button>
+          </div>
+        </div>
+
+        <!-- ── FILL IN THE BLANKS ── -->
+        <div class="q-body fill-blank-body" *ngIf="currentQuestion.data.type === 'fill-blank'">
+          <div class="hint-label" *ngIf="currentQuestion.data.hint">
+            <span class="material-icons">lightbulb</span>
+            Hint: {{ currentQuestion.data.hint }}
+          </div>
+          <div class="sentence-container">
+            <ng-container *ngFor="let part of getSentenceParts(currentQuestion.data.sentence); let pi = index">
+              <span class="sentence-part">{{ part }}</span>
+              <span class="blank-wrap" *ngIf="pi < getSentenceParts(currentQuestion.data.sentence).length - 1">
+                <input
+                  type="text"
+                  class="blank-input"
+                  [(ngModel)]="currentQuestion.fillAnswers![pi]"
+                  [placeholder]="'blank ' + (pi + 1)"
+                  [class.correct]="isSubmittedState && isFillCorrect(currentQuestion, pi)"
+                  [class.wrong]="isSubmittedState && !isFillCorrect(currentQuestion, pi)"
+                  [disabled]="isSubmittedState"
+                />
+                <span class="blank-correct-val" *ngIf="isSubmittedState && !isFillCorrect(currentQuestion, pi)">
+                  → {{ getCorrectFillAnswer(currentQuestion, pi) }}
+                </span>
+              </span>
+            </ng-container>
+          </div>
+          <div class="fill-feedback" *ngIf="isSubmittedState && currentQuestion.feedback">
+            <span class="material-icons">lightbulb</span> {{ currentQuestion.feedback }}
+          </div>
+        </div>
+
+        <!-- ── PRONUNCIATION ── -->
+        <div class="q-body pronunciation-body" *ngIf="currentQuestion.data.type === 'pronunciation'">
+          <div class="pronunciation-word-card">
+            <div class="big-word">{{ currentQuestion.data.word }}</div>
+            <div class="word-phonetic" *ngIf="currentQuestion.data.phonetic">{{ currentQuestion.data.phonetic }}</div>
+            <div class="word-translation" *ngIf="currentQuestion.data.translation">
+              = {{ currentQuestion.data.translation }}
+            </div>
+            <button class="btn-audio" *ngIf="currentQuestion.data.audioUrl" (click)="playAudio(currentQuestion.data.audioUrl)">
+              <span class="material-icons">volume_up</span> Listen
+            </button>
+          </div>
+
+          <div class="pronunciation-controls">
+            <button
+              class="btn-record"
+              [class.recording]="currentQuestion.isRecording"
+              [class.has-result]="currentQuestion.hasRecorded"
+              (click)="currentQuestion.isRecording ? stopRecording(currentQuestion) : startRecording(currentQuestion)"
+              [disabled]="isSubmittedState"
+            >
+              <span class="material-icons">{{ currentQuestion.isRecording ? 'stop' : 'mic' }}</span>
+              <span>{{ currentQuestion.isRecording ? 'Stop' : (currentQuestion.hasRecorded ? 'Re-record' : 'Speak') }}</span>
+            </button>
+          </div>
+
+          <div class="pronunciation-result" *ngIf="currentQuestion.hasRecorded || isSubmittedState">
+            <div class="spoken-text">
+              <span class="material-icons">record_voice_over</span>
+              You said: "<em>{{ currentQuestion.spokenText || '—' }}</em>"
+            </div>
+            <div class="score-circle" [class]="getPronunciationClass(currentQuestion.pronunciationScore || 0)">
+              <div class="score-value">{{ currentQuestion.pronunciationScore || 0 }}%</div>
+              <div class="score-label">Match</div>
+            </div>
+            <div class="pronunciation-feedback">{{ getPronunciationFeedback(currentQuestion.pronunciationScore || 0) }}</div>
+          </div>
+
+          <div class="speech-not-supported" *ngIf="!speechSupported">
+            <span class="material-icons">warning</span>
+            Speech recognition is not supported in this browser.
+            Please use Chrome or Edge for pronunciation exercises.
+          </div>
+        </div>
+
+        <!-- Result Banner -->
+        <div class="result-banner" *ngIf="isSubmittedState && currentQuestion.isCorrect !== null">
+          <div class="result-correct" *ngIf="currentQuestion.isCorrect">
+            <span class="material-icons">check_circle</span> Correct! +{{ currentQuestion.data.points || 1 }} point{{ currentQuestion.data.points !== 1 ? 's' : '' }}
+          </div>
+          <div class="result-wrong" *ngIf="!currentQuestion.isCorrect">
+            <span class="material-icons">cancel</span> Incorrect
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="question-nav-btns">
+        <button class="btn-nav prev" (click)="prevQuestion()" [disabled]="isFirstQuestion">
+          <span class="material-icons">arrow_back</span> Previous
+        </button>
+        <button
+          class="btn-submit"
+          *ngIf="!isSubmittedState"
+          (click)="submitExercise()"
+          [disabled]="submitting"
+        >
+          <span class="material-icons">{{ submitting ? 'hourglass_empty' : 'send' }}</span>
+          {{ submitting ? 'Submitting...' : 'Submit' }}
+        </button>
+        <button class="btn-nav next" (click)="nextQuestion()" [disabled]="isLastQuestion">
+          Next <span class="material-icons">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
