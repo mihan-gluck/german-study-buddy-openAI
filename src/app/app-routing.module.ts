@@ -45,17 +45,6 @@ export const routes: Routes = [
     data: { role: 'STUDENT' }
   },
 
-  // student exams and assignments routes handled in student-dashboard routing module
-  {
-    path: 'student-exams',
-    loadComponent: () =>
-      import('./components/student-exams/student-exams.component')
-        .then(m => m.StudentExamsComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'STUDENT' }
-  },
-
-
   // Admin dashboard route with RoleGuard
   {
     path: 'admin-dashboard',
