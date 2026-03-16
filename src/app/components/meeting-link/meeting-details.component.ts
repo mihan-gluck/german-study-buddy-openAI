@@ -78,9 +78,11 @@ export class MeetingDetailsComponent implements OnInit {
   }
 
   joinMeeting(): void {
-    if (this.meeting?.startUrl) {
-      // Open Zoom meeting in new tab
-      window.open(this.meeting.startUrl, '_blank');
+    // Use joinUrl instead of startUrl to avoid "meeting already in progress" conflict
+    // when the Zoom desktop app is logged into a different host account
+    const url = this.meeting?.joinUrl || this.meeting?.startUrl;
+    if (url) {
+      window.open(url, '_blank');
     }
   }
 

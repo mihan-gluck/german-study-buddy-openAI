@@ -116,8 +116,9 @@ export class MeetingsListComponent implements OnInit {
 
   joinMeeting(meeting: any, event: Event): void {
     event.stopPropagation();
-    if (meeting.startUrl) {
-      window.open(meeting.startUrl, '_blank');
+    const url = meeting.joinUrl || meeting.startUrl;
+    if (url) {
+      window.open(url, '_blank');
     }
   }
 

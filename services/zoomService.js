@@ -37,6 +37,18 @@ class ZoomService {
 
     for (const user of users) {
       try {
+        // Check for currently LIVE meetings on this host
+        const liveRes = await axios.get(`${zoomConfig.apiBaseUrl}/users/${user.id}/meetings`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          params: { type: 'live', page_size: 100 }
+        });
+        const liveMeetings = liveRes.data.meetings || [];
+        if (liveMeetings.length > 0) {
+          console.log(`⏳ ${user.email} has ${liveMeetings.length} live meeting(s), skipping...`);
+          continue;
+        }
+
+        // Check for upcoming scheduled meeting conflicts
         const res = await axios.get(`${zoomConfig.apiBaseUrl}/users/${user.id}/meetings`, {
           headers: { 'Authorization': `Bearer ${token}` },
           params: { type: 'upcoming', page_size: 100 }
