@@ -32,10 +32,6 @@
       </li>
 
       <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
-        <a (click)="navigateTo('/student-progress'); closeMenu()">My Progress</a>
-      </li>
-
-      <li *ngIf="isLoggedIn() && userRole === 'STUDENT'">
         <a (click)="navigateTo('/performance-history'); closeMenu()">Performance History</a>
       </li>
 
