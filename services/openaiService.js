@@ -27,9 +27,9 @@ class OpenAIService {
       // Adjust max_tokens based on CEFR level to enforce shorter responses for beginners
       const levelMaxTokens = {
         'A1': 150,
-        'A2': 250,
-        'B1': 400,
-        'B2': 600,
+        'A2': 200,
+        'B1': 300,
+        'B2': 400,
         'C1': 800,
         'C2': 800
       };
