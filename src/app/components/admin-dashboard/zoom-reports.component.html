@@ -3,13 +3,13 @@
 <div class="zoom-reports-container">
   <!-- Header -->
   <div class="header">
-    <h1>Zoom Meeting Reports</h1>
+    <h1>{{ isTeacherRole ? 'My Class Attendance' : 'Zoom Meeting Reports' }}</h1>
     <div class="header-actions">
       <button mat-raised-button color="primary" (click)="exportToCSV()">
         <mat-icon>download</mat-icon>
         Export CSV
       </button>
-      <button mat-raised-button color="accent" (click)="exportTeacherReport()">
+      <button mat-raised-button color="accent" (click)="exportTeacherReport()" *ngIf="!isTeacherRole">
         <mat-icon>assessment</mat-icon>
         Teacher Report
       </button>
@@ -22,7 +22,7 @@
       <mat-icon class="stat-icon">event</mat-icon>
       <div class="stat-content">
         <h3>{{ stats.totalMeetings }}</h3>
-        <p>Total Meetings</p>
+        <p>Total Classes</p>
       </div>
     </mat-card>
 
@@ -53,6 +53,13 @@
 
   <!-- Filters -->
   <mat-card class="filters-card">
+    <div class="filters-header">
+      <span>Filters</span>
+      <button mat-button color="warn" (click)="clearFilters()" class="clear-filters-btn">
+        <mat-icon>clear</mat-icon>
+        Clear Filters
+      </button>
+    </div>
     <div class="filters">
       <mat-form-field appearance="outline">
         <mat-label>Search</mat-label>
@@ -61,7 +68,7 @@
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" *ngIf="!isTeacherRole">
         <mat-label>Teacher</mat-label>
         <mat-select [(ngModel)]="teacherFilter" (ngModelChange)="onFilterChange()">
           <mat-option value="all">All Teachers</mat-option>
@@ -88,7 +95,22 @@
           <mat-option value="today">Today</mat-option>
           <mat-option value="week">Last 7 Days</mat-option>
           <mat-option value="month">Last 30 Days</mat-option>
+          <mat-option value="custom">Custom</mat-option>
         </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" *ngIf="dateFilter === 'custom'">
+        <mat-label>From</mat-label>
+        <input matInput [matDatepicker]="fromPicker" [(ngModel)]="customDateFrom" (dateChange)="onFilterChange()">
+        <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" *ngIf="dateFilter === 'custom'">
+        <mat-label>To</mat-label>
+        <input matInput [matDatepicker]="toPicker" [(ngModel)]="customDateTo" (dateChange)="onFilterChange()">
+        <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
       </mat-form-field>
     </div>
   </mat-card>
@@ -213,6 +235,10 @@
                     matTooltip="View Engagement"
                     style="color: #9c27b0;">
               <mat-icon>videocam</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteMeeting(meeting._id, meeting.topic)" 
+                    matTooltip="Delete Class">
+              <mat-icon>delete</mat-icon>
             </button>
           </div>
         </td>

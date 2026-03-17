@@ -1,329 +1,224 @@
-/* =============================
-   Admin Dashboard Styling
-============================= */
-
+/* Teacher Dashboard — matches admin-dashboard layout */
 :host {
   display: block;
-  background-color: #f4f4f4;
-  padding: 20px;
-  font-family: 'Roboto', sans-serif;
-  color: #000;
-  box-sizing: border-box;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 80px);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ====== Headings ====== */
-h2, h3 {
-  color: #405980;
-  margin-bottom: 10px;
-  font-weight: 600;
+/* ====== Header Section ====== */
+.teacher-header {
+  background: linear-gradient(135deg, #065f46 0%, #059669 100%);
+  color: white;
+  padding: 1.25rem 0;
+  margin-bottom: 0;
 }
 
-/* ====== Filters Section ====== */
-.filters {
+.teacher-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
-  justify-content: flex-end;
   align-items: center;
+  gap: 0.75rem;
 }
 
-.filters input,
-.filters select {
-  padding: 8px 14px;
-  border: 1px solid #ccc;
-  border-radius: 25px;
-  background: #fff;
-  font-size: 14px;
-  min-width: 150px;
-  transition: all 0.2s ease-in-out;
-  outline: none;
+.teacher-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 0;
 }
 
-.filters input:hover,
-.filters select:hover,
-.filters input:focus,
-.filters select:focus {
-  border-color: #7b5fff;
-  box-shadow: 0 0 6px rgba(123, 95, 255, 0.3);
-  background-color: #f9f9ff;
-}
-
-.filters input::placeholder {
-  color: #999;
-  font-style: italic;
-}
-
-/* ====== Add User Section ====== */
-.add-user {
+.teacher-stats-quick {
   display: flex;
   justify-content: flex-end;
-  padding: 10px 0;
-  flex-wrap: wrap;
+  gap: 2rem;
 }
 
-.add-user button {
-  background-color: #405980;
-  color: white;
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+/* ====== Main Content ====== */
+.teacher-content {
+  padding: 1.25rem 0;
+}
+
+/* ====== Action Bar ====== */
+.action-bar {
+  margin-bottom: 1.25rem;
+}
+
+.action-bar .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ====== Filters Card ====== */
+.filters-card {
+  margin-bottom: 1rem;
+}
+
+.filters-card .card {
   border: none;
-  padding: 8px 14px;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 10px;
-  margin-top: 5px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-radius: 12px;
 }
 
-.add-user button:hover {
-  background-color: #2f4362;
+.filters-card .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  border-radius: 12px 12px 0 0 !important;
+  padding: 0.75rem 1.25rem;
 }
 
-/* ====== Bulk Assignment & Reset Buttons ====== */
-.bulk-assign,
-.reset-usage {
-  margin-bottom: 15px;
+.filters-card .card-header h5 {
+  color: #495057;
+  font-weight: 600;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.bulk-assign input {
-  margin-right: 5px;
-  flex: 1 1 auto;
-  min-width: 120px;
-}
-
-.bulk-assign button,
-.reset-usage button {
-  background-color: #405980;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s ease;
-}
-
-.bulk-assign button:hover,
-.reset-usage button:hover {
-  background-color: #2f4362;
-}
-
-/* ====== Students Table ====== */
-.students-table-container {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.students-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.students-table th {
-  background-color: #405980;
-  color: white;
-  padding: 10px;
-  text-align: left;
+.filters-card .form-label {
   font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
 }
 
-.students-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #ddd;
-  vertical-align: top;
+.filters-card .form-select,
+.filters-card .form-control {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
 }
 
-.students-table tr:hover {
-  background-color: #f1f1f1;
+.filters-card .form-select:focus,
+.filters-card .form-control:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25);
 }
 
-.students-table td button {
-  background-color: #405980;
-  color: white;
+/* ====== Results Summary ====== */
+.results-summary {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.results-count {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.results-text {
+  color: #6c757d;
+  margin-left: 0.5rem;
+}
+
+/* ====== Data Table ====== */
+.data-table-card .card {
   border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.students-table td button:hover {
-  background-color: #2f4362;
-}
-
-.students-table input[type="text"] {
-  width: 100%;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* ====== Progress Bar ====== */
-.progress-bar-container {
-  background-color: #f4f4f4;
-  border-radius: 4px;
-  height: 8px;
-  width: 100%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-radius: 12px;
   overflow: hidden;
 }
 
-.progress-bar-fill {
-  background-color: #405980;
-  height: 100%;
-  transition: width 0.3s ease-in-out;
+.table {
+  margin-bottom: 0;
 }
 
-/* ====== Feedback Section ====== */
-.feedback-section {
-  margin-top: 20px;
-  background: white;
-  padding: 15px;
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  overflow-x: auto;
-}
-
-.feedback-section table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.feedback-section th {
-  background-color: #405980;
+.table thead th {
+  background: #495057;
   color: white;
-  padding: 8px;
+  font-weight: 600;
+  border: none;
+  padding: 0.75rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.feedback-section td {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
+.table tbody td {
+  padding: 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f3f4;
+  font-size: 0.85rem;
 }
 
-/* ====== Responsive Adjustments ====== */
-@media (max-width: 1024px) {
-  .filters, .add-user, .bulk-assign, .reset-usage {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .filters input,
-  .filters select,
-  .bulk-assign input {
-    min-width: 100px;
-    margin-bottom: 5px;
-  }
+.table tbody tr:hover {
+  background-color: #f8f9fa;
 }
 
+/* ====== Table Content Styling ====== */
+.reg-number {
+  font-weight: 600;
+  color: #495057;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #212529;
+}
+
+.student-email {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+/* ====== Responsive ====== */
 @media (max-width: 768px) {
-  :host {
-    padding: 10px;
-  }
-
-  .filters, .add-user, .bulk-assign, .reset-usage {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .students-table-container, .feedback-section {
-    overflow-x: auto;
-  }
-
-  .students-table,
-  .students-table thead,
-  .students-table tbody,
-  .students-table th,
-  .students-table td,
-  .students-table tr {
-    display: block;
-    width: 100%;
-  }
-
-  .students-table thead {
-    display: none;
-  }
-
-  .students-table tr {
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-
-  .students-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 6px;
-    border: none;
-    border-bottom: 1px solid #eee;
-    font-size: 14px;
-  }
-
-  .students-table td:last-child {
-    border-bottom: none;
-  }
-
-  .students-table td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #405980;
-    flex: 1;
-    text-align: left;
-    padding-right: 10px;
-  }
-
-  .students-table td span {
-    flex: 2;
-    text-align: right;
-  }
+  .teacher-header { padding: 1.5rem 0; }
+  .teacher-title { font-size: 1.75rem; }
+  .teacher-stats-quick { justify-content: center; margin-top: 1rem; }
+  .action-bar .row { text-align: center; }
 }
 
-@media (max-width: 480px) {
-  h2, h3 {
-    font-size: 16px;
-  }
-
-  .filters input, .filters select, .bulk-assign input {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-
-  .add-user button,
-  .bulk-assign button,
-  .reset-usage button {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-
-  .students-table td {
-    font-size: 12px;
-  }
+@media (max-width: 576px) {
+  .teacher-content { padding: 1rem 0; }
+  .results-summary { text-align: center; }
 }
 
-/* Add extra bottom spacing for mobile so buttons are not hidden */
-@media (max-width: 768px) {
-  .students-table-container {
-    margin-bottom: 80px; /* adjust depending on footer height */
-  }
-}
-
-/* ====== Angular Material Overrides ====== */
-.mat-form-field {
-  background: white;
-  padding: 0 4px;
-  border-radius: 4px;
-}
-
-.mat-raised-button {
-  background-color: #405980 !important;
-  color: white !important;
-}
-
-.mat-raised-button:hover {
-  background-color: #2f4362 !important;
-}
+/* ====== Transitions ====== */
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important; }
+.btn { transition: all 0.2s ease; }
+.table tbody tr { transition: background-color 0.2s ease; }

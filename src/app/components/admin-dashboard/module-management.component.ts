@@ -3,7 +3,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { LearningModulesService } from '../../services/learning-modules.service';
 import { ModuleTrashService } from '../../services/module-trash.service';
 
@@ -78,6 +78,10 @@ interface ModuleWithStats {
                 <button class="btn btn-primary btn-add-module" routerLink="/learning-modules">
                   <i class="fas fa-plus"></i>
                   Create New Module
+                </button>
+                <button class="btn btn-trash-module" routerLink="/admin-trash">
+                  <i class="fas fa-trash"></i>
+                  Trash
                 </button>
               </div>
               <div class="col-md-6 text-end">
@@ -237,6 +241,9 @@ interface ModuleWithStats {
                                     [title]="module.visibleToStudents ? 'Hide from students' : 'Show to students'">
                               <i class="fas" [class]="module.visibleToStudents ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
+                            <button class="btn btn-sm btn-outline-success me-1" (click)="testModule(module)" title="Test Module">
+                              <i class="fas fa-play-circle"></i>
+                            </button>
                             <button class="btn btn-sm btn-outline-info me-1" (click)="viewHistory(module._id)" title="View History">
                               <i class="fas fa-history"></i>
                             </button>
@@ -393,6 +400,24 @@ interface ModuleWithStats {
     .btn-add-module:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+      color: white;
+    }
+
+    .btn-trash-module {
+      background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      margin-left: 0.75rem;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-trash-module:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
       color: white;
     }
 
@@ -705,7 +730,8 @@ export class ModuleManagementComponent implements OnInit {
 
   constructor(
     private learningModulesService: LearningModulesService,
-    private moduleTrashService: ModuleTrashService
+    private moduleTrashService: ModuleTrashService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -822,6 +848,25 @@ export class ModuleManagementComponent implements OnInit {
         error: (error) => {
           console.error(`Error toggling module visibility:`, error);
           alert(`Failed to update module visibility`);
+        }
+      });
+    }
+  }
+
+  // Test module directly via AI tutor chat
+  testModule(module: ModuleWithStats): void {
+    const confirmTest = confirm(
+      `🧪 Test Module: "${module.title}"\n\n` +
+      `This will start the AI tutoring session for this module, allowing you to experience it as a student would.\n\n` +
+      `Continue with testing?`
+    );
+
+    if (confirmTest) {
+      this.router.navigate(['/ai-tutor-chat'], {
+        queryParams: {
+          moduleId: module._id,
+          sessionType: 'teacher-test',
+          testMode: 'true'
         }
       });
     }
