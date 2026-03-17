@@ -18,7 +18,6 @@ import {
 } from '../../../services/admin-analytics.service';
 import { LearningModulesService } from '../../../services/learning-modules.service';
 import { TeacherService } from '../../../services/teacher.service';
-import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-admin-analytics',
@@ -127,10 +126,6 @@ export class AdminAnalyticsComponent implements OnInit {
   showConversationView = false;
   selectedSessionConversation: any = null;
   conversationMessages: any[] = [];
-
-  // Current user info for teacher filtering
-  currentUserRole = '';
-  currentUserId = '';
   
   // AI Usage Charts
   studentEngagementChart: ChartConfiguration<'bar'>['data'] | null = null;
@@ -145,35 +140,15 @@ export class AdminAnalyticsComponent implements OnInit {
   constructor(
     private adminAnalyticsService: AdminAnalyticsService,
     private learningModulesService: LearningModulesService,
-    private teacherService: TeacherService,
-    private authService: AuthService
+    private teacherService: TeacherService
   ) {
     this.initializeChartOptions();
   }
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        this.currentUserRole = user.role || '';
-        this.currentUserId = user._id || '';
-
-        // Auto-set teacherId filter for teacher role
-        if (this.isTeacherRole) {
-          this.moduleUsageFilters.teacherId = this.currentUserId;
-          this.teacherPerformanceFilters.teacherId = this.currentUserId;
-          this.detailedUsageFilters.teacherId = this.currentUserId;
-        }
-
-        // Load data after user info is available
-        this.loadFilterOptions();
-        this.loadAIUsageData();
-        this.initializeAutocomplete();
-      }
-    });
-  }
-
-  get isTeacherRole(): boolean {
-    return this.currentUserRole === 'TEACHER';
+    this.loadFilterOptions();
+    this.loadAIUsageData(); // Load AI Usage by default since it's the first tab
+    this.initializeAutocomplete();
   }
 
   initializeAutocomplete(): void {
@@ -347,7 +322,7 @@ export class AdminAnalyticsComponent implements OnInit {
   clearModuleUsageFilters(): void {
     this.moduleUsageFilters = {
       moduleId: '',
-      teacherId: this.isTeacherRole ? this.currentUserId : '',
+      teacherId: '',
       batch: '',
       level: '',
       dateFrom: '',
@@ -360,7 +335,7 @@ export class AdminAnalyticsComponent implements OnInit {
 
   clearTeacherPerformanceFilters(): void {
     this.teacherPerformanceFilters = {
-      teacherId: this.isTeacherRole ? this.currentUserId : '',
+      teacherId: '',
       batch: '',
       dateFrom: '',
       dateTo: ''
@@ -372,7 +347,7 @@ export class AdminAnalyticsComponent implements OnInit {
     this.detailedUsageFilters = {
       moduleId: '',
       studentId: '',
-      teacherId: this.isTeacherRole ? this.currentUserId : '',
+      teacherId: '',
       batch: ''
     };
     this.loadDetailedUsage();
@@ -727,7 +702,6 @@ export class AdminAnalyticsComponent implements OnInit {
         groupBy: 'student',
         studentsOnly: 'true'
       };
-      if (this.moduleUsageFilters.teacherId) filters.teacherId = this.moduleUsageFilters.teacherId;
       if (this.moduleUsageFilters.batch) filters.batch = this.moduleUsageFilters.batch;
       if (this.moduleUsageFilters.level) filters.level = this.moduleUsageFilters.level;
       if (this.moduleUsageFilters.dateFrom) filters.dateFrom = this.moduleUsageFilters.dateFrom;

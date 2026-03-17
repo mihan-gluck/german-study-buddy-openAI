@@ -7,9 +7,9 @@
         <div class="col-md-8">
           <h1 class="admin-title">
             <i class="fas fa-chart-bar"></i>
-            {{ isTeacherRole ? 'AI Bot Report' : 'Analytics Dashboard' }}
+            Analytics Dashboard
           </h1>
-          <p class="admin-subtitle">{{ isTeacherRole ? 'Insights into your students\' learning activity' : 'Comprehensive insights into student learning and teacher performance' }}</p>
+          <p class="admin-subtitle">Comprehensive insights into student learning and teacher performance</p>
         </div>
         <div class="col-md-4 text-end">
           <div class="admin-stats-quick">
@@ -43,7 +43,7 @@
         <i class="fas fa-book"></i> Module Usage
       </button>
     </li>
-    <li class="nav-item" *ngIf="!isTeacherRole">
+    <li class="nav-item">
       <button class="nav-link" 
               [class.active]="activeTab === 'teacher-performance'"
               (click)="setActiveTab('teacher-performance')">
@@ -106,7 +106,7 @@
             </option>
           </select>
         </div>
-        <div class="col-md-2" *ngIf="!isTeacherRole">
+        <div class="col-md-2">
           <label class="form-label">Teacher</label>
           <select class="form-select form-select-sm" [(ngModel)]="moduleUsageFilters.teacherId">
             <option value="">All Teachers</option>

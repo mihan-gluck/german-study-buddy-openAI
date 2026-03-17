@@ -6,12 +6,18 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TeacherService } from '../../services/teacher.service';
 import { AuthService } from '../../services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { TeacherAssignmentsComponent } from '../teacher-assignments/teacher-assignments.component';
+import { TeacherNotificationsComponent } from '../teacher-notifications/teacher-notifications.component';
+import { TeacherAssignmentTemplatesComponent } from '../teacher-assignment-templates/teacher-assignment-templates.component';
 
 
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TeacherAssignmentsComponent, TeacherNotificationsComponent, TeacherAssignmentTemplatesComponent],
   templateUrl: './teacher-dashboard.component.html',
   styleUrls: ['./teacher-dashboard.component.css']
 })
@@ -22,7 +28,6 @@ export class TeacherDashboardComponent implements OnInit {
   currentUser: any = null;
 
   filters: any = {
-    name: '',
     level: '',
     plan: '',
     batch: null
@@ -70,10 +75,8 @@ export class TeacherDashboardComponent implements OnInit {
 
   // ✅ Apply filters for Level, Plan, and Batch
   applyFilters(): void {
-    const nameFilter = (this.filters.name || '').toLowerCase();
     this.filteredStudents = this.students.filter(student => {
       return (
-        (!nameFilter || student.name?.toLowerCase().includes(nameFilter)) &&
         (!this.filters.level || student.level === this.filters.level) &&
         (!this.filters.plan || student.subscription === this.filters.plan.toUpperCase()) &&
         (!this.filters.batch || +student.batch === +this.filters.batch)
@@ -84,21 +87,5 @@ export class TeacherDashboardComponent implements OnInit {
   // ✅ For *ngFor trackBy
   trackById(index: number, student: any): string {
     return student._id;
-  }
-
-  // Clear all filters
-  clearFilters(): void {
-    this.filters = { name: '', level: '', plan: '', batch: null };
-    this.applyFilters();
-  }
-
-  // Format date for display
-  formatDate(date: string | Date | null | undefined): string {
-    if (!date) return 'Never';
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
   }
 }

@@ -78,7 +78,7 @@ export const routes: Routes = [
     loadComponent: () => import('./components/admin-dashboard/admin-analytics/admin-analytics.component')
       .then(m => m.AdminAnalyticsComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { role: ['ADMIN', 'TEACHER_ADMIN', 'TEACHER'] }
+    data: { role: ['ADMIN', 'TEACHER_ADMIN'] }
   },
 
   // ✅ NEW: AI Usage Analytics route
@@ -153,7 +153,7 @@ export const routes: Routes = [
   { path: 'student/meetings', loadComponent: () => import('./components/meeting-link/student-meetings.component').then(m => m.StudentMeetingsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
   // Admin Zoom Reports
-  { path: 'admin/zoom-reports', loadComponent: () => import('./components/admin-dashboard/zoom-reports.component').then(m => m.ZoomReportsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN', 'TEACHER'] } },
+  { path: 'admin/zoom-reports', loadComponent: () => import('./components/admin-dashboard/zoom-reports.component').then(m => m.ZoomReportsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
   { path: 'course-materials', loadComponent: () => import('./components/course-material/course-material-upload.component').then(m => m.UploadCourseMaterialComponent), canActivate: [AuthGuard, RoleGuard], data: {role: ['ADMIN', 'TEACHER_ADMIN']} },
 
