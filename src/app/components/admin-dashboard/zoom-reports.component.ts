@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../shared/material.module';
 import { ZoomService } from '../../services/zoom.service';
+import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 
 interface MeetingReport {
@@ -50,7 +51,9 @@ export class ZoomReportsComponent implements OnInit {
   // Filters
   teacherFilter = 'all';
   batchFilter = 'all';
-  dateFilter = 'all'; // all, today, week, month
+  dateFilter = 'all'; // all, today, week, month, custom
+  customDateFrom: Date | null = null;
+  customDateTo: Date | null = null;
   searchQuery = '';
   
   // Statistics
@@ -62,6 +65,9 @@ export class ZoomReportsComponent implements OnInit {
     totalDuration: 0
   };
   
+  // Role
+  isTeacherRole = false;
+
   // Table columns
   displayedColumns: string[] = [
     'date',
@@ -76,11 +82,20 @@ export class ZoomReportsComponent implements OnInit {
 
   constructor(
     private zoomService: ZoomService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadCompletedMeetings();
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.isTeacherRole = user.role === 'TEACHER';
+        if (this.isTeacherRole) {
+          this.displayedColumns = this.displayedColumns.filter(col => col !== 'teacher' && col !== 'actions');
+        }
+        this.loadCompletedMeetings();
+      }
+    });
   }
 
   loadCompletedMeetings(): void {
@@ -154,16 +169,26 @@ export class ZoomReportsComponent implements OnInit {
       return;
     }
 
-    const totalAttended = this.completedMeetings.reduce((sum, m) => sum + m.attended, 0);
-    const totalStudents = this.completedMeetings.reduce((sum, m) => sum + m.attendees, 0);
+    // Count unique students across all completed meetings
+    const uniqueStudentIds = new Set<string>();
+    const completedMeetingIds = new Set(this.completedMeetings.map(m => m._id));
+    this.allMeetings
+      .filter(m => completedMeetingIds.has(m._id))
+      .forEach(meeting => {
+        meeting.attendees?.forEach((a: any) => {
+          const id = a.studentId?._id || a.studentId;
+          if (id) uniqueStudentIds.add(id.toString());
+        });
+      });
+
     const totalDuration = this.completedMeetings.reduce((sum, m) => sum + m.duration, 0);
     const avgAttendanceRate = this.completedMeetings.reduce((sum, m) => sum + m.attendanceRate, 0) / this.completedMeetings.length;
 
     this.stats = {
       totalMeetings: this.completedMeetings.length,
-      totalStudents: totalStudents,
+      totalStudents: uniqueStudentIds.size,
       avgAttendance: Math.round(avgAttendanceRate),
-      avgCameraOn: 0, // Can be calculated from engagement data
+      avgCameraOn: 0,
       totalDuration: totalDuration
     };
   }
@@ -199,6 +224,17 @@ export class ZoomReportsComponent implements OnInit {
           if (meetingDate < monthAgo) {
             return false;
           }
+        } else if (this.dateFilter === 'custom') {
+          if (this.customDateFrom) {
+            const from = new Date(this.customDateFrom);
+            from.setHours(0, 0, 0, 0);
+            if (meetingDate < from) return false;
+          }
+          if (this.customDateTo) {
+            const to = new Date(this.customDateTo);
+            to.setHours(23, 59, 59, 999);
+            if (meetingDate > to) return false;
+          }
         }
       }
 
@@ -214,9 +250,50 @@ export class ZoomReportsComponent implements OnInit {
 
       return true;
     });
+
+    this.recalculateStats();
+  }
+
+  recalculateStats(): void {
+    if (this.filteredMeetings.length === 0) {
+      this.stats = { totalMeetings: 0, totalStudents: 0, avgAttendance: 0, avgCameraOn: 0, totalDuration: 0 };
+      return;
+    }
+
+    const filteredIds = new Set(this.filteredMeetings.map(m => m._id));
+    const uniqueStudentIds = new Set<string>();
+    this.allMeetings
+      .filter(m => filteredIds.has(m._id))
+      .forEach(meeting => {
+        meeting.attendees?.forEach((a: any) => {
+          const id = a.studentId?._id || a.studentId;
+          if (id) uniqueStudentIds.add(id.toString());
+        });
+      });
+
+    const totalDuration = this.filteredMeetings.reduce((sum, m) => sum + m.duration, 0);
+    const avgAttendanceRate = this.filteredMeetings.reduce((sum, m) => sum + m.attendanceRate, 0) / this.filteredMeetings.length;
+
+    this.stats = {
+      totalMeetings: this.filteredMeetings.length,
+      totalStudents: uniqueStudentIds.size,
+      avgAttendance: Math.round(avgAttendanceRate),
+      avgCameraOn: 0,
+      totalDuration: totalDuration
+    };
   }
 
   onFilterChange(): void {
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.teacherFilter = 'all';
+    this.batchFilter = 'all';
+    this.dateFilter = 'all';
+    this.customDateFrom = null;
+    this.customDateTo = null;
     this.applyFilters();
   }
 
@@ -265,6 +342,23 @@ export class ZoomReportsComponent implements OnInit {
     if (rate >= 80) return 'success';
     if (rate >= 60) return 'warning';
     return 'danger';
+  }
+
+  deleteMeeting(meetingId: string, topic: string): void {
+    if (!confirm(`Are you sure you want to delete "${topic}"? This cannot be undone.`)) {
+      return;
+    }
+    this.zoomService.deleteMeeting(meetingId).subscribe({
+      next: () => {
+        this.allMeetings = this.allMeetings.filter(m => m._id !== meetingId);
+        this.completedMeetings = this.completedMeetings.filter(m => m._id !== meetingId);
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error('Error deleting meeting:', err);
+        alert('Failed to delete class. Please try again.');
+      }
+    });
   }
 
   exportToCSV(): void {
