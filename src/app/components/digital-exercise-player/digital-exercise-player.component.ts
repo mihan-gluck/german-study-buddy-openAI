@@ -8,7 +8,8 @@ import {
   DigitalExerciseService, DigitalExercise, ExerciseQuestion,
   QuestionResponse, SubmitResult
 } from '../../services/digital-exercise.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MaterialModule } from '../../shared/material.module';
 
 type PlayerState = 'loading' | 'intro' | 'playing' | 'submitted' | 'review' | 'error';
 
@@ -37,7 +38,7 @@ interface PlayerQuestion {
 @Component({
   selector: 'app-digital-exercise-player',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, MaterialModule],
   templateUrl: './digital-exercise-player.component.html',
   styleUrls: ['./digital-exercise-player.component.css']
 })

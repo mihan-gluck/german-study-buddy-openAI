@@ -8,8 +8,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { FeedbackService } from '../../services/feedback.service';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatCardModule } from '@angular/material/card';
 import { NgChartsModule } from 'ng2-charts';
 import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 import { MaterialModule } from '../../shared/material.module';
@@ -18,9 +16,6 @@ import { HttpHeaders } from '@angular/common/http';
 import {TeacherService} from '../../services/teacher.service';
 import { environment } from '../../../environments/environment';
 import { BulkStudentUploadComponent } from './bulk-student-upload.component';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -91,15 +86,10 @@ interface TeacherResponse {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    MatProgressBarModule,
-    MatCardModule,
     MaterialModule,
     NgChartsModule,
     RouterModule,
-    BulkStudentUploadComponent,
-    MatAutocompleteModule,
-    MatInputModule,
-    MatFormFieldModule
+    BulkStudentUploadComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']

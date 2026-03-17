@@ -162,12 +162,6 @@
         </a>
       </li>
       <li *ngIf="isLoggedIn() && (userRole === 'ADMIN' || userRole === 'TEACHER_ADMIN')">
-        <a (click)="navigateTo('/student-logs'); closeMenu()" 
-           [class.active]="isCurrentRoute('/student-logs')">
-          <i class="fas fa-user-graduate"></i> Student Logs
-        </a>
-      </li>
-      <li *ngIf="isLoggedIn() && (userRole === 'ADMIN' || userRole === 'TEACHER_ADMIN')">
         <a (click)="navigateTo('/feedback-list'); closeMenu()" 
            [class.active]="isCurrentRoute('/feedback-list')">
           <i class="fas fa-comments"></i> Feedback
