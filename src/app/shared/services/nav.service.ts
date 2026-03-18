@@ -60,6 +60,12 @@ export class NavService {
       ]
     },
     {
+      group: 'Visa Tracking',
+      items: [
+        { id: 'visa-tracking', label: 'Visa Tracking', icon: '✈️', route: '/admin/visa-tracking', subGroup: null }
+      ]
+    },
+    {
       group: 'Timetable',
       items: [
         { id: 'timetable', label: 'Timetable', icon: '📅', route: '/time-table-view-admin', subGroup: null }
@@ -148,6 +154,12 @@ export class NavService {
       group: 'Documents',
       items: [
         { id: 'documents', label: 'Documents', icon: '📁', route: '/student-documents', subGroup: null }
+      ]
+    },
+    {
+      group: 'Visa Status',
+      items: [
+        { id: 'visa-status', label: 'Visa Status', icon: '✈️', route: '/visa-status', subGroup: null }
       ]
     },
     {

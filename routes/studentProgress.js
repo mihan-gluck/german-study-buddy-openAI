@@ -173,6 +173,8 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
     const User = require('../models/User');
     const SessionRecord = require('../models/SessionRecord');
     const StudentDocument = require('../models/StudentDocument');
+    const Invoice = require('../models/Invoice');
+    const VisaTracking = require('../models/VisaTracking');
     const studentId = req.user.id;
 
     const student = await User.findById(studentId).select('-password').populate('assignedTeacher', 'name').lean();
@@ -276,18 +278,84 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
       attendance: { attended: completedSessions, total: totalSessionCount, lastSessionDate: lastSession?.startTime || null },
       documents: documents.map(d => ({ name: d.documentType, status: d.status === 'VERIFIED' ? 'verified' : 'pending', verified: d.status === 'VERIFIED', approvalStatus: d.status.toLowerCase() })),
       feedbackByLevel, history: history.slice(0, 20),
-      payments: {
-        instalments: [
-          { installment: 1, amount: 1000, paid: true, dueDate: '2026-02-02' },
-          { installment: 2, amount: 1000, paid: false, dueDate: '2026-03-01' },
-          { installment: 3, amount: 1000, paid: false, dueDate: '2026-04-01' },
-          { installment: 4, amount: 1000, paid: false, dueDate: '2026-05-01' },
-          { installment: 5, amount: 1000, paid: false, dueDate: '2026-06-01' },
-          { installment: 6, amount: 0, paid: false, dueDate: '2026-07-01' }
-        ],
-        totalAmount: 5000, paidAmount: 1000
-      },
-      visa: { route: 'D-VISA-LANGUAGE-WORK', currentStep: 0, steps: ['Not started', 'Submitted', 'Biometrics', 'Decision', 'Visa issued'] }
+      payments: await (async () => {
+        const invoices = await Invoice.find({ customer_email: student.email }).sort({ created_at: 1 }).lean();
+        const totalAmount = invoices.reduce((sum, inv) => sum + (inv.total_payable || 0), 0);
+        const paidAmount = invoices.filter(i => i.payment_status === 'paid').reduce((sum, inv) => sum + (inv.total_payable || 0), 0);
+        return {
+          invoices: invoices.map((inv, idx) => ({
+            invoiceNumber: inv.invoice_number,
+            description: inv.items?.map(i => i.description).join(', ') || '',
+            invoiceDate: inv.invoice_date,
+            dueDate: inv.due_date,
+            subtotal: inv.subtotal || 0,
+            tax: inv.total_tax || 0,
+            totalPayable: inv.total_payable || 0,
+            paymentStatus: inv.payment_status || 'unpaid',
+            paymentDate: inv.payment_date || ''
+          })),
+          totalAmount,
+          paidAmount
+        };
+      })(),
+      visa: await (async () => {
+        const PORTAL_STEP_NAMES = [
+          'Application Filed', 'Preliminary Review', 'Embassy Review',
+          'Embassy Feedback', 'Changes / Appointment', 'Final Submission & Decision'
+        ];
+        const AU_PAIR_STEP_NAMES = [
+          'Appointment Booking', 'Document Preparation', 'Interview Preparation',
+          'Embassy Visit', 'Result & Next Steps'
+        ];
+        const vt = await VisaTracking.findOne({ studentId }).populate('history.updatedBy', 'name').lean();
+        if (!vt) {
+          return { route: 'Not set', currentStep: 0, totalSteps: 0, steps: [], stages: [], finalOutcome: '', finalOutcomeNote: '', history: [], dates: {} };
+        }
+        const steps = vt.visaType === 'AU_PAIR' ? AU_PAIR_STEP_NAMES : PORTAL_STEP_NAMES;
+        // Compute current step from stages
+        let currentStep = 0;
+        if (vt.stages && vt.stages.length) {
+          for (let i = 0; i < vt.stages.length; i++) {
+            if (vt.stages[i].outcome !== 'completed') { currentStep = i; break; }
+            if (i === vt.stages.length - 1) currentStep = i;
+          }
+        }
+        // Build dates from stage-level stageDate fields
+        const dates = {};
+        (vt.stages || []).forEach(s => {
+          if (s.stageDate && s.stageDateLabel) {
+            const key = s.stageDateLabel.replace(/\s+/g, '').replace('Date', '');
+            dates[key] = s.stageDate;
+          }
+        });
+        return {
+          route: vt.visaType === 'AU_PAIR' ? 'Au Pair' : 'Portal Visa',
+          currentStep,
+          totalSteps: steps.length,
+          steps,
+          stages: (vt.stages || []).map(s => ({
+            stage: s.stage,
+            status: s.status || '',
+            message: s.message || '',
+            actionRequired: s.actionRequired || false,
+            actionNote: s.actionNote || '',
+            handledBy: s.handledBy || '',
+            outcome: s.outcome || '',
+            outcomeDate: s.outcomeDate || null,
+            stageDate: s.stageDate || null,
+            stageDateLabel: s.stageDateLabel || ''
+          })),
+          finalOutcome: vt.finalOutcome || '',
+          finalOutcomeNote: vt.finalOutcomeNote || '',
+          history: (vt.history || []).map(h => ({
+            date: h.date,
+            stage: h.stage,
+            note: h.note,
+            updatedBy: h.updatedBy?.name || 'Unknown user'
+          })).reverse(),
+          dates
+        };
+      })()
     });
   } catch (error) {
     console.error('Error fetching student journey:', error);

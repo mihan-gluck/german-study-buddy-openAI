@@ -46,6 +46,7 @@ const assignmentTemplatesRoutes = require('./routes/assignmentTemplates');
 const notificationRoutes = require('./routes/notifications');
 const metaLeadsRoutes = require('./routes/metaLeads');
 const digitalExercisesRoutes = require('./routes/digitalExercises');
+const visaTrackingRoutes = require('./routes/visaTracking');
 
 const gradingRoutes = require("./routes/grading");
 const { gradeAssignment } = require("./services/grading.service");
@@ -140,6 +141,7 @@ app.use('/api/assignment-templates', assignmentTemplatesRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/meta-leads', metaLeadsRoutes);
 app.use('/api/digital-exercises', digitalExercisesRoutes);
+app.use('/api/visa-tracking', visaTrackingRoutes);
 
 const pdfExerciseGeneratorRoutes = require('./routes/pdfExerciseGenerator');
 app.use('/api/pdf-exercises', pdfExerciseGeneratorRoutes);
