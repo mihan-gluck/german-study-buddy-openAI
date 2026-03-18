@@ -30,9 +30,14 @@ export class StudentProgressComponent implements OnInit {
   get payments() { 
     const p = this.data?.payments || {};
     return { 
-      invoices: p.invoices || p.instalments || [], 
-      totalAmount: p.totalAmount || 0, 
-      paidAmount: p.paidAmount || 0 
+      source: p.source || 'invoices',
+      currency: p.currency || 'LKR',
+      invoices: p.invoices || [], 
+      totalPackageAmount: p.totalPackageAmount || p.totalAmount || 0,
+      totalAmount: p.totalAmount || p.totalPackageAmount || 0, 
+      paidAmount: p.paidAmount || 0,
+      pendingAmount: p.pendingAmount || 0,
+      paymentHistory: p.payments || []
     }; 
   }
   get visa() { return this.data?.visa || { steps: [], stages: [], currentStep: 0, totalSteps: 0, route: '', finalOutcome: '', finalOutcomeNote: '', history: [], dates: {} }; }

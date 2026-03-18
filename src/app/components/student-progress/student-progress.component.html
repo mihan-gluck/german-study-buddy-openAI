@@ -86,51 +86,78 @@
       <div class="sp-small-text">Study hours: {{ data.totalStudyHours || 0 }}h total</div>
     </div>
 
-    <!-- Invoices / Payments -->
+    <!-- Payments -->
     <div class="sp-card">
       <div class="sp-card__head">
-        <span class="sp-card__title">💳 Invoices</span>
-        <span class="sp-card__meta">{{ payments.invoices.length }} invoice(s)</span>
+        <span class="sp-card__title">💳 Payments</span>
+        <span class="sp-card__meta">{{ payments.currency }}</span>
       </div>
-      <table class="sp-invoice-table">
-        <thead>
-          <tr><th>Invoice #</th><th>Description</th><th>Date</th><th>Amount</th><th>Tax</th><th>Total</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let inv of payments.invoices">
-            <td>{{ inv.invoiceNumber }}</td>
-            <td>{{ inv.description }}</td>
-            <td>{{ inv.invoiceDate }}</td>
-            <td>{{ inv.subtotal | number:'1.0-0' }}</td>
-            <td>{{ inv.tax | number:'1.0-0' }}</td>
-            <td>{{ inv.totalPayable | number:'1.0-0' }}</td>
-            <td>
-              <span class="sp-pay-badge"
-                    [class.sp-pay-badge--paid]="inv.paymentStatus === 'paid'"
-                    [class.sp-pay-badge--overdue]="inv.paymentStatus === 'unpaid' && inv.dueDate && isOverdue(inv.dueDate)"
-                    [class.sp-pay-badge--pending]="inv.paymentStatus === 'unpaid' && (!inv.dueDate || !isOverdue(inv.dueDate))">
-                {{ inv.paymentStatus === 'paid' ? '✓ Paid' : (inv.dueDate && isOverdue(inv.dueDate) ? 'Overdue' : 'Unpaid') }}
-              </span>
-            </td>
-          </tr>
-          <tr *ngIf="!payments.invoices.length"><td colspan="7" class="sp-empty">No invoices found</td></tr>
-        </tbody>
-        <tfoot *ngIf="payments.invoices.length">
-          <tr class="sp-invoice-total">
-            <td colspan="5">Total</td>
-            <td>{{ payments.totalAmount | number:'1.0-0' }}</td>
-            <td><span class="sp-pay-badge sp-pay-badge--paid">Paid: {{ payments.paidAmount | number:'1.0-0' }}</span></td>
-          </tr>
-        </tfoot>
-      </table>
-      <div class="sp-pay-bar-row" *ngIf="payments.invoices.length">
-        <span class="sp-small-text">Balance: {{ payments.totalAmount - payments.paidAmount | number:'1.0-0' }}</span>
-        <div class="sp-pay-blocks">
-          <div *ngFor="let inv of payments.invoices" class="sp-pay-block"
-               [class.sp-pay-block--paid]="inv.paymentStatus === 'paid'"
-               [class.sp-pay-block--overdue]="inv.paymentStatus === 'unpaid' && inv.dueDate && isOverdue(inv.dueDate)"></div>
+
+      <!-- Ledger view (from CSV import) -->
+      <ng-container *ngIf="payments.source === 'ledger'">
+        <div class="sp-kv-row"><span>Total Amount</span><span class="sp-kv-val">{{ payments.totalPackageAmount | number:'1.0-0' }}</span></div>
+        <div class="sp-kv-row"><span>Paid Amount</span><span class="sp-kv-val" style="color:#16a34a;font-weight:700;">{{ payments.paidAmount | number:'1.0-0' }}</span></div>
+        <div class="sp-kv-row"><span>Balance</span><span class="sp-kv-val" [style.color]="payments.pendingAmount > 0 ? '#dc2626' : '#16a34a'" style="font-weight:700;">{{ payments.pendingAmount | number:'1.0-0' }}</span></div>
+        <div class="sp-bar sp-bar--lg" style="margin-top:10px;">
+          <div class="sp-bar__fill sp-bar__fill--green" [style.width.%]="payPct"></div>
         </div>
-      </div>
+        <div class="sp-small-text" style="margin-top:4px;">{{ payPct }}% paid</div>
+
+        <!-- Payment history -->
+        <div *ngIf="payments.paymentHistory.length" style="margin-top:12px;border-top:1px solid #e5e7eb;padding-top:8px;">
+          <div class="sp-small-text" style="font-weight:700;margin-bottom:6px;">Recent Payments</div>
+          <div class="sp-kv-row" *ngFor="let ph of payments.paymentHistory">
+            <span>{{ formatDate(ph.date) }} {{ ph.note ? '— ' + ph.note : '' }}</span>
+            <span class="sp-kv-val" style="color:#16a34a;">+{{ ph.amount | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Invoice view (old system fallback) -->
+      <ng-container *ngIf="payments.source !== 'ledger'">
+        <!-- Summary row always visible -->
+        <div class="sp-kv-row"><span>Total Amount</span><span class="sp-kv-val">{{ payments.totalAmount | number:'1.0-0' }}</span></div>
+        <div class="sp-kv-row"><span>Paid Amount</span><span class="sp-kv-val" style="color:#16a34a;font-weight:700;">{{ payments.paidAmount | number:'1.0-0' }}</span></div>
+        <div class="sp-kv-row"><span>Balance</span><span class="sp-kv-val" [style.color]="payments.pendingAmount > 0 ? '#dc2626' : '#16a34a'" style="font-weight:700;">{{ payments.pendingAmount | number:'1.0-0' }}</span></div>
+        <div class="sp-bar sp-bar--lg" style="margin-top:10px;">
+          <div class="sp-bar__fill sp-bar__fill--green" [style.width.%]="payPct"></div>
+        </div>
+        <div class="sp-small-text" style="margin-top:4px;">{{ payPct }}% paid</div>
+
+        <!-- Invoice table only if there are invoices -->
+        <table class="sp-invoice-table" *ngIf="payments.invoices.length" style="margin-top:12px;">
+          <thead>
+            <tr><th>Invoice #</th><th>Description</th><th>Date</th><th>Amount</th><th>Tax</th><th>Total</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of payments.invoices">
+              <td>{{ inv.invoiceNumber }}</td>
+              <td>{{ inv.description }}</td>
+              <td>{{ inv.invoiceDate }}</td>
+              <td>{{ inv.subtotal | number:'1.0-0' }}</td>
+              <td>{{ inv.tax | number:'1.0-0' }}</td>
+              <td>{{ inv.totalPayable | number:'1.0-0' }}</td>
+              <td>
+                <span class="sp-pay-badge"
+                      [class.sp-pay-badge--paid]="inv.paymentStatus === 'paid'"
+                      [class.sp-pay-badge--overdue]="inv.paymentStatus === 'unpaid' && inv.dueDate && isOverdue(inv.dueDate)"
+                      [class.sp-pay-badge--pending]="inv.paymentStatus === 'unpaid' && (!inv.dueDate || !isOverdue(inv.dueDate))">
+                  {{ inv.paymentStatus === 'paid' ? '✓ Paid' : (inv.dueDate && isOverdue(inv.dueDate) ? 'Overdue' : 'Unpaid') }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="sp-invoice-total">
+              <td colspan="5">Total</td>
+              <td>{{ payments.totalAmount | number:'1.0-0' }}</td>
+              <td><span class="sp-pay-badge sp-pay-badge--paid">Paid: {{ payments.paidAmount | number:'1.0-0' }}</span></td>
+            </tr>
+          </tfoot>
+        </table>
+      </ng-container>
+
+      <a routerLink="/student-payments" class="sp-visa-link">View full payment details →</a>
     </div>
   </div>
 

@@ -66,6 +66,12 @@ export class NavService {
       ]
     },
     {
+      group: 'Payments',
+      items: [
+        { id: 'payments', label: 'Payments', icon: '💳', route: '/admin/payments', subGroup: null }
+      ]
+    },
+    {
       group: 'Timetable',
       items: [
         { id: 'timetable', label: 'Timetable', icon: '📅', route: '/time-table-view-admin', subGroup: null }
@@ -128,7 +134,7 @@ export class NavService {
     {
       group: 'Dashboard',
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: '🏠', route: '/student-dashboard', subGroup: null }
+        { id: 'dashboard', label: 'Dashboard', icon: '🏠', route: '/student-progress', subGroup: null }
       ]
     },
     {
@@ -154,6 +160,12 @@ export class NavService {
       group: 'Documents',
       items: [
         { id: 'documents', label: 'Documents', icon: '📁', route: '/student-documents', subGroup: null }
+      ]
+    },
+    {
+      group: 'Payments',
+      items: [
+        { id: 'payments', label: 'Payments', icon: '💳', route: '/student-payments', subGroup: null }
       ]
     },
     {
@@ -189,7 +201,7 @@ export class NavService {
       ADMIN: '/admin-dashboard',
       TEACHER_ADMIN: '/admin-dashboard',
       TEACHER: '/teacher-dashboard',
-      STUDENT: '/student-dashboard'
+      STUDENT: '/student-progress'
     };
     return map[role] || '/home';
   }

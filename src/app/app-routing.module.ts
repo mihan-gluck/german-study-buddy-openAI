@@ -36,13 +36,11 @@ export const routes: Routes = [
     data: { role: ['TEACHER', 'TEACHER_ADMIN'] }
   },
 
-  // Student dashboard route with RoleGuard
+  // Student dashboard — redirect to student-progress
   {
     path: 'student-dashboard',
-    loadComponent: () => import('./components/student-ai-dashboard/student-ai-dashboard.component')
-      .then(m => m.StudentAiDashboardComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'STUDENT' }
+    redirectTo: 'student-progress',
+    pathMatch: 'full'
   },
 
   // Admin dashboard route with RoleGuard
@@ -171,6 +169,8 @@ export const routes: Routes = [
 
   { path: 'student-progress', loadComponent: () => import('./components/student-progress/student-progress.component').then(m => m.StudentProgressComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
+  { path: 'student-payments', loadComponent: () => import('./components/student-payments/student-payments.component').then(m => m.StudentPaymentsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+
   { path: 'performance-history', loadComponent: () => import('./components/student-dashboard/performance-history.component').then(m => m.PerformanceHistoryComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
 
   // Student Documents route
@@ -184,6 +184,9 @@ export const routes: Routes = [
 
   // Student Visa Status page
   { path: 'visa-status', loadComponent: () => import('./components/visa-status/visa-status.component').then(m => m.VisaStatusComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
+
+  // Admin Payments
+  { path: 'admin/payments', loadComponent: () => import('./components/admin-dashboard/admin-payments/admin-payments.component').then(m => m.AdminPaymentsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN'] } },
 
   { path: 'ai-tutor-chat', loadComponent: () => import('./components/ai-tutor-chat/ai-tutor-chat.component').then(m => m.AiTutorChatComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['STUDENT', 'TEACHER', 'ADMIN', 'TEACHER_ADMIN'] } },
 
