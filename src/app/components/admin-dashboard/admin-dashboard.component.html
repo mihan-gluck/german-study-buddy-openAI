@@ -1,253 +1,454 @@
-<div class="ad">
+<!-- src/app/components/admin-dashboard/admin-dashboard.component.html -->
 
-  <!-- Header -->
-  <div class="ad-header">
-    <div class="ad-header__left">
-      <h1 class="ad-header__title">👥 Student Management</h1>
-      <p class="ad-header__sub">Manage and monitor all registered students</p>
-    </div>
-    <div class="ad-header__right">
-      <div class="ad-stat-pill">
-        <span class="ad-stat-pill__num">{{ filteredStudentCount || totalStudentsCount() }}</span>
-        <span class="ad-stat-pill__lbl">Students</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Action bar -->
-  <div class="ad-actions">
-    <div class="ad-actions__left">
-      <button class="ad-btn ad-btn--primary" routerLink="/signup">+ Add Student</button>
-      <button class="ad-btn ad-btn--outline" (click)="showBulkUpload = !showBulkUpload">📤 Bulk Upload</button>
-      <button class="ad-btn ad-btn--outline" (click)="openAssignTeacherByBatchModal()">🎓 Assign Tutor</button>
-      <button class="ad-btn ad-btn--warning" (click)="openBulkEditPanel()" [disabled]="getSelectedCount() === 0">
-        ✏️ Bulk Edit ({{ getSelectedCount() }})
-      </button>
-      <button class="ad-btn ad-btn--danger" (click)="bulkDeleteStudents()" [disabled]="getSelectedCount() === 0">
-        🗑️ Delete ({{ getSelectedCount() }})
-      </button>
-      <button class="ad-btn ad-btn--success" (click)="exportSelectedStudents()" [disabled]="getSelectedCount() === 0">
-        📥 Export ({{ getSelectedCount() }})
-      </button>
-      <button class="ad-btn ad-btn--outline" routerLink="/student-logs">📋 Logs</button>
-    </div>
-    <div class="ad-actions__right">
-      <button class="ad-btn ad-btn--ghost" (click)="clearFilters()">✕ Clear Filters</button>
-    </div>
-  </div>
-
-  <!-- Assign Teacher By Batch (collapsible) -->
-  <div class="ad-card ad-assign-batch" *ngIf="showAssignTeacherByBatch">
-    <div class="ad-card__head"><span class="ad-card__title">🎓 Assign Teacher by Batch</span></div>
-    <div class="ad-assign-batch__row">
-      <div class="ad-field">
-        <label>Batch Number</label>
-        <input type="number" class="ad-input" [(ngModel)]="assignBatchNo" (ngModelChange)="onBatchChange($event)" />
-      </div>
-      <div class="ad-field">
-        <label>Teacher</label>
-        <select class="ad-input" [(ngModel)]="assignTeacherId" [disabled]="batchTeachers.length === 0">
-          <option value="">Select Teacher</option>
-          <option *ngFor="let teacher of batchTeachers" [value]="teacher._id">{{ teacher.name }}</option>
-        </select>
-        <span class="ad-field__hint" *ngIf="assignBatchNo && batchTeachers.length === 0">No teachers for this batch</span>
-      </div>
-      <button class="ad-btn ad-btn--primary" (click)="updateAssignedTeacherByBatchNo(assignBatchNo, assignTeacherId)">Assign</button>
-    </div>
-  </div>
-
-  <!-- Bulk Upload -->
-  <div *ngIf="showBulkUpload" class="ad-card">
-    <app-bulk-student-upload></app-bulk-student-upload>
-  </div>
-
-  <!-- Filters -->
-  <div class="ad-card ad-filters">
-    <div class="ad-card__head"><span class="ad-card__title">🔍 Filters</span></div>
-    <div class="ad-filters__grid">
-      <div class="ad-field">
-        <label>Student Name</label>
-        <mat-form-field class="ad-mat-field" appearance="outline">
-          <input type="text" matInput [formControl]="studentNameControl" [matAutocomplete]="autoStudentName"
-                 placeholder="Search..." (input)="onStudentNameSelected(studentNameControl.value || '')" />
-          <mat-autocomplete #autoStudentName="matAutocomplete" (optionSelected)="onStudentNameSelected($event.option.value)">
-            <mat-option *ngFor="let name of filteredStudentNames | async" [value]="name">{{ name }}</mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-      </div>
-      <div class="ad-field">
-        <label>Teacher</label>
-        <mat-form-field class="ad-mat-field" appearance="outline">
-          <input type="text" matInput [formControl]="teacherNameControl" [matAutocomplete]="autoTeacherName"
-                 placeholder="Search..." (input)="onTeacherNameSelected(teacherNameControl.value || '')" />
-          <mat-autocomplete #autoTeacherName="matAutocomplete" (optionSelected)="onTeacherNameSelected($event.option.value)">
-            <mat-option *ngFor="let name of filteredTeacherNames | async" [value]="name">{{ name }}</mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-      </div>
-      <div class="ad-field">
-        <label>Level</label>
-        <select class="ad-input" [(ngModel)]="filters.level" (change)="applyFilters()">
-          <option value="">All</option>
-          <option value="A1">A1</option><option value="A2">A2</option>
-          <option value="B1">B1</option><option value="B2">B2</option>
-          <option value="C1">C1</option><option value="C2">C2</option>
-        </select>
-      </div>
-      <div class="ad-field">
-        <label>Plan</label>
-        <select class="ad-input" [(ngModel)]="filters.plan" (change)="applyFilters()">
-          <option value="">All</option>
-          <option value="PLATINUM">Platinum</option>
-          <option value="SILVER">Silver</option>
-        </select>
-      </div>
-      <div class="ad-field">
-        <label>Status</label>
-        <select class="ad-input" [(ngModel)]="filters.studentStatus" (change)="applyFilters()">
-          <option value="">All</option>
-          <option value="UNCERTAIN">Uncertain</option>
-          <option value="ONGOING">Ongoing</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="WITHDREW">Withdrew</option>
-        </select>
-      </div>
-      <div class="ad-field">
-        <label>Batch</label>
-        <input type="number" class="ad-input" [(ngModel)]="filters.batch" placeholder="#" (input)="applyFilters()" />
+<div class="admin-dashboard">
+  <!-- Header Section -->
+  <div class="admin-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="admin-title">
+            <i class="fas fa-users"></i>
+            Student Management
+          </h1>
+          <p class="admin-subtitle">Manage and monitor all registered students</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="admin-stats-quick">
+            <div class="stat-item">
+              <span class="stat-number">{{ filteredStudentCount || totalStudentsCount() }}</span>
+              <span class="stat-label">Total Students</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Results count -->
-  <div class="ad-results">
-    <span class="ad-results__count">{{ filteredStudentCount || totalStudentsCount() }}</span>
-    <span class="ad-results__text">students found</span>
-  </div>
+  <!-- Main Content Area -->
+  <div class="admin-content">
+    <div class="container-fluid">
+      
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <button class="btn btn-primary btn-add-user" routerLink="/signup">
+              <i class="fas fa-plus"></i>
+              Add New Student
+            </button>
 
-  <!-- Table -->
-  <div class="ad-card ad-table-card">
-    <div class="ad-table-wrap">
-      <table class="ad-table">
-        <thead>
-          <tr>
-            <th class="ad-table__check">
-              <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()" />
-            </th>
-            <th>Reg No</th>
-            <th>Student</th>
-            <th>Plan / Level</th>
-            <th>Batch</th>
-            <th>Status</th>
-            <th>Teacher</th>
-            <th>Credentials Sent</th>
-            <th class="ad-table__actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let student of filteredStudents; trackBy: trackById"
-              [class.ad-table__row--selected]="isSelected(student._id)">
-            <td class="ad-table__check">
-              <input type="checkbox" [checked]="isSelected(student._id)" (change)="toggleStudentSelection(student._id)" />
-            </td>
-            <td><span class="ad-mono">{{ student.regNo || '—' }}</span></td>
-            <td>
-              <div class="ad-student-cell">
-                <span class="ad-student-cell__name">{{ student.name }}</span>
-                <span class="ad-student-cell__email">{{ student.email }}</span>
+            <button class="btn btn-success ms-2" (click)="showBulkUpload = !showBulkUpload">
+              <i class="fas fa-upload"></i>
+              Bulk Upload
+            </button>
+
+            <button 
+              class=" btn btn-secondary ms-2 btn-assign-teacher-by-batch"
+              (click)="openAssignTeacherByBatchModal()"
+            >
+              <i class="fas fa-edit"></i>
+              Assign Tutor
+            </button>
+
+            <!-- Assign Teacher By Batch Section -->
+            <div *ngIf="showAssignTeacherByBatch" class="card mt-3 p-3">
+
+              <div class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                  <label class="form-label">Batch Number</label>
+                  <input type="number"
+                        class="form-control"
+                        [(ngModel)]="assignBatchNo"
+                        (ngModelChange)="onBatchChange($event)">
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">Teacher</label>
+                  <select class="form-select"
+                          [(ngModel)]="assignTeacherId"
+                          [disabled]="batchTeachers.length === 0">
+                    <option value="">Select Teacher</option>
+                    <option *ngFor="let teacher of batchTeachers"
+                            [value]="teacher._id">
+                      {{ teacher.name }}
+                    </option>
+                  </select>
+                  <small *ngIf="assignBatchNo && batchTeachers.length === 0" class="text-muted">
+                    No teachers registered for this batch
+                  </small>
+                </div>
+
+                <div class="col-md-4">
+                  <button class="btn btn-success w-100 btn-assign-teacher"
+                          (click)="updateAssignedTeacherByBatchNo(assignBatchNo, assignTeacherId)">
+                    Assign Teacher
+                  </button>
+                </div>
+
               </div>
-            </td>
-            <td>
-              <span class="ad-chip ad-chip--blue">{{ student.subscription || '—' }}</span>
-              <span class="ad-chip ad-chip--teal">{{ student.level || '—' }}</span>
-            </td>
-            <td>
-              <span>{{ student.batch || '—' }}</span>
-              <span class="ad-sub-text" *ngIf="student.medium">{{ student.medium }}</span>
-            </td>
-            <td>
-              <span class="ad-status"
-                    [class.ad-status--ongoing]="student.studentStatus === 'ONGOING'"
-                    [class.ad-status--completed]="student.studentStatus === 'COMPLETED'"
-                    [class.ad-status--uncertain]="student.studentStatus === 'UNCERTAIN'"
-                    [class.ad-status--withdrew]="student.studentStatus === 'WITHDREW' || student.studentStatus === 'DROPPED'">
-                {{ student.studentStatus || '—' }}
-              </span>
-            </td>
-            <td>{{ student.assignedTeacher?.name || 'Unassigned' }}</td>
-            <td><span class="ad-sub-text">{{ formatDate(student.lastCredentialsEmailSent) }}</span></td>
-            <td class="ad-table__actions">
-              <div class="ad-action-btns">
-                <button class="ad-icon-btn ad-icon-btn--edit" [routerLink]="['/signup', student._id]" title="Edit">✏️</button>
-                <button class="ad-icon-btn ad-icon-btn--mail" (click)="resendCredentials(student)"
-                        [disabled]="resendingCredentials[student._id]" title="Send Credentials">
-                  {{ resendingCredentials[student._id] ? '⏳' : '📧' }}
-                </button>
-                <button class="ad-icon-btn ad-icon-btn--del" (click)="deleteUser(student._id)" title="Delete">🗑️</button>
+            </div>
+
+            <button 
+              class="btn btn-warning ms-2" 
+              (click)="openBulkEditPanel()"
+              [disabled]="getSelectedCount() === 0"
+            >
+              <i class="fas fa-edit"></i>
+              Bulk Edit ({{ getSelectedCount() }})
+            </button>
+
+            <button 
+              class="btn btn-danger ms-2" 
+              (click)="bulkDeleteStudents()"
+              [disabled]="getSelectedCount() === 0"
+            >
+              <i class="fas fa-trash"></i>
+              Bulk Delete ({{ getSelectedCount() }})
+            </button>
+
+            <button 
+              class="btn btn-success ms-2" 
+              (click)="exportSelectedStudents()"
+              [disabled]="getSelectedCount() === 0"
+            >
+              <i class="fas fa-download"></i>
+              Export Selected ({{ getSelectedCount() }})
+            </button>
+
+            <button class="btn btn-info ms-2" routerLink="/student-logs">
+              <i class="fas fa-history"></i>
+              Student Logs
+            </button>
+          </div>
+          <div class="col-md-6 text-end">
+            <button class="btn btn-outline-secondary" (click)="clearFilters()">
+              <i class="fas fa-times"></i>
+              Clear Filters
+            </button>
+
+      <!-- Bulk Upload Section -->
+      <div *ngIf="showBulkUpload" class="bulk-upload-section mt-4">
+        <app-bulk-student-upload></app-bulk-student-upload>
+      </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filters-card">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-filter"></i>
+              Filter Students
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-2">
+              <!-- Student Name Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Student Name</label>
+                <mat-form-field class="filter-autocomplete" appearance="outline">
+                  <input 
+                    type="text" 
+                    matInput 
+                    [formControl]="studentNameControl"
+                    [matAutocomplete]="autoStudentName"
+                    placeholder="Search..."
+                    (input)="onStudentNameSelected(studentNameControl.value || '')"
+                  >
+                  <mat-autocomplete #autoStudentName="matAutocomplete" (optionSelected)="onStudentNameSelected($event.option.value)">
+                    <mat-option *ngFor="let name of filteredStudentNames | async" [value]="name">
+                      {{ name }}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
               </div>
-            </td>
-          </tr>
-          <tr *ngIf="!filteredStudents.length">
-            <td colspan="9" class="ad-empty">No students found</td>
-          </tr>
-        </tbody>
-      </table>
+              
+              <!-- Teacher Name Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Teacher</label>
+                <mat-form-field class="filter-autocomplete" appearance="outline">
+                  <input 
+                    type="text" 
+                    matInput 
+                    [formControl]="teacherNameControl"
+                    [matAutocomplete]="autoTeacherName"
+                    placeholder="Search..."
+                    (input)="onTeacherNameSelected(teacherNameControl.value || '')"
+                  >
+                  <mat-autocomplete #autoTeacherName="matAutocomplete" (optionSelected)="onTeacherNameSelected($event.option.value)">
+                    <mat-option *ngFor="let name of filteredTeacherNames | async" [value]="name">
+                      {{ name }}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+              </div>
+              
+              <!-- Level Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Level</label>
+                <select class="form-select" [(ngModel)]="filters.level" (change)="applyFilters()">
+                  <option value="">All</option>
+                  <option value="A1">A1</option>
+                  <option value="A2">A2</option>
+                  <option value="B1">B1</option>
+                  <option value="B2">B2</option>
+                  <option value="C1">C1</option>
+                  <option value="C2">C2</option>
+                </select>
+              </div>
+              
+              <!-- Plan Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Plan</label>
+                <select class="form-select" [(ngModel)]="filters.plan" (change)="applyFilters()">
+                  <option value="">All</option>
+                  <option value="PLATINUM">Platinum</option>
+                  <option value="SILVER">Silver</option>
+                </select>
+              </div>
+              
+              <!-- Status Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" [(ngModel)]="filters.studentStatus" (change)="applyFilters()">
+                  <option value="">All</option>
+                  <option value="UNCERTAIN">Uncertain</option>
+                  <option value="ONGOING">Ongoing</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="WITHDREW">Withdrew</option>
+                </select>
+              </div>
+              
+              <!-- Batch Filter -->
+              <div class="col-md-2">
+                <label class="form-label">Batch</label>
+                <input type="number" class="form-control" [(ngModel)]="filters.batch" placeholder="Batch #" (input)="applyFilters()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Summary -->
+      <div class="results-summary">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="results-info">
+            <span class="results-count">{{ filteredStudentCount || totalStudentsCount() }}</span>
+            <span class="results-text">students found</span>
+          </div>
+          <div class="view-options">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-outline-secondary btn-sm active">
+                <i class="fas fa-table"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-th-large"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="data-table-card">
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th style="width: 50px;">
+                    <input 
+                      type="checkbox" 
+                      class="form-check-input" 
+                      [(ngModel)]="selectAll"
+                      (change)="toggleSelectAll()"
+                    >
+                  </th>
+                  <th>Reg No</th>
+                  <th>Student Info</th>
+                  <th>Plan & Level</th>
+                  <th>Batch & Medium</th>
+                  <th>Status</th>
+                  <th>Assigned Teacher</th>
+                  <th>Last Credentials Sent</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let student of filteredStudents; trackBy: trackById">
+                  <td>
+                    <input 
+                      type="checkbox" 
+                      class="form-check-input"
+                      [checked]="isSelected(student._id)"
+                      (change)="toggleStudentSelection(student._id)"
+                    >
+                  </td>
+                  <td>
+                    <span class="reg-number">{{ student.regNo || 'N/A' }}</span>
+                  </td>
+                  <td>
+                    <div class="student-info">
+                      <div class="student-name">{{ student.name }}</div>
+                      <div class="student-email">{{ student.email }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="plan-level">
+                      <span class="badge bg-primary">{{ student.subscription || 'N/A' }}</span>
+                      <span class="badge bg-info ms-1">{{ student.level || 'N/A' }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="batch-medium">
+                      <div class="batch">Batch: {{ student.batch || 'N/A' }}</div>
+                      <div class="medium">{{ student.medium || 'N/A' }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-success': student.studentStatus === 'COMPLETED',
+                      'bg-primary': student.studentStatus === 'ONGOING',
+                      'bg-warning': student.studentStatus === 'UNCERTAIN',
+                      'bg-danger': student.studentStatus === 'DROPPED',
+                      'bg-secondary': !student.studentStatus
+                    }">
+                      {{ student.studentStatus || 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="teacher-info">
+                      {{ student.assignedTeacher?.name || 'Unassigned' }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="credentials-sent-info">
+                      <small class="text-muted">
+                        {{ formatDate(student.lastCredentialsEmailSent) }}
+                      </small>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <button 
+                        class="btn btn-sm btn-outline-primary me-1"
+                        [routerLink]="['/signup', student._id]"
+                        title="Edit Student"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-success me-1"
+                        (click)="resendCredentials(student)"
+                        [disabled]="resendingCredentials[student._id]"
+                        title="Send Credentials Email"
+                      >
+                        <i class="fas fa-envelope" *ngIf="!resendingCredentials[student._id]"></i>
+                        <i class="fas fa-spinner fa-spin" *ngIf="resendingCredentials[student._id]"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="deleteUser(student._id)"
+                        title="Delete Student"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- Bulk Edit Modal -->
-<div class="ad-modal-overlay" *ngIf="showBulkEditPanel" (click)="closeBulkEditPanel()">
-  <div class="ad-modal" (click)="$event.stopPropagation()">
-    <div class="ad-modal__header">
-      <h3>✏️ Bulk Edit — {{ getSelectedCount() }} student(s)</h3>
-      <button class="ad-icon-btn" (click)="closeBulkEditPanel()">✕</button>
-    </div>
-    <div class="ad-modal__hint">Only fill in fields you want to update. Empty fields are ignored.</div>
-    <div class="ad-modal__body">
-      <div class="ad-modal__grid">
-        <div class="ad-field">
-          <label>Assigned Teacher</label>
-          <select class="ad-input" [(ngModel)]="bulkUpdates.assignedTeacher">
-            <option value="">— No Change —</option>
-            <option *ngFor="let teacher of teachers" [value]="teacher._id">{{ teacher.name }}</option>
-          </select>
+<!-- Bulk Edit Panel (Modal) -->
+<div class="modal fade" [class.show]="showBulkEditPanel" [style.display]="showBulkEditPanel ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title">
+          <i class="fas fa-edit"></i>
+          Bulk Edit Students ({{ getSelectedCount() }} selected)
+        </h5>
+        <button type="button" class="btn-close" (click)="closeBulkEditPanel()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          Only fill in the fields you want to update. Empty fields will be ignored.
         </div>
-        <div class="ad-field">
-          <label>Level</label>
-          <select class="ad-input" [(ngModel)]="bulkUpdates.level">
-            <option value="">— No Change —</option>
-            <option value="A1">A1</option><option value="A2">A2</option>
-            <option value="B1">B1</option><option value="B2">B2</option>
-          </select>
-        </div>
-        <div class="ad-field">
-          <label>Status</label>
-          <select class="ad-input" [(ngModel)]="bulkUpdates.studentStatus">
-            <option value="">— No Change —</option>
-            <option value="UNCERTAIN">Uncertain</option>
-            <option value="ONGOING">Ongoing</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="WITHDREW">Withdrew</option>
-          </select>
-        </div>
-        <div class="ad-field">
-          <label>Subscription</label>
-          <select class="ad-input" [(ngModel)]="bulkUpdates.subscription">
-            <option value="">— No Change —</option>
-            <option value="PLATINUM">Platinum</option>
-            <option value="SILVER">Silver</option>
-          </select>
-        </div>
-        <div class="ad-field">
-          <label>Batch</label>
-          <input type="number" class="ad-input" [(ngModel)]="bulkUpdates.batch" placeholder="Leave empty" />
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Assigned Teacher</label>
+            <select class="form-select" [(ngModel)]="bulkUpdates.assignedTeacher">
+              <option value="">-- No Change --</option>
+              <option *ngFor="let teacher of teachers" [value]="teacher._id">
+                {{ teacher.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Level</label>
+            <select class="form-select" [(ngModel)]="bulkUpdates.level">
+              <option value="">-- No Change --</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Student Status</label>
+            <select class="form-select" [(ngModel)]="bulkUpdates.studentStatus">
+              <option value="">-- No Change --</option>
+              <option value="UNCERTAIN">Uncertain</option>
+              <option value="ONGOING">Ongoing</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="WITHDREW">Withdrew</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Subscription Plan</label>
+            <select class="form-select" [(ngModel)]="bulkUpdates.subscription">
+              <option value="">-- No Change --</option>
+              <option value="PLATINUM">Platinum</option>
+              <option value="SILVER">Silver</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Batch</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="bulkUpdates.batch"
+              placeholder="Leave empty for no change"
+            >
+          </div>
         </div>
       </div>
-    </div>
-    <div class="ad-modal__footer">
-      <button class="ad-btn ad-btn--ghost" (click)="closeBulkEditPanel()">Cancel</button>
-      <button class="ad-btn ad-btn--primary" (click)="applyBulkUpdate()">Apply Changes</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeBulkEditPanel()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-warning" (click)="applyBulkUpdate()">
+          <i class="fas fa-save"></i>
+          Apply Changes
+        </button>
+      </div>
     </div>
   </div>
 </div>
+<div class="modal-backdrop fade" [class.show]="showBulkEditPanel" *ngIf="showBulkEditPanel"></div>
