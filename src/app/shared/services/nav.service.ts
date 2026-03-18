@@ -66,6 +66,12 @@ export class NavService {
       ]
     },
     {
+      group: 'Student Progress',
+      items: [
+        { id: 'student-progress', label: 'Student Progress', icon: '📊', route: '/admin/student-progress', subGroup: null }
+      ]
+    },
+    {
       group: 'Payments',
       items: [
         { id: 'payments', label: 'Payments', icon: '💳', route: '/admin/payments', subGroup: null }
