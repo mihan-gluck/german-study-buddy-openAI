@@ -448,6 +448,10 @@
                   </div>
                   <p class="requirement-description">{{ req.description }}</p>
                   <small class="requirement-meta">Type: {{ req.type }} | Order: {{ req.order }}</small>
+                  <div *ngIf="req.applicableServices?.length" class="requirement-services">
+                    <small>Applies to: </small>
+                    <span class="badge badge-service" *ngFor="let svc of req.applicableServices">{{ svc }}</span>
+                  </div>
                 </div>
                 <div class="requirement-actions">
                   <button mat-icon-button color="primary" (click)="openRequirementForm(req)" matTooltip="Edit">

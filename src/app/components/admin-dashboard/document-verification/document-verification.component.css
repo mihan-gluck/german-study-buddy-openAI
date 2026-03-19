@@ -413,6 +413,29 @@ button:disabled {
 
 .requirement-meta {
   color: #999;
+}
+
+.requirement-services {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.requirement-services small {
+  color: #888;
+  margin-right: 2px;
+}
+
+.badge-service {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
   font-size: 12px;
 }
 

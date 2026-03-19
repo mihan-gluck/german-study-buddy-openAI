@@ -77,21 +77,8 @@ export class DocumentVerificationComponent implements OnInit {
   // Loading states
   loading: boolean = false;
   
-  // Document types
-  documentTypes = [
-    { value: 'CV', label: 'CV' },
-    { value: 'O_LEVEL_CERTIFICATE', label: 'O Level Certificate' },
-    { value: 'A_LEVEL_CERTIFICATE', label: 'A Level Certificate' },
-    { value: 'BROWN_CERTIFICATE', label: 'Brown Certificate' },
-    { value: 'DEGREE_DIPLOMA', label: 'Degree / Diploma' },
-    { value: 'ACADEMIC_TRANSCRIPT', label: 'Academic Transcript' },
-    { value: 'PASSPORT', label: 'Passport' },
-    { value: 'EXPERIENCE_LETTER', label: 'Experience Letter' },
-    { value: 'LANGUAGE_CERTIFICATE', label: 'Language Certificate' },
-    { value: 'EXTRACURRICULAR_CERTIFICATE', label: 'Extra-curricular Certificate' },
-    { value: 'AFFIDAVIT', label: 'Affidavit' },
-    { value: 'POLICE_CLEARANCE', label: 'Police Clearance' }
-  ];
+  // Document types - populated dynamically from requirements
+  documentTypes: { value: string; label: string }[] = [];
   
   displayedColumns: string[] = [
     'select',
@@ -167,6 +154,7 @@ export class DocumentVerificationComponent implements OnInit {
     { value: 'IDENTIFICATION', label: 'Identification' },
     { value: 'PROFESSIONAL', label: 'Professional' },
     { value: 'LEGAL', label: 'Legal' },
+    { value: 'VISA', label: 'Visa' },
     { value: 'OTHER', label: 'Other' }
   ];
 
@@ -778,6 +766,11 @@ export class DocumentVerificationComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.requirements = response.requirements;
+          // Build documentTypes dropdown from requirements
+          this.documentTypes = this.requirements.map(r => ({
+            value: r.type,
+            label: r.label
+          }));
         }
       },
       error: (error) => {
