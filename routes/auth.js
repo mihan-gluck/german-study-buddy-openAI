@@ -113,7 +113,7 @@ cron.schedule(
           const ageStr            = get("text_mkw38wse");
           const qualifications    = get("text_mkw32n6r");
           const enrollmentDateStr = get("date_mkw7wejn");
-          const servicesOpted     = get("dropdown_mkw0txee") || get("color_mm023vmt") || get("text_mkwz1j6q");
+          const servicesOpted     = get("color_mm023vmt") || get("text_mkwz1j6q");
           const subscription      = get("color_mm02jfyb").toUpperCase().trim();
           const languageLevelOpted = get("color_mm02c95");
           const batch             = get("dropdown_mkxx6cfp");
@@ -125,6 +125,20 @@ cron.schedule(
           const stream            = get("text_mkwtq4fq");
           const batchStartedOnStr = get("date_mkxkba8t");
           const teacherIncharge   = get("dropdown_mkw72gz4");
+
+          // Look up the teacher ObjectId from the teacherIncharge name
+          let assignedTeacherId = null;
+          if (teacherIncharge) {
+            const teacherName = teacherIncharge.trim();
+            // Try exact match first, then partial match (case-insensitive)
+            const teacher = await User.findOne({
+              role: { $in: ['TEACHER', 'TEACHER_ADMIN'] },
+              name: { $regex: new RegExp('(^|\\s)' + teacherName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\s|$)', 'i') }
+            }).select('_id');
+            if (teacher) {
+              assignedTeacherId = teacher._id;
+            }
+          }
 
           // Withdrawal fields
           const dateWithdrewStr       = get("date_mkzzgvxv");
@@ -178,6 +192,7 @@ cron.schedule(
             servicesOpted,
             stream,
             teacherIncharge,
+            ...(assignedTeacherId ? { assignedTeacher: assignedTeacherId } : {}),
             reasonForWithdrawing,
             languageExamStatus,
             candidateStatus,
