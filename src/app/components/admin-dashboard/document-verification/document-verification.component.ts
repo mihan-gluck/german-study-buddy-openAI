@@ -163,6 +163,66 @@ export class DocumentVerificationComponent implements OnInit {
   emailForm = { to: '', studentName: '', subject: '', message: '' };
   sendingEmail = false;
 
+  // ========== EXPORT CSV ==========
+
+  exportToCSV(): void {
+    if (this.documents.length === 0) {
+      this.snackBar.open('No documents to export', 'Close', { duration: 3000 });
+      return;
+    }
+
+    // Get all unique document types from requirements
+    const docTypes = this.requirements.map(r => r.type);
+    const docLabels = this.requirements.map(r => r.label);
+
+    // Group documents by student
+    const studentMap = new Map<string, any>();
+    this.documents.forEach(doc => {
+      const id = typeof doc.studentId === 'object' && doc.studentId !== null
+        ? (doc.studentId as any)._id : doc.studentId;
+      const idStr = String(id);
+      if (!studentMap.has(idStr)) {
+        studentMap.set(idStr, {
+          name: doc.studentName,
+          email: doc.studentEmail,
+          service: (doc as any).servicesOpted || '',
+          docs: new Map<string, string>()
+        });
+      }
+      // Store status for this doc type (latest wins if duplicates)
+      studentMap.get(idStr).docs.set(doc.documentType, doc.status);
+    });
+
+    // Build CSV header
+    const headers = ['Student Name', 'Email', 'Service Opted', ...docLabels];
+    const rows: string[] = [headers.map(h => `"${h}"`).join(',')];
+
+    // Build rows
+    studentMap.forEach(student => {
+      const cols = [
+        `"${student.name}"`,
+        `"${student.email}"`,
+        `"${student.service}"`,
+      ];
+      docTypes.forEach(type => {
+        const status = student.docs.get(type) || '';
+        cols.push(`"${status}"`);
+      });
+      rows.push(cols.join(','));
+    });
+
+    // Download
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `document-status-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    this.snackBar.open('CSV exported successfully', 'Close', { duration: 3000 });
+  }
+
   constructor(
     private documentService: StudentDocumentsService,
     private snackBar: MatSnackBar,

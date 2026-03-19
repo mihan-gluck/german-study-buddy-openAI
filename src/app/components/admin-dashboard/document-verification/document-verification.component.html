@@ -24,6 +24,10 @@
             <mat-icon>check_circle</mat-icon>
             Verify Selected ({{ selectedDocuments.length }})
           </button>
+          <button mat-raised-button style="background-color: #1565c0; color: white;" (click)="exportToCSV()">
+            <mat-icon>download</mat-icon>
+            Export CSV
+          </button>
         </div>
 
         <!-- Statistics Cards -->
