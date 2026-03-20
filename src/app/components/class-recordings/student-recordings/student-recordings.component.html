@@ -1,47 +1,69 @@
+<!-- student-recordings.component.html -->
 <div class="sr" *ngIf="!loading; else loadingTpl">
 
+  <!-- ── Page Header ── -->
   <div class="sr-header">
-    <h2 class="sr-header__title">📹 Class Recordings</h2>
-    <p class="sr-header__sub">{{ filteredRecordings.length }} recording{{ filteredRecordings.length !== 1 ? 's' : '' }} available</p>
-  </div>
-
-  <div class="sr-filters">
-    <input class="sr-input" type="text" placeholder="Search recordings..."
-           [(ngModel)]="searchQuery" (input)="applySearch()">
-  </div>
-
-  <div class="sr-grid">
-    <div class="sr-card" *ngFor="let r of filteredRecordings" (click)="startWatching(r._id)">
-      <div class="sr-card__video">
-        <iframe [src]="getSafeUrl(r.videoUrl)" frameborder="0" allowfullscreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                title="Video: {{ r.title }}"></iframe>
-      </div>
-      <div class="sr-card__body">
-        <h3 class="sr-card__title">{{ r.title }}</h3>
-        <p class="sr-card__desc" *ngIf="r.description">{{ r.description }}</p>
-        <div class="sr-card__meta">
-          <span class="sr-tag sr-tag--level">{{ r.level }}</span>
-        </div>
-        <div class="sr-card__footer">
-          <span>{{ formatDate(r.createdAt) }}</span>
-          <span *ngIf="r.uploadedBy">by {{ r.uploadedBy.name }}</span>
-        </div>
-      </div>
+    <div>
+      <h2 class="sr-header__title">Class Recordings</h2>
+      <p class="sr-header__sub">{{ filteredRecordings.length }} recording{{ filteredRecordings.length !== 1 ? 's' : '' }} available for your batch &amp; level</p>
     </div>
   </div>
 
-  <div class="sr-empty" *ngIf="!filteredRecordings.length">
-    No recordings available for your batch and level yet.
+  <!-- ── Filters ── -->
+  <div class="sr-filters-wrap">
+    <input class="sr-input" type="text" placeholder="Search recordings…"
+           [(ngModel)]="searchQuery" (input)="applySearch()">
+  </div>
+
+  <!-- ── Empty ── -->
+  <div *ngIf="!filteredRecordings.length" class="sr-empty">
+    <i class="fa fa-video sr-empty__icon"></i>
+    <h3>No recordings available yet</h3>
+    <p *ngIf="searchQuery">Try a different search term</p>
+    <p *ngIf="!searchQuery">Your teacher hasn't uploaded any recordings for your batch and level yet.</p>
+  </div>
+
+  <!-- ── Card Grid ── -->
+  <div class="sr-grid" *ngIf="filteredRecordings.length">
+    <div class="sr-card" *ngFor="let r of filteredRecordings">
+
+      <!-- Video embed -->
+      <div class="sr-card__video" (click)="startWatching(r._id)">
+        <iframe [src]="getSafeUrl(r.videoUrl)" frameborder="0" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title="{{ r.title }}"></iframe>
+        <div class="sr-card__play-overlay" [class.sr-card__play-overlay--active]="activeRecordingId === r._id">
+          <i class="fa fa-circle-play"></i>
+        </div>
+      </div>
+
+      <!-- Card body -->
+      <div class="sr-card__body">
+        <div class="sr-card__meta">
+          <span class="sr-level-chip">{{ r.level }}</span>
+          <span class="sr-plan-chip" *ngIf="r.plan !== 'ALL'">{{ r.plan }}</span>
+          <span class="sr-watching-badge" *ngIf="activeRecordingId === r._id">
+            <i class="fa fa-circle" style="font-size:7px;color:#ef4444;"></i> Watching
+          </span>
+        </div>
+        <h3 class="sr-card__title">{{ r.title }}</h3>
+        <p class="sr-card__desc" *ngIf="r.description">{{ r.description }}</p>
+        <div class="sr-card__footer">
+          <span class="sr-card__date"><i class="fa fa-calendar-days"></i> {{ formatDate(r.createdAt) }}</span>
+          <span class="sr-card__uploader" *ngIf="r.uploadedBy">
+            <i class="fa fa-user"></i> {{ r.uploadedBy.name }}
+          </span>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 </div>
 
 <ng-template #loadingTpl>
-  <div class="sr" style="display:flex;align-items:center;justify-content:center;min-height:60vh;">
-    <div style="text-align:center;">
-      <div class="sr-spinner"></div>
-      <p style="margin-top:14px;color:#6b7280;font-size:13px;">Loading recordings...</p>
-    </div>
+  <div class="sr sr--loading">
+    <div class="sr-spinner"></div>
+    <p>Loading recordings…</p>
   </div>
 </ng-template>

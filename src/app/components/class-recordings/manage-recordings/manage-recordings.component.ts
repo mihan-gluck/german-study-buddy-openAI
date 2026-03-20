@@ -181,6 +181,21 @@ export class ManageRecordingsComponent implements OnInit {
 
   closeViews(): void { this.showViewsModal = false; this.viewsRecording = null; this.viewsList = []; }
 
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.filterLevel = 'ALL';
+    this.filterBatch = 'ALL';
+    this.applyFilters();
+  }
+
+  getTotalViews(): number {
+    return Object.values(this.analyticsSummary).reduce((s: number, v: any) => s + (v.totalViews || 0), 0);
+  }
+
+  getTotalStudents(): number {
+    return Object.values(this.analyticsSummary).reduce((s: number, v: any) => s + (v.uniqueStudentCount || 0), 0);
+  }
+
   formatDuration(seconds: number): string {
     if (!seconds || seconds < 1) return '0s';
     const h = Math.floor(seconds / 3600);
