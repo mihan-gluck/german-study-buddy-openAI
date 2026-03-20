@@ -270,8 +270,8 @@
 
 .card-header {
   padding: 10px 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #b3cde0;
+  color: #011f4b;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -499,7 +499,7 @@
 
 /* Module Type Badge - Role-Play vs Practice */
 .badge.badge-success {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: #28a745;
   color: white;
   display: inline-flex;
   align-items: center;
@@ -507,7 +507,7 @@
 }
 
 .badge.badge-info {
-  background: linear-gradient(135deg, #17a2b8, #138496);
+  background: #005b96;
   color: white;
   display: inline-flex;
   align-items: center;
@@ -516,7 +516,7 @@
 
 /* Minimum Completion Time Badge */
 .badge.badge-secondary {
-  background: linear-gradient(135deg, #6c757d, #5a6268);
+  background: #6497b1;
   color: white;
   display: inline-flex;
   align-items: center;
@@ -619,12 +619,12 @@
 
 /* Enhanced Badge Styles for Access Control */
 .badge.badge-warning {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  background: #ffc107;
   color: #212529;
 }
 
 .badge.badge-info {
-  background: linear-gradient(135deg, #17a2b8, #6f42c1);
+  background: #005b96;
   color: white;
 }
 
@@ -665,8 +665,8 @@
 }
 
 .module-card.recommended {
-  border: 2px solid #17a2b8;
-  box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
+  border: 2px solid #6497b1;
+  box-shadow: 0 4px 15px rgba(100, 151, 177, 0.2);
 }
 
 .module-card.recommended::after {
@@ -679,17 +679,17 @@
 }
 
 .badge-warning {
-  background: linear-gradient(135deg, #ffc107, #e0a800);
+  background: #ffc107;
   color: #212529;
 }
 
 .badge-success {
-  background: linear-gradient(135deg, #28a745, #1e7e34);
+  background: #28a745;
   color: white;
 }
 
 .badge-secondary {
-  background: linear-gradient(135deg, #6c757d, #5a6268);
+  background: #6497b1;
   color: white;
 }
 
@@ -729,7 +729,7 @@
 
 /* Subscription Modal Styles */
 .subscription-modal {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #005b96;
   color: white;
   border-radius: 14px;
   padding: 20px;
@@ -766,24 +766,24 @@
 
 /* Button Enhancements */
 .btn-warning {
-  background: linear-gradient(135deg, #ffc107, #e0a800);
+  background: #ffc107;
   border: none;
   color: #212529;
   font-weight: 600;
 }
 
 .btn-warning:hover {
-  background: linear-gradient(135deg, #e0a800, #d39e00);
+  background: #e0a800;
   box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: #22c55e;
   border: none;
 }
 
 .btn-success:hover {
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: #16a34a;
   box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
 }
 @media (max-width: 768px) {
