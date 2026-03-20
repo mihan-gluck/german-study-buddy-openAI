@@ -7,6 +7,34 @@ const LearningModule = require('../models/LearningModule');
 const AiTutorSession = require('../models/AiTutorSession');
 const mongoose = require('mongoose');
 const { verifyToken, checkRole } = require('../middleware/auth');
+const DocumentRequirement = require('../models/DocumentRequirement');
+const StudentDocument = require('../models/StudentDocument');
+
+// Helper: build documents list cross-referencing requirements with uploads
+async function buildDocumentsList(studentId, servicesOpted) {
+  const uploadedDocs = await StudentDocument.find({ studentId }).lean();
+  const studentService = servicesOpted || '';
+  let docRequirements = [];
+  if (studentService && studentService !== 'German Language Only') {
+    docRequirements = await DocumentRequirement.find({
+      active: true,
+      $or: [{ applicableServices: { $size: 0 } }, { applicableServices: studentService }]
+    }).sort({ order: 1 }).lean();
+  }
+  const documents = docRequirements.map(r => {
+    const uploaded = uploadedDocs.find(d => d.documentType === r.type);
+    let status = 'not_uploaded';
+    if (uploaded) status = uploaded.status === 'VERIFIED' ? 'verified' : uploaded.status === 'REJECTED' ? 'rejected' : 'pending';
+    return { name: r.label || r.type, type: r.type, category: r.category, required: r.required, status, verified: status === 'verified', uploadedAt: uploaded?.uploadedAt || null };
+  });
+  uploadedDocs.forEach(d => {
+    if (!docRequirements.find(r => r.type === d.documentType)) {
+      documents.push({ name: d.documentName || d.documentType, type: d.documentType, category: 'OTHER', required: false, status: d.status === 'VERIFIED' ? 'verified' : d.status === 'REJECTED' ? 'rejected' : 'pending', verified: d.status === 'VERIFIED', uploadedAt: d.uploadedAt });
+    }
+  });
+  const summary = { total: documents.length, verified: documents.filter(d => d.status === 'verified').length, pending: documents.filter(d => d.status === 'pending').length, rejected: documents.filter(d => d.status === 'rejected').length, notUploaded: documents.filter(d => d.status === 'not_uploaded').length };
+  return { documents, docsSummary: summary, uploadedDocs };
+}
 
 // GET /api/student-progress - Get student's progress across all modules
 // ✅ Allow both STUDENT and TEACHER (for testing modules)
@@ -173,6 +201,7 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
     const User = require('../models/User');
     const SessionRecord = require('../models/SessionRecord');
     const StudentDocument = require('../models/StudentDocument');
+    const DocumentRequirement = require('../models/DocumentRequirement');
     const Invoice = require('../models/Invoice');
     const StudentPayment = require('../models/StudentPayment');
     const VisaTracking = require('../models/VisaTracking');
@@ -237,7 +266,7 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
     const lastSession = sessionRecords[0];
 
     // Documents
-    const documents = await StudentDocument.find({ studentId }).lean();
+    const { documents, docsSummary, uploadedDocs } = await buildDocumentsList(studentId, student.servicesOpted);
 
     // Teacher feedback latest per level
     const feedbackByLevel = {};
@@ -259,7 +288,7 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
       if (sd) history.push({ date: sd, title: level + ' course started', desc: 'Student began ' + level + ' level.' });
       if (cd) history.push({ date: cd, title: level + ' completed', desc: 'All ' + level + ' lessons completed.' });
     });
-    documents.forEach(doc => { if (doc.uploadedAt) history.push({ date: doc.uploadedAt, title: doc.documentType + ' submitted', desc: (doc.documentName || doc.documentType) + ' provided.' }); });
+    uploadedDocs.forEach(doc => { if (doc.uploadedAt) history.push({ date: doc.uploadedAt, title: doc.documentType + ' submitted', desc: (doc.documentName || doc.documentType) + ' provided.' }); });
     if (student.createdAt) history.push({ date: student.createdAt, title: 'Student profile created', desc: 'Profile created for student ' + student.regNo + '.' });
     if (student.enrollmentDate) history.push({ date: student.enrollmentDate, title: 'Enrollment confirmed', desc: 'Student enrolled in ' + (student.servicesOpted || 'program') + '.' });
     history.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -277,7 +306,7 @@ router.get('/journey', verifyToken, checkRole(['STUDENT', 'TEACHER']), async (re
       totalStudyHours: Math.round(totalStudyMinutes / 60),
       botUsage: { todayMinutes: botTodayMinutes, weekMinutes: botWeekMinutes, targetMinutesPerWeek: 180 },
       attendance: { attended: completedSessions, total: totalSessionCount, lastSessionDate: lastSession?.startTime || null },
-      documents: documents.map(d => ({ name: d.documentType, status: d.status === 'VERIFIED' ? 'verified' : 'pending', verified: d.status === 'VERIFIED', approvalStatus: d.status.toLowerCase() })),
+      documents, docsSummary,
       feedbackByLevel, history: history.slice(0, 20),
       payments: await (async () => {
         // Try StudentPayment (CSV-imported ledger) first — match by studentId OR email
@@ -775,7 +804,7 @@ router.get('/admin/journey/:studentId', verifyToken, checkRole(['ADMIN', 'TEACHE
     const lastSession = sessionRecords[0];
 
     // Documents
-    const documents = await StudentDocument.find({ studentId }).lean();
+    const { documents, docsSummary, uploadedDocs } = await buildDocumentsList(studentId, student.servicesOpted);
 
     // Teacher feedback latest per level
     const feedbackByLevel = {};
@@ -797,7 +826,7 @@ router.get('/admin/journey/:studentId', verifyToken, checkRole(['ADMIN', 'TEACHE
       if (sd) history.push({ date: sd, title: level + ' course started', desc: 'Student began ' + level + ' level.' });
       if (cd) history.push({ date: cd, title: level + ' completed', desc: 'All ' + level + ' lessons completed.' });
     });
-    documents.forEach(doc => { if (doc.uploadedAt) history.push({ date: doc.uploadedAt, title: doc.documentType + ' submitted', desc: (doc.documentName || doc.documentType) + ' provided.' }); });
+    uploadedDocs.forEach(doc => { if (doc.uploadedAt) history.push({ date: doc.uploadedAt, title: doc.documentType + ' submitted', desc: (doc.documentName || doc.documentType) + ' provided.' }); });
     if (student.createdAt) history.push({ date: student.createdAt, title: 'Student profile created', desc: 'Profile created for student ' + student.regNo + '.' });
     if (student.enrollmentDate) history.push({ date: student.enrollmentDate, title: 'Enrollment confirmed', desc: 'Student enrolled in ' + (student.servicesOpted || 'program') + '.' });
     history.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -870,7 +899,7 @@ router.get('/admin/journey/:studentId', verifyToken, checkRole(['ADMIN', 'TEACHE
       levelProgression, lessonsByLevel, totalStudyHours: Math.round(totalStudyMinutes / 60),
       botUsage: { todayMinutes: botTodayMinutes, weekMinutes: botWeekMinutes, targetMinutesPerWeek: 180 },
       attendance: { attended: completedSessions, total: totalSessionCount, lastSessionDate: lastSession?.startTime || null },
-      documents: documents.map(d => ({ name: d.documentType, status: d.status === 'VERIFIED' ? 'verified' : 'pending', verified: d.status === 'VERIFIED', approvalStatus: d.status.toLowerCase() })),
+      documents, docsSummary,
       feedbackByLevel, history: history.slice(0, 20), payments, visa
     });
   } catch (err) {

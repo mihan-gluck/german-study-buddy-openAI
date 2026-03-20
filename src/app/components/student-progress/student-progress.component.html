@@ -42,7 +42,7 @@
           <div class="sp-stat__lbl">Attendance</div>
         </div>
         <div class="sp-stat sp-stat--green">
-          <div class="sp-stat__val">{{ docsSubmitted }}/{{ documents.length }}</div>
+          <div class="sp-stat__val">{{ docsSummary.verified }}/{{ docsSummary.total }}</div>
           <div class="sp-stat__lbl">Docs Verified</div>
         </div>
         <div class="sp-stat sp-stat--orange">
@@ -167,9 +167,18 @@
     <div class="sp-card">
       <div class="sp-card__head">
         <span class="sp-card__title">📁 Documents</span>
-        <span class="sp-card__meta">{{ docsSubmitted }} verified / {{ documents.length }}</span>
+        <span class="sp-card__meta">{{ docsSummary.verified }} verified / {{ docsSummary.total }}</span>
       </div>
       <div class="sp-bar sp-bar--lg"><div class="sp-bar__fill sp-bar__fill--yellow" [style.width.%]="docsPercent"></div></div>
+
+      <!-- Summary chips -->
+      <div class="sp-doc-summary" *ngIf="docsSummary.total > 0">
+        <span class="sp-doc-chip sp-doc-chip--verified">✓ {{ docsSummary.verified }} Verified</span>
+        <span class="sp-doc-chip sp-doc-chip--pending">⏳ {{ docsSummary.pending }} Pending</span>
+        <span class="sp-doc-chip sp-doc-chip--rejected" *ngIf="docsSummary.rejected > 0">✕ {{ docsSummary.rejected }} Rejected</span>
+        <span class="sp-doc-chip sp-doc-chip--not-uploaded">○ {{ docsSummary.notUploaded }} Not Uploaded</span>
+      </div>
+
       <table class="sp-doc-table">
         <thead><tr><th>Document</th><th>Status</th></tr></thead>
         <tbody>
@@ -178,12 +187,14 @@
             <td>
               <span class="sp-doc-badge"
                     [class.sp-doc-badge--ok]="doc.status === 'verified'"
-                    [class.sp-doc-badge--pending]="doc.status !== 'verified'">
-                {{ doc.status === 'verified' ? '✓ Verified' : '○ Pending' }}
+                    [class.sp-doc-badge--pending]="doc.status === 'pending'"
+                    [class.sp-doc-badge--rejected]="doc.status === 'rejected'"
+                    [class.sp-doc-badge--not-uploaded]="doc.status === 'not_uploaded'">
+                {{ doc.status === 'verified' ? '✓ Verified' : doc.status === 'pending' ? '⏳ Pending' : doc.status === 'rejected' ? '✕ Rejected' : '○ Not Uploaded' }}
               </span>
             </td>
           </tr>
-          <tr *ngIf="!documents.length"><td colspan="2" class="sp-empty">No documents uploaded yet</td></tr>
+          <tr *ngIf="!documents.length"><td colspan="2" class="sp-empty">No document requirements for your service</td></tr>
         </tbody>
       </table>
       <a routerLink="/student-documents" class="sp-visa-link">Manage documents →</a>

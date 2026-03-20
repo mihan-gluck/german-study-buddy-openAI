@@ -299,7 +299,19 @@
 }
 
 .sp-doc-badge--ok      { background: #dcfce7; color: #166534; }
-.sp-doc-badge--pending { background: #f9fafb; color: #6b7280; border: 1px dashed #d1d5db; }
+.sp-doc-badge--pending { background: #fef3c7; color: #92400e; }
+.sp-doc-badge--rejected { background: #fef2f2; color: #dc2626; }
+.sp-doc-badge--not-uploaded { background: #f9fafb; color: #6b7280; border: 1px dashed #d1d5db; }
+
+/* Document summary chips */
+.sp-doc-summary { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+.sp-doc-chip {
+  padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+}
+.sp-doc-chip--verified { background: #dcfce7; color: #166534; }
+.sp-doc-chip--pending { background: #fef3c7; color: #92400e; }
+.sp-doc-chip--rejected { background: #fef2f2; color: #dc2626; }
+.sp-doc-chip--not-uploaded { background: #f1f5f9; color: #64748b; }
 
 /* ── Visa ── */
 .sp-visa {

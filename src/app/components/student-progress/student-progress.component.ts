@@ -44,6 +44,7 @@ export class StudentProgressComponent implements OnInit {
   get attendance() { return this.data?.attendance || { attended: 0, total: 0 }; }
   get botUsage() { return this.data?.botUsage || { todayMinutes: 0, weekMinutes: 0, targetMinutesPerWeek: 180 }; }
   get documents() { return this.data?.documents || []; }
+  get docsSummary() { return this.data?.docsSummary || { total: 0, verified: 0, pending: 0, rejected: 0, notUploaded: 0 }; }
   get history() { return this.data?.history || []; }
   get feedbackByLevel() { return this.data?.feedbackByLevel || {}; }
 

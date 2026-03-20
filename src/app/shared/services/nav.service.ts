@@ -85,6 +85,12 @@ export class NavService {
       ]
     },
     {
+      group: 'CRM Sync',
+      items: [
+        { id: 'monday-sync', label: 'Monday.com Preview', icon: '🔄', route: '/admin/monday-sync-preview', subGroup: null }
+      ]
+    },
+    {
       group: 'Profile',
       items: [
         { id: 'profile', label: 'Profile', icon: '👤', route: '/profile', subGroup: null }
