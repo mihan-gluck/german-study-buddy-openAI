@@ -44,7 +44,8 @@ export class NavService {
       group: 'Classes & Attendance',
       items: [
         { id: 'manage-classes', label: 'Manage Classes', icon: '🎥', route: '/teacher/meetings',    subGroup: null },
-        { id: 'attendance',     label: 'Attendance',     icon: '📊', route: '/admin/zoom-reports',   subGroup: null }
+        { id: 'attendance',     label: 'Attendance',     icon: '📊', route: '/admin/zoom-reports',   subGroup: null },
+        { id: 'class-recordings', label: 'Class Recordings', icon: '📹', route: '/class-recordings', subGroup: null }
       ]
     },
     {
@@ -111,7 +112,8 @@ export class NavService {
       group: 'Classes & Attendance',
       items: [
         { id: 'manage-classes', label: 'Manage Classes', icon: '🎥', route: '/teacher/meetings', subGroup: null },
-        { id: 'attendance',     label: 'Attendance',     icon: '📊', route: '/admin/zoom-reports', subGroup: null }
+        { id: 'attendance',     label: 'Attendance',     icon: '📊', route: '/admin/zoom-reports', subGroup: null },
+        { id: 'class-recordings', label: 'Class Recordings', icon: '📹', route: '/class-recordings', subGroup: null }
       ]
     },
     {
@@ -153,7 +155,8 @@ export class NavService {
     {
       group: 'My Classes',
       items: [
-        { id: 'classes', label: 'My Classes', icon: '🎥', route: '/student/meetings', subGroup: null }
+        { id: 'classes', label: 'My Classes', icon: '🎥', route: '/student/meetings', subGroup: null },
+        { id: 'class-recordings', label: 'Class Recordings', icon: '📹', route: '/student/class-recordings', subGroup: null }
       ]
     },
     {

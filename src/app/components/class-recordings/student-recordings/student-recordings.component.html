@@ -1,0 +1,47 @@
+<div class="sr" *ngIf="!loading; else loadingTpl">
+
+  <div class="sr-header">
+    <h2 class="sr-header__title">📹 Class Recordings</h2>
+    <p class="sr-header__sub">{{ filteredRecordings.length }} recording{{ filteredRecordings.length !== 1 ? 's' : '' }} available</p>
+  </div>
+
+  <div class="sr-filters">
+    <input class="sr-input" type="text" placeholder="Search recordings..."
+           [(ngModel)]="searchQuery" (input)="applySearch()">
+  </div>
+
+  <div class="sr-grid">
+    <div class="sr-card" *ngFor="let r of filteredRecordings" (click)="startWatching(r._id)">
+      <div class="sr-card__video">
+        <iframe [src]="getSafeUrl(r.videoUrl)" frameborder="0" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title="Video: {{ r.title }}"></iframe>
+      </div>
+      <div class="sr-card__body">
+        <h3 class="sr-card__title">{{ r.title }}</h3>
+        <p class="sr-card__desc" *ngIf="r.description">{{ r.description }}</p>
+        <div class="sr-card__meta">
+          <span class="sr-tag sr-tag--level">{{ r.level }}</span>
+        </div>
+        <div class="sr-card__footer">
+          <span>{{ formatDate(r.createdAt) }}</span>
+          <span *ngIf="r.uploadedBy">by {{ r.uploadedBy.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sr-empty" *ngIf="!filteredRecordings.length">
+    No recordings available for your batch and level yet.
+  </div>
+
+</div>
+
+<ng-template #loadingTpl>
+  <div class="sr" style="display:flex;align-items:center;justify-content:center;min-height:60vh;">
+    <div style="text-align:center;">
+      <div class="sr-spinner"></div>
+      <p style="margin-top:14px;color:#6b7280;font-size:13px;">Loading recordings...</p>
+    </div>
+  </div>
+</ng-template>

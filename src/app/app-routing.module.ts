@@ -246,6 +246,12 @@ export const routes: Routes = [
     data: { role: ['ADMIN', 'TEACHER', 'TEACHER_ADMIN'] }
   },
 
+  // Class Recordings — Teacher/Admin manage
+  { path: 'class-recordings', loadComponent: () => import('./components/class-recordings/manage-recordings/manage-recordings.component').then(m => m.ManageRecordingsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: ['ADMIN', 'TEACHER_ADMIN', 'TEACHER'] } },
+
+  // Class Recordings — Student view
+  { path: 'student/class-recordings', loadComponent: () => import('./components/class-recordings/student-recordings/student-recordings.component').then(m => m.StudentRecordingsComponent), canActivate: [AuthGuard, RoleGuard], data: { role: 'STUDENT' } },
+
   // Wildcard route to handle invalid paths
   { path: '**', redirectTo: 'home' }
 ];
