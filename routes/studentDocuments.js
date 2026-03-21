@@ -31,9 +31,12 @@ router.get('/requirements', verifyToken, checkRole(['STUDENT']), async (req, res
     }
 
     // Fetch active requirements that apply to this student's service
+    // Normalize: treat spaces and hyphens as interchangeable, case-insensitive
+    const normalized = service.replace(/[\s\-]+/g, '[\\s\\-]*');
+    const serviceRegex = new RegExp('^' + normalized + '$', 'i');
     const requirements = await DocumentRequirement.find({
       active: true,
-      applicableServices: service
+      applicableServices: serviceRegex
     }).sort({ order: 1 }).lean();
 
     // Map to the shape the frontend expects
@@ -624,10 +627,12 @@ router.get('/stats', verifyToken, checkRole(['STUDENT']), async (req, res) => {
     let requiredDocs = [];
     
     if (service && !NO_DOCS_SERVICES.some(s => s.toLowerCase() === service.toLowerCase())) {
+      const normalized = service.replace(/[\s\-]+/g, '[\\s\\-]*');
+      const serviceRegex = new RegExp('^' + normalized + '$', 'i');
       requiredDocs = await DocumentRequirement.find({
         active: true,
         required: true,
-        applicableServices: service
+        applicableServices: serviceRegex
       }).lean();
     }
     

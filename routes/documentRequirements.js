@@ -16,7 +16,8 @@ router.get('/', verifyToken, async (req, res) => {
     
     // Filter by applicable service if provided
     if (service) {
-      filter.applicableServices = service;
+      const normalized = service.trim().replace(/[\s\-]+/g, '[\\s\\-]*');
+      filter.applicableServices = new RegExp('^' + normalized + '$', 'i');
     }
     
     const requirements = await DocumentRequirement.find(filter)

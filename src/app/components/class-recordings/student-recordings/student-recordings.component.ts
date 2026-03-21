@@ -91,6 +91,20 @@ export class StudentRecordingsComponent implements OnInit, OnDestroy {
     return url;
   }
 
+  isGoogleDrive(url: string): boolean {
+    return /drive\.google\.com/.test(url);
+  }
+
+  getGoogleDriveOpenUrl(url: string): string {
+    const match = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) return `https://drive.google.com/file/d/${match[1]}/view`;
+    return url;
+  }
+
+  openInNewTab(url: string): void {
+    window.open(this.getGoogleDriveOpenUrl(url), '_blank');
+  }
+
   getSafeUrl(url: string): SafeResourceUrl {
     return this.sanitizer.bypassSecurityTrustResourceUrl(this.getEmbedUrl(url));
   }

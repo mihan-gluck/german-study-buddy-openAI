@@ -182,7 +182,7 @@
       <table class="sp-doc-table">
         <thead><tr><th>Document</th><th>Status</th></tr></thead>
         <tbody>
-          <tr *ngFor="let doc of documents">
+          <tr *ngFor="let doc of $any(documents | slice:0:6)">
             <td>{{ doc.name }}</td>
             <td>
               <span class="sp-doc-badge"
@@ -194,6 +194,7 @@
               </span>
             </td>
           </tr>
+          <tr *ngIf="documents.length > 6"><td colspan="2" class="sp-doc-more">+ {{ documents.length - 6 }} more documents</td></tr>
           <tr *ngIf="!documents.length"><td colspan="2" class="sp-empty">No document requirements for your service</td></tr>
         </tbody>
       </table>

@@ -90,6 +90,7 @@
             </div>
           </td>
           <td>
+            <button class="ap-btn ap-btn--xs" (click)="openHistory(p)">📋 History</button>
             <button class="ap-btn ap-btn--xs" (click)="openRecordPayment(p)">+ Payment</button>
           </td>
         </tr>
@@ -142,6 +143,56 @@
         <button class="ap-btn ap-btn--primary" (click)="submitPayment()" [disabled]="saving || !newPayment.amount">
           {{ saving ? 'Saving...' : 'Record Payment' }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment History Modal -->
+  <div class="ap-modal-overlay" *ngIf="showHistoryModal" (click)="closeHistory()">
+    <div class="ap-modal ap-modal--wide" (click)="$event.stopPropagation()">
+      <div class="ap-modal__head">
+        <h3>Payment History</h3>
+        <button class="ap-modal__close" (click)="closeHistory()">✕</button>
+      </div>
+      <div class="ap-modal__body" *ngIf="historyPayment">
+        <div class="ap-modal__info">
+          <span>{{ historyPayment.studentName }}</span>
+          <span class="ap-modal__email">{{ historyPayment.email }}</span>
+        </div>
+        <div class="ap-modal__summary">
+          <div>Total: {{ formatCurrency(historyPayment.totalPackageAmount, historyPayment.currency) }}</div>
+          <div>Paid: {{ formatCurrency(historyPayment.totalPaid, historyPayment.currency) }}</div>
+          <div>Balance: {{ formatCurrency(historyPayment.pendingPayment, historyPayment.currency) }}</div>
+        </div>
+        <div class="ap-history-table-wrap" *ngIf="historyPayment.payments?.length; else noHistory">
+          <table class="ap-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="ap-th--right">Amount</th>
+                <th>Method</th>
+                <th>Note</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of historyPayment.payments">
+                <td>{{ h.date | date:'dd MMM yyyy' }}</td>
+                <td class="ap-right ap-paid">{{ formatCurrency(h.amount, historyPayment.currency) }}</td>
+                <td>{{ h.method || '—' }}</td>
+                <td>{{ h.note || '—' }}</td>
+                <td>
+                  <span class="ap-source-badge" [class.ap-source-badge--invoice]="h.source === 'invoice'">
+                    {{ h.source === 'invoice' ? '🧾 Invoice' : '✍️ Manual' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noHistory>
+          <p class="ap-empty">No payment history recorded yet.</p>
+        </ng-template>
       </div>
     </div>
   </div>

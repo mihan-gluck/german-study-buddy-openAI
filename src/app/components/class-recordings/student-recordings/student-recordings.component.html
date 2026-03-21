@@ -29,12 +29,23 @@
 
       <!-- Video embed -->
       <div class="sr-card__video" (click)="startWatching(r._id)">
-        <iframe [src]="getSafeUrl(r.videoUrl)" frameborder="0" allowfullscreen
+        <iframe *ngIf="!isGoogleDrive(r.videoUrl)"
+                [src]="getSafeUrl(r.videoUrl)" frameborder="0" allowfullscreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title="{{ r.title }}"></iframe>
+        <iframe *ngIf="isGoogleDrive(r.videoUrl)"
+                [src]="getSafeUrl(r.videoUrl)" allow="autoplay" allowfullscreen
                 title="{{ r.title }}"></iframe>
         <div class="sr-card__play-overlay" [class.sr-card__play-overlay--active]="activeRecordingId === r._id">
           <i class="fa fa-circle-play"></i>
         </div>
+      </div>
+
+      <!-- Fallback link for Google Drive -->
+      <div class="sr-drive-fallback" *ngIf="isGoogleDrive(r.videoUrl)">
+        <a [href]="getGoogleDriveOpenUrl(r.videoUrl)" target="_blank" rel="noopener">
+          <i class="fa fa-external-link"></i> Can't see the video? Open in Google Drive
+        </a>
       </div>
 
       <!-- Card body -->

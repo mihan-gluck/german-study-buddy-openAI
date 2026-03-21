@@ -77,28 +77,73 @@ router.post('/import', verifyToken, checkRole(['ADMIN', 'TEACHER_ADMIN']), async
 });
 
 // GET /api/student-payments - Get all student payments (admin)
-// Only returns records linked to registered portal users
+// Returns records linked to registered portal users, combining invoice payments
 router.get('/', verifyToken, checkRole(['ADMIN', 'TEACHER_ADMIN']), async (req, res) => {
   try {
+    const Invoice = require('../models/Invoice');
+
     const payments = await StudentPayment.find({ studentId: { $ne: null } })
       .populate('studentId', 'name email regNo batch servicesOpted studentStatus')
       .populate('lastUpdatedBy', 'name')
+      .populate('payments.recordedBy', 'name')
       .sort({ studentName: 1 })
       .lean();
 
     // Filter out any where populate failed (user deleted)
     const valid = payments.filter(p => p.studentId);
 
-    // Enrich with user profile data
-    const enriched = valid.map(p => ({
-      ...p,
-      studentName: p.studentId.name || p.studentName,
-      email: p.studentId.email || p.email,
-      regNo: p.studentId.regNo || '',
-      batch: p.studentId.batch || p.batchNumber || '',
-      service: p.studentId.servicesOpted || p.serviceOpted || '',
-      studentStatus: p.studentId.studentStatus || ''
-    }));
+    // Fetch all paid invoices in one query for efficiency
+    const paidInvoices = await Invoice.find({ payment_status: 'paid' }).lean();
+
+    // Build maps: email -> total paid, email -> invoice list
+    const invoicePaidMap = {};
+    const invoiceListMap = {};
+    paidInvoices.forEach(inv => {
+      const email = (inv.customer_email || '').toLowerCase().trim();
+      if (!email) return;
+      if (!invoicePaidMap[email]) invoicePaidMap[email] = 0;
+      invoicePaidMap[email] += inv.total_payable || 0;
+      if (!invoiceListMap[email]) invoiceListMap[email] = [];
+      invoiceListMap[email].push({
+        amount: inv.total_payable || 0,
+        date: inv.payment_date || inv.invoice_date || inv.created_at,
+        method: 'Invoice',
+        note: inv.invoice_number || '',
+        source: 'invoice'
+      });
+    });
+
+    // Enrich with user profile data and combine invoice payments
+    const enriched = valid.map(p => {
+      const email = (p.studentId.email || p.email || '').toLowerCase().trim();
+      const invoicePaid = invoicePaidMap[email] || 0;
+      const livePaid = (p.totalPaid || 0) + invoicePaid;
+      const liveBalance = (p.totalPackageAmount || 0) - livePaid;
+
+      // Merge manual payments + invoice payments for history
+      const manualPayments = (p.payments || []).map(mp => ({
+        ...mp,
+        source: 'manual'
+      }));
+      const invoicePayments = invoiceListMap[email] || [];
+      const allPayments = [...manualPayments, ...invoicePayments].sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+
+      return {
+        ...p,
+        studentName: p.studentId.name || p.studentName,
+        email: p.studentId.email || p.email,
+        regNo: p.studentId.regNo || '',
+        batch: p.studentId.batch || p.batchNumber || '',
+        service: p.studentId.servicesOpted || p.serviceOpted || '',
+        studentStatus: p.studentId.studentStatus || '',
+        totalPaid: livePaid,
+        pendingPayment: liveBalance > 0 ? liveBalance : 0,
+        invoicePaidTotal: invoicePaid,
+        payments: allPayments
+      };
+    });
 
     // Compute summary stats
     let totalPackage = 0, totalPaid = 0, totalPending = 0;
@@ -143,6 +188,10 @@ router.get('/my', verifyToken, checkRole(['STUDENT']), async (req, res) => {
       .filter(i => i.payment_status === 'paid')
       .reduce((sum, inv) => sum + (inv.total_payable || 0), 0);
 
+    // Total invoiced = sum of ALL invoices (paid + unpaid)
+    const totalInvoicedAmount = invoices
+      .reduce((sum, inv) => sum + (inv.total_payable || 0), 0);
+
     let liveTotals = null;
     if (ledger) {
       const livePaid = ledger.totalPaid + invoicePaidTotal;
@@ -151,7 +200,8 @@ router.get('/my', verifyToken, checkRole(['STUDENT']), async (req, res) => {
         totalPackageAmount: ledger.totalPackageAmount,
         totalPaid: livePaid,
         pendingPayment: liveBalance > 0 ? liveBalance : 0,
-        currency: ledger.currency
+        currency: ledger.currency,
+        totalInvoiced: totalInvoicedAmount
       };
     }
 

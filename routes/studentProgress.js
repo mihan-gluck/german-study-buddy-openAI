@@ -16,9 +16,12 @@ async function buildDocumentsList(studentId, servicesOpted) {
   const studentService = servicesOpted || '';
   let docRequirements = [];
   if (studentService && studentService !== 'German Language Only') {
+    // Normalize service name for flexible matching (e.g. "Au Pair" vs "Au-pair")
+    const normalized = studentService.trim().replace(/[\s\-]+/g, '[\\s\\-]*');
+    const serviceRegex = new RegExp('^' + normalized + '$', 'i');
     docRequirements = await DocumentRequirement.find({
       active: true,
-      $or: [{ applicableServices: { $size: 0 } }, { applicableServices: studentService }]
+      $or: [{ applicableServices: { $size: 0 } }, { applicableServices: serviceRegex }]
     }).sort({ order: 1 }).lean();
   }
   const documents = docRequirements.map(r => {

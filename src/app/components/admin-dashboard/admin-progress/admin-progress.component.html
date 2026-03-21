@@ -229,7 +229,8 @@
           <div class="sp-card__head"><span class="sp-card__title">📁 Documents</span><span class="sp-card__meta">{{ jDocsSubmitted }} verified / {{ jDocuments.length }}</span></div>
           <div class="sp-bar sp-bar--lg"><div class="sp-bar__fill sp-bar__fill--yellow" [style.width.%]="jDocsPct"></div></div>
           <table class="sp-doc-table"><thead><tr><th>Document</th><th>Status</th></tr></thead><tbody>
-            <tr *ngFor="let doc of jDocuments"><td>{{ doc.name }}</td><td><span class="sp-doc-badge" [class.sp-doc-badge--ok]="doc.status === 'verified'" [class.sp-doc-badge--pending]="doc.status !== 'verified'">{{ doc.status === 'verified' ? '✓ Verified' : '○ Pending' }}</span></td></tr>
+            <tr *ngFor="let doc of $any(jDocuments | slice:0:6)"><td>{{ doc.name }}</td><td><span class="sp-doc-badge" [class.sp-doc-badge--ok]="doc.status === 'verified'" [class.sp-doc-badge--pending]="doc.status !== 'verified'">{{ doc.status === 'verified' ? '✓ Verified' : '○ Pending' }}</span></td></tr>
+            <tr *ngIf="jDocuments.length > 6"><td colspan="2" class="sp-doc-more">+ {{ jDocuments.length - 6 }} more documents</td></tr>
             <tr *ngIf="!jDocuments.length"><td colspan="2" class="sp-empty">No documents uploaded yet</td></tr>
           </tbody></table>
         </div>

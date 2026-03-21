@@ -144,7 +144,19 @@ async function fetchAttendanceForMeeting(meeting) {
     console.log(`  ✅ ${meeting.topic} — ${attended}/${attendanceData.length} attended`);
     return true;
   } catch (err) {
-    console.error(`  ❌ ${meeting.topic} — ${err.message}`);
+    // Track retry attempts — stop after 3 failures
+    const retries = (meeting.attendanceRetries || 0) + 1;
+    meeting.attendanceRetries = retries;
+
+    if (retries >= 3) {
+      meeting.attendanceRecorded = true; // Mark as done so we stop retrying
+      meeting.attendanceError = err.message;
+      console.error(`  ❌ ${meeting.topic} — Giving up after ${retries} attempts: ${err.message}`);
+    } else {
+      console.error(`  ❌ ${meeting.topic} — Attempt ${retries}/3 failed: ${err.message}`);
+    }
+
+    await meeting.save();
     return false;
   }
 }

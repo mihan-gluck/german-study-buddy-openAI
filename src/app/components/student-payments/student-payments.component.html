@@ -31,7 +31,7 @@
     <div class="sp-details" *ngIf="ledger.serviceOpted || ledger.batchNumber">
       <div class="sp-kv-row" *ngIf="ledger.serviceOpted"><span>Service</span><span class="sp-kv-val">{{ ledger.serviceOpted }}</span></div>
       <div class="sp-kv-row" *ngIf="ledger.batchNumber"><span>Batch</span><span class="sp-kv-val">{{ ledger.batchNumber }}</span></div>
-      <div class="sp-kv-row"><span>Total Invoiced</span><span class="sp-kv-val">{{ formatCurrency(ledger.totalInvoiced) }}</span></div>
+      <div class="sp-kv-row"><span>Total Invoiced</span><span class="sp-kv-val">{{ formatCurrency(liveTotals?.totalInvoiced ?? ledger.totalInvoiced) }}</span></div>
     </div>
   </div>
 

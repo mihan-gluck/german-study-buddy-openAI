@@ -27,4 +27,11 @@ const InvoiceSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
+InvoiceSchema.pre('save', function(next) {
+  if (!this.total_payable && this.subtotal) {
+    this.total_payable = (this.subtotal || 0) + (this.total_tax || 0);
+  }
+  next();
+});
+
 module.exports = mongoose.model('Invoice', InvoiceSchema);

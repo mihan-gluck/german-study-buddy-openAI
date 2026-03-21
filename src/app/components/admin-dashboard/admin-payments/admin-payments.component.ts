@@ -30,6 +30,10 @@ export class AdminPaymentsComponent implements OnInit {
   newPayment = { amount: 0, method: '', note: '' };
   saving = false;
 
+  // History modal
+  showHistoryModal = false;
+  historyPayment: any = null;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -130,6 +134,16 @@ export class AdminPaymentsComponent implements OnInit {
     this.filterBatch = '';
     this.filterCurrency = '';
     this.applyFilters();
+  }
+
+  openHistory(p: any): void {
+    this.historyPayment = p;
+    this.showHistoryModal = true;
+  }
+
+  closeHistory(): void {
+    this.showHistoryModal = false;
+    this.historyPayment = null;
   }
 
   openRecordPayment(p: any): void {
